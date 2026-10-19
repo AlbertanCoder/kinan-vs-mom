@@ -1,8 +1,8 @@
 KINAN vs. MOM — Birthday Remaster (online / installable build)
 ============================================================
 
-PLAY
-  Open index.html through any web server, or use the hosted URL.
+PLAY ONLINE
+  https://albertancoder.github.io/kinan-vs-mom/
 
 INSTALL ON IPHONE / IPAD
   1. Open the link in Safari.
