@@ -603,6 +603,10 @@ function bakeOutlined(rows, map, outline) {
 }
 const BULLY = recolor(KINAN, { g: 'R', m: 'q', c: 'q', y: 'q', h: 'd', s: 'S' });
 const NEIGH = recolor(DAD, { g: 'Q', b: 'F', d: 'Q' });
+/* the Lego Mega-Mech's face for story boxes (the mech itself is drawn with rectangles in drawBoss) */
+const MECH = ['..RRRRRRRRRRRR..', '..RRRRRRRRRRRR..', '.kQQQQQQQQQQQQk.', '.kQQwwwQQQwwwQk.', '.kQQwkwQQQwkwQk.', '.kQQwwwQQQwwwQk.',
+  '.kQQQQQVVQQQQQk.', '.kQQQQQQQQQQQQk.', '..kkkkkkkkkkkk..', 'kJJJJJJJJJJJJJJk', 'kJRRRRRRRRRRRRJk', 'kJRyRRRyRRRyRRJk',
+  'kJJJJJJJJJJJJJJk', 'kAAJJJJJJJJJJAAk', 'kAAJJJJJJJJJJAAk', '.kkkkkkkkkkkkkk.'];
 const SP = {
   kStand: bake(legs(KINAN, LEGS.stand, 'j')), kWalk: bake(legs(KINAN, LEGS.walk, 'j')),
   kJump: bake(legs(KINAN, LEGS.jump, 'j')), kFall: bake(legs(KINAN, LEGS.fall, 'j')),
@@ -618,6 +622,7 @@ SP.sStand = bake(legs(SHAD, LEGS.stand, 'n'));
 SP.sWalk = bake(legs(SHAD, LEGS.walk, 'n'));
 SP.sJump = bake(legs(SHAD, LEGS.jump, 'n'));
 SP.tStand = bake(legs(recolor(MOM, { H: 'Q', t: 'F', d: 'G', p: 'w' }), LEGS.stand, 'J'));
+SP.mechStand = bake(MECH);
 /* ---- the family pets: four cats, two dogs ---- */
 const PET_DEFS = [
   { id: 'cat1', kind: 'cat', label: 'Cat 1', perk: 'Double jump', color: '#d98a3d', shade: '#a85f22' },
@@ -1131,7 +1136,8 @@ function updHud() {
 let advance = null, toastTimer = 0;
 const PORTRAIT_SRC = {};
 function portraitFor(who) {
-  const key = { mum: 'mStand', mom: 'mStand', c: 'cStand', chenoa: 'cStand', d: 'dStand', dad: 'dStand', s: 'sStand', shad: 'sStand', k: 'kStand', kinan: 'kStand', n: 'nStand', b: 'bStand' }[who] || 'kStand';
+  /* 'm' is what every Mom stage uses (LV[i].boss.face) and 'mech' the Lego Mega-Mech; without them both wore Kinan's face */
+  const key = { m: 'mStand', mum: 'mStand', mom: 'mStand', c: 'cStand', chenoa: 'cStand', d: 'dStand', dad: 'dStand', s: 'sStand', shad: 'sStand', k: 'kStand', kinan: 'kStand', n: 'nStand', b: 'bStand', mech: 'mechStand' }[who] || 'kStand';
   if (!PORTRAIT_SRC[key]) PORTRAIT_SRC[key] = SP[key].toDataURL();
   return PORTRAIT_SRC[key];
 }
