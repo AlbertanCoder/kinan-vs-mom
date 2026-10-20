@@ -370,7 +370,8 @@ const el = {
 const AudioSys = {
   ctx: null, master: null, music: null, sfx: null, on: true, noiseBuf: null,
   init() {
-    if (this.ctx) { if (this.ctx.state === 'suspended') this.ctx.resume(); return; }
+    /* not just 'suspended': iPhone/iPad Safari reports 'interrupted' after an app switch or a call */
+    if (this.ctx) { if (this.ctx.state !== 'running') { const pr = this.ctx.resume(); if (pr && pr.catch) pr.catch(() => {}); } return; }
     const AC = window.AudioContext || window.webkitAudioContext;
     if (!AC) return;
     this.ctx = new AC();
@@ -3535,7 +3536,7 @@ $('#sheetX').addEventListener('click', closeSheet);
 $('#sheetOk').addEventListener('click', closeSheet);
 $('#sheet').addEventListener('click', (e) => { if (e.target.id === 'sheet') closeSheet(); });
 document.addEventListener('visibilitychange', () => {
-  if (!document.hidden && AudioSys.ctx && AudioSys.ctx.state === 'suspended') AudioSys.ctx.resume();
+  if (!document.hidden && AudioSys.ctx && AudioSys.ctx.state !== 'running') AudioSys.init();
 });
 
 /* ============================================================
@@ -3546,6 +3547,9 @@ function ensureAudio() {
   if (!running && !Music.name) Music.play('title');
 }
 window.addEventListener('pointerdown', ensureAudio, { passive: true });
+/* iPhone/iPad only let a finger-up or click start sound, so retry on those too */
+window.addEventListener('touchend', ensureAudio, { passive: true });
+window.addEventListener('click', ensureAudio);
 window.addEventListener('keydown', ensureAudio);
 
 bindPad();
