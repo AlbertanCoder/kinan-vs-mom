@@ -60,6 +60,7 @@ button{font:inherit;color:inherit;touch-action:manipulation}
 .candle-ico::after{content:"";position:absolute;left:0;bottom:2px;width:100%;height:2px;background:#e8364b;opacity:.85}
 .candle-ico::before{content:"";position:absolute;left:1px;top:-6px;width:5px;height:6px;border-radius:50% 50% 45% 45%;background:radial-gradient(circle at 50% 78%,#fffbe0 0%,#ffd35a 42%,#ff8a3d 68%,rgba(255,138,61,0) 72%)}
 .stage.bossmode .toast{top:52px}
+.stage.smashmode .toast{top:calc(12.5% + 4px)}   /* under the fighters' bar (30 of the picture's 240 rows) in Family Smash */
 .iconbtn{width:34px;height:30px;display:grid;place-items:center;background:#11132b;border:2px solid var(--panel2);border-radius:5px;cursor:pointer;font-size:14px;padding:0}
 .iconbtn:hover{background:var(--panel2)}
 .iconbtn[aria-pressed="false"]{color:var(--dim)}
@@ -256,7 +257,10 @@ h1.title .t2{display:block;font-size:clamp(24px,6.4vw,40px);color:var(--edge)}
   .pad button.pow:not(:disabled){opacity:.85}
   .pad button.held{opacity:.95}
   .keys,.rotatehint,.mobilefoot{display:none}
-  .dialog{font-size:13px;padding:5px 24px 5px 6px;min-height:40px}
+  .hud{font-size:clamp(12px,1.5vw,15px)}
+  .lvl{font-size:clamp(11px,1.3vw,14px)}
+  /* story boxes float above the button row so no button covers the words or the ▶ */
+  .dialog{font-size:clamp(13px,1.6vw,17px);padding:5px 24px 5px 6px;min-height:40px;bottom:calc(clamp(66px,10.5vmin,96px) + 8px)}
   .dialog .portrait{width:30px;height:34px}
   .toast{font-size:11.5px;padding:3px 8px}
   .combo{top:44px}
@@ -3828,7 +3832,7 @@ function startSmash(opts) {
   el.stageLbl.textContent = 'FAMILY SMASH · ' + ARENAS[arena].name.toUpperCase() + (smash.online ? ' · ROOM ' + NET.code : '');
   el.hearts.innerHTML = ''; el.cnt.hidden = true; el.scoreEl.hidden = true; el.petStat.hidden = true;
   el.comboEl.hidden = true; el.bossHud.hidden = true; el.pauseBtn.hidden = false;
-  el.stage.classList.remove('bossmode');
+  el.stage.classList.remove('bossmode'); el.stage.classList.add('smashmode');
   $('#saveBtn').hidden = true;
   $('#restartBtn').textContent = 'Rematch';
   $('#restartBtn').hidden = !!(smash.online && smash.online.role === 'client');
@@ -4114,9 +4118,10 @@ function drawSmashShots() {
   }
 }
 function drawSmashBar() {
-  const S = smash, n = S.fighters.length, cw = Math.floor(W / n), y0 = H - 30;
+  /* along the TOP: the see-through buttons sit over the bottom corners on phones and tablets */
+  const S = smash, n = S.fighters.length, cw = Math.floor(W / n), y0 = 0;
   ctx.fillStyle = 'rgba(10,11,24,.78)'; ctx.fillRect(0, y0, W, 30);
-  ctx.fillStyle = 'rgba(255,255,255,.12)'; ctx.fillRect(0, y0, W, 1);
+  ctx.fillStyle = 'rgba(255,255,255,.12)'; ctx.fillRect(0, y0 + 30, W, 1);
   const mine = myFighter();
   S.fighters.forEach((f, k) => {
     const x = k * cw, c = SMASH_CHARS[f.who];
@@ -4158,19 +4163,20 @@ function drawSmash() {
   if (S.state === 'countdown') {
     const n = Math.ceil(S.count / 50), label = n > 0 ? String(n) : 'FIGHT!';
     ctx.font = 'bold 30px "Pixelify Sans",monospace'; ctx.textAlign = 'center';
-    ctx.fillStyle = '#1b1220'; ctx.fillText(label, W / 2 + 2, 92);
-    ctx.fillStyle = '#f6c445'; ctx.fillText(label, W / 2, 90);
+    ctx.fillStyle = '#1b1220'; ctx.fillText(label, W / 2 + 2, 112);
+    ctx.fillStyle = '#f6c445'; ctx.fillText(label, W / 2, 110);
   } else if (S.state === 'over' && S.winner >= 0) {
     const name = S.fighters[S.winner].name.toUpperCase() + ' WINS!';
     ctx.font = 'bold 24px "Pixelify Sans",monospace'; ctx.textAlign = 'center';
-    ctx.fillStyle = '#1b1220'; ctx.fillText(name, W / 2 + 2, 92);
-    ctx.fillStyle = '#f6c445'; ctx.fillText(name, W / 2, 90);
+    ctx.fillStyle = '#1b1220'; ctx.fillText(name, W / 2 + 2, 112);
+    ctx.fillStyle = '#f6c445'; ctx.fillText(name, W / 2, 110);
   }
 }
 /* ---- screens ---- */
 function endSmash() {
   if (smash) lastSmash = smash;
   smash = null;
+  el.stage.classList.remove('smashmode');
   el.cnt.hidden = false; el.scoreEl.hidden = false;
   $('#saveBtn').hidden = false;
   $('#restartBtn').textContent = 'Restart stage'; $('#restartBtn').hidden = false;
