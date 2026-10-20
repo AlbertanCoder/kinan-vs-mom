@@ -6100,18 +6100,18 @@ const kAng = (a) => { a = (a + Math.PI) % (Math.PI * 2); if (a < 0) a += Math.PI
 /* one track per story world; beating that stage in the story unlocks it (the bedroom is free from the start).
    pts: the centre line, driven in this order; the start line is at the first point */
 const KART_TRACKS = [
-  { name: 'Bedroom Speedway', stage: 0, theme: 'bedroom', width: 124,
+  { name: 'Bedroom Speedway', stage: 0, theme: 'bedroom', width: 124, ramps: 1, movers: [['roomba', 2]],
     pts: [[380, 1180], [760, 1250], [1140, 1190], [1330, 990], [1340, 720], [1250, 480], [1050, 330], [780, 300], [520, 360], [330, 520], [300, 740], [370, 900], [300, 1050]] },
-  { name: 'Kitchen Counter Circuit', stage: 2, theme: 'kitchen', width: 118,
+  { name: 'Kitchen Counter Circuit', stage: 2, theme: 'kitchen', width: 116, ramps: 1, movers: [['orange', 3]],
     pts: [[300, 1250], [700, 1300], [1080, 1260], [1290, 1100], [1300, 900], [1130, 780], [880, 760], [720, 620], [700, 420], [560, 280], [340, 260], [220, 420], [220, 700], [240, 980]] },
-  { name: 'Lego City Loop', stage: 3, theme: 'lego', width: 116,
+  { name: 'Lego City Loop', stage: 3, theme: 'lego', width: 112, ramps: 2, movers: [['brick', 3]],
     pts: [[300, 1240], [800, 1260], [1230, 1240], [1250, 975], [980, 975], [960, 660], [1260, 640], [1260, 360], [900, 300], [560, 320], [560, 620], [300, 640], [280, 900]] },
-  { name: 'Saskatoon Snow Run', stage: 5, theme: 'snow', width: 126,
-    pts: [[260, 1180], [700, 1280], [1150, 1260], [1330, 1080], [1300, 820], [1100, 700], [1150, 480], [1320, 300], [1000, 220], [640, 260], [420, 420], [460, 640], [280, 820]] },
-  { name: 'Playground Dash', stage: 7, theme: 'playground', width: 116,
-    pts: [[320, 1260], [620, 1180], [880, 1270], [1180, 1220], [1300, 1000], [1150, 820], [1320, 640], [1250, 400], [980, 300], [760, 420], [560, 300], [330, 380], [260, 620], [420, 800], [260, 1000]] },
-  { name: 'Birthday Cake Volcano', stage: 10, theme: 'cake', width: 116,
-    pts: [[300, 1230], [700, 1300], [1100, 1260], [1320, 1080], [1260, 840], [1000, 820], [820, 980], [620, 960], [600, 760], [760, 600], [1060, 520], [1300, 460], [1260, 240], [900, 200], [540, 240], [300, 400], [240, 700], [300, 960]] }
+  { name: 'Saskatoon Snow Run', stage: 5, theme: 'snow', width: 110, ramps: 2, ice: [[0.29, 0.06], [0.69, 0.05]], movers: [['plow', 1]],
+    pts: [[240, 1300], [700, 1330], [1150, 1300], [1330, 1150], [1300, 950], [1060, 905], [760, 965], [560, 845], [560, 640], [850, 590], [1150, 620], [1340, 520], [1300, 300], [1000, 220], [650, 260], [380, 220], [220, 420], [250, 700], [290, 960], [240, 1150]] },
+  { name: 'Playground Dash', stage: 7, theme: 'playground', width: 104, size: 2048, ramps: 2, movers: [['ball', 4]],
+    pts: [[300, 1800], [800, 1850], [1300, 1800], [1700, 1820], [1880, 1600], [1700, 1420], [1300, 1460], [1000, 1360], [1200, 1170], [1550, 1150], [1820, 1000], [1800, 700], [1550, 560], [1200, 640], [950, 520], [1050, 300], [700, 220], [380, 300], [250, 550], [420, 760], [650, 900], [500, 1100], [260, 1250], [240, 1550]] },
+  { name: 'Birthday Cake Volcano', stage: 10, theme: 'cake', width: 100, size: 2048, ramps: 3, movers: [['gumdrop', 3], ['geyser', 3]],
+    pts: [[300, 1850], [900, 1880], [1500, 1850], [1800, 1700], [1820, 1450], [1600, 1330], [1150, 1360], [850, 1300], [700, 1150], [820, 1000], [1150, 980], [1500, 1000], [1780, 900], [1800, 650], [1600, 520], [1300, 560], [1050, 480], [980, 300], [750, 220], [450, 260], [260, 420], [240, 750], [380, 950], [300, 1150], [220, 1400], [240, 1650]] }
 ];
 function trackUnlocked(i) { const t = KART_TRACKS[i]; return !!t && (t.stage === 0 || !!progress.won || progress.beaten.indexOf(t.stage) >= 0); }
 function newestTrack() { let b = 0; KART_TRACKS.forEach((t, i) => { if (trackUnlocked(i)) b = i; }); return b; }
@@ -6211,12 +6211,23 @@ function kartGround(x, th, size, rnd) {
     if (th.gkind === 'choc') for (let k = 0; k < 60; k++) { x.fillStyle = g[3]; x.beginPath(); x.ellipse(rnd() * size, rnd() * size, 16 + rnd() * 40, 10 + rnd() * 26, rnd() * 3, 0, 6.284); x.fill(); }
   }
 }
+function kartStraightSpots(tr, n) {
+  const path = kartPath(tr), L = path.len, out = [], avoid = [0, 0.24, 0.62, 0.42, 0.78].map((f) => f * L);
+  const bend = (s) => Math.abs(kAng(kartPointAt(path, s + 90, 0).a - kartPointAt(path, s - 90, 0).a));
+  const cands = [];
+  for (let s = 0; s < L; s += 40) cands.push({ s: s, b: bend(s) });
+  cands.sort((a, b) => a.b - b.b);
+  const apart = Math.max(260, L / (n + 1) * 0.7);   /* ramps spread around the lap */
+  for (const c of cands) { if (out.length >= n) break; if (avoid.some((v) => Math.abs(kWrap(c.s - v, L)) < 260) || out.some((v) => Math.abs(kWrap(c.s - v, L)) < apart)) continue; out.push(c.s); }
+  return out;
+}
 /* paint the whole track picture once per race: ground, wall, edges, road, start line, boost arrows */
 function kartPaint(tr) {
+  const KS = tr.size || KTW;
   const th = KART_THEMES[tr.theme], path = kartPath(tr), P = path.P, rnd = kSeed(tr.name.length * 7919 + 17);
-  const c = document.createElement('canvas'); c.width = c.height = KTW;
+  const c = document.createElement('canvas'); c.width = c.height = KS;
   const x = c.getContext('2d', { willReadFrequently: true });
-  kartGround(x, th, KTW, rnd);
+  kartGround(x, th, KS, rnd);
   const line = () => { x.beginPath(); P.forEach((p, i) => (i ? x.lineTo(p.x, p.y) : x.moveTo(p.x, p.y))); x.closePath(); };
   x.lineJoin = 'round'; x.lineCap = 'round';
   const wr = tr.width / 2 + KART_OFF;
@@ -6226,8 +6237,8 @@ function kartPaint(tr) {
   x.setLineDash([]);
   /* the slow ground between the wall and the road is the world's own ground */
   x.save(); line(); x.lineWidth = wr * 2; x.strokeStyle = '#000'; x.globalCompositeOperation = 'destination-out'; x.stroke(); x.restore();
-  const under = document.createElement('canvas'); under.width = under.height = KTW;
-  const ux = under.getContext('2d'); kartGround(ux, th, KTW, kSeed(tr.name.length * 7919 + 17));
+  const under = document.createElement('canvas'); under.width = under.height = KS;
+  const ux = under.getContext('2d'); kartGround(ux, th, KS, kSeed(tr.name.length * 7919 + 17));
   x.save(); x.globalCompositeOperation = 'destination-over'; x.drawImage(under, 0, 0); x.restore();
   /* the curbs, then the road with a speckled surface */
   line(); x.lineWidth = tr.width + 12; x.strokeStyle = th.curb[0]; x.stroke();
@@ -6254,18 +6265,34 @@ function kartPaint(tr) {
     for (let k = 0; k < 3; k++) { x.beginPath(); x.moveTo(-14 + k * 11, -16); x.lineTo(-4 + k * 11, 0); x.lineTo(-14 + k * 11, 16); x.lineTo(-9 + k * 11, 16); x.lineTo(1 + k * 11, 0); x.lineTo(-9 + k * 11, -16); x.fill(); }
     x.restore();
   });
+  /* ramps: yellow and black stripes across the road with arrows; drive over one for a jump */
+  tr._ramps = kartStraightSpots(tr, tr.ramps || 0).map((sv) => ({ s: sv }));
+  tr._ramps.forEach((r) => {
+    const q = kartPointAt(path, r.s, 0);
+    x.save(); x.translate(q.x, q.y); x.rotate(q.a);
+    for (let k = 0; k * 12 < tr.width; k++) { x.fillStyle = k % 2 ? '#f6c445' : '#1b1220'; x.fillRect(-15, -tr.width / 2 + k * 12, 30, 12); }
+    x.fillStyle = 'rgba(255,255,255,.9)';
+    for (let k = -1; k <= 1; k++) { x.beginPath(); x.moveTo(-9, k * 28 - 9); x.lineTo(7, k * 28); x.lineTo(-9, k * 28 + 9); x.fill(); }
+    x.restore();
+  });
+  /* ice on the snow track: slippery, hard to turn on */
+  tr._ice = (tr.ice || []).map((f) => ({ s: path.len * f[0], len: path.len * f[1] }));
+  tr._ice.forEach((zn) => {
+    for (let d = 0; d < zn.len; d += 5) { const q = kartPointAt(path, zn.s + d, 0); x.fillStyle = 'rgba(200,232,255,.5)'; x.beginPath(); x.ellipse(q.x, q.y, tr.width * 0.47, 8, q.a + Math.PI / 2, 0, 6.284); x.fill(); }
+    for (let d = 0; d < zn.len; d += 9) { const q = kartPointAt(path, zn.s + d, (rnd() - 0.5) * tr.width * 0.8); x.fillStyle = '#ffffff'; x.fillRect(q.x, q.y, 2, 2); }
+  });
   /* read it back once: the full picture, a half-size copy for far away (less shimmer), and a corner of plain ground for outside */
-  const data = x.getImageData(0, 0, KTW, KTW);
+  const data = x.getImageData(0, 0, KS, KS);
   const full = new Uint32Array(data.data.buffer);
-  const HW = KTW / 2, half = new Uint32Array(HW * HW), b8 = data.data;
+  const HW = KS / 2, half = new Uint32Array(HW * HW), b8 = data.data;
   for (let yy = 0; yy < HW; yy++) for (let xx = 0; xx < HW; xx++) {
-    const i0 = ((yy * 2) * KTW + xx * 2) * 4, i1 = i0 + 4, i2 = i0 + KTW * 4, i3 = i2 + 4;
+    const i0 = ((yy * 2) * KS + xx * 2) * 4, i1 = i0 + 4, i2 = i0 + KS * 4, i3 = i2 + 4;
     half[yy * HW + xx] = (255 << 24) | (((b8[i0 + 2] + b8[i1 + 2] + b8[i2 + 2] + b8[i3 + 2]) >> 2) << 16) | (((b8[i0 + 1] + b8[i1 + 1] + b8[i2 + 1] + b8[i3 + 1]) >> 2) << 8) | ((b8[i0] + b8[i1] + b8[i2] + b8[i3]) >> 2);
   }
   const og = document.createElement('canvas'); og.width = og.height = 64;
   const ogx = og.getContext('2d', { willReadFrequently: true }); kartGround(ogx, th, 64, kSeed(3));
   const out = new Uint32Array(ogx.getImageData(0, 0, 64, 64).data.buffer);
-  return { full: full, half: half, out: out, canvas: c };
+  return { full: full, half: half, out: out, canvas: c, size: KS };
 }
 /* ---- the view on the horizon: one strip that wraps all the way around (turning 360 degrees scrolls it once) ---- */
 const KSKY_W = 1680;
@@ -6381,6 +6408,18 @@ const KDECO = {
   candle: { w: 12, h: 42, draw(x) { x.fillStyle = pick(['#ff6fae', '#6fc8ff', '#f6c445', '#5be37a']); x.fillRect(2, 12, 8, 30); x.fillStyle = 'rgba(255,255,255,.6)'; for (let k = 0; k < 4; k++) x.fillRect(2, 15 + k * 7, 8, 2); x.fillStyle = '#1b1220'; x.fillRect(5, 8, 2, 4); x.fillStyle = '#ffb02e'; x.beginPath(); x.ellipse(6, 5, 3.5, 5, 0, 0, 6.284); x.fill(); x.fillStyle = '#fff3b0'; x.beginPath(); x.ellipse(6, 6, 1.6, 2.6, 0, 0, 6.284); x.fill(); } },
   gumdrop: { w: 16, h: 14, draw(x) { x.fillStyle = pick(['#e8364b', '#5be37a', '#f6c445', '#a15be3']); x.beginPath(); x.arc(8, 12, 8, Math.PI, 0); x.fill(); x.fillRect(0, 11, 16, 3); x.fillStyle = 'rgba(255,255,255,.75)'; for (let k = 0; k < 6; k++) x.fillRect(3 + (k * 5) % 11, 5 + (k * 3) % 7, 1, 1); } }
 };
+Object.assign(KDECO, {
+  roomba: { w: 20, h: 8, draw(x) { x.fillStyle = '#2b2f45'; x.beginPath(); x.ellipse(10, 5, 10, 3.5, 0, 0, 6.284); x.fill(); x.fillStyle = '#5a5f78'; x.beginPath(); x.ellipse(10, 3.5, 8, 2.6, 0, 0, 6.284); x.fill(); x.fillStyle = '#6fe3ff'; x.fillRect(9, 2, 3, 1); } },
+  orange: { w: 12, h: 12, draw(x) { x.fillStyle = '#ff8a3d'; x.beginPath(); x.arc(6, 7, 5.5, 0, 6.284); x.fill(); x.fillStyle = 'rgba(255,255,255,.45)'; x.fillRect(3, 4, 2, 2); x.fillStyle = '#3f9a4a'; x.fillRect(6, 0, 3, 2); } },
+  ball2: { w: 12, h: 12, draw(x) { x.fillStyle = '#e8762c'; x.beginPath(); x.arc(6, 6, 6, 0, 6.284); x.fill(); x.strokeStyle = '#1b1220'; x.lineWidth = 0.8; x.beginPath(); x.moveTo(0, 6); x.lineTo(12, 6); x.moveTo(6, 0); x.lineTo(6, 12); x.stroke(); } },
+  plow: { w: 44, h: 26, draw(x) { x.fillStyle = '#ff8a3d'; x.fillRect(8, 6, 28, 14); x.fillStyle = '#1e2a40'; x.fillRect(22, 8, 12, 6); x.fillStyle = '#f6c445'; x.fillRect(0, 12, 10, 12); x.fillRect(34, 12, 10, 12); x.fillStyle = '#c99a1e'; x.fillRect(0, 22, 44, 3); x.fillStyle = '#24252b'; x.beginPath(); x.arc(14, 22, 4, 0, 6.284); x.arc(30, 22, 4, 0, 6.284); x.fill(); x.fillStyle = '#ffb02e'; x.fillRect(18, 3, 6, 3); } },
+  geyser: { w: 26, h: 14, draw(x) { x.fillStyle = '#7a4a32'; x.beginPath(); x.moveTo(0, 14); x.lineTo(9, 3); x.lineTo(17, 3); x.lineTo(26, 14); x.fill(); x.fillStyle = '#ffc1d9'; x.fillRect(9, 2, 8, 3); x.fillRect(7, 5, 3, 3); x.fillRect(16, 5, 3, 4); } }
+});
+const KMOVER = {
+  roomba: { r: 10, h: 8, img: 'roomba', sp: 0.016 }, orange: { r: 7, h: 12, img: 'orange', sp: 0.022, roll: true }, brick: { r: 9, h: 10, img: 'lego', sp: 0.018 },
+  ball: { r: 7, h: 14, img: 'ball2', sp: 0.02, bounce: 22 }, gumdrop: { r: 7, h: 10, img: 'gumdrop', sp: 0.02 },
+  plow: { r: 20, h: 22, img: 'plow', along: 1.25, push: true }, geyser: { r: 0, h: 0, img: 'geyser', geyser: true }
+};
 const KDECO_PX = 3;   /* sprite pixels per world unit */
 function kartDecoSprite(kind) {
   const d = KDECO[kind], c = document.createElement('canvas');
@@ -6404,7 +6443,7 @@ function kartDecor(tr) {
   /* out past the wall, wherever no road is close */
   const P = path.P;
   for (let k = 0; k < 160 && out.length < 90; k++) {
-    const px = 60 + rnd() * (KTW - 120), py = 60 + rnd() * (KTW - 120);
+    const KS = tr.size || KTW, px = 60 + rnd() * (KS - 120), py = 60 + rnd() * (KS - 120);
     let near = Infinity;
     for (let i = 0; i < P.length; i += 3) near = Math.min(near, Math.hypot(P[i].x - px, P[i].y - py));
     if (near < wr + 40) continue;
@@ -6655,7 +6694,7 @@ function makeKart(who, slot, opts) {
     idx: -1, s: 0, lat: 0, ta: 0, prog: 0, lap: 1, done: false, finishT: 0, place: slot + 1,
     candles: 0, got: 0, item: null, roulette: 0, cpu: false, auto: false, skill: 1, rb: 1, lane: 0, itemT: 0, wrongT: 0,
     input: { left: false, right: false, jump: false, jumpBuf: 0, fireBuf: 0, down: false, specBuf: 0, steer: null },
-    st: 0, meter: 0, itemN: 0, vacT: 0, slamT: 0, assist: false,
+    st: 0, meter: 0, itemN: 0, vacT: 0, slamT: 0, assist: false, air: false, trick: false, trickA: 0,
     r: Math.max(rs.wid * 0.5, rs.len * 0.3), len: rs.len, camD: 66 + rs.len * 0.45, peer: null
   }, opts || {});
 }
@@ -6698,6 +6737,12 @@ function startKart(opts) {
   const n = kart.karts.length;
   kart.karts.forEach((k, i) => kartGrid(k, opts.online ? i : n - 1 - i));
   /* gift boxes in two rows, candles in little lines */
+  /* things that move: across the road and back, a snowplow driving along it, frosting geysers by the road */
+  kart.movers = [];
+  (tr.movers || []).forEach((m, j) => { for (let n = 0; n < m[1]; n++) {
+    const sv = path.len * (((0.17 + j * 0.13 + n * (0.83 / m[1])) % 0.92) + 0.04), def = KMOVER[m[0]];
+    kart.movers.push({ kind: m[0], s0: sv, s: sv, lat: 0, ph: n * 1.9 + j * 0.7, x: 0, y: 0, z: 0, a: 0, side: n % 2 ? 1 : -1, img: kartDecoSprite(def.img), erupt: 0, hz: null });
+  } });
   [0.24, 0.62].forEach((f) => [-0.33, -0.11, 0.11, 0.33].forEach((l) => { const q = kartPointAt(path, path.len * f, l * tr.width); kart.boxes.push({ x: q.x, y: q.y, t: 0 }); }));
   [0.12, 0.33, 0.52, 0.88].forEach((f, j) => { for (let c = 0; c < 5; c++) { const q = kartPointAt(path, path.len * f + c * 24, Math.sin(c * 0.9 + j) * tr.width * 0.24); kart.cands.push({ x: q.x, y: q.y, t: 0 }); } });
   kartCamera(true);
@@ -6771,6 +6816,7 @@ function kartUpdate() {
   kartCollide();
   kartPickups();
   kartVacStep();
+  kartMoversStep();
   kartShotsStep();
   kartPlaces();
   kartCamera(false);
@@ -6800,12 +6846,16 @@ function kartStep(k) {
   const steer = k.st, steerDir = Math.abs(steer) > 0.35 ? Math.sign(steer) : 0;
   /* hop; landing from a hop while turning starts a drift */
   if (inp.jumpBuf > 0) inp.jumpBuf--;
+  /* off a ramp: tap HOP in the air for a trick, and land it for a boost */
+  if (k.air && k.z > 0 && inp.jumpBuf > 0 && !k.trick) { k.trick = true; k.trickA = 0.01; inp.jumpBuf = 0; if (k === kartMe()) SFX.djump(); }
+  if (k.trickA) { k.trickA += 0.34; if (k.trickA >= 6.283) k.trickA = 0; }
   if (inp.jumpBuf > 0 && k.z <= 0 && racing && !k.spinT) { k.vz = 2.3; k.z = 0.01; inp.jumpBuf = 0; if (k === kartMe()) SFX.jump(); }
   if (k.z > 0 || k.vz > 0) {
     k.vz -= 0.3; k.z += k.vz;
     if (k.z <= 0) {
       k.z = 0; k.vz = 0;
       if (k.slamT) kartSlamLand(k);
+      if (k.air) { k.air = false; if (k.trick) { k.trick = false; k.trickA = 0; k.boostT = Math.max(k.boostT, 50); kartBoostFx(k); kart.floats.push({ x: k.x, y: k.y, z: 26, text: 'TRICK!', t: 45, col: '#6fc8ff' }); } }
       if (inp.jump && steerDir && k.v > 1.6 && !k.drift) { k.drift = steerDir; k.driftT = 0; }
     }
   }
@@ -6823,7 +6873,7 @@ function kartStep(k) {
   let top = d.top * (1 + 0.01 * Math.min(10, k.candles)) * k.rb * (k.brake || 1);
   if (k.boostT > 0) { k.boostT--; top *= 1.45; }
   if (k.starT > 0) { k.starT--; top *= 1.22; }
-  const off = Math.abs(k.lat) > tr.width / 2 + 3;
+  const off = Math.abs(k.lat) > tr.width / 2 + 3 && k.z <= 0;
   if (off && k.boostT <= 0 && k.starT <= 0) { top *= 0.55; if (k.v > 1 && K.t % 3 === 0) kartDust(k); }
   if (k.spinT > 0) { k.spinT--; top *= 0.25; k.spinA += 0.42; } else k.spinA = 0;
   if (!racing) top = 0;
@@ -6835,6 +6885,7 @@ function kartStep(k) {
   if (k.drift) turn = d.grip * (k.drift * 1.05 + steer * 0.5);
   if (k.z > 0) turn *= 0.7;
   if (k.spinT > 0) turn = 0;
+  for (const zn of tr._ice || []) { const d = kWrap(k.s - zn.s, path.len); if (d >= 0 && d < zn.len && k.z <= 0 && Math.abs(k.lat) < tr.width / 2) { turn *= 0.5; break; } }
   k.a = kAng(k.a + turn * (k.v < 0 ? -1 : 1));
   /* steering help (on unless turned off): when you are not steering hard, the ride gently follows the road */
   if (k.assist && !k.spinT && !k.drift && k.v > 0.5) {
@@ -6865,6 +6916,12 @@ function kartStep(k) {
       if (K.t - k.bumpT > 12) { if (k.v > 1.4 && k === kartMe()) SFX.thud(); k.v *= 0.6; } else k.v *= 0.98;
       k.bumpT = K.t;
     }
+  }
+  /* ramps */
+  for (const r of tr._ramps || []) if (Math.abs(kWrap(k.s - r.s, path.len)) < 14 && k.z <= 0 && k.v > 1.8 && Math.abs(k.lat) < tr.width / 2) {
+    k.vz = 2.2 + k.v * 0.35; k.z = 0.01; k.air = true; k.trick = false;
+    if (k.cpu && Math.random() < 0.5) { k.trick = true; k.trickA = 0.01; }
+    if (k === kartMe()) SFX.spring();
   }
   /* boost arrows */
   for (const b of tr._boosts) if (Math.abs(kWrap(k.s - b.s, path.len)) < 20 && Math.abs(k.lat - b.lat) < 24 && k.z <= 0) { if (k.boostT < 20 && k === kartMe()) SFX.spring(); k.boostT = Math.max(k.boostT, 45); }
@@ -6961,6 +7018,33 @@ function kartSpecial(k) {
     });
     if (mine) SFX.pew();
   } else if (k.who === 'dad') { k.vacT = 140; if (mine) AudioSys.noise(1.6, { filter: 'lowpass', freq: 500, vol: 0.14 }); if (K.online) kartNetEvent('vac', { s: k.slot }); }
+}
+function kartMoversStep() {
+  const K = kart, path = K.path, tr = K.track, t = K.raceT;
+  for (const m of K.movers || []) {
+    const def = KMOVER[m.kind];
+    if (def.along) { m.s = (m.s0 + t * def.along) % path.len; m.lat = Math.sin(t * 0.012 + m.ph) * tr.width * 0.18; }
+    else if (def.geyser) m.lat = m.side * (tr.width / 2 + 22);
+    else m.lat = Math.sin(t * def.sp + m.ph) * (tr.width / 2 - def.r - 4);
+    const q = kartPointAt(path, m.s, m.lat); m.x = q.x; m.y = q.y; m.a = q.a;
+    m.z = def.bounce ? Math.abs(Math.sin(t * 0.08 + m.ph)) * def.bounce : 0;
+    if (def.geyser) {   /* every few seconds it erupts and a sticky splat lands on the road */
+      if (K.state === 'race' && (t + Math.round(m.ph * 60)) % 330 === 0) {
+        m.erupt++;
+        for (let n = 0; n < 22; n++) K.parts.push({ x: m.x, y: m.y, z: 6, vx: rand(-1.2, 1.2), vy: rand(-1.2, 1.2), vz: rand(2, 4), life: 46, col: pick(['#ffc1d9', '#ff9cc6', '#ffffff']), sz: 3 });
+        if (!m.hz || m.hz.hit) { const hq = kartPointAt(path, m.s, Math.sin(m.ph * 7 + m.erupt) * tr.width * 0.3); m.hz = { kind: 'frosting', x: Math.round(hq.x), y: Math.round(hq.y), owner: -1, age: 0 }; K.hazards.push(m.hz); }
+      }
+      continue;
+    }
+    for (const k of K.karts) {
+      if (k.remote || k.starT > 0 || Math.abs(k.z - m.z) > def.h || Math.hypot(k.x - m.x, k.y - m.y) > k.r + def.r) continue;
+      if (def.push) {   /* the snowplow: you bounce off it, slowed right down */
+        const dx = k.x - m.x, dy = k.y - m.y, dd = Math.hypot(dx, dy) || 1;
+        k.x = m.x + dx / dd * (k.r + def.r); k.y = m.y + dy / dd * (k.r + def.r); k.v *= 0.55;
+        if (K.t - k.bumpT > 20) { k.bumpT = K.t; if (k === kartMe()) SFX.thud(); }
+      } else if (!k.spinT) kartSpin(k, null);
+    }
+  }
 }
 /* Shad's slam lands: everyone close by spins out */
 function kartSlamLand(k) {
@@ -7112,7 +7196,7 @@ function kartFloor() {
     const x = cv.getContext('2d'), img = x.createImageData(W, rows);
     kBuf = { cv: cv, x: x, img: img, u32: new Uint32Array(img.data.buffer), w: W, h: rows };
   }
-  const buf = kBuf.u32, full = K.tex.full, half = K.tex.half, out = K.tex.out, HW = KTW >> 1;
+  const buf = kBuf.u32, full = K.tex.full, half = K.tex.half, out = K.tex.out, TW = K.tex.size, HW = TW >> 1;
   const ca = Math.cos(c.a), sa = Math.sin(c.a);
   for (let r = 0; r < rows; r++) {
     const z = c.h * f / (r + 0.5), step = z / f;
@@ -7122,13 +7206,13 @@ function kartFloor() {
     if (step < 1.4) {
       for (let px = 0; px < W; px++) {
         const ix = wx | 0, iy = wy | 0;
-        buf[o++] = (wx >= 0 && wy >= 0 && ix < KTW && iy < KTW) ? full[iy * KTW + ix] : out[((iy & 63) << 6) | (ix & 63)];
+        buf[o++] = (wx >= 0 && wy >= 0 && ix < TW && iy < TW) ? full[iy * TW + ix] : out[((iy & 63) << 6) | (ix & 63)];
         wx += dx; wy += dy;
       }
     } else {   /* far away: the half-size picture, so the floor does not shimmer */
       for (let px = 0; px < W; px++) {
         const ix = wx | 0, iy = wy | 0;
-        buf[o++] = (wx >= 0 && wy >= 0 && ix < KTW && iy < KTW) ? half[(iy >> 1) * HW + (ix >> 1)] : out[((iy & 63) << 6) | (ix & 63)];
+        buf[o++] = (wx >= 0 && wy >= 0 && ix < TW && iy < TW) ? half[(iy >> 1) * HW + (ix >> 1)] : out[((iy & 63) << 6) | (ix & 63)];
         wx += dx; wy += dy;
       }
     }
@@ -7168,6 +7252,7 @@ function drawKartScene() {
   for (const b of K.boxes) if (!b.t) { const p = kProj(b.x, b.y, 6 + Math.sin((K.t + b.x) / 9) * 2); if (p && p.d < 900) list.push({ p: p, o: b, t: 'box' }); }
   for (const c of K.cands) if (!c.t) { const p = kProj(c.x, c.y, 3); if (p && p.d < 700) list.push({ p: p, o: c, t: 'cand' }); }
   for (const h of K.hazards) { const p = kProj(h.x, h.y, 0); if (p && p.d < 900) list.push({ p: p, o: h, t: 'hz' }); }
+  for (const m of K.movers || []) { const p = kProj(m.x, m.y, m.z); if (p && p.d < 1100 && p.x > -80 && p.x < W + 80) list.push({ p: p, o: m, t: 'mov' }); }
   for (const s of K.shots) { const p = kProj(s.x, s.y, 7); if (p) list.push({ p: p, o: s, t: 'shot' }); }
   for (const k of K.karts) { const p = kProj(k.x, k.y, 0); if (p && p.x > -140 && p.x < W + 140) list.push({ p: p, o: k, t: 'kart' }); }
   list.sort((a, b) => b.p.d - a.p.d);
@@ -7176,6 +7261,13 @@ function drawKartScene() {
     if (it.t === 'deco') {
       const img = o.img, sc = p.s / KDECO_PX * (o.big || 1);
       ctx.drawImage(img, Math.round(p.x - img.width * sc / 2), Math.round(p.y - img.height * sc), Math.max(1, Math.round(img.width * sc)), Math.max(1, Math.round(img.height * sc)));
+    } else if (it.t === 'mov') {
+      const img = o.img, sc = p.s / KDECO_PX, gp = kProj(o.x, o.y, 0);
+      if (gp && o.kind !== 'geyser') { ctx.fillStyle = 'rgba(0,0,0,.25)'; ctx.beginPath(); ctx.ellipse(gp.x, gp.y, img.width * sc * 0.4, img.width * sc * 0.12, 0, 0, 6.284); ctx.fill(); }
+      ctx.save(); ctx.translate(Math.round(p.x), Math.round(p.y));
+      if (KMOVER[o.kind].roll) ctx.rotate(kart.raceT * 0.15 * o.side);
+      ctx.drawImage(img, Math.round(-img.width * sc / 2), Math.round(-img.height * sc), Math.max(1, Math.round(img.width * sc)), Math.max(1, Math.round(img.height * sc)));
+      ctx.restore();
     } else if (it.t === 'box') {
       const img = kartGiftSprite()[Math.floor((K.t + o.x) / 12) % 2], sc = p.s * 14 / 42;
       ctx.fillStyle = 'rgba(0,0,0,.22)'; ctx.beginPath(); ctx.ellipse(p.x, p.y + 6 * p.s, 7 * p.s, 2.4 * p.s, 0, 0, 6.284); ctx.fill();
@@ -7216,7 +7308,7 @@ function drawKartScene() {
 }
 function drawKartRide(k, p) {
   const rs = kartRideSprites(k.who), c = kart.cam;
-  const rel = kAng(k.a + k.spinA - Math.atan2(k.y - c.y, k.x - c.x));
+  const rel = kAng(k.a + k.spinA + (k.trickA || 0) - Math.atan2(k.y - c.y, k.x - c.x));
   const fi = ((Math.round(rel / (Math.PI / 8)) % 16) + 16) % 16, img = rs.frames[fi], sc = p.s * KVOX / KV_S;
   ctx.fillStyle = 'rgba(0,0,0,.28)'; ctx.beginPath(); ctx.ellipse(p.x, p.y, k.r * p.s * 0.95, k.r * p.s * 0.34, 0, 0, 6.284); ctx.fill();
   if (k.starT > 0) glowDisc(p.x, p.y - 8 * p.s, 26 * p.s, ['rgba(255,111,174,.8)', 'rgba(246,196,69,.8)', 'rgba(111,200,255,.8)'][Math.floor(kart.t / 4) % 3], 0.8);
@@ -7784,7 +7876,8 @@ window.__k11 = {
     state: () => (kart ? { t: kart.t, state: kart.state, count: kart.count, raceT: kart.raceT, track: kart.ti, me: kart.me, online: kart.online, len: Math.round(kart.path.len),
       karts: kart.karts.map((k) => ({ slot: k.slot, who: k.who, name: k.name, x: Math.round(k.x), y: Math.round(k.y), a: Math.round(k.a * 100) / 100, v: Math.round(k.v * 100) / 100, z: Math.round(k.z * 10) / 10,
         lap: k.lap, prog: Math.round(k.prog), place: k.place, done: k.done, finishT: k.finishT, item: k.item, roulette: k.roulette, candles: k.candles, got: k.got, spin: k.spinT, boost: k.boostT, star: k.starT,
-        drift: k.drift, driftT: k.driftT, lat: Math.round(k.lat), cpu: !!k.cpu, remote: !!k.remote, peer: k.peer, auto: !!k.auto, meter: k.meter, itemN: k.itemN, vacT: k.vacT, st: Math.round(k.st * 100) / 100, assist: k.assist })),
+        drift: k.drift, driftT: k.driftT, air: !!k.air, trick: !!k.trick, lat: Math.round(k.lat), cpu: !!k.cpu, remote: !!k.remote, peer: k.peer, auto: !!k.auto, meter: k.meter, itemN: k.itemN, vacT: k.vacT, st: Math.round(k.st * 100) / 100, assist: k.assist })),
+      ramps: (kart.track._ramps || []).map((r) => Math.round(r.s)), movers: (kart.movers || []).map((m) => [m.kind, Math.round(m.x), Math.round(m.y), Math.round(m.z)]),
       shots: kart.shots.map((s) => s.kind), hazards: kart.hazards.length, boxes: kart.boxes.filter((b) => !b.t).length, endT: kart.endT, seen: kart.netSeen } : null),
     autopilot: (on) => { window.__kartAuto = !!on; },
     give: (item) => { const k = kartMe(); if (k) { k.item = item; k.itemN = item === 'cake3' ? 3 : 1; k.roulette = 0; } return !!k; },
