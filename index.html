@@ -2607,7 +2607,7 @@ function drawProps(th) {
       ctx.fillStyle = '#f6c445'; ctx.fillRect(sx + 3, sy + 8 + bob, 2, 2); ctx.fillRect(sx + 8, sy + 8 + bob, 2, 2);
     } else {
       ctx.fillStyle = '#ff5d7a';
-      ctx.beginPath(); ctx.arc(sx + 4, sy + 5 + bob, 3, 0, 6.284); ctx.arc(sx + 9, sy + 5 + bob, 3, 0, 6.284);
+      ctx.beginPath(); ctx.arc(sx + 4, sy + 5 + bob, 3, 0, 6.284); ctx.arc(sx + 9, sy + 5 + bob, 3, 0, 6.284); ctx.fill();
       ctx.beginPath(); ctx.moveTo(sx + 1, sy + 6 + bob); ctx.lineTo(sx + 6, sy + 12 + bob); ctx.lineTo(sx + 11, sy + 6 + bob); ctx.fill();
       ctx.fillStyle = 'rgba(255,255,255,.6)'; ctx.fillRect(sx + 3, sy + 4 + bob, 1, 1);
     }
