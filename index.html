@@ -793,12 +793,14 @@ function build(i) {
   const flat = (n) => { for (let k = 0; k < n; k++) col(x + k, h); x += n; };
   const candle = (cx, cy) => { if (cy > 0 && cy < ROWS) candles.push({ tx: cx, ty: cy }); };
   const candlesRow = (n, cx, cy) => { for (let k = 0; k < n; k++) candle(cx + k, cy); };
+  /* gift contents get their own dice, so rolling them never moves a tile, candle or enemy */
+  const gr = rng(4049 + i * 131);
   const gift = (gx, gy) => {
     set(gx, gy, 3);
     let kind = 'candle';
     if (giftCount === 0) kind = 'popper';
-    else if (!cakeGiven && r() < 0.45) { kind = 'cake'; cakeGiven = true; }
-    else { const q = r(); kind = q < 0.2 ? 'popper' : q < 0.3 ? 'heart' : 'candle'; }
+    else if (!cakeGiven && gr() < 0.45) { kind = 'cake'; cakeGiven = true; }
+    else { const q = gr(); kind = q < 0.2 ? 'popper' : q < 0.3 ? 'heart' : 'candle'; }
     gifts[gy * w + gx] = kind; giftCount++;
   };
   const foe = (fx, fy) => {
@@ -842,7 +844,7 @@ function build(i) {
     } else if (roll < 0.52) {
       flat(3);
       for (let k = 0; k < 3; k++) set(x + k, h - 3, k === 1 ? 3 : 2);
-      gifts[(h - 3) * w + (x + 1)] = (giftCount === 0 ? 'popper' : 'candle'); giftCount++;
+      gift(x + 1, h - 3);
       candlesRow(3, x, h - 4);
       flat(5);
     } else if (roll < 0.61) {
