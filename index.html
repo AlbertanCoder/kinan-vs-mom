@@ -516,12 +516,13 @@ const PAL = {
   g: '#4a4f57', w: '#f4f1e8', h: '#4a2c1a', s: '#d9a27a', k: '#1b1220', r: '#c2414f', c: '#ece4d2', m: '#7d1f33',
   y: '#f6c445', j: '#3f63a8', H: '#1d1416', t: '#b88a3e', d: '#3b2618', p: '#9b2d6b', J: '#2b2f45', b: '#2a5bd7',
   o: '#ff8a3d', R: '#e8364b', P: '#f39ac0', u: '#7a3f26', E: '#44c55a', G: '#2f6b3a', T: '#c4ad84', V: '#8a8a98',
-  q: '#6b6f7a', Q: '#c9c9cf', F: '#4f7a5a', a: '#9a9aa6', A: '#5e5e6a', n: '#a8692e', L: '#6b3f18', W: '#f0e2c8', Y: '#f3e6a6'
+  q: '#6b6f7a', Q: '#c9c9cf', F: '#4f7a5a', a: '#9a9aa6', A: '#5e5e6a', n: '#a8692e', L: '#6b3f18', W: '#f0e2c8', Y: '#f3e6a6',
+  S: '#c98d63'
 };
 const KINAN = ['....kkkkkkkk....', '...khhhhhhhhk...', '..khhhhtthhhhk..', '..khhssssssshk..', '..khsksssksshk..', '..khssPssPsshk..',
   '..khsssmmssshk..', '...khhsssshhk...', '..krrrrrrrrrrk..', '.krrrrryyrrrrrk.', '.krrrrrwwrrrrrk.', 'ksrrrrrwwrrrrrsk',
   'ksrrrrmmmrrrrrsk', '..kjjjjjjjjjjk..', '..kjjjj..jjjjk..'];
-const MOM = ['....kkkkkkkk....', '...kHHHHHHHHk...', '..kHHHHHHHHHHk..', '..kHHssssssHHk..', '..kHysssssssyHk..', '..kHskssskssHk..',
+const MOM = ['....kkkkkkkk....', '...kHHHHHHHHk...', '..kHHHHHHHHHHk..', '..kHHssssssHHk..', '..kHyssssssyHk..', '..kHskssskssHk..',
   '..kHssPssPssHk..', '..kHsssmmsssHk..', '...kHssssssHk...', '..kppppppppppk..', '.kppppppppppppk.', '.kpppyppppypppk.',
   'ksppppppppppppsk', '..kJJJJJJJJJJk..', '..kJJJ....JJJk..'];
 const DAD = ['....kkkkkkkk....', '...kgQggggQgk...', '..kgggggggggggk.', '...ksssssssssk..', '...ksksssksssk..', '...ksssssssssk..',
@@ -596,7 +597,7 @@ function bakeOutlined(rows, map, outline) {
   x.drawImage(bakeMap(rows, map), 1, 1);
   return c;
 }
-const BULLY = recolor(KINAN, { g: 'R', m: 'q', c: 'q', y: 'q', h: 'd', s: '#c98d63' });
+const BULLY = recolor(KINAN, { g: 'R', m: 'q', c: 'q', y: 'q', h: 'd', s: 'S' });
 const NEIGH = recolor(DAD, { g: 'Q', b: 'F', d: 'Q' });
 const SP = {
   kStand: bake(legs(KINAN, LEGS.stand, 'j')), kWalk: bake(legs(KINAN, LEGS.walk, 'j')),
