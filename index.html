@@ -2966,7 +2966,7 @@ function showScreen(html) {
   window.scrollTo(0, 0);
 }
 function castHTML() {
-  return '<figure class="hero">' + imgOf(SP.kStand, 5) + '<figcaption><b>Kinan</b><br>the hero · LV 10</figcaption></figure>' +
+  return '<figure class="hero">' + imgOf(SP.kStand, 5) + '<figcaption><b>Kinan</b><br>the hero · LV 11</figcaption></figure>' +
     '<figure>' + imgOf(SP.mStand, 4) + '<figcaption><b>Mom (Debbie)</b><br>the main boss</figcaption></figure>' +
     '<figure>' + imgOf(SP.cStand, 3) + '<figcaption><b>Chenoa</b><br>6\'3" wildcard</figcaption></figure>' +
     '<figure>' + imgOf(SP.dStand, 4) + '<figcaption><b>Dad Robin</b><br>backup</figcaption></figure>' +
@@ -3087,7 +3087,7 @@ function mapScreen() {
     '<button class="btn" type="button" id="titleBtn">Title screen</button></div>' +
     '<p class="wrapnote">Tip: 3 stars needs a clean run — clear the boss, collect 70% of candles and lose zero hearts.</p>'
   );
-  el.stageLbl.textContent = 'KINAN · ' + (progress.won ? 'LV 11' : 'LV 10');
+  el.stageLbl.textContent = 'KINAN · LV 11';
   $$('.lvbtn', el.screen).forEach((b) => b.addEventListener('click', () => {
     if (b.disabled) return;
     AudioSys.init(); SFX.click();
@@ -3161,7 +3161,7 @@ function resultsScreen(i) {
     '<button class="btn" type="button" id="replayBtn">Replay</button>' +
     '<button class="btn" type="button" id="mapBtn">Stage map</button></div>'
   );
-  el.stageLbl.textContent = 'KINAN · ' + (progress.won ? 'LV 11' : 'LV 10');
+  el.stageLbl.textContent = 'KINAN · LV 11';
   setHearts(maxHearts(), maxHearts());
   $('#nextBtn').focus();
   $('#nextBtn').addEventListener('click', () => { SFX.click(); playStage(Math.min(10, i + 1)); });
