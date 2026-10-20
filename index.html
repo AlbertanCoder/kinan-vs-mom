@@ -818,6 +818,10 @@ const LV = [
     taunts: ['MWAH! MWAH! Come here!', 'Let me pinch those CHEEKS!', 'Happy birthday to YOUUU!'], win: []
   }
 ];
+/* the day goes by: one birthday from 7 am in the bedroom to the 7 pm party (the story's own times: bedtime at 6:55, the Mega-Mech's orders until 1900 hours). The light follows the clock. */
+const DAY = [['dawn', '7:00 am'], ['morning', '8:00 am'], ['morning', '8:30 am'], ['day', '10:30 am'], ['day', '12:30 pm'], ['afternoon', '2:00 pm'], ['afternoon', '3:30 pm'], ['late', '4:30 pm'], ['sunset', '5:45 pm'], ['dusk', '6:55 pm'], ['night', '7:00 pm']];
+LV.forEach((th, i) => { th.tod = DAY[i][0]; th.clock = DAY[i][1]; });
+const GRADE = { dawn: 'rgba(255,150,110,.10)', morning: 'rgba(255,236,190,.05)', day: '', afternoon: 'rgba(255,210,140,.06)', late: 'rgba(255,175,100,.10)', sunset: 'rgba(255,105,60,.14)', dusk: 'rgba(70,60,170,.10)', night: 'rgba(40,40,120,.07)' };
 
 /* ============================================================
    ENEMY TABLE
@@ -1453,7 +1457,7 @@ function startStage(i, silent) {
   el.pauseBtn.hidden = false;
   updHud();
   Music.play(LV[i].final ? 'final' : 'stage');
-  if (!silent) toast('<b>STAGE ' + (i + 1) + '</b> · ' + LV[i].place, 1700);
+  if (!silent) toast('<b>STAGE ' + (i + 1) + '</b> · ' + LV[i].place + ' · ' + LV[i].clock, 1700);
 }
 /* ============================================================
    SAVE SPOT — auto (checkpoint, pause, app switch) and manual (pause menu)
@@ -2419,12 +2423,21 @@ function drawBackdrop(th, i) {
     for (let k = -1; k < 4; k++) {
       const x = k * 210 - (p3 % 210);
       ctx.fillStyle = '#0e1024'; ctx.fillRect(x, 26, 96, 74);
-      const g = ctx.createLinearGradient(x, 26, x, 100);
-      g.addColorStop(0, '#2b3a78'); g.addColorStop(1, '#101634');
+      const g = ctx.createLinearGradient(x, 26, x, 100), tod = th.tod;
+      const sky = tod === 'dawn' ? ['#4a3a8a', '#ff9f6e'] : (tod === 'morning' ? ['#8fd0ff', '#e8f6ff'] : ['#2b3a78', '#101634']);
+      g.addColorStop(0, sky[0]); g.addColorStop(1, sky[1]);
       ctx.fillStyle = g; ctx.fillRect(x + 4, 30, 88, 66);
-      ctx.fillStyle = 'rgba(255,255,255,.85)'; ctx.beginPath(); ctx.arc(x + 66, 48, 8, 0, 6.284); ctx.fill();
-      ctx.fillStyle = 'rgba(255,255,255,.5)';
-      for (let s = 0; s < 10; s++) ctx.fillRect(x + 10 + (s * 29) % 78, 34 + (s * 17) % 52, 1, 1);
+      if (tod === 'dawn') {   /* the sun coming up behind the window frame */
+        ctx.save(); ctx.beginPath(); ctx.rect(x + 4, 30, 88, 66); ctx.clip();
+        ctx.fillStyle = 'rgba(255,214,120,.95)'; ctx.beginPath(); ctx.arc(x + 30, 96, 13, 0, 6.284); ctx.fill(); ctx.restore();
+      } else if (tod === 'morning') {
+        ctx.fillStyle = '#fff3b0'; ctx.beginPath(); ctx.arc(x + 66, 44, 9, 0, 6.284); ctx.fill();
+        ctx.fillStyle = 'rgba(255,255,255,.75)'; ctx.fillRect(x + 12, 46, 18, 4); ctx.fillRect(x + 16, 43, 10, 3);
+      } else {
+        ctx.fillStyle = 'rgba(255,255,255,.85)'; ctx.beginPath(); ctx.arc(x + 66, 48, 8, 0, 6.284); ctx.fill();
+        ctx.fillStyle = 'rgba(255,255,255,.5)';
+        for (let s = 0; s < 10; s++) ctx.fillRect(x + 10 + (s * 29) % 78, 34 + (s * 17) % 52, 1, 1);
+      }
       ctx.fillStyle = '#1b1e46'; ctx.fillRect(x + 47, 30, 2, 66); ctx.fillRect(x + 4, 62, 88, 2);
       ctx.strokeStyle = 'rgba(244,241,232,.25)'; ctx.lineWidth = 2; ctx.strokeRect(x - 1, 25, 98, 76);
     }
@@ -2600,6 +2613,13 @@ function drawBackdrop(th, i) {
   } else if (th.bg === 'dinner') {
     glowDisc(W / 2 - (p1 % 40), 20, 150, 'rgba(255,220,150,.5)', 0.7);
     ctx.fillStyle = 'rgba(255,255,255,.18)'; ctx.fillRect(30, 20, W - 60, 100);
+    if (th.tod === 'sunset') {   /* the sun going down behind the dining-room window */
+      const sg = ctx.createLinearGradient(0, 20, 0, 120);
+      sg.addColorStop(0, 'rgba(255,150,90,.55)'); sg.addColorStop(1, 'rgba(255,95,125,.40)');
+      ctx.fillStyle = sg; ctx.fillRect(30, 20, W - 60, 100);
+      ctx.save(); ctx.beginPath(); ctx.rect(30, 20, W - 60, 100); ctx.clip();
+      ctx.fillStyle = 'rgba(255,206,120,.92)'; ctx.beginPath(); ctx.arc(W * 0.68 - (p1 % 40), 112, 18, 0, 6.284); ctx.fill(); ctx.restore();
+    }
     ctx.strokeStyle = 'rgba(60,40,20,.28)'; ctx.lineWidth = 3; ctx.strokeRect(30, 20, W - 60, 100);
     ctx.fillStyle = 'rgba(40,25,12,.35)'; ctx.fillRect(W / 2 - 3, 20, 6, 100); ctx.fillRect(30, 68, W - 60, 5);
     for (let k = 0; k < 6; k++) {
@@ -3450,6 +3470,7 @@ function draw() {
   drawPets();
   drawPlayer();
   drawShots();
+  drawDaylight(th);
   drawParticles();
   ctx.restore();
   drawVignette();
@@ -3739,7 +3760,7 @@ function resultsScreen(i) {
   Music.play('title');
   SFX.win();
   showScreen(
-    '<p class="eyebrow">Stage ' + (i + 1) + ' clear · ' + th.place + '</p>' +
+    '<p class="eyebrow">Stage ' + (i + 1) + ' clear · ' + th.place + ' · ' + th.clock + '</p>' +
     '<h1 class="title"><span class="t1">Boss down!</span><span class="t2">' + (10 - i) + ' stage' + (10 - i === 1 ? '' : 's') + ' to go</span></h1>' +
     starHTML(st, true) +
     '<dl class="bigstats">' +
@@ -4320,6 +4341,10 @@ function drawSmashBar() {
     ctx.globalAlpha = 1;
   });
 }
+function drawDaylight(th) {
+  const c = GRADE[th.tod];
+  if (c) { ctx.fillStyle = c; ctx.fillRect(-8, -8, W + 16, H + 16); }
+}
 function drawSmash() {
   const S = smash, th = LV[L.i];
   const shx = shake > 0.2 ? Math.round(rand(-shake, shake)) : 0;
@@ -4335,6 +4360,7 @@ function drawSmash() {
   ctx.drawImage(SP.candle, L.floor[1] * T - camX + 5, GROUND * T - 8);
   drawSmashShots();
   for (const f of S.fighters) drawFighter(f);
+  drawDaylight(th);
   drawParticles();
   ctx.restore();
   drawVignette();
