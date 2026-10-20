@@ -3363,6 +3363,34 @@ window.__k11 = {
   defaults: () => JSON.parse(JSON.stringify(DEFAULT_PROGRESS)),
   petSpot: () => (crate ? { x: crate.x, y: crate.y, pet: crate.pet } : null),
   toPet: () => { if (crate) { P.x = crate.x; P.y = crate.y; P.vx = 0; P.vy = 0; } },
+  auto: (n) => {
+    for (let k = 0; k < n; k++) {
+      input.right = true; input.left = false;
+      input.jump = false;
+      if (P && P.onGround) {
+        const fx = Math.floor((P.x + P.w + 5) / T), fy = Math.floor((P.y + P.h + 4) / T);
+        const gap = !solid(fx, fy) && !solid(fx, fy + 1) && !solid(fx, fy + 2);
+        const wall = solid(Math.floor((P.x + P.w + 2) / T), Math.floor((P.y + P.h - 4) / T));
+        const foe = foes.some((f) => f.alive && f.x > P.x && f.x - P.x < 30 && Math.abs(f.y - P.y) < 22);
+        if (gap || wall || foe) { input.jump = true; input.jumpBuf = 8; }
+      } else if (P && P.vy < 0) {
+        input.jump = true;
+      }
+      update(1 / 60);
+    }
+    input.right = false; input.jump = false; input.jumpBuf = 0;
+    return window.__k11.state();
+  },
+  probe: () => {
+    const rows = [];
+    const tx = Math.floor(P.x / T), ty = Math.floor(P.y / T);
+    for (let y = ty - 5; y <= ty + 3; y++) {
+      let r = '';
+      for (let x = tx - 2; x <= tx + 20; x++) r += solid(x, y) ? '#' : '.';
+      rows.push(r);
+    }
+    return { x: P.x, y: P.y, vx: P.vx, vy: P.vy, onGround: P.onGround, camX: camX, arenaX: L.arenaX, w: L.w, len: L.len, boss: boss, rows: rows };
+  },
   allies: () => allies.length,
   audio: () => (AudioSys.ctx ? AudioSys.ctx.state : 'none')
 };
