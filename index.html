@@ -603,6 +603,8 @@ function bakeOutlined(rows, map, outline) {
 }
 const BULLY = recolor(KINAN, { g: 'R', m: 'q', c: 'q', y: 'q', h: 'd', s: 'S' });
 const NEIGH = recolor(DAD, { g: 'Q', b: 'F', d: 'Q' });
+/* Dad Robin runs a hydro vac in the oilfield: hi-vis orange over the shirt */
+const DAD_VEST = recolor(DAD, { b: 'o' });
 /* the Lego Mega-Mech's face for story boxes (the mech itself is drawn with rectangles in drawBoss) */
 const MECH = ['..RRRRRRRRRRRR..', '..RRRRRRRRRRRR..', '.kQQQQQQQQQQQQk.', '.kQQwwwQQQwwwQk.', '.kQQwkwQQQwkwQk.', '.kQQwwwQQQwwwQk.',
   '.kQQQQQVVQQQQQk.', '.kQQQQQQQQQQQQk.', '..kkkkkkkkkkkk..', 'kJJJJJJJJJJJJJJk', 'kJRRRRRRRRRRRRJk', 'kJRyRRRyRRRyRRJk',
@@ -611,7 +613,7 @@ const SP = {
   kStand: bake(legs(KINAN, LEGS.stand, 'j')), kWalk: bake(legs(KINAN, LEGS.walk, 'j')),
   kJump: bake(legs(KINAN, LEGS.jump, 'j')), kFall: bake(legs(KINAN, LEGS.fall, 'j')),
   mStand: bake(legs(MOM, LEGS.stand, 'J')), mWalk: bake(legs(MOM, LEGS.walk, 'J')),
-  dStand: bake(legs(DAD, LEGS.stand, 'J')), dWalk: bake(legs(DAD, LEGS.walk, 'J')),
+  dStand: bake(legs(DAD_VEST, LEGS.stand, 'J')), dWalk: bake(legs(DAD_VEST, LEGS.walk, 'J')),
   cStand: bake(CHENOA.concat(CROCS.stand)), cWalk: bake(CHENOA.concat(CROCS.walk)),
   bStand: bake(legs(BULLY, LEGS.stand, 'J')), bWalk: bake(legs(BULLY, LEGS.walk, 'J')),
   nStand: bake(legs(NEIGH, LEGS.stand, 'J')), nWalk: bake(legs(NEIGH, LEGS.walk, 'J')),
@@ -648,15 +650,15 @@ const imgOf = (c, scale) => '<img alt="" width="' + c.width * (scale || 4) + '" 
 /* ============================================================
    WORLDS — same story, brighter paint
    ============================================================ */
-const MOMT = ['Ow! Who taught you to jump like that?!', 'Okay, okay, I felt that one!', 'You are SO grounded... after cake.'];
+const MOMT = ['Ow! Who taught you to jump like that?!', 'Okay, okay, I felt that one!', 'You are SO grounded... after cake.', 'I run this house, mister!'];
 const LV = [
   {
     place: "Kinan's Bedroom", bg: 'room', sky: ['#241b4d', '#5b4a93'], far: '#2f2657', mid: '#3d3168',
     ground: '#6d4a30', top: '#a8794f', brick: '#8a5a8a', accent: '#f6c445', foes: ['sock', 'lego', 'teddy'],
     intro: ["It's <b>Kinan's 11th birthday</b>! But the house has gone WILD.", 'The toys are alive, the Lego is angry... and every boss in this house is <b>family</b>.', 'One of your <b>four cats</b> is hiding in a box. Find her for a <b>double jump</b>!'],
     boss: { kind: 'mom', title: 'Mom, the Room Inspector', prop: '🧺', hp: 3, face: 'm' },
-    bossIntro: ['<b>MOM (DEBBIE):</b> Good morning, birthday boy!', '<b>MOM:</b> ...Is that a SOCK on the ceiling? CLEAN. YOUR. ROOM.'],
-    taunts: ['Ow! But your room is STILL messy!', 'Okay! Just put the socks away!'],
+    bossIntro: ['<b>MOM (DEBBIE):</b> Good morning, birthday boy!', "<b>MOM:</b> I'm home ALL DAY, so I see EVERYTHING.", '<b>MOM:</b> ...Is that a SOCK on the ceiling? CLEAN. YOUR. ROOM.'],
+    taunts: ['Ow! But your room is STILL messy!', 'Okay! Just put the socks away!', 'I fold the laundry, I run the house!'],
     win: ["<b>MOM:</b> Fine, it's clean ENOUGH. Happy birthday, sweetie!"]
   },
   {
@@ -664,8 +666,8 @@ const LV = [
     ground: '#6b4a3a', top: '#c79a6a', brick: '#2f6b3a', accent: '#ff9f5a', foes: ['roomba', 'robot', 'lego'],
     intro: ['The living room. The robot vacuum is on patrol.', 'One of your <b>two dogs</b> is stuck in a box! Rescue him and he will chase enemies for you.'],
     boss: { kind: 'chenoa', title: 'Big Sis Chenoa', hp: 4, face: 'c' },
-    bossIntro: ['A super TALL shadow falls over the room...', "<b>CHENOA:</b> Little bro! You think you can get past your BIG sister?", "<b>CHENOA:</b> I'm 6'3\"! Watch out for my paint... and my GROUND POUND! Jump over the shockwaves!"],
-    taunts: ['Hey! Not the sweater!', "Okay, you're kind of good at this.", 'Ugh, my crocs!'],
+    bossIntro: ['A super TALL shadow falls over the room...', "<b>CHENOA:</b> Little bro! You think you can get past your BIG sister?", '<b>CHENOA:</b> I supervise a whole restaurant. I can supervise YOU.', "<b>CHENOA:</b> I'm 6'3\"! Watch out for my PLATES... and my GROUND POUND! Jump over the shockwaves!"],
+    taunts: ['Hey! Not the sweater!', 'Table SIX needs water!', 'No running in my restaurant!', 'Ugh, my crocs!'],
     win: ['<b>CHENOA:</b> Okay okay, you win. Happy birthday, little bro! 💚']
   },
   {
@@ -1554,9 +1556,38 @@ function callDad(mode) {
     if (inBoss) dadUsedBoss = true; else dadUsedStage = true;
   }
   if (dad) return;
-  dad = { x: Math.max(camX - 20, P.x - W * 0.5), y: (GROUND - 2) * T, w: 12, h: 18, state: 'in', t: 0, mode: mode };
+  dad = { x: Math.max(camX - 20, P.x - W * 0.5), y: (GROUND - 2) * T, w: 12, h: 18, state: 'in', t: 0, mode: mode, vac: 0, vacTarget: null, face: 1 };
   SFX.dad();
-  if (mode !== 'party') toast(mode === 'heal' ? '<b>DAD ROBIN</b> is on the way!' : '<b>DAD ROBIN</b> wants to help!', 1600);
+  if (mode !== 'party') toast(mode === 'heal' ? '<b>DAD ROBIN</b> is back from the oilfield!' : '<b>DAD ROBIN</b> rolled in with the hydro vac! 💨', 1700);
+}
+/* Dad's job: hydro vac operator. His special sucks everything on screen towards the hose. */
+function startVac(target) {
+  dad.vac = 60; dad.vacTarget = target || null; dad.t = 0;
+  dad.face = target ? sign(target.x - dad.x) : (P.x >= dad.x ? 1 : -1);
+  AudioSys.noise(0.9, { filter: 'lowpass', freq: 500, vol: 0.14 });
+}
+function updateVac() {
+  dad.vac--;
+  const dir = dad.face;
+  const nozzle = dad.x + (dir > 0 ? dad.w + 2 : -2), ny = dad.y + 10;
+  if (frame % 2 === 0) part(nozzle + dir * ri(30, 150), ny + ri(-16, 16), { vx: -dir * 4.5, vy: 0, life: 16, size: 2, color: 'rgba(200,230,255,.8)', g: 0 });
+  const b = dad.vacTarget;
+  if (b) {
+    if (!b.out) {
+      b.x = clamp(b.x + clamp(nozzle + (dir > 0 ? 4 : -b.w - 4) - b.x, -1.6, 1.6), (L.arenaX + 1) * T, (L.arenaX + L.arenaW) * T - b.w);
+      b.vx = 0; b.stun = Math.max(b.stun, 2);
+      if (dad.vac === 0) { b.inv = 0; damage(b, 1, 'HYDRO VAC! 💨'); if (!b.out) { b.vx = dir * 3; b.stun = 40; } }
+    }
+  } else {
+    let n = 0;
+    foes.forEach((f) => {
+      if (!f.alive || f.x < camX - 10 || f.x > camX + W + 10) return;
+      f.x += clamp(nozzle - f.x, -3, 3); f.vx = 0;
+      if (Math.abs(f.x - nozzle) < 10) { killFoe(f, 'SLURP!'); n++; }
+    });
+    if (n) dad.sucked = (dad.sucked || 0) + n;
+    if (dad.vac === 0 && dad.sucked) toast('<b>DAD SPECIAL:</b> Hydro vac! 💨 Sucked up ' + dad.sucked + '!', 1900);
+  }
 }
 function updateDad() {
   if (!dad) return;
@@ -1568,23 +1599,20 @@ function updateDad() {
       dad.state = 'act'; dad.t = 0;
       if (dad.mode === 'heal') {
         P.hp = P.max; P.inv = 120; updHud(); SFX.heart();
-        toast('<b>ROBIN:</b> ' + pick(['I got you, bud! Eat this burger 🍔', 'Nobody beats up the birthday boy! 🍔', "Dad's here! Hearts refilled! 🍔"]), 2400);
+        toast('<b>ROBIN:</b> ' + pick(['Just got back from camp, bud! Eat this burger 🍔', 'Nobody beats up the birthday boy! 🍔', "Dad's home from the oilfield! Hearts refilled! 🍔"]), 2400);
         pop(P.x, P.y - 14, '+❤ +❤ +❤', 50, '#ff6fae');
         sparks(P.x + 5, P.y, 16, ['#ff6fae', '#fff']);
-        if (boss !== 'fight' && Math.random() < 0.5) {
-          let n = 0;
-          foes.forEach((f) => { if (f.alive && f.x > camX - 10 && f.x < camX + W + 10) { killFoe(f, '🏈'); n++; } });
-          if (n) setTimeout(() => toast('<b>DAD SPECIAL:</b> Football toss! 🏈 Touchdown!', 1900), 800);
-        }
+        if (boss !== 'fight' && Math.random() < 0.5 && foes.some((f) => f.alive && f.x > camX - 10 && f.x < camX + W + 10)) startVac(null);
       } else if (dad.mode === 'special') {
         const tgt = bosses.filter((b) => !b.out)[0];
-        if (tgt) allyShots.push({ x: dad.x + 10, y: dad.y, w: 12, h: 12, vx: clamp((tgt.x - dad.x) / 42, -4, 4), vy: -5, life: 220, dmg: 1, why: '🍔 DAD SPECIAL!', kind: 'burger' });
-        toast('<b>ROBIN:</b> DAD SPECIAL! Flying cheeseburger! 🍔', 2200);
+        if (tgt) startVac(tgt);
+        toast('<b>ROBIN:</b> DAD SPECIAL! Hydro vac! 💨 Stand back, bud!', 2200);
         SFX.power();
       }
     }
   } else if (dad.state === 'act') {
-    if (dad.t > 80 && dad.mode !== 'party') dad.state = 'out';
+    if (dad.vac > 0) updateVac();
+    else if (dad.t > 80 && dad.mode !== 'party') dad.state = 'out';
   } else {
     dad.x -= 3.4;
     if (dad.x < camX - 50) dad = null;
@@ -1594,7 +1622,7 @@ function callBro() {
   if (bro || P.dead) return;
   bro = { x: Math.max(camX - 30, P.x - W * 0.55), y: P.y + P.h - 18, vy: 0, base: P.y + P.h - 18, state: 'in', t: 0 };
   SFX.dad();
-  toast('<b>BIG BRO SHAD</b> is coming in hot! 🏗️', 1600);
+  toast('<b>BIG BRO SHAD</b> is in from the job site! 🏗️', 1600);
 }
 function broSlam() {
   SFX.thud(); SFX.stomp(); shakeIt(7);
@@ -1607,7 +1635,7 @@ function broSlam() {
   }
   shots = [];
   P.hat = true; updHud(); SFX.power();
-  toast('<b>SHAD:</b> ' + pick(['CONSTRUCTION SLAM! 👊 Hard hat on, bud! ⛑️', 'Big bro SMASH! 👊 Safety first, wear this! ⛑️', "Leg day paid off! 👊 Here's a hard hat! ⛑️"]), 2600);
+  toast('<b>SHAD:</b> ' + pick(['CONSTRUCTION SLAM! 👊 Hard hat on, bud! ⛑️', 'Apprentice carpenter on site! 👊 Safety first, wear this! ⛑️', 'Measure twice, slam once! 👊 Here\'s a hard hat! ⛑️', "Rebar day is DONE. 👊 Here's a hard hat! ⛑️"]), 2600);
 }
 function updateBro() {
   if (!bro) return;
@@ -1926,7 +1954,9 @@ function bossAI(b) {
     else if (b.onGround && b.vx === 0) b.vx = dx < 0 ? -sp : sp;
     if (--b.t <= 0 && b.onGround) {
       if (b.state === 'paint') {
-        for (let k = -1; k <= 1; k++) shots.push({ x: b.x + 2, y: b.y, w: 8, h: 8, vx: sign(dx) * 1.4 + k * 0.95, vy: -4.4, g: 0.18, life: 220, kind: 'paint', color: ['#ff4fa3', '#44c55a', '#3fa9f5'][k + 1] });
+        /* restaurant supervisor: she throws plates everywhere except in her own art room, where it is paint */
+        const plates = LV[i].bg !== 'art';
+        for (let k = -1; k <= 1; k++) shots.push({ x: b.x + 2, y: b.y, w: 8, h: 8, vx: sign(dx) * 1.4 + k * 0.95, vy: -4.4, g: 0.18, life: 220, kind: plates ? 'plate' : 'paint', color: plates ? '#f4f1e8' : ['#ff4fa3', '#44c55a', '#3fa9f5'][k + 1] });
         SFX.pew();
         b.state = 'jump'; b.t = 76; b.hold = 18;
       } else {
@@ -2028,9 +2058,10 @@ function updateAllies() {
     a.x = clamp(a.x, (L.arenaX + 1) * T, (L.arenaX + L.arenaW) * T - a.w);
     if (target && --a.t <= 0) {
       const dx = target.x - a.x;
-      allyShots.push({ x: a.x + 4, y: a.y, w: 9, h: 9, vx: clamp(dx / 48, -3.2, 3.2), vy: -4.7, life: 220, dmg: 0.5, why: 'SPLAT', color: ['#ff4fa3', '#44c55a', '#3fa9f5'][ri(0, 2)] });
+      const plates = LV[L.i].bg !== 'art';
+      allyShots.push({ x: a.x + 4, y: a.y, w: 9, h: 9, vx: clamp(dx / 48, -3.2, 3.2), vy: -4.7, life: 220, dmg: 0.5, why: plates ? 'CLANG!' : 'SPLAT', color: plates ? '#f4f1e8' : ['#ff4fa3', '#44c55a', '#3fa9f5'][ri(0, 2)] });
       a.t = 140 + ri(0, 60);
-      if (Math.random() < 0.35) toast('<b>CHENOA:</b> ' + pick(['Paint attack!', 'Go, little bro!', 'Team Kinan forever!']), 1300);
+      if (Math.random() < 0.35) toast('<b>CHENOA:</b> ' + pick(plates ? ['Order up!', 'Table for ONE, Mom!', 'Go, little bro!', 'Team Kinan forever!'] : ['Paint attack!', 'Go, little bro!', 'Team Kinan forever!']), 1300);
     }
   }
 }
@@ -2729,9 +2760,18 @@ function drawHelpers() {
     const img = dad.state !== 'act' && Math.floor(frame / 14) % 2 ? SP.dWalk : SP.dStand;
     ctx.fillStyle = 'rgba(0,0,0,.20)';
     ctx.beginPath(); ctx.ellipse(Math.round(dad.x - camX) + 6, dad.y + 18, 6, 2, 0, 0, 6.284); ctx.fill();
-    drawSprite(img, dad.x - camX - 2, dad.y, dad.state === 'out' ? -1 : 1);
-    if (dad.state === 'act' && dad.mode === 'special') {
-      ctx.font = '12px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('🍔', dad.x - camX + 8, dad.y - 6);
+    const dface = dad.state === 'out' ? -1 : (dad.vac > 0 ? dad.face : 1);
+    drawSprite(img, dad.x - camX - 2, dad.y, dface);
+    if (dad.vac > 0) {
+      /* the hydro vac hose: a grey tube from Dad's hands, nozzle pointing where he faces */
+      const hx = Math.round(dad.x - camX + (dface > 0 ? dad.w : 0)), hy = Math.round(dad.y + 9);
+      ctx.fillStyle = '#4a4f57'; ctx.fillRect(dface > 0 ? hx : hx - 14, hy, 14, 4);
+      ctx.fillStyle = '#8f95ad'; ctx.fillRect(dface > 0 ? hx + 12 : hx - 17, hy - 2, 5, 8);
+      ctx.fillStyle = 'rgba(200,230,255,' + (0.35 + Math.sin(frame / 3) * 0.2) + ')';
+      ctx.fillRect(dface > 0 ? hx + 17 : hx - 23, hy - 1, 6, 6);
+      ctx.font = '11px "Segoe UI Emoji",sans-serif'; ctx.textAlign = 'center'; ctx.fillText('💨', dad.x - camX + 8, dad.y - 6);
+    } else if (dad.state === 'act' && dad.mode === 'special') {
+      ctx.font = '12px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('💨', dad.x - camX + 8, dad.y - 6);
     }
   }
   if (bro) {
@@ -3047,6 +3087,10 @@ function drawShots() {
       glowDisc(sx + 4, sy + 4, 9, s.color || '#ff4fa3', 0.6);
       ctx.fillStyle = s.color || '#ff4fa3';
       ctx.beginPath(); ctx.arc(sx + 4, sy + 4, 4, 0, 6.284); ctx.fill();
+    } else if (s.kind === 'plate') {
+      ctx.fillStyle = '#c9c9cf'; ctx.beginPath(); ctx.ellipse(sx + 4, sy + 5, 5, 3, 0, 0, 6.284); ctx.fill();
+      ctx.fillStyle = '#f4f1e8'; ctx.beginPath(); ctx.ellipse(sx + 4, sy + 4, 5, 3, 0, 0, 6.284); ctx.fill();
+      ctx.fillStyle = '#3fa9f5'; ctx.fillRect(sx + 2, sy + 3, 4, 1);
     } else if (s.kind === 'paper') {
       ctx.fillStyle = '#f4f1e8'; ctx.fillRect(sx, sy, 8, 6);
       ctx.fillStyle = 'rgba(0,0,0,.25)'; ctx.fillRect(sx + 1, sy + 2, 6, 1); ctx.fillRect(sx + 1, sy + 4, 4, 1);
@@ -3194,10 +3238,10 @@ function showScreen(html) {
 }
 function castHTML() {
   return '<figure class="hero">' + imgOf(SP.kStand, 5) + '<figcaption><b>Kinan</b><br>the hero · LV 11</figcaption></figure>' +
-    '<figure>' + imgOf(SP.mStand, 4) + '<figcaption><b>Mom (Debbie)</b><br>the main boss</figcaption></figure>' +
-    '<figure>' + imgOf(SP.cStand, 3) + '<figcaption><b>Chenoa</b><br>6\'3" wildcard</figcaption></figure>' +
-    '<figure>' + imgOf(SP.dStand, 4) + '<figcaption><b>Dad Robin</b><br>backup</figcaption></figure>' +
-    '<figure>' + imgOf(SP.sStand, 4) + '<figcaption><b>Big Bro Shad</b><br>the slammer</figcaption></figure>' +
+    '<figure>' + imgOf(SP.mStand, 4) + '<figcaption><b>Mom (Debbie)</b><br>stay-at-home boss</figcaption></figure>' +
+    '<figure>' + imgOf(SP.cStand, 3) + '<figcaption><b>Chenoa</b><br>restaurant boss · 6\'3"</figcaption></figure>' +
+    '<figure>' + imgOf(SP.dStand, 4) + '<figcaption><b>Dad Robin</b><br>hydro vac operator</figcaption></figure>' +
+    '<figure>' + imgOf(SP.sStand, 4) + '<figcaption><b>Big Bro Shad</b><br>carpenter apprentice</figcaption></figure>' +
     '<figure>' + imgOf(SP.cat, 4) + '<figcaption><b>4 cats</b><br>the pack</figcaption></figure>' +
     '<figure>' + imgOf(SP.dog, 4) + '<figcaption><b>2 dogs</b><br>the backup</figcaption></figure>';
 }
@@ -3234,7 +3278,7 @@ function titleScreen() {
     (cont ? '<button class="btn ghost" id="newBtn" type="button">Start over</button>' : '') +
     (IS_STANDALONE ? '' : '<button class="btn ghost" id="installBtn2" type="button">📲 Install app</button>') +
     '</div>' +
-    '<p class="lede">It\'s Kinan\'s <b>11th birthday</b> in <b>Saskatoon</b> and the whole house has gone wild. Lego monsters, runaway toys, nosy neighbours... and at the end of every stage, a <b>family boss</b>. Mom is the big boss. <b>Big Sis Chenoa</b> might be on your team, or she might not. <b>Dad Robin</b> shows up when you need him, and big bro <b>Shad</b> crashes in with a <b>Construction Slam</b>.</p>' +
+    '<p class="lede">It\'s Kinan\'s <b>11th birthday</b> in <b>Saskatoon</b> and the whole house has gone wild. Lego monsters, runaway toys, nosy neighbours... and at the end of every stage, a <b>family boss</b>. Mom is the big boss: she\'s home ALL DAY and she sees EVERYTHING. <b>Big Sis Chenoa</b> runs the house like her restaurant and might be on your team, or she might not. <b>Dad Robin</b> rolls in from the oilfield with his <b>hydro vac</b> when you need him, and big bro <b>Shad</b> crashes in from the job site with a <b>Construction Slam</b>.</p>' +
     '<ul class="howto">' +
     '<li><span class="ico">👟</span><span><b>Jump on enemies</b> to bonk them. Chain bonks without landing for a <b>combo multiplier</b>.</span></li>' +
     '<li><span class="ico">🦘</span><span><b>Tap jump</b> for a quick hop, <b>hold</b> for a big jump. Land on shelves, gift blocks, and enemies.</span></li>' +
@@ -3432,11 +3476,11 @@ function ending() {
     '<div class="divider"></div>' +
     '<ul class="credits">' +
     '<li><b>Kinan</b> as The Hero</li>' +
-    '<li><b>Mom (Debbie)</b> as The Main Boss</li>' +
-    '<li><b>Chenoa</b> as The 6\'3" Wildcard</li>' +
-    '<li><b>Dad Robin</b> as The Backup</li>' +
+    '<li><b>Mom (Debbie)</b> as The Main Boss (stay-at-home mom, sees everything)</li>' +
+    '<li><b>Chenoa</b> as The 6\'3" Wildcard (restaurant supervisor, plates included)</li>' +
+    '<li><b>Dad Robin</b> as The Backup (hydro vac operator, home from the oilfield)</li>' +
     '<li><b>The 4 cats and 2 dogs</b> as The Sidekicks</li>' +
-    '<li><b>Big Bro Shad</b> as The Construction Slammer (and the guy who made this game)</li>' +
+    '<li><b>Big Bro Shad</b> as The Construction Slammer (carpenter apprentice, and the guy who made this game)</li>' +
     '</ul>' +
     '<div class="btnrow"><button class="btn go" type="button" id="mapBtn">Stage map</button>' +
     '<button class="btn" type="button" id="titleBtn">Title screen</button>' +
