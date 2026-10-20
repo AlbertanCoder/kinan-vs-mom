@@ -1081,8 +1081,9 @@ function sparks(x, y, n, colors) {
   }
 }
 function pop(x, y, txt, t, color) { pops.push({ x, y, t: t || 34, max: t || 34, txt, color: color || '#f6c445' }); }
-function shakeIt(n) { if (!reduced) shake = Math.min(9, shake + n); }
-function flashScreen() { if (reduced) return; el.flash.classList.remove('on'); void el.flash.offsetWidth; el.flash.classList.add('on'); }
+/* both also off under Effects: LITE, so a player who finds them too much can switch them off in the game itself */
+function shakeIt(n) { if (!reduced && !progress.lite) shake = Math.min(9, shake + n); }
+function flashScreen() { if (reduced || progress.lite) return; el.flash.classList.remove('on'); void el.flash.offsetWidth; el.flash.classList.add('on'); }
 
 /* score + combo */
 function addScore(n) {
