@@ -286,6 +286,7 @@ h1.title .t2{display:block;font-size:clamp(24px,6.4vw,40px);color:var(--edge)}
         <h2>Take a breather</h2>
         <div class="btncol">
           <button class="btn go" id="resumeBtn" type="button">RESUME</button>
+          <button class="btn" id="saveBtn" type="button">Save game</button>
           <button class="btn" id="restartBtn" type="button">Restart stage</button>
           <button class="btn" id="mapBtnP" type="button">Stage map</button>
           <button class="btn" id="fullBtn" type="button">Fullscreen</button>
@@ -927,6 +928,7 @@ function loadProgress() {
   if (oldPets.cat && ids.indexOf('cat1') < 0) ids.push('cat1');
   if (oldPets.dog && ids.indexOf('dog1') < 0) ids.push('dog1');
   out.pets = { ids: ids.filter((id) => PET_DEFS.some((d) => d.id === id)), names: Object.assign({}, oldPets.names || {}) };
+  if (out.resume && !(typeof out.resume === 'object' && out.resume.i >= 0 && out.resume.i < 11)) delete out.resume;
   return out;
 }
 let progress = loadProgress();
@@ -1177,6 +1179,7 @@ function setPaused(on, showMenu) {
   pausedByUser = on;
   el.pause.hidden = !(on && showMenu !== false);
   if (on) { input.left = input.right = input.jump = false; }
+  if (on && running) autoSave();   /* pause, app switch or screen off: the spot is kept */
 }
 function togglePause() {
   if (!running || !el.dialog.hidden) return;
@@ -1194,7 +1197,8 @@ function setSound(on) {
 el.snd.addEventListener('click', () => { AudioSys.init(); setSound(!AudioSys.on); });
 el.pauseBtn.addEventListener('click', togglePause);
 $('#resumeBtn').addEventListener('click', () => { setPaused(false); SFX.click(); });
-$('#restartBtn').addEventListener('click', () => { setPaused(false); SFX.click(); startStage(L ? L.i : 0, true); });
+$('#restartBtn').addEventListener('click', () => { setPaused(false); SFX.click(); if (L) dropSave(L.i); startStage(L ? L.i : 0, true); });
+$('#saveBtn').addEventListener('click', manualSave);
 $('#mapBtnP').addEventListener('click', () => { setPaused(false); running = false; Music.stop(); mapScreen(); });
 $('#fullBtn').addEventListener('click', () => {
   const st = el.stage;
@@ -1228,7 +1232,7 @@ function startStage(i, silent) {
   if (advance) { advance = null; el.dialog.hidden = true; el.portrait.style.visibility = 'hidden'; Music.duck(false); paused = false; }
   L = build(i);
   stageTime = 0; score = 0; combo = 0; comboT = 0; bestCombo = 0; deaths = 0; heartsLost = 0;
-  foes = L.foes.map(makeFoe);
+  foes = L.foes.map((f, k) => Object.assign(makeFoe(f), { idx: k }));   /* idx: which stage enemy this is, for saves */
   candles = L.candles.filter((c) => !solid(c.tx, c.ty)).map((c) => ({ x: c.tx * T + 5, y: c.ty * T + 4, w: 6, h: 10, got: false }));
   totalCandles = candles.length;
   for (const k in L.gifts) if (L.gifts[k] === 'candle') totalCandles++;
@@ -1264,6 +1268,56 @@ function startStage(i, silent) {
   updHud();
   Music.play(LV[i].final ? 'final' : 'stage');
   if (!silent) toast('<b>STAGE ' + (i + 1) + '</b> · ' + LV[i].place, 1700);
+}
+/* ============================================================
+   SAVE SPOT — auto (checkpoint, pause, app switch) and manual (pause menu)
+   ============================================================ */
+function snapshotStage() {
+  if (!L || !P || P.dead || L.smash) return null;
+  const onGround = P.onGround;
+  return {
+    i: L.i, x: Math.round(onGround ? P.x : lastSafe.x), y: Math.round(onGround ? P.y : lastSafe.y),
+    hp: P.hp, max: P.max, got: got, score: score, stageTime: stageTime, deaths: deaths, heartsLost: heartsLost, bestCombo: bestCombo,
+    power: P.power, hat: !!P.hat, cpHit: cpHit, spawn: { x: spawn.x, y: spawn.y }, nextHeartAt: nextHeartAt, dadUsedStage: dadUsedStage,
+    candles: candles.map((c, k) => (c.got ? k : -1)).filter((k) => k >= 0),
+    gifts: Object.keys(L.gifts).filter((k) => L.g[Number(k)] === 4),
+    foesDead: L.foes.map((f, k) => k).filter((k) => !foes.some((f) => f.idx === k && f.alive)),
+    atBoss: boss !== 'off', when: Date.now()
+  };
+}
+/* call right after startStage(s.i, true): puts the stage back the way it was saved */
+function restoreStage(s) {
+  s.candles.forEach((k) => { if (candles[k]) candles[k].got = true; });
+  s.gifts.forEach((k) => { L.g[Number(k)] = 4; });
+  foes = foes.filter((f) => s.foesDead.indexOf(f.idx) < 0);
+  got = s.got; score = s.score; stageTime = s.stageTime; deaths = s.deaths; heartsLost = s.heartsLost; bestCombo = s.bestCombo;
+  nextHeartAt = s.nextHeartAt; dadUsedStage = !!s.dadUsedStage; cpHit = !!s.cpHit;
+  if (s.cpHit && s.spawn) spawn = { x: s.spawn.x, y: s.spawn.y };
+  P.hp = s.hp; P.max = s.max; P.power = s.power || null; P.hat = !!s.hat;
+  if (s.atBoss) { P.x = (L.arenaX + 4) * T; P.y = (GROUND - 1) * T; }   /* the boss fight starts over from its intro */
+  else { P.x = s.x; P.y = s.y; }
+  P.vx = 0; P.vy = 0; P.inv = 60;
+  lastSafe = { x: P.x, y: P.y };
+  camX = clamp(Math.round(P.x - W * 0.42), 0, Math.min(L.w * T - W, (L.arenaX + L.arenaW + 1) * T - W));
+  pets.cats.forEach((c, k) => { c.x = P.x - 18 - k * 16; c.y = P.y + 7; });
+  pets.dogs.forEach((d, k) => { d.x = P.x - 80 - k * 20; d.y = P.y + 6; });
+  updHud();
+}
+function autoSave() {
+  const s = snapshotStage();
+  if (!s) return;
+  progress.resume = s; save();
+}
+function manualSave() {
+  const s = snapshotStage();
+  if (!s) { toast('Nothing to save right now.', 1400); return; }
+  progress.resume = s; save(); SFX.save();
+  toast('<b>Saved!</b> ✓ CONTINUE on the title screen brings you back here.', 2600);
+  const b = $('#saveBtn');
+  if (b) { b.textContent = 'Saved ✓'; setTimeout(() => { b.textContent = 'Save game'; }, 1500); }
+}
+function dropSave(i) {
+  if (progress.resume && progress.resume.i === i) { delete progress.resume; save(); }
 }
 /* ============================================================
    PLAYER
@@ -1444,8 +1498,9 @@ function updateWorld() {
   if (L.checkpoint && !cpHit && P.x > L.checkpoint.x) {
     cpHit = true;
     spawn = { x: L.checkpoint.x, y: (L.checkpoint.ty - 1) * T };
-    SFX.flag(); toast('<b>CHECKPOINT!</b> 🚩', 1300); callBro();
+    SFX.flag(); toast('<b>CHECKPOINT!</b> 🚩 Saved.', 1300); callBro();
     sparks(L.checkpoint.tx * T + 6, (L.checkpoint.ty - 1) * T, 12, ['#44c55a', '#fff', '#f6c445']);
+    autoSave();
   }
   const magnet = (P.rush > 0 ? 34 : 24) + (hasPet('cat2') ? 18 : 0);
   for (const c of candles) {
@@ -3265,7 +3320,8 @@ function titleScreen() {
   el.cnt.innerHTML = '<i class="candle-ico"></i><b>0</b>';
   el.scoreEl.innerHTML = '★ <b>0</b>';
   renderPetStat();
-  const cont = progress.beaten.length > 0 || progress.unlocked > 1;
+  const rs = progress.resume && LV[progress.resume.i] ? progress.resume : null;
+  const cont = !!rs || progress.beaten.length > 0 || progress.unlocked > 1;
   showScreen(
     '<img class="logo" src="apple-touch-icon.png" alt="Kinan vs. Mom icon">' +
     '<p class="eyebrow">A birthday game from Shad · Saskatoon, Saskatchewan</p>' +
@@ -3273,11 +3329,12 @@ function titleScreen() {
     '<div class="cast">' + castHTML() + '</div>' +
     /* buttons sit above the story so START is on screen without scrolling on a tablet */
     '<div class="btnrow">' +
-    (cont ? '<button class="btn go btnbeat" id="startBtn" type="button">▶ CONTINUE</button>' : '<button class="btn go btnbeat" id="startBtn" type="button">▶ START</button>') +
+    (cont ? '<button class="btn go btnbeat" id="startBtn" type="button">▶ CONTINUE' + (rs ? ' · Stage ' + (rs.i + 1) : '') + '</button>' : '<button class="btn go btnbeat" id="startBtn" type="button">▶ START</button>') +
     (cont ? '<button class="btn" id="mapBtn" type="button">Stage map</button>' : '') +
     (cont ? '<button class="btn ghost" id="newBtn" type="button">Start over</button>' : '') +
     (IS_STANDALONE ? '' : '<button class="btn ghost" id="installBtn2" type="button">📲 Install app</button>') +
     '</div>' +
+    (rs ? '<p class="tiny" id="saveNote">Saved spot: <b>Stage ' + (rs.i + 1) + ' · ' + LV[rs.i].place + '</b>' + (rs.atBoss ? ' · at the boss' : (rs.cpHit ? ' · past the checkpoint' : '')) + ' · ' + rs.got + ' candles</p>' : '') +
     '<p class="lede">It\'s Kinan\'s <b>11th birthday</b> in <b>Saskatoon</b> and the whole house has gone wild. Lego monsters, runaway toys, nosy neighbours... and at the end of every stage, a <b>family boss</b>. Mom is the big boss: she\'s home ALL DAY and she sees EVERYTHING. <b>Big Sis Chenoa</b> runs the house like her restaurant and might be on your team, or she might not. <b>Dad Robin</b> rolls in from the oilfield with his <b>hydro vac</b> when you need him, and big bro <b>Shad</b> crashes in from the job site with a <b>Construction Slam</b>.</p>' +
     '<ul class="howto">' +
     '<li><span class="ico">👟</span><span><b>Jump on enemies</b> to bonk them. Chain bonks without landing for a <b>combo multiplier</b>.</span></li>' +
@@ -3294,7 +3351,8 @@ function titleScreen() {
   $('#startBtn').addEventListener('click', () => {
     AudioSys.init(); SFX.click();
     const next = Math.min(10, Math.max(0, progress.unlocked - 1));
-    playStage(cont ? next : 0);
+    if (rs) playStage(rs.i, { resume: true });
+    else playStage(cont ? next : 0);
   });
   const mb = $('#mapBtn'); if (mb) mb.addEventListener('click', () => { AudioSys.init(); SFX.click(); mapScreen(); });
   const nb = $('#newBtn');
@@ -3390,14 +3448,19 @@ function mapScreen() {
   $('#titleBtn').addEventListener('click', () => { SFX.click(); titleScreen(); });
 }
 
-async function playStage(i) {
+async function playStage(i, opts) {
+  opts = opts || {};
   AudioSys.init();
   showGame(true);
-  startStage(i);
+  const rs = opts.resume && progress.resume && progress.resume.i === i ? progress.resume : null;
+  if (!rs) dropSave(i);   /* a fresh start of the saved stage drops that save */
+  startStage(i, !!rs);
+  if (rs) restoreStage(rs);
   running = true;
   run();
   draw();
-  await story(LV[i].intro, 'k');
+  if (rs) toast('<b>Welcome back!</b> Stage ' + (i + 1) + ' · ' + LV[i].place, 2000);
+  else await story(LV[i].intro, 'k');
   paused = false;
   last = 0; acc = 0;
   draw();
@@ -3417,6 +3480,7 @@ function resultsScreen(i) {
   const prevTime = progress.bestTime[i] || 0;
   if (!prevTime || stageTime < prevTime) progress.bestTime[i] = stageTime;
   progress.totalCandles = (progress.totalCandles || 0) + got;
+  if (progress.resume && progress.resume.i === i) delete progress.resume;   /* cleared stage: nothing left to resume */
   save();
   const newBest = score > prevBest;
   Music.play('title');
@@ -3453,6 +3517,7 @@ function ending() {
   progress.bestTime = progress.bestTime || {};
   if (!progress.bestTime[10] || stageTime < progress.bestTime[10]) progress.bestTime[10] = stageTime;
   progress.totalCandles = (progress.totalCandles || 0) + got;
+  delete progress.resume;
   save();
   Music.play('title');
   const stars = totalStars();
