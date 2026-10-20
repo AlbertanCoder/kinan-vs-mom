@@ -3390,6 +3390,9 @@ function ending() {
   progress.unlocked = 11;
   progress.beaten = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
   progress.stars[10] = Math.max(3, progress.stars[10] || 0);
+  progress.bestScore[10] = Math.max(progress.bestScore[10] || 0, score);
+  progress.bestTime = progress.bestTime || {};
+  if (!progress.bestTime[10] || stageTime < progress.bestTime[10]) progress.bestTime[10] = stageTime;
   progress.totalCandles = (progress.totalCandles || 0) + got;
   save();
   Music.play('title');
