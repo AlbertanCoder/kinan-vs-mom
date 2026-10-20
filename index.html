@@ -300,6 +300,14 @@ html.sideways .pad button.spec:not(:disabled){opacity:.92}
 .chatquick{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px}.chatquick button{background:var(--panel);border:1px solid var(--panel2);border-radius:6px;color:var(--text);font:inherit;font-size:12px;padding:4px 6px;cursor:pointer}
 .chatform{display:flex;gap:4px}.chatform input{flex:1;min-width:0;background:#0b0d1e;border:1px solid var(--panel2);border-radius:6px;color:var(--text);font:inherit;font-size:13px;padding:5px}
 .chatform button{background:var(--gold);color:var(--night);border:0;border-radius:6px;font:inherit;font-size:12px;font-weight:700;padding:5px 8px;cursor:pointer}
+.btools{position:absolute;left:0;right:0;top:0;z-index:6;display:flex;flex-direction:column;gap:3px;padding:4px;pointer-events:none}
+.btools .brow{display:flex;flex-wrap:wrap;gap:3px;align-items:center;pointer-events:auto}
+.btool{width:34px;height:34px;font-size:18px;border-radius:8px;background:rgba(20,22,43,.78);border:2px solid var(--panel2);color:var(--text);cursor:pointer;padding:0}.btool.on{border-color:var(--gold);background:rgba(246,196,69,.28)}
+.bopt{min-height:30px;padding:3px 8px;border-radius:7px;background:rgba(20,22,43,.82);border:2px solid var(--panel2);color:var(--text);font:inherit;font-size:12px;cursor:pointer}.bopt.on{border-color:var(--gold)}.bopt.go{background:var(--gold);color:var(--night);font-weight:700}
+.btools select{min-height:30px;border-radius:7px;background:rgba(20,22,43,.9);color:var(--text);border:2px solid var(--panel2);font:inherit;font-size:12px;max-width:150px}
+.stage.buildmode .toast{top:calc(34% + 4px)}
+.bhint{font-size:11px;background:rgba(20,22,43,.78);padding:3px 6px;border-radius:6px}
+.buildlist li{display:flex;flex-wrap:wrap;align-items:center;gap:6px}.buildlist .bname{background:#0b0d1e;border:1px solid var(--panel2);border-radius:6px;color:var(--text);font:inherit;padding:4px 6px;width:140px}
 /* Party Shop */
 .wallet{margin:0;font-size:18px}
 .wallet b{color:var(--gold)}
@@ -366,6 +374,7 @@ html.sideways .pad button.spec:not(:disabled){opacity:.92}
 
   <div class="stage" id="stage" hidden>
     <canvas id="cv" width="432" height="240" aria-label="Game screen"></canvas>
+    <div class="btools" id="btools" hidden></div>
     <div class="bossbar" id="bossHud" hidden><span class="bname" id="bossName">MOM</span><div class="pips" id="bossPips"></div></div>
     <div class="combo" id="comboEl" hidden><span id="comboX">x2</span><small>COMBO</small></div>
     <div class="toast" id="toast" hidden></div>
@@ -1132,7 +1141,7 @@ function build(i) {
    STATE
    ============================================================ */
 const DEFAULT_PROGRESS = { unlocked: 1, beaten: [], stars: {}, bestScore: {}, totalCandles: 0, pets: { ids: [], names: {} }, hat: 'none', won: false, sound: true, lite: false,
-  wallet: 0, owned: [], outfit: 'classic', trail: 'none', costumes: {}, gold: {}, smashItems: true, codes: [], wonWorlds: [] };
+  wallet: 0, owned: [], outfit: 'classic', trail: 'none', costumes: {}, gold: {}, smashItems: true, codes: [], wonWorlds: [], builds: [] };
 function loadProgress() {
   let p = store.get(SAVE_KEY, null);
   if (!p) {
@@ -1171,6 +1180,7 @@ function loadProgress() {
   out.smashItems = p.smashItems !== false;
   out.codes = Array.isArray(p.codes) ? p.codes.map(Number).filter((n) => n >= 2 && n <= 11) : [];
   out.wonWorlds = Array.isArray(p.wonWorlds) ? p.wonWorlds.map(Number).filter((n) => n >= 2 && n <= 11) : [];
+  out.builds = Array.isArray(p.builds) ? p.builds.filter((b) => b && typeof b.g === 'string' && b.w > 0 && b.g.length === b.w * ROWS && LV[b.theme]).slice(0, 6) : [];
   return out;
 }
 let progress = loadProgress();
@@ -1247,9 +1257,9 @@ window.addEventListener('keyup', (e) => {
 window.addEventListener('blur', () => {
   input.left = input.right = input.jump = input.down = false;
   input2.left = input2.right = input2.jump = false;
-  if (running && !pausedByUser) setPaused(true, true);
+  if (running && !pausedByUser && !builder) setPaused(true, true);
 });
-document.addEventListener('visibilitychange', () => { if (document.hidden && running && !pausedByUser) setPaused(true, true); });
+document.addEventListener('visibilitychange', () => { if (document.hidden && running && !pausedByUser && !builder) setPaused(true, true); });
 
 function bindPad() {
   $$('#pad button').forEach((b) => {
@@ -1538,6 +1548,7 @@ function setPaused(on, showMenu) {
   if (on && running) autoSave();   /* pause, app switch or screen off: the spot is kept */
 }
 function togglePause() {
+  if (builder) return;   /* nothing to pause while building */
   if (!running || !el.dialog.hidden) return;
   if (paused && !pausedByUser) return;
   setPaused(!paused, true);
@@ -1557,6 +1568,7 @@ $('#restartBtn').addEventListener('click', () => {
   setPaused(false); SFX.click();
   if (smash) { smashRematch(); return; }
   if (kart) { kartRestart(); return; }
+  if (L && L.custom) { playCustom(L.src); return; }
   if (L) dropSave(L.i);
   startStage(L ? L.i : 0, true);
 });
@@ -1565,6 +1577,7 @@ $('#mapBtnP').addEventListener('click', () => {
   setPaused(false); running = false; Music.stop();
   if (smash) { const online = smash.online; endSmash(); if (online) netLeave(); smashMenu(); return; }
   if (kart) { const online = kart.online; endKart(); if (online) netLeave(); kartMenu(); return; }
+  if (L && L.custom) { builderMenu(); return; }
   mapScreen();
 });
 $('#fullBtn').addEventListener('click', () => {
@@ -1594,13 +1607,13 @@ function makeFoe(f) {
   return o;
 }
 
-function startStage(i, silent) {
+function startStage(i, silent, custom) {
   /* a story box still open (Restart from the pause menu) is dropped, so it can't finish on the new stage */
   stopTyping(false);
   if (advance) { advance = null; el.dialog.hidden = true; el.portrait.style.visibility = 'hidden'; Music.duck(false); paused = false; }
   puzzle = null;
-  L = build(i);
-  pieces = findPieces(L); pieceCool = pieces.map(() => 0);
+  L = custom || build(i);
+  pieces = custom ? [] : findPieces(L); pieceCool = pieces.map(() => 0);
   stageTime = 0; score = 0; combo = 0; comboT = 0; bestCombo = 0; deaths = 0; heartsLost = 0;
   foes = L.foes.map((f, k) => Object.assign(makeFoe(f), { idx: k }));   /* idx: which stage enemy this is, for saves */
   candles = L.candles.filter((c) => !solid(c.tx, c.ty)).map((c) => ({ x: c.tx * T + 5, y: c.ty * T + 4, w: 6, h: 10, got: false }));
@@ -1612,7 +1625,7 @@ function startStage(i, silent) {
   dad = null; bro = null; boss = 'off'; bossMusic = false;
   dadUsedStage = false; dadUsedBoss = false; dadSpecialDone = false; dadSpecialPlan = false; cpHit = false;
   el.comboEl.hidden = true; el.bossHud.hidden = true;
-  spawn = { x: 2 * T, y: (GROUND - 1) * T };
+  spawn = custom ? { x: custom.startT[0] * T, y: custom.startT[1] * T } : { x: 2 * T, y: (GROUND - 1) * T };
   lastSafe = { x: spawn.x, y: spawn.y };
   P = {
     x: spawn.x, y: spawn.y, w: 10, h: 16, vx: 0, vy: 0, onGround: false, face: 1,
@@ -1629,11 +1642,12 @@ function startStage(i, silent) {
   P.max = 3 + (owned.indexOf('cat3') >= 0 ? 1 : 0);
   P.hp = P.max;
   P.airJumps = hasPet('cat1') ? 1 : 0;
-  const nextPet = PET_STAGE[i] && owned.indexOf(PET_STAGE[i]) < 0 ? PET_STAGE[i] : null;
+  const nextPet = !custom && PET_STAGE[i] && owned.indexOf(PET_STAGE[i]) < 0 ? PET_STAGE[i] : null;
   cratePet = nextPet;
   crate = nextPet && L.petSpot ? { x: L.petSpot.x, y: L.petSpot.y, w: 16, h: 16, pet: nextPet, open: false, t: 0 } : null;
   camX = 0; shake = 0; hitStop = 0;
-  el.stageLbl.textContent = stageLabel(i);
+  el.stageLbl.textContent = custom ? 'BUILDER · ' + custom.src.name.toUpperCase() : stageLabel(i);
+  $('#mapBtnP').textContent = custom ? 'My levels' : 'Stage map';
   el.pauseBtn.hidden = false;
   updHud();
   Music.play(LV[i].final || LV[i].final2 ? 'final' : 'stage');
@@ -1643,7 +1657,7 @@ function startStage(i, silent) {
    SAVE SPOT — auto (checkpoint, pause, app switch) and manual (pause menu)
    ============================================================ */
 function snapshotStage() {
-  if (!L || !P || P.dead || L.smash) return null;
+  if (!L || !P || P.dead || L.smash || L.custom) return null;
   /* in a puzzle room the save is the spot in the stage where you jumped in */
   const SL = puzzle ? puzzle.saved.L : L, safe = puzzle ? puzzle.saved.lastSafe : lastSafe;
   const onGround = !puzzle && P.onGround;
@@ -2259,6 +2273,7 @@ function updateBossHud() {
   el.bossName.style.color = alive.some((b) => b.kind === 'final') ? '#ff6fae' : '';
 }
 async function startBoss() {
+  if (L.custom) { customGoal(); return; }   /* Kinan's own level: the flag is the end */
   if (!LV[L.i].boss) { goalReached(); return; }   /* no boss here: this stage ends at Dad's truck */
   boss = 'intro';
   paused = true;
@@ -2626,6 +2641,7 @@ function updateFx() {
   if (shake > 0.05) shake *= 0.86; else shake = 0;
 }
 function update() {
+  if (builder) { updateBuilder(); return; }
   if (kart) { kartUpdate(); return; }
   if (smash) { updateSmash(); return; }
   frame++;
@@ -3824,6 +3840,7 @@ function drawVignette() {
   ctx.drawImage(vignette, 0, 0);
 }
 function draw() {
+  if (builder) { drawBuilder(); return; }
   if (kart) { drawKart(); return; }
   if (smash) { drawSmash(); return; }
   if (puzzle) { drawPuzzle(); return; }
@@ -3892,6 +3909,7 @@ function setOrientationUI() {
 window.addEventListener('resize', setOrientationUI);
 function showScreen(html) {
   running = false;
+  builder = null; $('#btools').hidden = true; el.stage.classList.remove('buildmode');
   el.dialog.hidden = true;
   el.toast.hidden = true;
   el.pause.hidden = true;
@@ -4671,6 +4689,7 @@ function titleScreen() {
     '<button class="modebtn go btnbeat" id="startBtn" type="button"><span class="mico">🎂</span><span class="mt"><b>Story mode · ' + (cont ? 'CONTINUE' : 'START') + '</b><small id="saveNote">' + storySub + '</small></span></button>' +
     '<button class="modebtn" id="smashBtn" type="button"><span class="mico">🥊</span><span class="mt"><b>Family Smash</b><small>Fight the family: online with a room code, two on one keyboard, or vs. the computer</small></span></button>' +
     '<button class="modebtn" id="kartBtn" type="button"><span class="mico">🏎️</span><span class="mt"><b>Family Kart</b><small>Race the family: online with a room code, or vs. the computer</small></span></button>' +
+    '<button class="modebtn" id="buildBtn" type="button"><span class="mico">🧱</span><span class="mt"><b>Builder</b><small>Build your own level with the game\'s blocks, then play it</small></span></button>' +
     '</div>' +
     '<div class="cast">' + castHTML() + '</div>' +
     '<div class="btnrow">' +
@@ -4703,6 +4722,7 @@ function titleScreen() {
   if (ib2) ib2.addEventListener('click', openInstall);
   $('#smashBtn').addEventListener('click', () => { AudioSys.init(); SFX.click(); smashMenu(); });
   $('#kartBtn').addEventListener('click', () => { AudioSys.init(); SFX.click(); kartMenu(); });
+  $('#buildBtn').addEventListener('click', () => { AudioSys.init(); SFX.click(); builderMenu(); });
 }
 function howToScreen() {
   Music.play('title');
@@ -4720,6 +4740,7 @@ function howToScreen() {
     '<li><span class="ico">🍰</span><span>Every <b>25 candles</b> = an extra heart. Trampolines launch you sky-high. The game saves itself at every checkpoint and whenever you pause.</span></li>' +
     '<li><span class="ico">🧩</span><span>Every stage hides <b>3 puzzle pieces</b> up in the air. Jump into one for a puzzle room with a <b>golden candle</b> (+25 for the Party Shop). There is always a door out.</span></li>' +
     '<li><span class="ico">🥊</span><span><b>Family Smash:</b> pick a family member, jump on heads, press <b>POW</b> for their special move, knock everyone else off the cake. Grab the <b>birthday items</b> that float down (🍰 🎉 ❤ ⛑️ 🎈). Beat story stages to unlock more arenas.</span></li>' +
+    '<li><span class="ico">🧱</span><span><b>Builder:</b> make your own level with ground, bricks, gift blocks, shelves, trampolines, candles and enemies, put down a start and a 🚩, and play it. Up to 6 levels are kept on this device.</span></li>' +
     '<li><span class="ico">🏎️</span><span><b>Family Kart:</b> race the family in their real rides. Steer with ◀ ▶; hold <b>HOP</b> while turning to drift, let go after the sparks for a boost; <b>ITEM</b> uses what a gift box gave you. Beat story stages to unlock more tracks.</span></li>' +
     '</ul>' +
     '<p class="tiny">Phone or tablet: turn it sideways; the buttons float over the picture. Keyboard: ← → move · SPACE jump · X pow · P pause. Gamepad works too.</p>' +
@@ -7751,6 +7772,225 @@ function kartRestart() {
   playKart(kartCpuRace(kartMe().who, K.ti));
 }
 
+/* ============================================================
+   BUILDER MODE — Kinan builds his own level with the game's own
+   blocks, gifts, springs, shelves, candles and enemies, in the look
+   of any world he has reached, then plays it. Up to 6 saved levels
+   live on this device. (Candles in your own levels do not go to the
+   Party Shop.)
+   ============================================================ */
+const BTOOLS = [
+  { id: 'ground', icon: '🟫', name: 'Ground', tile: 1 }, { id: 'brick', icon: '🧱', name: 'Bricks', tile: 2 },
+  { id: 'gift', icon: '🎁', name: 'Gift block', tile: 3 }, { id: 'shelf', icon: '➖', name: 'Shelf', tile: 7 },
+  { id: 'spring', icon: '🔵', name: 'Trampoline', tile: 6 }, { id: 'candle', icon: '🕯', name: 'Candle' },
+  { id: 'foe', icon: '👾', name: 'Enemy' }, { id: 'start', icon: '🧒', name: 'Start' }, { id: 'goal', icon: '🚩', name: 'Finish flag' },
+  { id: 'erase', icon: '🧽', name: 'Eraser' }, { id: 'move', icon: '✋', name: 'Scroll' }
+];
+const GIFT_KINDS = ['candle', 'popper', 'cake', 'heart'];
+const GIFT_ICON = { candle: '🕯', popper: '🎉', cake: '🍰', heart: '❤' };
+const BSIZES = { short: 60, medium: 100, long: 150 };
+let builder = null;   /* the level editor, while it is open */
+function themesOpen() { const out = []; for (let i = 0; i < LV.length; i++) if (i <= 10 || worldOpen(2)) out.push(i); return out; }
+function newBuild(size) {
+  const w = BSIZES[size] || 100, g = new Array(w * ROWS).fill(0);
+  for (let x = 0; x < w; x++) for (let y = GROUND; y < ROWS; y++) g[y * w + x] = 1;
+  const n = (progress.builds || []).length + 1;
+  return { name: 'My level ' + n, theme: 0, w: w, g: g.join(''), candles: [], foes: [], gifts: {}, start: [2, GROUND - 1], goal: [w - 4, GROUND - 1] };
+}
+/* the saved form -> a level the stage code can play */
+function buildCustom(b) {
+  const w = b.w, g = new Uint8Array(w * ROWS);
+  for (let k = 0; k < w * ROWS; k++) g[k] = Number(b.g[k]) || 0;
+  const gifts = {};
+  for (const k in b.gifts) if (g[Number(k)] === 3) gifts[k] = b.gifts[k];
+  for (let k = 0; k < g.length; k++) if (g[k] === 3 && !gifts[k]) gifts[k] = 'candle';
+  const goalX = clamp(b.goal[0], 4, w - 2);
+  return {
+    i: b.theme, g: g, w: w, gifts: gifts, checkpoint: null, petSpot: null, len: w,
+    foes: b.foes.map((f) => ({ tx: f[0], ty: FOE[f[2]] && FOE[f[2]].beh === 'flyer' ? f[1] - 2 : f[1], type: FOE[f[2]] ? f[2] : 'sock' })),
+    candles: b.candles.map((c) => ({ tx: c[0], ty: c[1] })),
+    arenaX: goalX - 3, arenaW: Math.max(4, w - goalX + 2), custom: true, src: b, startT: b.start
+  };
+}
+function playCustom(b) {
+  AudioSys.init();
+  builder = null;
+  $('#btools').hidden = true; el.stage.classList.remove('buildmode');
+  showGame(true);
+  startStage(b.theme, true, buildCustom(b));
+  running = true; run(); draw();
+  paused = false; last = 0; acc = 0;
+  toast('<b>' + escAttr(b.name) + '</b> · get to the 🚩!', 1800);
+}
+/* reaching the flag in your own level */
+function customGoal() {
+  boss = 'done'; paused = true;
+  SFX.win(); sparks(P.x + 5, P.y, 16, ['#f6c445', '#fff', '#ff6fae']);
+  const b = L.src, t = stageTime, c = got, all = totalCandles;
+  setTimeout(() => {
+    showScreen(
+      '<p class="eyebrow">Builder mode · your own level</p>' +
+      '<h1 class="title"><span class="t1">You beat it!</span><span class="t2">' + escAttr(b.name) + '</span></h1>' +
+      '<dl class="bigstats"><div><dt>Time</dt><dd>' + fmtTime(t) + '</dd></div><div><dt>Candles</dt><dd><b>' + c + '</b> / ' + all + '</dd></div></dl>' +
+      '<div class="btnrow"><button class="btn go" id="bAgain" type="button">Play it again</button><button class="btn" id="bEdit" type="button">Keep building</button><button class="btn ghost" id="bMenu" type="button">My levels</button></div>'
+    );
+    confetti();
+    $('#bAgain').addEventListener('click', () => { SFX.click(); playCustom(b); });
+    $('#bEdit').addEventListener('click', () => { SFX.click(); editBuild(b); });
+    $('#bMenu').addEventListener('click', () => { SFX.click(); builderMenu(); });
+  }, 700);
+}
+function saveBuild(b) {
+  progress.builds = progress.builds || [];
+  const k = progress.builds.indexOf(b);
+  if (k < 0) progress.builds.push(b);
+  save();
+}
+function builderMenu() {
+  if (kart) endKart();
+  if (smash) endSmash();
+  builder = null;
+  $('#btools').hidden = true;
+  Music.play('title');
+  el.stageLbl.textContent = 'BUILDER MODE';
+  const list = progress.builds || [];
+  showScreen(
+    '<p class="eyebrow">Builder mode · make your own level</p>' +
+    '<h1 class="title"><span class="t1">Builder</span><span class="t2">Build it. Play it. Make it harder.</span></h1>' +
+    '<p class="lede">Use the game\'s own blocks: ground, bricks, gift blocks, shelves, trampolines, candles and enemies. Put down a start and a finish flag, pick the look of any world you have reached, then press <b>▶ Play</b>.</p>' +
+    (list.length ? '<ul class="credits buildlist">' + list.map((b, k) => '<li><input class="bname" data-k="' + k + '" maxlength="24" value="' + escAttr(b.name) + '" aria-label="Level name"> · ' + escAttr(LV[b.theme] ? LV[b.theme].place : '') + ' · ' + (b.w === 60 ? 'short' : b.w === 150 ? 'long' : 'medium') +
+      ' <button class="btn small go" type="button" data-play="' + k + '">▶ Play</button> <button class="btn small" type="button" data-edit="' + k + '">Build</button> <button class="btn small ghost" type="button" data-del="' + k + '">Delete</button></li>').join('') + '</ul>'
+      : '<p class="tiny">No levels yet. Make your first one!</p>') +
+    (list.length < 6 ? '<p class="tiny"><b>New level:</b> <button class="btn small" type="button" data-new="short">Short</button> <button class="btn small go" type="button" data-new="medium">Medium</button> <button class="btn small" type="button" data-new="long">Long</button></p>' : '<p class="tiny">6 levels is the most: delete one to make another.</p>') +
+    '<div class="btnrow"><button class="btn ghost" id="bBack" type="button">Title screen</button></div>'
+  );
+  $$('[data-new]', el.screen).forEach((x) => x.addEventListener('click', () => { AudioSys.init(); SFX.click(); const b = newBuild(x.dataset.new); saveBuild(b); editBuild(b); }));
+  $$('[data-play]', el.screen).forEach((x) => x.addEventListener('click', () => { SFX.click(); playCustom(list[Number(x.dataset.play)]); }));
+  $$('[data-edit]', el.screen).forEach((x) => x.addEventListener('click', () => { SFX.click(); editBuild(list[Number(x.dataset.edit)]); }));
+  $$('[data-del]', el.screen).forEach((x) => x.addEventListener('click', () => {
+    if (!confirm('Delete "' + list[Number(x.dataset.del)].name + '"?')) return;
+    list.splice(Number(x.dataset.del), 1); save(); SFX.click(); builderMenu();
+  }));
+  $$('.bname', el.screen).forEach((inp) => inp.addEventListener('change', () => { const b = list[Number(inp.dataset.k)]; if (b) { b.name = inp.value.trim().slice(0, 24) || b.name; save(); } }));
+  $('#bBack').addEventListener('click', () => { SFX.click(); titleScreen(); });
+}
+/* ---- the editor ---- */
+function editBuild(b) {
+  AudioSys.init();
+  if (kart) endKart();
+  showGame(true);
+  el.pad.hidden = true;
+  const g = new Uint8Array(b.w * ROWS);
+  for (let k = 0; k < g.length; k++) g[k] = Number(b.g[k]) || 0;
+  builder = { b: b, g: g, tool: 'ground', foe: (LV[b.theme].foes || ['sock'])[0], cam: 0, down: false, last: '', dirty: false };
+  L = { i: b.theme, g: g, w: b.w, foes: [], candles: [], gifts: {}, checkpoint: null, petSpot: null, arenaX: b.w, arenaW: 1, len: b.w, builder: true };
+  P = null; foes = []; candles = []; items = []; bosses = []; shots = []; pets = { cats: [], dogs: [] }; dad = null; bro = null; crate = null; pieces = []; puzzle = null;
+  boss = 'off'; camX = 0; paused = false;
+  el.stageLbl.textContent = 'BUILDER · ' + b.name.toUpperCase();
+  el.hearts.innerHTML = ''; el.cnt.hidden = true; el.scoreEl.hidden = true; el.petStat.hidden = true; el.pauseBtn.hidden = true;
+  builderToolbar();
+  el.stage.classList.add('buildmode');
+  Music.play('title');
+  running = true; run(); draw();
+  toast('Pick a tool at the top, then tap or drag on the level. <b>▶ Play</b> to try it!', 2600);
+}
+function builderToolbar() {
+  const B = builder, bt = $('#btools');
+  bt.hidden = false;
+  const th = themesOpen();
+  bt.innerHTML =
+    '<div class="brow">' + BTOOLS.map((t) => '<button type="button" class="btool' + (B.tool === t.id ? ' on' : '') + '" data-tool="' + t.id + '" title="' + t.name + '" aria-label="' + t.name + '">' + t.icon + '</button>').join('') + '</div>' +
+    '<div class="brow">' +
+    (B.tool === 'foe' ? (LV[B.b.theme].foes || []).map((f) => '<button type="button" class="bopt' + (B.foe === f ? ' on' : '') + '" data-foe="' + f + '">' + f + '</button>').join('') : '') +
+    (B.tool === 'gift' ? '<span class="bhint">tap a gift block again to change what is inside: 🕯 🎉 🍰 ❤</span>' : '') +
+    '<select id="bTheme" aria-label="Look">' + th.map((i) => '<option value="' + i + '"' + (i === B.b.theme ? ' selected' : '') + '>' + escAttr(LV[i].place) + '</option>').join('') + '</select>' +
+    '<button type="button" class="bopt" id="bLeft" aria-label="Scroll left">◀</button><button type="button" class="bopt" id="bRight" aria-label="Scroll right">▶</button>' +
+    '<button type="button" class="bopt go" id="bPlay">▶ Play</button><button type="button" class="bopt" id="bDone">💾 Done</button></div>';
+  $$('.btool', bt).forEach((x) => x.addEventListener('click', () => { SFX.click(); B.tool = x.dataset.tool; builderToolbar(); toast(BTOOLS.filter((t) => t.id === B.tool)[0].name, 900); }));
+  $$('[data-foe]', bt).forEach((x) => x.addEventListener('click', () => { SFX.click(); B.foe = x.dataset.foe; builderToolbar(); }));
+  $('#bTheme').addEventListener('change', (e) => { B.b.theme = Number(e.target.value); L.i = B.b.theme; B.foe = (LV[B.b.theme].foes || ['sock'])[0]; builderCommit(); builderToolbar(); });
+  const scroll = (d) => { B.cam = clamp(B.cam + d * T * 8, 0, Math.max(0, B.b.w * T - W)); };
+  $('#bLeft').addEventListener('click', () => scroll(-1)); $('#bRight').addEventListener('click', () => scroll(1));
+  $('#bPlay').addEventListener('click', () => { SFX.click(); builderCommit(); saveBuild(B.b); playCustom(B.b); });
+  $('#bDone').addEventListener('click', () => { SFX.click(); builderCommit(); saveBuild(B.b); builderMenu(); });
+}
+function builderCommit() { const B = builder; if (!B) return; B.b.g = Array.from(B.g).join(''); save(); }
+/* where on the level a finger or mouse is (the race and builder are drawn turned on upright phones) */
+function builderTile(e) {
+  const r = cv.getBoundingClientRect(), rot = document.documentElement.classList.contains('rotated');
+  const lx = rot ? (e.clientY - r.top) / r.height * W : (e.clientX - r.left) / r.width * W;
+  const ly = rot ? (r.right - e.clientX) / r.width * H : (e.clientY - r.top) / r.height * H;
+  return { tx: Math.floor((lx + builder.cam) / T), ty: Math.floor(ly / T), lx: lx };
+}
+function builderApply(t, first) {
+  const B = builder, b = B.b, w = b.w;
+  if (t.tx < 0 || t.tx >= w || t.ty < 1 || t.ty >= ROWS) return;
+  const key = t.tx + ',' + t.ty, idx = t.ty * w + t.tx, tool = BTOOLS.filter((x) => x.id === B.tool)[0];
+  if (!first && key === B.last) return;
+  B.last = key;
+  const clearThings = () => { b.candles = b.candles.filter((c) => c[0] !== t.tx || c[1] !== t.ty); b.foes = b.foes.filter((f) => f[0] !== t.tx || f[1] !== t.ty); };
+  if (tool.tile) {
+    if (tool.tile === 3 && B.g[idx] === 3 && first) {   /* tap a gift again: change what is inside */
+      const cur = b.gifts[idx] || 'candle'; b.gifts[idx] = GIFT_KINDS[(GIFT_KINDS.indexOf(cur) + 1) % GIFT_KINDS.length];
+      toast('Inside: ' + GIFT_ICON[b.gifts[idx]], 700); SFX.gift();
+    } else if (B.g[idx] !== tool.tile) { B.g[idx] = tool.tile; clearThings(); if (tool.tile === 3) b.gifts[idx] = 'candle'; SFX.stomp(); }
+  } else if (B.tool === 'erase') { if (B.g[idx] || b.candles.some((c) => c[0] === t.tx && c[1] === t.ty) || b.foes.some((f) => f[0] === t.tx && f[1] === t.ty)) { B.g[idx] = 0; delete b.gifts[idx]; clearThings(); SFX.pop(); } }
+  else if (B.tool === 'candle') { if (!B.g[idx] && !b.candles.some((c) => c[0] === t.tx && c[1] === t.ty)) { b.candles.push([t.tx, t.ty]); SFX.candle(); } }
+  else if (B.tool === 'foe' && first) { if (!B.g[idx]) { clearThings(); if (b.foes.length < 40) { b.foes.push([t.tx, t.ty, B.foe]); SFX.click(); } else toast('40 enemies is the most!', 1200); } }
+  else if (B.tool === 'start' && first) { if (!B.g[idx]) { b.start = [t.tx, t.ty]; SFX.click(); } }
+  else if (B.tool === 'goal' && first) { if (!B.g[idx]) { b.goal = [t.tx, t.ty]; SFX.flag(); } }
+  B.dirty = true;
+}
+function bindBuilder() {
+  cv.addEventListener('pointerdown', (e) => {
+    if (!builder) return;
+    e.preventDefault();
+    try { cv.setPointerCapture(e.pointerId); } catch (er) { /* ignore */ }
+    const t = builderTile(e);
+    builder.down = true; builder.last = ''; builder.grabX = t.lx; builder.grabCam = builder.cam;
+    if (builder.tool !== 'move') builderApply(t, true);
+  });
+  cv.addEventListener('pointermove', (e) => {
+    if (!builder || !builder.down) return;
+    e.preventDefault();
+    const t = builderTile(e);
+    if (builder.tool === 'move') builder.cam = clamp(builder.grabCam - (t.lx - builder.grabX), 0, Math.max(0, builder.b.w * T - W));
+    else if (['ground', 'brick', 'shelf', 'erase', 'candle'].indexOf(builder.tool) >= 0) builderApply(t, false);
+  });
+  const up = () => { if (builder && builder.down) { builder.down = false; builderCommit(); } };
+  cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
+}
+function updateBuilder() {
+  const B = builder;
+  frame++;
+  if (input.left || padIn.left) B.cam = Math.max(0, B.cam - 6);
+  if (input.right || padIn.right) B.cam = Math.min(Math.max(0, B.b.w * T - W), B.cam + 6);
+}
+const bFoeCache = {};
+function drawBuilder() {
+  const B = builder, b = B.b, th = LV[b.theme];
+  camX = B.cam;
+  drawSky(b.theme, th); drawBackdrop(th, b.theme); drawAtmosphere(th);
+  drawTiles(th);
+  /* gift contents, candles, enemies, start and finish */
+  ctx.font = '8px "Segoe UI Emoji",sans-serif'; ctx.textAlign = 'center';
+  for (const k in b.gifts) { const tx = k % b.w, ty = Math.floor(k / b.w); if (B.g[k] === 3) ctx.fillText(GIFT_ICON[b.gifts[k]] || '🕯', tx * T + 8 - camX, ty * T - 2); }
+  for (const c of b.candles) ctx.drawImage(SP.candle, c[0] * T + 5 - camX, c[1] * T + 4);
+  for (const f of b.foes) {
+    const key = f[2];
+    if (!bFoeCache[key]) bFoeCache[key] = makeFoe({ type: FOE[key] ? key : 'sock', tx: 0, ty: 0 });
+    const o = bFoeCache[key];
+    o.x = f[0] * T + 1; o.y = f[1] * T + 3; o.onGround = true; o.alive = true; o.face = -1;
+    drawFoe(o);
+  }
+  ctx.drawImage(SP.kStand, b.start[0] * T - camX, b.start[1] * T);
+  ctx.drawImage(SP.flag, b.goal[0] * T - camX, (b.goal[1] + 1) * T - SP.flag.height);
+  /* a faint grid */
+  ctx.fillStyle = 'rgba(255,255,255,.08)';
+  for (let x = -(camX % T); x < W; x += T) ctx.fillRect(Math.round(x), 0, 1, H);
+  for (let y = 0; y < H; y += T) ctx.fillRect(0, y, W, 1);
+  drawVignette();
+}
 /* ---- the room chat: tucked away on the side, only for the people in your online room, never saved ---- */
 const CHAT = { log: [], unread: 0, open: false, last: 0 };
 const CHAT_QUICK = ['👍', '😂', '🎉', 'Nice one!', 'Good game!', 'Rematch?', 'Wait for me!', 'Happy birthday, Kinan! 🎂'];
@@ -7814,6 +8054,7 @@ document.addEventListener('gesturestart', (e) => e.preventDefault(), { passive: 
 bindPad();
 bindWheel();
 bindChat();
+bindBuilder();
 AudioSys.on = progress.sound !== false;
 applyLite();
 initPWA();
@@ -7932,6 +8173,16 @@ window.__k11 = {
   puzzle: () => (puzzle ? { kind: puzzle.kind, stage: puzzle.stage, j: puzzle.j, solved: puzzle.solved, step: puzzle.step, lamps: puzzle.lamps.slice(), order: puzzle.order.slice(),
     ents: puzzle.ents.map((e) => ({ x: e.x, on: !!e.on })), gold: puzzle.gold ? Object.assign({}, puzzle.gold) : null } : null),
   pieces: () => pieces.map((pc) => ({ x: pc.x, y: pc.y, j: pc.j, got: hasGold(L.i, pc.j), cool: pieceCool[pc.j] })),
+  builder: {
+    menu: () => builderMenu(),
+    make: (size) => { const b = newBuild(size || 'short'); saveBuild(b); editBuild(b); return progress.builds.length - 1; },
+    edit: (k) => editBuild(progress.builds[k]), play: (k) => playCustom(progress.builds[k]),
+    tool: (t) => { if (builder) { builder.tool = t; builderToolbar(); } return !!builder; },
+    state: () => (builder ? { tool: builder.tool, cam: builder.cam, w: builder.b.w, theme: builder.b.theme, start: builder.b.start, goal: builder.b.goal, candles: builder.b.candles.length, foes: builder.b.foes.length,
+      tiles: Array.from(builder.g).reduce((a, v) => (v ? a + 1 : a), 0), gifts: Object.assign({}, builder.b.gifts) } : null),
+    cell: (tx, ty) => (builder ? builder.g[ty * builder.b.w + tx] : null),
+    saved: () => (progress.builds || []).map((b) => ({ name: b.name, w: b.w, theme: b.theme, candles: b.candles.length, foes: b.foes.length }))
+  },
   worlds: {
     open: (n) => worldOpen(n), next: () => nextStage(), code: (t) => useCode(t), status: () => WORLDS.slice(0, 3).map((w) => worldStatus(w)),
     stages: () => LV.map((th, i) => ({ i: i, world: worldOf(i), num: stageNum(i), place: th.place, boss: th.boss ? th.boss.kind : null, open: stageOpen(i), clock: th.clock }))
