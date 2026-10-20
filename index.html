@@ -3219,7 +3219,7 @@ function titleScreen() {
     (cont ? '<button class="btn go btnbeat" id="startBtn" type="button">▶ CONTINUE</button>' : '<button class="btn go btnbeat" id="startBtn" type="button">▶ START</button>') +
     (cont ? '<button class="btn" id="mapBtn" type="button">Stage map</button>' : '') +
     (cont ? '<button class="btn ghost" id="newBtn" type="button">Start over</button>' : '') +
-    '<button class="btn ghost" id="installBtn2" type="button">📲 Install app</button>' +
+    (IS_STANDALONE ? '' : '<button class="btn ghost" id="installBtn2" type="button">📲 Install app</button>') +
     '</div>' +
     '<p class="lede">It\'s Kinan\'s <b>11th birthday</b> in <b>Saskatoon</b> and the whole house has gone wild. Lego monsters, runaway toys, nosy neighbours... and at the end of every stage, a <b>family boss</b>. Mom is the big boss. <b>Big Sis Chenoa</b> might be on your team, or she might not. <b>Dad Robin</b> shows up when you need him, and big bro <b>Shad</b> crashes in with a <b>Construction Slam</b>.</p>' +
     '<ul class="howto">' +
@@ -3477,7 +3477,7 @@ function confetti() {
    ============================================================ */
 let installPrompt = null;
 const IS_IOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-const IS_STANDALONE = (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
+const IS_STANDALONE = (window.matchMedia && matchMedia('(display-mode: standalone), (display-mode: fullscreen), (display-mode: minimal-ui)').matches) || navigator.standalone === true;
 
 function openSheet(html) {
   $('#sheetBody').innerHTML = html;
@@ -3553,6 +3553,9 @@ AudioSys.on = progress.sound !== false;
 applyLite();
 initPWA();
 if (IS_IOS && !IS_STANDALONE && el.install) el.install.hidden = false;
+/* inside the installed app there is nothing to install and it is already full screen */
+if (IS_STANDALONE) $('#installBtnP').hidden = true;
+if (IS_STANDALONE || !document.fullscreenEnabled) $('#fullBtn').hidden = true;
 el.snd.setAttribute('aria-pressed', String(AudioSys.on));
 el.snd.textContent = AudioSys.on ? '♪' : '♪̶';
 titleScreen();
