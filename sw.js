@@ -1,5 +1,5 @@
 /* Kinan vs. Mom - offline cache */
-const CACHE = 'kinan-vs-mom-v6';
+const CACHE = 'kinan-vs-mom-v7';
 const ASSETS = [
   './',
   './index.html',

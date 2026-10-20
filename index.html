@@ -709,7 +709,7 @@ const LV = [
   {
     place: 'The Dinner Table', bg: 'dinner', sky: ['#6cbf60', '#dcf8ca'], far: '#9bd68c', mid: '#7cc46e',
     ground: '#6b4a2a', top: '#4fa83d', brick: '#e07a2a', accent: '#f6c445', foes: ['broccoli', 'carrot', 'egg'],
-    intro: ['Dinner time. The vegetables have formed an ARMY.', 'The last cat is in a box near the table. Rescue her before the broccoli wins.'],
+    intro: ['Dinner time. The vegetables have formed an ARMY.', 'The last cat is in a box near the table. Rescue her before the broccoli wins.', 'She loves loud parties - your Party Popper will fire faster.'],
     boss: { kind: 'mom', title: 'Mom, the Vegetable Queen', prop: '🥕', hp: 6, face: 'm' },
     bossIntro: ['<b>MOM:</b> Three more bites.', '<b>MOM:</b> THEN you can have dessert.'],
     taunts: ['Here comes the airplane!', "There's spinach in EVERYTHING!"],
@@ -1231,7 +1231,7 @@ function startStage(i, silent) {
   });
   P.max = 3 + (owned.indexOf('cat3') >= 0 ? 1 : 0);
   P.hp = P.max;
-  P.airJumps = pets.cats.length ? 1 : 0;
+  P.airJumps = hasPet('cat1') ? 1 : 0;
   const nextPet = PET_STAGE[i] && owned.indexOf(PET_STAGE[i]) < 0 ? PET_STAGE[i] : null;
   cratePet = nextPet;
   crate = nextPet && L.petSpot ? { x: L.petSpot.x, y: L.petSpot.y, w: 16, h: 16, pet: nextPet, open: false, t: 0 } : null;
@@ -1263,7 +1263,7 @@ function updatePlayer() {
   }
   if (P.onGround) {
     P.coyote = 7;
-    P.airJumps = pets.cats.length ? 1 : 0;
+    P.airJumps = hasPet('cat1') ? 1 : 0;
     if (Math.abs(P.vx) > 0.4) P.anim += Math.abs(P.vx) * 0.045;
   } else if (P.coyote > 0) P.coyote--;
 
@@ -1395,7 +1395,7 @@ function addCandle(n) {
     SFX.heart();
     pop(P.x, P.y - 16, 'EXTRA HEART!', 50, '#ff6fae');
     sparks(P.x + 5, P.y, 14, ['#ff6fae', '#fff', '#f6c445']);
-    toast('<b>25 candles!</b> Extra heart ❤', 1500);
+    toast('<b>' + (nextHeartAt - 25) + ' candles!</b> Extra heart â¤', 1500);
   }
   updHud();
 }
@@ -1451,6 +1451,7 @@ function updateWorld() {
       save();
       if (def.kind === 'cat') pets.cats.push({ id: def.id, def: def, x: crate.x, y: crate.y + 7, face: 1 });
       else pets.dogs.push({ id: def.id, def: def, x: crate.x, y: crate.y + 6, t: 0, dash: null, face: 1 });
+      if (def.id === 'cat1') P.airJumps = 1;
       if (def.id === 'cat3') { P.max = Math.min(5, P.max + 1); P.hp = P.max; }
       if (def.kind === 'cat') SFX.meow(); else SFX.woof();
       toast((def.kind === 'cat' ? '🐱 ' : '🐶 ') + '<b>' + escAttr(petName(def.id)) + '</b> joined the party! <b>' + def.perk + '</b> unlocked.', 3000);
@@ -3549,7 +3550,7 @@ window.__k11 = {
   startStage: startStage,
   playStage: playStage,
   state: () => ({
-    stage: L && L.i, boss: boss, hp: P && P.hp, max: P && P.max,
+    stage: L && L.i, boss: boss, hp: P && P.hp, max: P && P.max, airJumps: P ? P.airJumps : 0,
     px: P && Math.round(P.x), py: P && Math.round(P.y), onGround: P ? !!P.onGround : false, vy: P ? Math.round(P.vy * 100) / 100 : 0,
     camX: Math.round(camX), foes: foes.filter((f) => f.alive).length, bosses: bosses.filter((b) => !b.out).map((b) => b.kind + ':' + b.hp),
     foePos: foes.filter((f) => f.alive).slice(0, 8).map((f) => [Math.round(f.x), Math.round(f.y), f.type]),
