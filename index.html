@@ -1400,7 +1400,7 @@ function addCandle(n) {
     SFX.heart();
     pop(P.x, P.y - 16, 'EXTRA HEART!', 50, '#ff6fae');
     sparks(P.x + 5, P.y, 14, ['#ff6fae', '#fff', '#f6c445']);
-    toast('<b>' + (nextHeartAt - 25) + ' candles!</b> Extra heart â¤', 1500);
+    toast('<b>' + (nextHeartAt - 25) + ' candles!</b> Extra heart ❤', 1500);
   }
   updHud();
 }
@@ -1840,7 +1840,8 @@ function damage(b, n, why) {
   }
   if (n >= 1) {
     const lines = (b.kind === 'chenoa' && LV[L.i].boss.kind !== 'chenoa') ? ['Hey! Not the sweater!', 'Ugh, my crocs!'] : LV[L.i].taunts;
-    toast('<b>' + bossName(b) + ':</b> ' + lines[(b.max - b.hp - 1 + lines.length * 9) % lines.length], 1700);
+    /* Party Popper hits take 0.34, so hp can be fractional: round down to a whole line number */
+    toast('<b>' + bossName(b) + ':</b> ' + lines[(Math.floor(b.max - b.hp - 1 + 1e-6) + lines.length * 9) % lines.length], 1700);
   }
   const main = bosses[0];
   if (!dadSpecialDone && dadSpecialPlan && main && main.hp <= main.max / 2 && !main.out && !dad) { dadSpecialDone = true; callDad('special'); }
