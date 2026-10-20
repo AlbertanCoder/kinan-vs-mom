@@ -1212,6 +1212,8 @@ function makeFoe(f) {
 }
 
 function startStage(i, silent) {
+  /* a story box still open (Restart from the pause menu) is dropped, so it can't finish on the new stage */
+  if (advance) { advance = null; el.dialog.hidden = true; el.portrait.style.visibility = 'hidden'; Music.duck(false); paused = false; }
   L = build(i);
   stageTime = 0; score = 0; combo = 0; comboT = 0; bestCombo = 0; deaths = 0; heartsLost = 0;
   foes = L.foes.map(makeFoe);
