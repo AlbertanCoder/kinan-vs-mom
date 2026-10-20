@@ -336,6 +336,8 @@ const store = {
 const reduced = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
 
 const T = 16, ROWS = 15, H = 240, W = 432, GROUND = 11;
+const RUN_MAX = 3.0, JUMP_V = -8.2, AIR_JUMP_V = -7.4, MAX_FALL = 8.6;
+const GRAV_HOLD = 0.38, GRAV_TAP = 0.48, GRAV_FALL = 0.62;
 const SAVE_KEY = 'kinan-remaster-v1';
 
 const cv = $('#cv');
@@ -789,8 +791,8 @@ function build(i) {
     } else if (roll < 0.27) {
       const gap = 3 + (i > 5 ? 1 : 0);
       flat(3);
-      for (let k = 1; k <= 2; k++) set(x + k, h - 4, 7);   /* life-line shelf */
-      candle(x + 1, h - 5);
+      for (let k = 1; k <= 3; k++) set(x + k, h - 3, 7);   /* life-line shelf */
+      candle(x + 2, h - 4);
       x += gap;
       /* friendly trench: a floor two tiles down, plus a candle for your trouble */
       for (let k = 0; k < gap; k++) col(x + k, Math.min(ROWS - 1, h + 2));
@@ -1004,7 +1006,7 @@ function moveY(e) {
   e.y += e.vy; e.onGround = false;
   const left = Math.floor(e.x / T), right = Math.floor((e.x + e.w - 1) / T);
   if (e.vy > 0) {
-    const ty = Math.floor((e.y + e.h - 1) / T);
+    const ty = Math.floor((e.y + e.h) / T);
     for (let tx = left; tx <= right; tx++) {
       if (solid(tx, ty) || (tileAt(tx, ty) === 7 && oldBottom <= ty * T + 0.01)) {
         e.y = ty * T - e.h; e.vy = 0; e.onGround = true; e.landTile = tileAt(tx, ty); return null;
@@ -1190,7 +1192,7 @@ function startStage(i, silent) {
   P = {
     x: spawn.x, y: spawn.y, w: 10, h: 16, vx: 0, vy: 0, onGround: false, face: 1,
     coyote: 0, inv: 0, hp: 3, max: 3, dead: 0, power: null, rush: 0, airJumps: 0,
-    fireCd: 0, hat: false, squash: 0, stretch: 0, landT: 0, anim: 0, skid: 0, jumpT: null
+    fireCd: 0, hat: false, squash: 0, stretch: 0, landT: 0, anim: 0, skid: 0, jumpT: null, prevBottom: 0
   };
   const owned = progress.pets.ids;
   pets = { cats: [], dogs: [] };
@@ -1218,7 +1220,7 @@ function startStage(i, silent) {
 function updatePlayer() {
   const rush = P.rush > 0;
   const left = input.left || padIn.left, right = input.right || padIn.right;
-  const acc = P.onGround ? 0.44 : 0.30, max = rush ? 3.5 : 2.75;
+  const acc = P.onGround ? 0.55 : 0.38, max = rush ? 3.7 : RUN_MAX;
   const wasGround = P.onGround;
 
   if (left && !right) {
@@ -1228,36 +1230,38 @@ function updatePlayer() {
     if (P.vx < 0 && P.onGround) { P.skid = 6; dust(P.x + 5, P.y + P.h, 2, 'rgba(244,241,232,.5)'); }
     P.vx = Math.min(max, P.vx + acc); P.face = 1;
   } else {
-    P.vx *= P.onGround ? 0.74 : 0.94;
+    P.vx *= P.onGround ? 0.76 : 0.96;
     if (Math.abs(P.vx) < 0.08) P.vx = 0;
   }
   if (P.onGround) {
     P.coyote = 7;
     P.airJumps = pets.cats.length ? 1 : 0;
-    if (Math.abs(P.vx) > 0.4) P.anim += Math.abs(P.vx) * 0.16;
+    if (Math.abs(P.vx) > 0.4) P.anim += Math.abs(P.vx) * 0.045;
   } else if (P.coyote > 0) P.coyote--;
 
   if (input.jumpBuf > 0) input.jumpBuf--;
   if (input.jumpBuf > 0) {
     if (P.coyote > 0) {
-      P.vy = -6.75; P.coyote = 0; input.jumpBuf = 0; P.jumpT = 0;
+      P.vy = JUMP_V; P.coyote = 0; input.jumpBuf = 0; P.jumpT = 0;
       P.stretch = 8; SFX.jump(); dust(P.x + 5, P.y + P.h, 3);
     } else if (P.airJumps > 0 && P.vy > -2.4) {
-      P.vy = -5.95; P.airJumps--; input.jumpBuf = 0; P.jumpT = 0; P.stretch = 7;
+      P.vy = AIR_JUMP_V; P.airJumps--; input.jumpBuf = 0; P.jumpT = 0; P.stretch = 7;
       SFX.djump(); sparks(P.x + 5, P.y + P.h - 1, 6, ['#f6c445', '#fff']);
       part(P.x + 5, P.y + P.h, { vx: 0, vy: 0.4, life: 18, size: 1, type: 'ring', color: '#f6c445' });
     }
   }
   if (P.jumpT != null) P.jumpT++;
-  /* variable height, but never a useless hop: the first 8 frames are guaranteed */
-  if (!(input.jump || padIn.jump) && P.vy < -3.2 && (P.jumpT == null || P.jumpT > 8)) P.vy = -3.2;
-  P.vy = Math.min(7.6, P.vy + ((P.vy < 0 && (input.jump || padIn.jump)) ? 0.30 : 0.44));
+  /* Mario-style variable jump: holding floats higher, letting go drops you sooner. */
+  const holdJump = input.jump || padIn.jump;
+  const grav = P.vy < 0 ? (holdJump ? GRAV_HOLD : GRAV_TAP) : GRAV_FALL;
+  P.vy = Math.min(MAX_FALL, P.vy + grav);
   if (P.vy >= 0) P.springy = false;
 
   moveX(P);
   if (boss === 'fight' || boss === 'intro') {
     P.x = clamp(P.x, (L.arenaX + 1) * T, (L.arenaX + L.arenaW) * T - P.w);
   }
+  P.prevBottom = P.y + P.h;
   const head = moveY(P);
   if (P.onGround && frame % 10 === 0) lastSafe = { x: P.x, y: P.y };
   if (P.onGround && P.landTile === 6) {
@@ -1292,7 +1296,7 @@ function updatePlayer() {
     P.x = boss === 'fight' ? (L.arenaX + 2) * T : (cpHit ? spawn.x : lastSafe.x || spawn.x);
     P.y = boss === 'fight' ? (GROUND - 1) * T : (cpHit ? spawn.y : lastSafe.y || spawn.y);
     P.vx = P.vy = 0; P.inv = 100; trail = []; breakCombo();
-    camX = clamp(P.x - W * 0.42, 0, Math.min(L.w * T - W, (L.arenaX + L.arenaW + 1) * T - W));
+    camX = clamp(Math.round(P.x - W * 0.42), 0, Math.min(L.w * T - W, (L.arenaX + L.arenaW + 1) * T - W));
     updHud();
     if (P.hp === 1) callDad('heal');
   }
@@ -1346,7 +1350,7 @@ function die() {
       P.y = cpHit ? spawn.y : (lastSafe.y || spawn.y);
       foes.forEach((f) => { if (f.alive) { f.hurtT = 0; } });
     }
-    camX = clamp(P.x - W * 0.42, 0, Math.min(L.w * T - W, (L.arenaX + L.arenaW + 1) * T - W));
+    camX = clamp(Math.round(P.x - W * 0.42), 0, Math.min(L.w * T - W, (L.arenaX + L.arenaW + 1) * T - W));
     trail = []; updHud(); setPaused(false);
   })();
 }
@@ -1645,10 +1649,10 @@ function updateFoes() {
     if (f.y > H + 30) { f.alive = false; f.dead = 20; continue; }
     if (P.dead || paused || !overlap(P, f)) continue;
     if (P.rush > 0) { killFoe(f, 'POW'); SFX.stomp(); continue; }
-    const stomp = P.vy > 0.4 && (P.y + P.h) - f.y < 12;
+    const stomp = (P.vy > 0.4 || (P.vy >= 0 && P.prevBottom <= f.y + 6)) && (P.y + P.h) - f.y < 14;
     if (stomp) {
       killFoe(f);
-      P.vy = (input.jump || padIn.jump) ? -7.6 - (hasPet('dog2') ? 0.7 : 0) : -5.4 - (hasPet('dog2') ? 0.5 : 0);
+      P.vy = (input.jump || padIn.jump) ? -7.8 - (hasPet('dog2') ? 0.5 : 0) : -6.0 - (hasPet('dog2') ? 0.3 : 0);
       P.squash = 4; P.y = f.y - P.h + 1;
       SFX.stomp(); shakeIt(1.5);
     } else {
@@ -1937,9 +1941,16 @@ function bossAI(b) {
   moveY(b);
 }
 
+const bossPad = (b) => b.kind === 'mom' ? (LV[L.i].final ? 10 : 7) : (b.kind === 'neighbour' || b.kind === 'bully' ? 4 : 0);
+function bossTouch(b) {
+  const pad = bossPad(b);
+  return P.x < b.x + b.w && P.x + P.w > b.x && P.y < b.y + b.h && P.y + P.h > b.y - pad;
+}
 function bossContact(b) {
-  if (b.out || !overlap(P, b)) return;
-  const fromAbove = P.vy > 0.5 && (P.y + P.h) - b.y < (b.kind === 'mech' ? 16 : 13);
+  if (b.out || !bossTouch(b)) return;
+  const pad = bossPad(b);
+  const reach = b.kind === 'mech' ? 16 : 14;
+  const fromAbove = P.vy > 0.1 && (P.y + P.h) - (b.y - pad) < reach;
   if (fromAbove) {
     if (b.inv > 0) { P.vy = -4.6; return; }
     if (b.kind === 'bully' && b.state !== 'dizzy') {
@@ -1948,7 +1959,7 @@ function bossContact(b) {
       return;
     }
     P.vy = (input.jump || padIn.jump) ? -8.4 : -6.5;
-    P.squash = 5; P.y = b.y - P.h;
+    P.squash = 5; P.y = b.y - P.h - pad;
     addScore(100);
     damage(b, 1);
     return;
@@ -1978,13 +1989,11 @@ function updateAllies() {
    ============================================================ */
 function updateCamera() {
   const cxP = P.x + P.w / 2;
-  let target = cxP - W * 0.42 + P.face * 18;
+  let target = cxP - W * 0.42;
   let lo = 0, hi = Math.min(L.w * T - W, (L.arenaX + L.arenaW + 1) * T - W);
   if (boss !== 'off') lo = L.arenaX * T;
   target = clamp(target, lo, hi);
-  camX += (target - camX) * 0.18;
-  if (Math.abs(target - camX) < 0.4) camX = target;
-  camX = clamp(camX, lo, hi);
+  camX = clamp(Math.round(target), lo, hi);
 }
 function updateFx() {
   for (const p of parts) { p.x += p.vx; p.y += p.vy; p.vy += p.g; p.vx *= p.drag; p.life--; }
@@ -2076,7 +2085,7 @@ function glowDisc(x, y, r, color, alpha) {
   ctx.globalAlpha = 1;
 }
 function drawBackdrop(th, i) {
-  const p1 = camX * 0.12, p2 = camX * 0.3, p3 = camX * 0.55;
+  const p1 = Math.round(camX * 0.12), p2 = Math.round(camX * 0.3), p3 = Math.round(camX * 0.55);
   const dark = th.bg === 'castle' || th.bg === 'cake' || th.bg === 'room';
   if (th.bg === 'room') {
     ctx.globalAlpha = 0.5; ctx.fillStyle = th.far;
@@ -2306,7 +2315,7 @@ function drawTiles(th) {
         ctx.fillRect(sx + 7, sy, 1, 7); ctx.fillRect(sx + 3, sy + 8, 1, 7); ctx.fillRect(sx + 11, sy + 8, 1, 7);
         ctx.fillStyle = 'rgba(255,255,255,.08)'; ctx.fillRect(sx + 1, sy + 1, 5, 1);
       } else if (t === 3) {
-        const bob = Math.sin((frame + tx * 9) / 18) * 1;
+        const bob = Math.round(Math.sin((frame + tx * 9) / 18));
         ctx.fillStyle = '#1b1220'; ctx.fillRect(sx, sy, T, T);
         ctx.fillStyle = '#d92b45'; ctx.fillRect(sx + 1, sy + 1, T - 2, T - 2);
         ctx.fillStyle = '#f6c445'; ctx.fillRect(sx + 6, sy + 1, 4, T - 2); ctx.fillRect(sx + 1, sy + 6, T - 2, 4);
@@ -2323,7 +2332,7 @@ function drawTiles(th) {
         ctx.fillStyle = 'rgba(255,255,255,.06)'; ctx.fillRect(sx + 2, sy, 2, T); ctx.fillRect(sx + T - 4, sy, 2, T);
         ctx.fillStyle = 'rgba(0,0,0,.35)'; ctx.fillRect(sx, sy + 6, T, 2); ctx.fillRect(sx, sy + 14, T, 2);
       } else if (t === 6) {
-        const squish = Math.max(0, Math.sin(frame / 5)) * 1.2;
+        const squish = Math.round(Math.max(0, Math.sin(frame / 9)) * 1.2);
         ctx.fillStyle = '#1c2638'; ctx.fillRect(sx + 1, sy + 13, 14, 3);
         ctx.strokeStyle = '#8fa9c9'; ctx.lineWidth = 1;
         for (let k = 0; k < 2; k++) {
@@ -2351,14 +2360,14 @@ function drawProps(th) {
     const sy = (L.checkpoint.ty - 1) * T - 15;
     ctx.fillStyle = 'rgba(0,0,0,.25)'; ctx.fillRect(sx + 1, sy, 2, 17);
     ctx.fillStyle = '#c9c9cf'; ctx.fillRect(sx, sy, 1, 17);
-    const wv = Math.sin(frame / 8) * 1.5;
+    const wv = Math.round(Math.sin(frame / 8) * 1.5);
     ctx.fillStyle = cpHit ? '#44c55a' : '#e8364b';
     ctx.beginPath(); ctx.moveTo(sx + 1, sy + 1); ctx.lineTo(sx + 12 + wv, sy + 3); ctx.lineTo(sx + 1, sy + 8); ctx.fill();
     if (cpHit) { ctx.fillStyle = 'rgba(255,255,255,.75)'; ctx.fillRect(sx + 3, sy + 3, 2, 2); }
   }
   if (crate && !crate.open) {
     const sx = Math.round(crate.x - camX), sy = Math.round(crate.y);
-    const bob = Math.sin(crate.t / 14) * 1;
+    const bob = Math.round(Math.sin(crate.t / 14));
     ctx.fillStyle = 'rgba(0,0,0,.2)'; ctx.fillRect(sx + 1, sy + 15, 14, 2);
     ctx.fillStyle = '#a9743f'; ctx.fillRect(sx, sy + 2 + bob, 16, 14);
     ctx.fillStyle = '#c98f52'; ctx.fillRect(sx, sy + 2 + bob, 16, 3);
@@ -2378,13 +2387,13 @@ function drawProps(th) {
     if (c.got) continue;
     const sx = Math.round(c.x - camX);
     if (sx < -12 || sx > W + 12) continue;
-    const bob = Math.sin((frame + c.x) / 14) * 1;
-    glowDisc(sx + 3, c.y + 3 + bob, 9, 'rgba(255,190,80,.55)', 0.55);
+    const bob = Math.round(Math.sin((frame + c.x) / 14));
+    glowDisc(sx + 3, Math.round(c.y + 3 + bob), 9, 'rgba(255,190,80,.55)', 0.55);
     ctx.drawImage(SP.candle, sx, Math.round(c.y + bob));
   }
   for (const it of items) {
     const sx = Math.round(it.x - camX), sy = Math.round(it.y);
-    const bob = Math.sin(frame / 10) * 2;
+    const bob = Math.round(Math.sin(frame / 10) * 2);
     glowDisc(sx + 6, sy + 6, 12, 'rgba(255,230,140,.5)', 0.5);
     if (it.kind === 'popper') {
       ctx.fillStyle = '#ff6fae'; ctx.beginPath(); ctx.moveTo(sx + 1, sy + 11); ctx.lineTo(sx + 6, sy + 1 + bob); ctx.lineTo(sx + 11, sy + 11); ctx.fill();
@@ -2436,46 +2445,37 @@ function drawKinanHat(x, y, kind) {
     ctx.lineTo(x + 8, y - 6); ctx.lineTo(x + 10, y - 1); ctx.lineTo(x + 13, y - 4); ctx.lineTo(x + 13, y + 2); ctx.fill();
     ctx.fillStyle = '#ff4fa3'; ctx.fillRect(x + 8, y - 1, 1, 1);
   } else if (kind === 'halo') {
-    const bob = Math.sin(frame / 12) * 1;
+    const bob = Math.round(Math.sin(frame / 30));
     ctx.strokeStyle = 'rgba(255,235,140,.95)'; ctx.lineWidth = 2;
     ctx.beginPath(); ctx.ellipse(x + 8, y - 5 + bob, 7, 2.4, 0, 0, 6.284); ctx.stroke();
     glowDisc(x + 8, y - 5 + bob, 10, 'rgba(255,235,140,.4)', 0.6);
   }
 }
 function drawPlayer() {
-  const th = LV[L.i];
   const walking = Math.abs(P.vx) > 0.35 && P.onGround;
   const frameIdx = Math.floor(P.anim) % 2;
   let img = !P.onGround ? (P.vy < 0 ? SP.kJump : SP.kFall) : (walking && frameIdx ? SP.kWalk : SP.kStand);
   if (P.skid > 3) img = SP.kStand;
   const w = 16, h = 18;
-  const sx = P.x + P.w / 2 - w / 2 - Math.round(camX);
-  const sy = P.y + P.h - h + 2;
+  const sx = Math.round(P.x + P.w / 2 - w / 2 - camX);
+  const sy = Math.round(P.y + P.h - h);
+  window.__k11Draw = { sx: sx, sy: sy, camX: camX };
   if (P.onGround) {
     ctx.fillStyle = 'rgba(0,0,0,.22)';
     ctx.beginPath(); ctx.ellipse(sx + 8, sy + 18, 7, 2.4, 0, 0, 6.284); ctx.fill();
   }
-  if (th.bg === 'castle' || th.bg === 'cake' || th.bg === 'room') {
-    glowDisc(sx + 8, sy + 9, 18, 'rgba(255,240,200,.13)', 0.6);
-  }
-  if (P.inv > 0 && Math.floor(frame / 4) % 2 && !P.dead) {
-    ctx.globalAlpha = 0.35;
-  }
+  if (P.inv > 0 && Math.floor(frame / 8) % 2 && !P.dead) ctx.globalAlpha = 0.4;
   if (P.rush > 0) {
-    const hue = (frame * 18) % 360;
-    ctx.globalAlpha = 0.3;
+    const hue = (frame * 0.8) % 360;
+    ctx.globalAlpha = 0.22;
     ctx.fillStyle = 'hsl(' + hue + ',90%,60%)';
-    ctx.fillRect(sx - 5, sy - 2, 26, 23);
-    ctx.globalAlpha = P.inv > 0 ? 0.35 : 1;
-    glowDisc(sx + 8, sy + 9, 22, 'hsl(' + hue + ',90%,65%)', 0.35);
-    if (Math.random() < 0.5) part(P.x + 4, P.y + P.h - 2, { vx: rand(-1.4, -0.2), vy: rand(-1, 0), life: 14, size: 2, color: 'hsl(' + hue + ',90%,65%)', glow: true, g: 0.02 });
+    ctx.fillRect(sx - 4, sy - 1, 24, 21);
+    ctx.globalAlpha = P.inv > 0 ? 0.4 : 1;
+    if (frame % 4 === 0) part(P.x + 4, P.y + P.h - 2, { vx: rand(-1.4, -0.2), vy: rand(-1, 0), life: 14, size: 2, color: 'hsl(' + hue + ',90%,65%)', glow: true, g: 0.02 });
   }
-  const sq = P.squash > 0 ? 0.10 * (P.squash / 6) : 0;
-  const st = P.stretch > 0 ? 0.10 * (P.stretch / 8) : 0;
+  const off = P.squash > 3 ? 1 : (P.stretch > 4 ? -1 : 0);
   ctx.save();
-  ctx.translate(sx + 8, sy + 18);
-  ctx.scale(1 + sq - st, 1 - sq + st);
-  ctx.translate(-8, -18);
+  ctx.translate(sx, sy + off);
   if (P.face < 0) { ctx.translate(16, 0); ctx.scale(-1, 1); }
   ctx.drawImage(img, 0, 0);
   drawKinanHat(0, 0, progress.hat);
@@ -2495,28 +2495,28 @@ function drawPlayer() {
   }
 }
 function drawPets() {
-  pets.cats.forEach((c, i) => {
-    const sx = Math.round(c.x - camX), sy = Math.round(c.y + Math.sin(frame / 9 + i) * 1);
+  pets.cats.forEach((c) => {
+    const sx = Math.round(c.x - camX), sy = Math.round(c.y);
     ctx.globalAlpha = 0.92;
     drawSprite(PET_SPRITES[c.id], sx, sy, c.face || 1);
     ctx.globalAlpha = 1;
   });
-  pets.dogs.forEach((d, i) => {
-    const sx = Math.round(d.x - camX), sy = Math.round(d.y + (d.dash ? Math.sin(frame / 3) : Math.sin(frame / 11 + i)) * 1);
+  pets.dogs.forEach((d) => {
+    const sx = Math.round(d.x - camX), sy = Math.round(d.y);
     drawSprite(PET_SPRITES[d.id], sx, sy, d.face || 1);
     if (d.dash) { ctx.fillStyle = 'rgba(255,255,255,.5)'; ctx.fillRect(sx + 2, sy - 2, 4, 1); }
   });
 }
 function drawHelpers() {
   if (dad) {
-    const img = dad.state !== 'act' && Math.floor(frame / 6) % 2 ? SP.dWalk : SP.dStand;
+    const img = dad.state !== 'act' && Math.floor(frame / 14) % 2 ? SP.dWalk : SP.dStand;
     drawSprite(img, dad.x - camX - 2, dad.y, dad.state === 'out' ? -1 : 1);
     if (dad.state === 'act' && dad.mode === 'special') {
       ctx.font = '12px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('🍔', dad.x - camX + 8, dad.y - 6);
     }
   }
   if (bro) {
-    const img = bro.state === 'jump' ? SP.sJump : (bro.state !== 'act' && Math.floor(frame / 6) % 2 ? SP.sWalk : SP.sStand);
+    const img = bro.state === 'jump' ? SP.sJump : (bro.state !== 'act' && Math.floor(frame / 14) % 2 ? SP.sWalk : SP.sStand);
     drawSprite(img, bro.x - camX - 2, bro.y, bro.state === 'out' ? -1 : 1);
     if (bro.state === 'jump' || (bro.state === 'act' && bro.t < 25)) {
       ctx.font = '11px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('👊', bro.x - camX + 16, bro.y + (bro.state === 'jump' ? 2 : 16));
@@ -2524,7 +2524,7 @@ function drawHelpers() {
   }
   for (const a of allies) {
     const walking = Math.abs(a.vx) > 0.2 && a.onGround;
-    drawSprite(walking && Math.floor(frame / 7) % 2 ? SP.cWalk : SP.cStand, a.x - camX - 2, a.y, a.vx < 0 ? -1 : 1);
+    drawSprite(walking && Math.floor(frame / 14) % 2 ? SP.cWalk : SP.cStand, a.x - camX - 2, a.y, a.vx < 0 ? -1 : 1);
   }
 }
 /* ============================================================
@@ -2538,10 +2538,10 @@ function drawFoe(f) {
   if (!f.alive) { alpha = 1 - f.dead / 14; scale = 1 + f.dead / 22; }
   ctx.save();
   ctx.globalAlpha = Math.max(0, alpha);
-  ctx.translate(sx + w / 2, sy + h);
-  ctx.scale(scale, scale);
+  ctx.translate(sx + (w >> 1), sy + h);
+  if (scale !== 1) ctx.scale(scale, scale);
   if (f.face < 0) ctx.scale(-1, 1);
-  const x = -w / 2, y = -h;
+  const x = -(w >> 1), y = -h;
   const col = f.def.color || '#c9c2d8';
   const eye = (ex, ey, s) => {
     ctx.fillStyle = '#1b1220';
@@ -2714,9 +2714,9 @@ function drawFoe(f) {
    ============================================================ */
 function drawBig(img, cx, bottom, face, s) {
   const w = img.width * s, h = img.height * s;
-  const x = cx - w / 2, y = bottom - h + 2;
+  const x = Math.round(cx - w / 2), y = Math.round(bottom - h + 2);
   ctx.save();
-  if (face < 0) { ctx.translate(x + w, y); ctx.scale(-1, 1); ctx.drawImage(img, 0, 0, w, h); }
+  if (face < 0) { ctx.translate(Math.round(x + w), y); ctx.scale(-1, 1); ctx.drawImage(img, 0, 0, w, h); }
   else ctx.drawImage(img, x, y, w, h);
   ctx.restore();
 }
@@ -2725,21 +2725,21 @@ function drawBoss(b) {
   const sx = Math.round(b.x - camX), sy = Math.round(b.y);
   if (sx < -80 || sx > W + 80) return;
   ctx.fillStyle = 'rgba(0,0,0,.3)';
-  ctx.beginPath(); ctx.ellipse(sx + b.w / 2, GROUND * T - 1, b.w * 0.75, 3, 0, 0, 6.284); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(Math.round(sx + b.w / 2), GROUND * T - 1, b.w * 0.75, 3, 0, 0, 6.284); ctx.fill();
   if (b.hp <= b.max / 2) {
-    glowDisc(sx + b.w / 2, sy + b.h / 2, b.w * 1.4, 'rgba(255,80,80,.35)', 0.6);
+    glowDisc(Math.round(sx + b.w / 2), Math.round(sy + b.h / 2), b.w * 1.4, 'rgba(255,80,80,.35)', 0.6);
   }
   ctx.save();
   if (b.kind === 'mom') {
     const walking = Math.abs(b.vx) > 0.2 && b.onGround;
-    const img = walking && Math.floor(frame / 6) % 2 ? SP.mWalk : SP.mStand;
+    const img = walking && Math.floor(frame / 12) % 2 ? SP.mWalk : SP.mStand;
     drawBig(img, sx + b.w / 2, sy + b.h, b.face, 1.6);
     if (b.tele > 0) {
-      glowDisc(sx + b.w / 2 + b.face * 12, sy + 2, 18, 'rgba(255,120,160,.8)', 0.9);
+      glowDisc(Math.round(sx + b.w / 2 + b.face * 12), sy + 2, 18, 'rgba(255,120,160,.8)', 0.9);
     }
-    const bob = Math.sin(frame / 8) * 1;
+    const bob = Math.round(Math.sin(frame / 30));
     ctx.font = '11px "Segoe UI Emoji",sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillText(b.prop || '🥞', sx + b.w / 2 + b.face * 15, sy + b.h * 0.55 + bob);
+    ctx.fillText(b.prop || '🥞', Math.round(sx + b.w / 2 + b.face * 15), Math.round(sy + b.h * 0.55 + bob));
     ctx.textBaseline = 'alphabetic';
     if (LV[L.i].final) {
       ctx.fillStyle = '#f6c445'; ctx.fillRect(sx + 2, sy - 7, 10, 2);
@@ -2747,10 +2747,10 @@ function drawBoss(b) {
     }
   } else if (b.kind === 'chenoa') {
     const walking = Math.abs(b.vx) > 0.2 && b.onGround;
-    drawBig(walking && Math.floor(frame / 7) % 2 ? SP.cWalk : SP.cStand, sx + b.w / 2, sy + b.h, b.face, 1);
+    drawBig(walking && Math.floor(frame / 14) % 2 ? SP.cWalk : SP.cStand, sx + b.w / 2, sy + b.h, b.face, 1);
     if (b.pound) {
       ctx.strokeStyle = 'rgba(255,220,120,.7)'; ctx.lineWidth = 2;
-      ctx.beginPath(); ctx.ellipse(sx + b.w / 2, GROUND * T, 18, 5, 0, 0, 6.284); ctx.stroke();
+      ctx.beginPath(); ctx.ellipse(Math.round(sx + b.w / 2), GROUND * T, 18, 5, 0, 0, 6.284); ctx.stroke();
     }
   } else if (b.kind === 'mech') {
     const x = sx, y = sy;
@@ -2769,24 +2769,24 @@ function drawBoss(b) {
     if (b.hp <= b.max / 2) { ctx.fillStyle = 'rgba(255,120,60,.8)'; ctx.fillRect(x + 5, y + 21, 2, 2); }
   } else if (b.kind === 'neighbour') {
     const walking = Math.abs(b.vx) > 0.2 && b.onGround;
-    drawBig(walking && Math.floor(frame / 8) % 2 ? SP.nWalk : SP.nStand, sx + b.w / 2, sy + b.h, b.face, 1.45);
+    drawBig(walking && Math.floor(frame / 14) % 2 ? SP.nWalk : SP.nStand, sx + b.w / 2, sy + b.h, b.face, 1.45);
     if (b.state === 'blow') {
       const dir = b.face;
       for (let k = 0; k < 4; k++) {
         ctx.fillStyle = 'rgba(210,235,255,' + (0.35 - k * 0.07) + ')';
-        ctx.beginPath(); ctx.arc(sx + b.w / 2 + dir * (14 + k * 7), sy + 8 + Math.sin(frame / 3 + k) * 2, 4 + k, 0, 6.284); ctx.fill();
+        ctx.beginPath(); ctx.arc(Math.round(sx + b.w / 2 + dir * (14 + k * 7)), sy + 8 + Math.round(Math.sin(frame / 18 + k) * 2), 4 + k, 0, 6.284); ctx.fill();
       }
       ctx.fillStyle = '#4a4f57'; ctx.fillRect(sx + b.w / 2 + dir * 10, sy + 10, dir * 6, 4);
     }
   } else if (b.kind === 'bully') {
     const walking = Math.abs(b.vx) > 0.2 && b.onGround;
-    drawBig(walking && Math.floor(frame / 6) % 2 ? SP.bWalk : SP.bStand, sx + b.w / 2, sy + b.h, b.face, 1.45);
+    drawBig(walking && Math.floor(frame / 12) % 2 ? SP.bWalk : SP.bStand, sx + b.w / 2, sy + b.h, b.face, 1.45);
     if (b.state === 'dizzy') {
       ctx.font = '10px sans-serif'; ctx.textAlign = 'center';
-      ctx.fillText('💫', sx + b.w / 2 + Math.sin(frame / 8) * 4, sy - 6);
+      ctx.fillText('💫', Math.round(sx + b.w / 2 + Math.sin(frame / 30) * 3), sy - 6);
     } else if (b.state === 'windup') {
       ctx.fillStyle = '#ff6b6b'; ctx.font = 'bold 11px monospace'; ctx.textAlign = 'center';
-      ctx.fillText('!', sx + b.w / 2, sy - 6);
+      ctx.fillText('!', Math.round(sx + b.w / 2), sy - 6);
     }
   }
   ctx.restore();
@@ -2798,7 +2798,7 @@ function drawBoss(b) {
   }
   if (b.stun > 0) {
     ctx.font = '9px sans-serif'; ctx.textAlign = 'center';
-    ctx.fillText('💫', sx + b.w / 2, sy - 4 - Math.sin(frame / 5) * 2);
+    ctx.fillText('💫', Math.round(sx + b.w / 2), Math.round(sy - 4 - Math.sin(frame / 24) * 2));
   }
 }
 /* ============================================================
@@ -2851,7 +2851,7 @@ function drawShots() {
   }
   for (const b of blasts) {
     const sx = Math.round(b.x - camX), sy = Math.round(b.y);
-    ctx.fillStyle = ['#ff6fae', '#f6c445', '#fff'][Math.floor(frame / 2) % 3];
+    ctx.fillStyle = ['#ff6fae', '#f6c445', '#fff'][Math.floor(frame / 15) % 3];
     ctx.fillRect(sx, sy, 3, 3); ctx.fillRect(sx + 3, sy + 1, 2, 2);
     glowDisc(sx + 3, sy + 3, 8, 'rgba(255,120,180,.6)', 0.6);
   }
@@ -3002,6 +3002,7 @@ function titleScreen() {
     '<p class="lede">It\'s Kinan\'s <b>11th birthday</b> in <b>Saskatoon</b> and the whole house has gone wild. Lego monsters, runaway toys, nosy neighbours... and at the end of every stage, a <b>family boss</b>. Mom is the big boss. <b>Big Sis Chenoa</b> might be on your team, or she might not. <b>Dad Robin</b> shows up when you need him, and big bro <b>Shad</b> crashes in with a <b>Construction Slam</b>.</p>' +
     '<ul class="howto">' +
     '<li><span class="ico">👟</span><span><b>Jump on enemies</b> to bonk them. Chain bonks without landing for a <b>combo multiplier</b>.</span></li>' +
+    '<li><span class="ico">🦘</span><span><b>Tap jump</b> for a quick hop, <b>hold</b> for a big jump. Land on shelves, gift blocks, and enemies.</span></li>' +
     '<li><span class="ico">🎁</span><span>Hit <b>gift blocks</b> from below for candles and powers: 🎉 <b>Party Popper</b>, 🍰 <b>Sugar Rush</b>, ❤ extra hearts.</span></li>' +
     '<li><span class="ico">🐱</span><span>Rescue all <b>4 cats and 2 dogs</b> hiding in boxes. Each one adds a power: double jump, candle magnet, extra heart, dash attack and more.</span></li>' +
     '<li><span class="ico">⛑️</span><span><b>Shad</b> drops in at checkpoints and boss fights: his slam clears the screen and gives you a <b>hard hat</b> that blocks one hit.</span></li>' +
@@ -3344,8 +3345,8 @@ window.__k11 = {
   playStage: playStage,
   state: () => ({
     stage: L && L.i, boss: boss, hp: P && P.hp, max: P && P.max,
-    px: P && Math.round(P.x), py: P && Math.round(P.y), camX: Math.round(camX),
-    foes: foes.filter((f) => f.alive).length, bosses: bosses.map((b) => b.kind + ':' + b.hp),
+    px: P && Math.round(P.x), py: P && Math.round(P.y), onGround: P ? !!P.onGround : false, vy: P ? Math.round(P.vy * 100) / 100 : 0,
+    camX: Math.round(camX), foes: foes.filter((f) => f.alive).length, bosses: bosses.filter((b) => !b.out).map((b) => b.kind + ':' + b.hp),
     foePos: foes.filter((f) => f.alive).slice(0, 8).map((f) => [Math.round(f.x), Math.round(f.y), f.type]),
     candles: got, totalCandles: totalCandles, score: score, paused: paused, running: running,
     stars: progress.stars, unlocked: progress.unlocked
@@ -3391,8 +3392,46 @@ window.__k11 = {
     }
     return { x: P.x, y: P.y, vx: P.vx, vy: P.vy, onGround: P.onGround, camX: camX, arenaX: L.arenaX, w: L.w, len: L.len, boss: boss, rows: rows };
   },
+  platforms: () => {
+    const out = [];
+    for (let ty = 1; ty < ROWS; ty++) {
+      for (let tx = 1; tx < L.w - 1; tx++) {
+        if (L.g[ty * L.w + tx] !== 7) continue;
+        if (solid(tx, ty - 1)) continue;
+        let floorY = -1;
+        for (let y = ty + 1; y < ROWS; y++) if (solid(tx, y)) { floorY = y; break; }
+        if (floorY > ty) out.push({ tx: tx, ty: ty, floorY: floorY });
+      }
+    }
+    return out;
+  },
+  place: (x, y) => {
+    P.x = x; P.y = y; P.vx = 0; P.vy = 0; P.dead = 0; P.onGround = true;
+    camX = clamp(Math.round(x - W * 0.42), 0, Math.min(L.w * T - W, (L.arenaX + L.arenaW + 1) * T - W));
+    updHud();
+    return { x: P.x, y: P.y, onGround: P.onGround };
+  },
+  stompBossHead: () => {
+    const b = bosses.filter((x) => !x.out)[0];
+    if (!b) return null;
+    const pad = bossPad(b);
+    b.inv = 0; b.stun = 0;
+    P.x = b.x + b.w / 2 - P.w / 2;
+    P.y = b.y - pad - P.h + 1;
+    P.vx = 0; P.vy = 2; P.inv = 90;
+    return { hp: b.hp, pad: pad, feet: P.y + P.h, bossTop: b.y, visualTop: b.y - pad, boss: boss };
+  },
+  dropOnFoe: (n) => {
+    const f = foes.filter((x) => x.alive)[n || 0];
+    if (!f) return null;
+    P.x = f.x + f.w / 2 - P.w / 2;
+    P.y = f.y - 22;
+    P.vx = 0; P.vy = 3; P.onGround = false; P.inv = 0; P.dead = 0;
+    return { x: P.x, y: P.y, foe: f.def.kind, fy: f.y, hp: P.hp };
+  },
   allies: () => allies.length,
-  audio: () => (AudioSys.ctx ? AudioSys.ctx.state : 'none')
+  audio: () => (AudioSys.ctx ? AudioSys.ctx.state : 'none'),
+  drawInfo: () => (window.__k11Draw ? Object.assign({}, window.__k11Draw) : null)
 };
 
 })();
