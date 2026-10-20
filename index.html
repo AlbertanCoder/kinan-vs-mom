@@ -93,6 +93,7 @@ button{font:inherit;color:inherit;touch-action:manipulation}
 .dialog b{color:var(--gold)}
 .dialog .portrait{width:40px;height:44px;image-rendering:pixelated;object-fit:contain;flex:none;background:#11132b;border:2px solid var(--panel2);border-radius:4px;padding:2px}
 .dialog .next{position:absolute;right:9px;bottom:5px;color:var(--gold);animation:bob .8s steps(2) infinite;font-size:12px}
+.dialog.typing .next{visibility:hidden}
 @keyframes bob{50%{transform:translateY(3px)}}
 .flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;mix-blend-mode:screen}
 .flash.on{animation:fl .16s ease-out}
@@ -1224,23 +1225,113 @@ function updHud() {
    DIALOGUE · TOASTS · PAUSE
    ============================================================ */
 let advance = null, toastTimer = 0;
-const PORTRAIT_SRC = {};
-function portraitFor(who) {
-  /* 'm' is what every Mom stage uses (LV[i].boss.face) and 'mech' the Lego Mega-Mech; without them both wore Kinan's face */
-  const key = { m: 'mStand', mum: 'mStand', mom: 'mStand', c: 'cStand', chenoa: 'cStand', d: 'dStand', dad: 'dStand', s: 'sStand', shad: 'sStand', k: 'kStand', kinan: 'kStand', n: 'nStand', b: 'bStand', mech: 'mechStand' }[who] || 'kStand';
-  if (!PORTRAIT_SRC[key]) PORTRAIT_SRC[key] = SP[key].toDataURL();
-  return PORTRAIT_SRC[key];
+/* story-box faces: a close-up of each character's head in four moods (n neutral, h happy, a angry, s surprised).
+   Each mood is a 1-3 pixel edit of the sprite: smile corners, inner brows, an open mouth, taller eyes. */
+const FACE_DEF = {
+  k: { rows: () => KINAN, eye: 4, eyes: [5, 9], mouth: 6, m: [7, 8], ink: 'm', crop: [2, 14, 0, 11] },
+  b: { rows: () => BULLY, eye: 4, eyes: [5, 9], mouth: 6, m: [7, 8], ink: 'm', crop: [2, 14, 0, 11] },
+  m: { rows: () => MOM, eye: 5, eyes: [5, 9], mouth: 7, m: [7, 8], ink: 'm', crop: [2, 14, 0, 12] },
+  d: { rows: () => DAD_VEST, eye: 4, eyes: [5, 9], mouth: 7, m: [7, 8], ink: 'm', teeth: true, crop: [1, 15, 0, 11] },
+  n: { rows: () => NEIGH, eye: 4, eyes: [5, 9], mouth: 7, m: [7, 8], ink: 'm', teeth: true, crop: [1, 15, 0, 11] },
+  s: { rows: () => SHAD, eye: 4, eyes: [5, 9], mouth: 6, m: [6, 7], ink: 'm', crop: [2, 14, 0, 11] },
+  c: { rows: () => CHENOA, eye: 4, eyes: [5, 10], mouth: 6, m: [7, 8], ink: 'r', wide: [6, 9], crop: [2, 14, 0, 11] },
+  mech: { rows: () => MECH, mech: true, crop: [0, 16, 0, 11] }
+};
+function faceRows(def, mood) {
+  const g = def.rows().map((r) => r.split(''));
+  const put = (r, c, ch) => { if (g[r] && c >= 0 && c < g[r].length) g[r][c] = ch; };
+  const [e0, e1] = def.eyes || [0, 0], [m0, m1] = def.m || [0, 0];
+  if (def.mech) {
+    if (mood === 'a') { put(4, 5, 'R'); put(4, 11, 'R'); }
+    else if (mood === 's') { put(3, 5, 'k'); put(3, 11, 'k'); }
+    else if (mood === 'h') { put(6, 6, 'y'); put(6, 9, 'y'); }
+  } else if (mood === 'h') {
+    if (def.teeth) { put(def.mouth, m0, 'w'); put(def.mouth, m1, 'w'); }
+    else if (def.wide) { put(def.mouth - 1, def.wide[0] - 1, def.ink); put(def.mouth - 1, def.wide[1] + 1, def.ink); }
+    else { put(def.mouth, m0, 's'); put(def.mouth, m1, 's'); put(def.mouth, m0 - 1, def.ink); put(def.mouth, m1 + 1, def.ink); put(def.mouth + 1, m0, def.ink); put(def.mouth + 1, m1, def.ink); }
+  } else if (mood === 'a') {
+    put(def.eye - 1, e0 + 1, 'k'); put(def.eye - 1, e1 - 1, 'k');
+    if (!def.teeth && !def.wide) { put(def.mouth, m0 - 1, def.ink); put(def.mouth, m1 + 1, def.ink); }
+  } else if (mood === 's') {
+    put(def.eye - 1, e0, 'k'); put(def.eye - 1, e1, 'k');
+    if (def.teeth) { put(def.mouth, m0, 'k'); put(def.mouth, m1, 'k'); }
+    else if (def.wide) { put(def.mouth, def.wide[0], 's'); put(def.mouth, def.wide[1], 's'); put(def.mouth + 1, m0, def.ink); put(def.mouth + 1, m1, def.ink); }
+    else { put(def.mouth + 1, m0, def.ink); put(def.mouth + 1, m1, def.ink); }
+  }
+  const [c0, c1, r0, r1] = def.crop;
+  return g.slice(r0, r1).map((r) => r.slice(c0, c1).join(''));
 }
-function say(html, who) {
+const PORTRAIT_SRC = {};
+function portraitFor(who, mood) {
+  /* 'm' is what every Mom stage uses (LV[i].boss.face) and 'mech' the Lego Mega-Mech */
+  const key = ({ mum: 'm', mom: 'm', chenoa: 'c', dad: 'd', shad: 's', kinan: 'k' }[who] || who);
+  const def = FACE_DEF[key] || FACE_DEF.k, md = /^[nhas]$/.test(mood || '') ? mood : 'n';
+  const id = (FACE_DEF[key] ? key : 'k') + ':' + md;
+  if (!PORTRAIT_SRC[id]) PORTRAIT_SRC[id] = bake(faceRows(def, md)).toDataURL();
+  return PORTRAIT_SRC[id];
+}
+/* who is talking: a line that starts with "<b>NAME:</b>" shows that person's face and voice; narration shows Kinan, no voice */
+const SPEAKERS = { 'MOM': 'm', 'CHENOA': 'c', 'KINAN': 'k', 'ROBIN': 'd', 'DAD': 'd', 'SHAD': 's', 'NOSY NEIGHBOUR': 'n', 'NEIGHBOUR': 'n', 'BIG KID': 'b', 'MEGA-MECH': 'mech', '???': 'mech' };
+function speakerOf(html, who) {
+  const m = /^<b>([^<:(]+?)\s*(?:\([^)]*\))?:<\/b>/.exec(html || '');
+  if (!m) return null;
+  const name = m[1].trim().toUpperCase();
+  if (name === 'BOSS') return who || 'm';
+  return SPEAKERS[name] || who || null;
+}
+function moodOf(html, fallback) {
+  const t = String(html).replace(/<[^>]+>/g, '');
+  if (/happy birthday|💚|🤝|sure!|got it!|ready anyway|act surprised/i.test(t)) return 'h';
+  if (/\?!|uh oh|i knew it|surprise!|what cake|why does|hasn't rained|whose team|something is going on|nothing\. nothing/i.test(t)) return 's';
+  return fallback || 'n';
+}
+/* each voice: [pitch Hz, wave]; one short beep every couple of letters, like old game text */
+const VOICES = { k: [540, 'square'], m: [700, 'triangle'], c: [820, 'square'], d: [300, 'square'], s: [390, 'square'], n: [250, 'sawtooth'], b: [460, 'square'], mech: [980, 'square'] };
+let typing = null;
+function tokenizeHTML(html) {
+  const out = [], re = /(<[^>]+>|&[a-z#0-9]+;)/gi;
+  let last = 0, m;
+  while ((m = re.exec(html))) { if (m.index > last) out.push(...Array.from(html.slice(last, m.index))); out.push(m[0]); last = re.lastIndex; }
+  if (last < html.length) out.push(...Array.from(html.slice(last)));
+  return out;
+}
+function stopTyping(showAll) {
+  if (!typing) return;
+  clearInterval(typing.timer);
+  if (showAll) el.dtext.innerHTML = typing.html;
+  typing = null;
+  el.dialog.classList.remove('typing');
+}
+function typeLine(html, voice) {
+  stopTyping(false);
+  const toks = tokenizeHTML(html), v = VOICES[voice];
+  if (reduced || toks.length < 2) { el.dtext.innerHTML = html; if (v) AudioSys.tone(v[0], 0.04, { type: v[1], vol: 0.05 }); return; }
+  let i = 0, n = 0;
+  typing = { html: html, timer: 0 };
+  el.dialog.classList.add('typing');
+  el.dtext.innerHTML = '';
+  typing.timer = setInterval(() => {
+    while (i < toks.length && toks[i].charAt(0) === '<' && toks[i].length > 1) i++;   /* tags take no time */
+    if (i >= toks.length) { stopTyping(true); return; }
+    const ch = toks[i++];
+    el.dtext.innerHTML = toks.slice(0, i).join('');
+    if (v && /[A-Za-z0-9]/.test(ch) && (n++ % 2 === 0)) {
+      AudioSys.tone(v[0] * (voice === 'mech' ? (n % 4 < 2 ? 1 : 1.25) : 0.94 + Math.random() * 0.12), 0.035, { type: v[1], vol: 0.045 });
+    }
+  }, 28);
+}
+function say(html, who, mood) {
   Music.duck(true);
   paused = true;
   el.dialog.hidden = false;
-  el.dtext.innerHTML = html;
-  const src = portraitFor(who);
-  el.portrait.src = src;
+  el.dtext.dataset.full = html;
+  const spk = speakerOf(html, who);
+  el.portrait.src = portraitFor(spk || 'k', moodOf(html, mood));
   el.portrait.style.visibility = 'visible';
+  typeLine(html, spk);
   return new Promise((res) => {
     advance = () => {
+      if (typing) { stopTyping(true); return; }   /* first tap shows the whole line, the next one moves on */
       el.dialog.hidden = true;
       el.portrait.style.visibility = 'hidden';
       advance = null;
@@ -1249,7 +1340,7 @@ function say(html, who) {
     };
   });
 }
-async function story(lines, who) { for (let i = 0; i < lines.length; i++) await say(lines[i], who); }
+async function story(lines, who, mood) { for (let i = 0; i < lines.length; i++) await say(lines[i], who, mood); }
 function advanceDialog() { if (advance) advance(); }
 el.dialog.addEventListener('click', advanceDialog);
 
@@ -1323,6 +1414,7 @@ function makeFoe(f) {
 
 function startStage(i, silent) {
   /* a story box still open (Restart from the pause menu) is dropped, so it can't finish on the new stage */
+  stopTyping(false);
   if (advance) { advance = null; el.dialog.hidden = true; el.portrait.style.visibility = 'hidden'; Music.duck(false); paused = false; }
   L = build(i);
   stageTime = 0; score = 0; combo = 0; comboT = 0; bestCombo = 0; deaths = 0; heartsLost = 0;
@@ -1533,7 +1625,7 @@ function die() {
   (async () => {
     const atBoss = boss === 'fight';
     const who = atBoss ? 'mom' : 'dad';
-    await say(atBoss ? '<b>MOM:</b> Aww, come here, you need a hug. Then try again!' : '<b>ROBIN:</b> Shake it off, bud. Back to the checkpoint!', who);
+    await say(atBoss ? '<b>MOM:</b> Aww, come here, you need a hug. Then try again!' : '<b>ROBIN:</b> Shake it off, bud. Back to the checkpoint!', who, 'h');
     Music.duck(false);
     P.hp = P.max; P.dead = 0; P.inv = 110; P.vx = 0; P.vy = 0;
     shots = []; dadUsedBoss = false; dadUsedStage = false; dad = null; bro = null;
@@ -1978,22 +2070,22 @@ async function startBoss() {
   dadSpecialPlan = d.kind === 'final' || Math.random() < 0.65;
   const kind = (d.kind === 'team' || d.kind === 'final') ? 'mom' : d.kind;
   bosses = [makeBoss(kind, (ax + (kind === 'mech' ? 12 : 13)) * T, d.hp, d.prop)];
-  await say('<b>BOSS:</b> ' + d.title.toUpperCase() + '!', d.face || 'm');
-  await story(LV[i].bossIntro, d.face || 'm');
+  await say('<b>BOSS:</b> ' + d.title.toUpperCase() + '!', d.face || 'm', 'a');
+  await story(LV[i].bossIntro, d.face || 'm', 'a');
   if (d.kind === 'team') {
     bosses.push(makeBoss('chenoa', (ax + 16) * T, 3));
     updateBossHud();
     await say('<b>CHENOA:</b> Hold on... whose team am I on today?', 'c');
     await say('Chenoa is thinking... 🤔 🤔 🤔', 'c');
     if (Math.random() < 0.5) {
-      await say('<b>CHENOA:</b> TEAM MOM! Sorry, little bro. I made a PROMISE. 😈', 'c');
+      await say('<b>CHENOA:</b> TEAM MOM! Sorry, little bro. I made a PROMISE. 😈', 'c', 'a');
       await say('TWO bosses at once?! Kinan powers up: <b>SUPER KINAN!</b> 🎉 Party Popper + an extra heart!', 'k');
       P.power = 'popper'; P.max = Math.min(5, P.max + 1); P.hp = P.max; SFX.power();
       await say('Beat <b>both</b> of them! Tap <b>POW</b> to shoot confetti.', 'k');
     } else {
       bosses.pop();
       allies.push(chenoaAlly());
-      await say("<b>CHENOA:</b> TEAM KINAN! Let's get her! 💚 (Sorry, Mom. He's my little brother.)", 'c');
+      await say("<b>CHENOA:</b> TEAM KINAN! Let's get her! 💚 (Sorry, Mom. He's my little brother.)", 'c', 'h');
       await say('Chenoa will throw paint at Mom. You still have to stomp her!', 'k');
     }
   } else if (d.kind === 'final') {
@@ -2049,7 +2141,7 @@ async function bossDefeated() {
   SFX.win();
   const i = L.i;
   if (LV[i].final) return ending();
-  await story(LV[i].win, LV[i].boss.face || 'm');
+  await story(LV[i].win, LV[i].boss.face || 'm', 'h');
   firstClear = !progress.beaten.includes(i);   /* first time through: this world is now a Family Smash arena too */
   if (firstClear) progress.beaten.push(i);
   progress.unlocked = Math.max(progress.unlocked, i + 2);
@@ -3400,7 +3492,7 @@ function showScreen(html) {
   el.pause.hidden = true;
   el.bossHud.hidden = true;
   el.comboEl.hidden = true;
-  advance = null;
+  advance = null; stopTyping(false);
   showGame(false);
   el.stage.classList.remove('bossmode');
   el.screen.innerHTML = html;
@@ -3895,6 +3987,7 @@ function myFighter() {
 }
 
 function startSmash(opts) {
+  stopTyping(false);
   if (advance) { advance = null; el.dialog.hidden = true; el.portrait.style.visibility = 'hidden'; Music.duck(false); }
   const arena = ARENAS[opts.arena] ? opts.arena : newestArena();
   L = buildArena(arena); P = null;
