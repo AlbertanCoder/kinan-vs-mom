@@ -1118,8 +1118,9 @@ function sparks(x, y, n, colors) {
   }
 }
 function pop(x, y, txt, t, color) { pops.push({ x, y, t: t || 34, max: t || 34, txt, color: color || '#f6c445' }); }
-/* both also off under Effects: LITE, so a player who finds them too much can switch them off in the game itself */
-function shakeIt(n) { if (!reduced && !progress.lite) shake = Math.min(9, shake + n); }
+/* screen shake is OFF for good: on a phone even a small shake moves the whole picture 4-18 px and players
+   found it violent (gift-block bumps, getting hurt). The function stays so every call site keeps working. */
+function shakeIt(n) { shake = 0; }
 function flashScreen() { if (reduced || progress.lite) return; el.flash.classList.remove('on'); void el.flash.offsetWidth; el.flash.classList.add('on'); }
 
 /* score + combo */
@@ -1438,7 +1439,7 @@ function updatePlayer() {
 
   if (P.y > H + 10) {
     P.hp = Math.max(0, P.hp - 1); heartsLost++;
-    SFX.hurt(); shakeIt(4); flashScreen();
+    SFX.hurt(); flashScreen();
     if (P.hp <= 0) { P.dead = 1; P.vy = -5; return; }
     P.x = boss === 'fight' ? (L.arenaX + 2) * T : (cpHit ? spawn.x : lastSafe.x || spawn.x);
     P.y = boss === 'fight' ? (GROUND - 1) * T : (cpHit ? spawn.y : lastSafe.y || spawn.y);
@@ -1465,7 +1466,7 @@ function hurt(from) {
   }
   P.hp -= 1; heartsLost++; P.inv = 100; P.vy = -3.4;
   P.vx = from != null ? (P.x < from ? -2.2 : 2.2) : 0;
-  SFX.hurt(); shakeIt(6); flashScreen(); breakCombo();
+  SFX.hurt(); flashScreen(); breakCombo();   /* no screen shake when Kinan is hurt (Shad: "violently shakes, stop that") */
   sparks(P.x + 5, P.y + 8, 8, ['#ff6b6b', '#fff']);
   updHud();
   if (P.hp <= 0) { P.dead = 1; P.vy = -5; return; }
