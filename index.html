@@ -10,6 +10,7 @@
 <meta name="apple-mobile-web-app-title" content="Kinan vs Mom">
 <meta name="robots" content="noindex,nofollow">
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" href="apple-touch-icon.png">
 <title>Kinan vs. Mom · Birthday Remaster</title>
 <style id="embedded-fonts">
 @font-face{font-family:'Pixelify Sans';font-style:normal;font-weight:400 700;font-display:swap;src:url(data:font/woff2;base64,
@@ -118,6 +119,8 @@ button{font:inherit;color:inherit;touch-action:manipulation}
 /* screens */
 .screen{padding:18px 16px 22px;display:grid;align-content:start;gap:14px;min-height:320px}
 .eyebrow{margin:0;font-size:11.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--dim)}
+.logo{width:88px;height:88px;display:block;image-rendering:pixelated;border-radius:6px;box-shadow:0 4px 0 rgba(0,0,0,.35);margin-bottom:2px}
+@media (max-width:560px){.logo{width:68px;height:68px}}
 h1.title{margin:0;font-family:var(--display);font-weight:400;line-height:.86;text-wrap:balance;letter-spacing:.01em}
 h1.title .t1{display:block;font-size:clamp(50px,13.5vw,96px);color:var(--gold);text-shadow:3px 3px 0 var(--maroon)}
 h1.title .t2{display:block;font-size:clamp(24px,6.4vw,40px);color:var(--edge)}
@@ -3197,6 +3200,7 @@ function titleScreen() {
   renderPetStat();
   const cont = progress.beaten.length > 0 || progress.unlocked > 1;
   showScreen(
+    '<img class="logo" src="apple-touch-icon.png" alt="Kinan vs. Mom icon">' +
     '<p class="eyebrow">A birthday game from Shad · Saskatoon, Saskatchewan</p>' +
     '<h1 class="title"><span class="t1">Kinan vs. Mom</span><span class="t2">11 stages. 1 birthday. 4 cats. 2 dogs.</span></h1>' +
     '<div class="cast">' + castHTML() + '</div>' +
