@@ -1,5 +1,5 @@
 /* Kinan vs. Mom - offline cache */
-const CACHE = 'kinan-vs-mom-v9';
+const CACHE = 'kinan-vs-mom-v10';
 const ASSETS = [
   './',
   './index.html',
@@ -36,8 +36,11 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
       fetch(req)
         .then((res) => {
-          const copy = res.clone();
-          caches.open(CACHE).then((cache) => cache.put('./index.html', copy));
+          /* only a good copy may replace the offline one: a 404/500 or a Wi-Fi sign-in page must not */
+          if (res && res.ok) {
+            const copy = res.clone();
+            caches.open(CACHE).then((cache) => cache.put('./index.html', copy));
+          }
           return res;
         })
         .catch(() => caches.match('./index.html').then((hit) => hit || caches.match('./')))
