@@ -127,6 +127,9 @@ h1.title .t2{display:block;font-size:clamp(24px,6.4vw,40px);color:var(--edge)}
 .cast figure{margin:0;display:grid;justify-items:center;gap:5px;font-size:11.5px;color:var(--dim);text-align:center;line-height:1.15}
 .cast img{image-rendering:pixelated;height:auto;filter:drop-shadow(0 3px 0 rgba(0,0,0,.35))}
 .cast figcaption b{color:var(--edge)}
+.cast.petcast{gap:10px;padding-top:2px}
+.cast.petcast figure{font-size:10.5px}
+.cast.petcast figcaption{max-width:76px}
 .heroline{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:13px;color:var(--dim)}
 .heroline .pill{border:2px solid var(--panel2);background:#11132b;border-radius:99px;padding:3px 10px;color:var(--edge);font-size:12px}
 .btn{min-height:48px;padding:8px 18px;background:#11132b;border:3px solid var(--edge);border-radius:6px;font-size:17px;font-weight:700;cursor:pointer;box-shadow:0 4px 0 var(--shadow)}
@@ -214,6 +217,8 @@ h1.title .t2{display:block;font-size:clamp(24px,6.4vw,40px);color:var(--edge)}
   .pause .tiny{display:none}
   .petedit{gap:7px}
   .petname input{font-size:16px}
+  .app{min-height:calc(100vh - 20px);min-height:calc(100dvh - 20px)}
+  .pad{margin-top:auto}
   .rotatehint{display:block;margin-top:6px}
   .mobilefoot{display:block;margin-top:4px}
 }
@@ -737,7 +742,7 @@ const FOE = {
   egg: { beh: 'walker', kind: 'egg', color: '#fdf3d8' },
   toast: { beh: 'hopper', kind: 'toast', color: '#d9a45b' },
   plane: { beh: 'flyer', kind: 'plane', color: '#f4f1e8' },
-  ball: { beh: 'hopper', kind: 'ball', color: '#f4f1e8' },
+  ball: { beh: 'hopper', kind: 'ball', color: '#e8364b' },
   bunny: { beh: 'hopper', kind: 'bunny', color: '#f4f1e8' },
   camera: { beh: 'flyer', kind: 'camera', color: '#3b3f52' },
   neighbor: { beh: 'thrower', kind: 'neighbor', throwType: 'paper' },
@@ -1569,7 +1574,7 @@ function callBro() {
 function broSlam() {
   SFX.thud(); SFX.stomp(); shakeIt(7);
   rings.push({ x: bro.x + 8, y: bro.y + 18, r: 4, t: 26 });
-  sparks(bro.x + 8, bro.y + 18, 18, ['#f6c445', '#ff8a3d', '#fff']);
+  sparks(bro.x + 8, bro.y + 18, 10, ['#f6c445', '#ff8a3d', '#fff']);
   if (boss === 'fight') {
     bosses.forEach((b) => { if (!b.out) { b.inv = 0; damage(b, 1, 'SHAD SLAM!'); if (!b.out) b.stun = 110; } });
   } else {
@@ -1577,7 +1582,6 @@ function broSlam() {
   }
   shots = [];
   P.hat = true; updHud(); SFX.power();
-  pop(P.x, P.y - 14, 'HARD HAT!', 44, '#f6c445');
   toast('<b>SHAD:</b> ' + pick(['CONSTRUCTION SLAM! 👊 Hard hat on, bud! ⛑️', 'Big bro SMASH! 👊 Safety first, wear this! ⛑️', "Leg day paid off! 👊 Here's a hard hat! ⛑️"]), 2600);
 }
 function updateBro() {
@@ -2188,20 +2192,32 @@ function drawBackdrop(th, i) {
     ctx.fillStyle = 'rgba(0,0,0,.12)';
     for (let k = -1; k < 6; k++) ctx.fillRect(k * 120 - (p3 % 120) + 20, 140, 40, 10);
   } else if (th.bg === 'studio') {
-    for (let k = -1; k < 9; k++) {
-      const x = k * 54 - (p3 % 54);
-      ctx.fillStyle = k % 2 ? 'rgba(255,255,255,.18)' : 'rgba(255,255,255,.08)';
-      ctx.fillRect(x, 0, 27, GROUND * T);
+    const cg = ctx.createLinearGradient(0, 0, 0, GROUND * T);
+    cg.addColorStop(0, '#cdf7e7'); cg.addColorStop(1, '#8fdcb9');
+    ctx.fillStyle = cg; ctx.fillRect(0, 0, W, GROUND * T);
+    for (let k = -1; k < 6; k++) {
+      const x = k * 92 - (p2 % 92);
+      ctx.fillStyle = 'rgba(120,40,80,.22)'; ctx.fillRect(x, 0, 32, GROUND * T);
+      ctx.fillStyle = 'rgba(255,170,205,.10)'; ctx.fillRect(x + 6, 0, 5, GROUND * T);
+      ctx.fillStyle = 'rgba(60,20,45,.14)'; ctx.fillRect(x + 25, 0, 7, GROUND * T);
     }
-    for (let k = 0; k < 16; k++) {
-      const x = (k * 61 + 23 - p2 * 0.5) % (W + 40) - 20, y = 24 + (k * 37) % 120;
-      glowDisc(x, y, 9 + (k % 3) * 4, 'rgba(255,220,235,.55)', 0.5);
-    }
+    ctx.fillStyle = 'rgba(110,35,75,.30)'; ctx.fillRect(0, 0, W, 14);
+    ctx.fillStyle = 'rgba(255,190,220,.16)';
+    for (let x = 0; x < W; x += 18) ctx.fillRect(x, 14, 9, 3);
+    ctx.fillStyle = 'rgba(255,235,245,.16)'; ctx.fillRect(132, 26, 168, 138);
+    ctx.fillStyle = 'rgba(255,255,255,.10)'; ctx.fillRect(140, 32, 152, 126);
+    ctx.fillStyle = 'rgba(120,40,80,.12)'; ctx.fillRect(132, 160, 168, 6);
     for (let k = -1; k < 4; k++) {
       const x = k * 160 - (p2 % 160);
-      ctx.fillStyle = 'rgba(255,255,255,.4)'; ctx.fillRect(x, 50, 44, 34);
-      ctx.strokeStyle = 'rgba(60,40,30,.22)'; ctx.lineWidth = 2; ctx.strokeRect(x, 50, 44, 34);
-      ctx.fillStyle = 'rgba(120,90,70,.3)'; ctx.fillRect(x + 5, 55, 34, 24);
+      ctx.fillStyle = 'rgba(255,255,255,.55)'; ctx.fillRect(x, 50, 44, 34);
+      ctx.strokeStyle = 'rgba(60,40,30,.25)'; ctx.lineWidth = 2; ctx.strokeRect(x, 50, 44, 34);
+      ctx.fillStyle = 'rgba(255,225,240,.35)'; ctx.fillRect(x + 5, 55, 34, 24);
+      ctx.fillStyle = 'rgba(60,50,60,.28)'; ctx.fillRect(x + 21, 84, 2, 78);
+      ctx.fillRect(x + 12, 160, 20, 2);
+    }
+    for (let k = 0; k < 12; k++) {
+      const x = (k * 61 + 23 - p2 * 0.5) % (W + 40) - 20, y = 24 + (k * 37) % 120;
+      glowDisc(x, y, 7 + (k % 3) * 3, 'rgba(255,220,235,.55)', 0.45);
     }
   } else if (th.bg === 'outdoor') {
     glowDisc(340 - (p1 % 500), 46, 46, 'rgba(255,240,170,.85)', 0.75);
@@ -2253,6 +2269,8 @@ function drawBackdrop(th, i) {
     ctx.fillStyle = 'rgba(30,20,40,.28)'; ctx.fillRect(0, GROUND * T - 10, W, 10);
   }
   else if (th.bg === 'school') {
+    glowDisc(372, 40, 40, 'rgba(255,240,170,.75)', 0.7);
+    ctx.fillStyle = '#fff4c2'; ctx.beginPath(); ctx.arc(372, 40, 12, 0, 6.284); ctx.fill();
     ctx.fillStyle = 'rgba(255,255,255,.62)';
     for (let k = -1; k < 5; k++) {
       const x = k * 140 - (p1 % 140), y = 36 + (k % 2) * 20;
@@ -2265,6 +2283,19 @@ function drawBackdrop(th, i) {
     ctx.strokeStyle = 'rgba(50,60,80,.35)'; ctx.lineWidth = 2;
     for (let k = -1; k < 14; k++) { const x = k * 34 - (p3 % 34); ctx.beginPath(); ctx.moveTo(x, 172); ctx.lineTo(x, 150); ctx.stroke(); }
     ctx.beginPath(); ctx.moveTo(0, 152); ctx.lineTo(W, 152); ctx.stroke();
+    const sx0 = 250 - (p3 % 260);
+    ctx.fillStyle = 'rgba(40,130,200,.38)';
+    ctx.beginPath(); ctx.moveTo(sx0, 118); ctx.lineTo(sx0 + 34, 158); ctx.lineTo(sx0 + 26, 162); ctx.lineTo(sx0 - 8, 122); ctx.fill();
+    ctx.fillStyle = 'rgba(246,196,69,.50)';
+    ctx.fillRect(sx0 - 10, 122, 3, 50); ctx.fillRect(sx0 + 4, 122, 3, 50);
+    for (let y = 126; y < 168; y += 8) ctx.fillRect(sx0 - 10, y, 17, 2);
+    ctx.fillStyle = 'rgba(60,50,60,.28)'; ctx.fillRect(sx0 - 12, 170, 24, 3);
+    const sw = 90 - (p2 % 320);
+    ctx.strokeStyle = 'rgba(60,70,90,.32)'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(sw, 172); ctx.lineTo(sw + 14, 120); ctx.lineTo(sw + 28, 172); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(sw + 14, 120); ctx.lineTo(sw + 60, 120); ctx.stroke();
+    ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(sw + 28, 120); ctx.lineTo(sw + 28, 148); ctx.stroke();
+    ctx.fillStyle = 'rgba(60,70,90,.30)'; ctx.fillRect(sw + 22, 148, 12, 3);
   } else if (th.bg === 'dinner') {
     glowDisc(W / 2 - (p1 % 40), 20, 150, 'rgba(255,220,150,.5)', 0.7);
     ctx.fillStyle = 'rgba(255,255,255,.18)'; ctx.fillRect(30, 20, W - 60, 100);
@@ -2274,6 +2305,18 @@ function drawBackdrop(th, i) {
       const x = 50 + k * 66 - (p3 % 66), y = 60 + (k * 29) % 60;
       ctx.fillStyle = 'rgba(255,255,255,.13)';
       ctx.beginPath(); ctx.arc(x, y, 8, 0, 6.284); ctx.fill();
+    }
+    ctx.fillStyle = 'rgba(90,50,25,.20)'; ctx.fillRect(0, 148, W, 30);
+    ctx.fillStyle = 'rgba(255,245,230,.16)'; ctx.fillRect(0, 148, W, 4);
+    for (let k = 0; k < 8; k++) {
+      const x = 20 + k * 52 - (p3 % 52);
+      ctx.fillStyle = 'rgba(255,255,255,.22)'; ctx.beginPath(); ctx.ellipse(x, 156, 9, 3, 0, 0, 6.284); ctx.fill();
+      ctx.fillStyle = 'rgba(246,196,69,.25)'; ctx.fillRect(x - 1, 153, 2, 2);
+    }
+    ctx.fillStyle = 'rgba(60,35,15,.22)';
+    for (let k = 0; k < 8; k++) {
+      const x = 20 + k * 52 - (p3 % 52);
+      ctx.fillRect(x - 12, 160, 4, 16); ctx.fillRect(x + 8, 160, 4, 16);
     }
     ctx.fillStyle = 'rgba(60,35,15,.4)'; ctx.fillRect(0, GROUND * T - 14, W, 14);
   } else if (th.bg === 'castle') {
@@ -2763,10 +2806,9 @@ function drawFoe(f) {
       break;
     case 'ball':
       ctx.fillStyle = col; ctx.beginPath(); ctx.arc(x + w / 2, y + h / 2, w / 2, 0, 6.284); ctx.fill();
-      ctx.fillStyle = '#1b1220';
-      ctx.fillRect(x + w / 2 - 1, y + 1, 2, h - 2);
-      ctx.fillRect(x + 1, y + h / 2 - 1, w - 2, 2);
-      ctx.fillStyle = '#e8364b'; ctx.fillRect(x + w / 2 - 2, y + h / 2 - 2, 4, 4);
+      ctx.fillStyle = 'rgba(255,255,255,.85)'; ctx.fillRect(x + 2, y + h / 2 - 1, w - 4, 2);
+      ctx.fillStyle = 'rgba(0,0,0,.22)'; ctx.fillRect(x + 1, y + h - 2, w - 2, 1);
+      eye(3, 3, 2); eye(8, 3, 2);
       break;
     case 'bunny':
       ctx.fillStyle = col;
@@ -3340,7 +3382,7 @@ function ending() {
   const stars = totalStars();
   const petFigures = PET_DEFS.map((d) => {
     const own = progress.pets.ids.indexOf(d.id) >= 0;
-    return '<figure' + (own ? '' : ' style="opacity:.4"') + '>' + imgOf(PET_SPRITES[d.id], 4) + '<figcaption>' + (own ? escAttr(petName(d.id)) : '???') + '</figcaption></figure>';
+    return '<figure' + (own ? '' : ' style="opacity:.4"') + '>' + imgOf(PET_SPRITES[d.id], 4) + '<figcaption>' + (own ? escAttr(petName(d.id)) : 'Not rescued') + '</figcaption></figure>';
   }).join('');
   showScreen(
     '<p class="eyebrow">All 11 stages clear · 33 stars possible · Saskatoon, SK</p>' +
@@ -3349,8 +3391,8 @@ function ending() {
     '<figure>' + imgOf(SP.mStand, 4) + '<figcaption>Mom</figcaption></figure>' +
     '<figure>' + imgOf(SP.cStand, 3) + '<figcaption>Chenoa</figcaption></figure>' +
     '<figure>' + imgOf(SP.dStand, 4) + '<figcaption>Dad Robin</figcaption></figure>' +
-    '<figure>' + imgOf(SP.sStand, 4) + '<figcaption>Big Bro Shad</figcaption></figure>' +
-    petFigures + '</div>' +
+    '<figure>' + imgOf(SP.sStand, 4) + '<figcaption>Big Bro Shad</figcaption></figure></div>' +
+    '<div class="cast petcast">' + petFigures + '</div>' +
     '<p class="lede">You beat the Room Inspector, Big Sis Chenoa, the Lego Mega-Mech, the Nosy Neighbour, the Big Kid, the Bedtime Enforcer and even <b>ULTIMATE BIRTHDAY MOM</b>. Level 11 looks good on you.</p>' +
     '<p class="lede"><b>MOM:</b> Okay... you win, baby. You beat ALL of us. But there\'s one move nobody can dodge... the <b>BIRTHDAY HUG!</b></p>' +
     '<p class="lede"><b>Four cats. Two dogs. One very good family.</b> From Saskatoon, Saskatchewan — with love. 💛</p>' +
@@ -3513,6 +3555,7 @@ window.__k11 = {
   warpBoss: () => { P.x = (L.arenaX + 4) * T; P.y = (GROUND - 1) * T; },
   killBosses: () => { bosses.forEach((b) => { b.inv = 0; if (!b.out) damage(b, b.hp); }); },
   godMode: () => { P.inv = 9e9; },
+  clearFoes: () => { foes = []; },
   addCandles: (n) => { addCandle(n); },
   advance: () => { if (advance) advance(); },
   jumpToStage: (i) => { playStage(i); },
