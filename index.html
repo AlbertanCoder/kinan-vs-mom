@@ -3258,7 +3258,7 @@ function titleScreen() {
     if (!confirm('Start over? This clears all stars, pets and stage progress.')) return;
     progress = JSON.parse(JSON.stringify(DEFAULT_PROGRESS));
     progress.sound = AudioSys.on;
-    progress.unlocked = 1; save(); SFX.click(); titleScreen();
+    progress.unlocked = 1; applyLite(); save(); SFX.click(); titleScreen();
   });
   const ib2 = $('#installBtn2');
   if (ib2) ib2.addEventListener('click', openInstall);
