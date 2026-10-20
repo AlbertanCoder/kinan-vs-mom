@@ -280,6 +280,7 @@ html.rotated,html.rotated body{height:100%;overflow:hidden}
 html.rotated body{padding:0;display:block}
 html.rotated .app{position:fixed;top:0;left:0;width:100vh;width:100dvh;height:100vw;height:100dvw;max-width:none;overflow:hidden;transform-origin:0 0;transform:rotate(90deg) translate(0,-100%);padding:max(5px,env(safe-area-inset-right,0px)) max(6px,env(safe-area-inset-bottom,0px)) max(5px,env(safe-area-inset-left,0px)) max(6px,env(safe-area-inset-top,0px))}
 html.rotated .turnhint{display:block}
+.lvbtn .gold{display:block;font-size:10.5px;color:var(--gold);letter-spacing:0;margin-top:2px;text-align:right}
 /* Party Shop */
 .wallet{margin:0;font-size:18px}
 .wallet b{color:var(--gold)}
@@ -691,6 +692,7 @@ const SP = {
   cat: bakeOutlined(CAT, { a: PAL.a, A: PAL.A }), dog: bakeOutlined(DOG, { n: PAL.n, L: PAL.L }), candle: bake(CANDLE), flag: bake(FLAG)
 };
 const CH_H = SP.cStand.height;
+SP.goldCandle = bake(recolor(CANDLE, { c: 'y', P: 't' }));
 SP.sStand = bake(legs(SHAD, LEGS.stand, 'n'));
 SP.sWalk = bake(legs(SHAD, LEGS.walk, 'n'));
 SP.sJump = bake(legs(SHAD, LEGS.jump, 'n'));
@@ -984,7 +986,7 @@ function build(i) {
    STATE
    ============================================================ */
 const DEFAULT_PROGRESS = { unlocked: 1, beaten: [], stars: {}, bestScore: {}, totalCandles: 0, pets: { ids: [], names: {} }, hat: 'none', won: false, sound: true, lite: false,
-  wallet: 0, owned: [], outfit: 'classic', trail: 'none', costumes: {} };
+  wallet: 0, owned: [], outfit: 'classic', trail: 'none', costumes: {}, gold: {} };
 function loadProgress() {
   let p = store.get(SAVE_KEY, null);
   if (!p) {
@@ -1019,6 +1021,7 @@ function loadProgress() {
   if (typeof p.wallet !== 'number') out.wallet = Math.max(0, Math.floor(Number(out.totalCandles) || 0));
   out.owned = Array.isArray(p.owned) ? p.owned.filter((id) => typeof id === 'string') : [];
   out.costumes = p.costumes && typeof p.costumes === 'object' ? Object.assign({}, p.costumes) : {};
+  out.gold = p.gold && typeof p.gold === 'object' ? Object.assign({}, p.gold) : {};
   return out;
 }
 let progress = loadProgress();
@@ -1035,6 +1038,7 @@ let spawn = { x: 0, y: 0 }, cpHit = false, dadUsedStage = false, dadUsedBoss = f
 let lastSafe = { x: 0, y: 0 };
 let dadSpecialPlan = false, dadSpecialDone = false, broBoss = false, bossMusic = false;
 let cratePet = null;
+let puzzle = null, pieces = [], pieceCool = [];   /* puzzle room in progress; the stage's puzzle pieces */
 
 /* ============================================================
    INPUT
@@ -1438,7 +1442,9 @@ function startStage(i, silent) {
   /* a story box still open (Restart from the pause menu) is dropped, so it can't finish on the new stage */
   stopTyping(false);
   if (advance) { advance = null; el.dialog.hidden = true; el.portrait.style.visibility = 'hidden'; Music.duck(false); paused = false; }
+  puzzle = null;
   L = build(i);
+  pieces = findPieces(L); pieceCool = pieces.map(() => 0);
   stageTime = 0; score = 0; combo = 0; comboT = 0; bestCombo = 0; deaths = 0; heartsLost = 0;
   foes = L.foes.map((f, k) => Object.assign(makeFoe(f), { idx: k }));   /* idx: which stage enemy this is, for saves */
   candles = L.candles.filter((c) => !solid(c.tx, c.ty)).map((c) => ({ x: c.tx * T + 5, y: c.ty * T + 4, w: 6, h: 10, got: false }));
@@ -1482,14 +1488,16 @@ function startStage(i, silent) {
    ============================================================ */
 function snapshotStage() {
   if (!L || !P || P.dead || L.smash) return null;
-  const onGround = P.onGround;
+  /* in a puzzle room the save is the spot in the stage where you jumped in */
+  const SL = puzzle ? puzzle.saved.L : L, safe = puzzle ? puzzle.saved.lastSafe : lastSafe;
+  const onGround = !puzzle && P.onGround;
   return {
-    i: L.i, x: Math.round(onGround ? P.x : lastSafe.x), y: Math.round(onGround ? P.y : lastSafe.y),
+    i: SL.i, x: Math.round(onGround ? P.x : safe.x), y: Math.round(onGround ? P.y : safe.y),
     hp: P.hp, max: P.max, got: got, score: score, stageTime: stageTime, deaths: deaths, heartsLost: heartsLost, bestCombo: bestCombo,
     power: P.power, hat: !!P.hat, cpHit: cpHit, spawn: { x: spawn.x, y: spawn.y }, nextHeartAt: nextHeartAt, dadUsedStage: dadUsedStage,
     candles: candles.map((c, k) => (c.got ? k : -1)).filter((k) => k >= 0),
-    gifts: Object.keys(L.gifts).filter((k) => L.g[Number(k)] === 4),
-    foesDead: L.foes.map((f, k) => k).filter((k) => !foes.some((f) => f.idx === k && f.alive)),
+    gifts: Object.keys(SL.gifts).filter((k) => SL.g[Number(k)] === 4),
+    foesDead: SL.foes.map((f, k) => k).filter((k) => !foes.some((f) => f.idx === k && f.alive)),
     atBoss: boss !== 'off', when: Date.now()
   };
 }
@@ -1710,6 +1718,12 @@ function trailPart(kind, x, y) {
   else if (kind === 'stars') part(x, y - 4, { vx: -P.face * rand(0.4, 1.0), vy: rand(-0.3, 0.3), life: 14, size: ri(1, 3), color: pick(['#ffffff', '#fff3b0']), glow: true, g: 0 });
 }
 function updateWorld() {
+  for (const pc of pieces) {
+    if (hasGold(L.i, pc.j)) continue;
+    if (!progress.puzzleHint && pc.x > camX + 20 && pc.x < camX + W - 20) { progress.puzzleHint = true; save(); toast('🧩 A <b>puzzle piece</b>! Jump into it for a golden candle.', 2600); }
+    if (pieceCool[pc.j] > 0) { if (Math.abs(P.x - pc.x) > 48) pieceCool[pc.j]--; continue; }
+    if (boss === 'off' && !P.dead && overlap(P, pc)) { enterPuzzle(pc); return; }
+  }
   if (progress.trail && progress.trail !== 'none' && !P.dead && (Math.abs(P.vx) > 0.6 || !P.onGround) && frame % 3 === 0) trailPart(progress.trail, P.x + 5 - P.face * 4, P.y + P.h - 4);
   if (L.checkpoint && !cpHit && P.x > L.checkpoint.x) {
     cpHit = true;
@@ -2372,10 +2386,12 @@ function update() {
   }
   if (hitStop > 0) { hitStop--; updateFx(); return; }
   if (paused) { updateFx(); return; }
+  if (puzzle) { updatePuzzle(); return; }   /* the stage clock waits while you are in a puzzle room */
   updatePlayer();
   if (P.dead) { updateFx(); return; }
   stageTime++;
   updateWorld();
+  if (puzzle) return;
   updateFoes();
   updateShots();
   updatePets();
@@ -2889,6 +2905,7 @@ function drawTiles(th) {
   ctx.fillStyle = dg; ctx.fillRect(0, GROUND * T, W, H - GROUND * T);
 }
 function drawProps(th) {
+  for (const pc of pieces) if (!hasGold(L.i, pc.j)) drawPiece(Math.round(pc.x - camX), pc.y, frame + pc.j * 30);
   if (L.checkpoint) {
     const sx = L.checkpoint.tx * T - Math.round(camX) + 3;
     const sy = (L.checkpoint.ty - 1) * T - 15;
@@ -3491,6 +3508,7 @@ function drawVignette() {
 }
 function draw() {
   if (smash) { drawSmash(); return; }
+  if (puzzle) { drawPuzzle(); return; }
   if (!L || !P) return;
   const th = LV[L.i];
   const shx = shake > 0.2 ? Math.round(rand(-shake, shake)) : 0;
@@ -3593,6 +3611,225 @@ const HATS = [
   { id: 'viking', name: 'Viking helmet', icon: '🪖', shop: true },
   { id: 'propeller', name: 'Propeller beanie', icon: '🌀', shop: true }
 ];
+/* ============================================================
+   SECRET GOLDEN CANDLES — 3 puzzle pieces float in every stage, 3 tiles up (you only touch one by jumping
+   into it). Each opens a one-screen puzzle room: coloured switches in the order of the dots, lamps that flip
+   their neighbours, or a shelf climb. Solving it gives a golden candle (+25 Party Shop candles).
+   The stage layout itself never changes; pieces are found on open, flat ground after the stage is built.
+   ============================================================ */
+const PUZZLE_KINDS = ['switches', 'lights', 'climb'];
+const PUZZLE_HELP = {
+  switches: '🧩 <b>Puzzle room!</b> Step on the coloured switches in the order of the dots on the sign.',
+  lights: '🧩 <b>Puzzle room!</b> Light all the lamps. Each button flips its lamp and the ones next to it.',
+  climb: '🧩 <b>Puzzle room!</b> Climb the shelves to the golden candle at the top.'
+};
+const SWITCH_COLORS = ['#e8364b', '#44c55a', '#3fa9f5', '#f6c445'];
+const goldCount = (i) => { const m = (progress.gold && progress.gold[i]) || 0; return (m & 1) + ((m >> 1) & 1) + ((m >> 2) & 1); };
+const hasGold = (i, j) => !!((((progress.gold && progress.gold[i]) || 0) >> j) & 1);
+const goldTotal = () => { let n = 0; for (let i = 0; i < 11; i++) n += goldCount(i); return n; };
+function findPieces(SL) {
+  const top = (tx) => { for (let ty = 0; ty < ROWS; ty++) { const t = SL.g[ty * SL.w + tx]; if (t >= 1 && t <= 7) return { ty: ty, t: t }; } return null; };
+  /* open flat ground: three columns side by side, plain ground on top, nothing above them, not too high up */
+  const flatAt = (tx) => {
+    const a = top(tx), b = top(tx - 1), c = top(tx + 1);
+    if (!a || !b || !c || a.t !== 1 || b.t !== 1 || c.t !== 1 || a.ty !== b.ty || a.ty !== c.ty || a.ty < 5) return -1;   /* high ground is fine: the piece then floats at row 2-3, still on screen */
+    return a.ty;
+  };
+  const out = [];
+  [0.25, 0.55, 0.8].forEach((f) => {
+    const target = Math.floor(SL.len * f);
+    for (let d = 0; d < 60; d++) {
+      for (const tx of [target + d, target - d]) {
+        if (tx < 12 || tx > SL.arenaX - 10) continue;
+        const ty = flatAt(tx);
+        if (ty < 0) continue;
+        const px = tx * T + 3, py = (ty - 3) * T + 2;
+        if (SL.petSpot && Math.abs(SL.petSpot.x - px) < 64) continue;
+        if (SL.checkpoint && Math.abs(SL.checkpoint.x - px) < 64) continue;
+        if (out.some((o) => Math.abs(o.x - px) < 200)) continue;
+        out.push({ x: px, y: py, w: 10, h: 10, j: out.length });
+        return;
+      }
+    }
+  });
+  return out;
+}
+function buildRoom(i, j, kind) {
+  const w = 27, g = new Uint8Array(w * ROWS);
+  const set = (x, y, v) => { if (x >= 0 && x < w && y >= 0 && y < ROWS) g[y * w + x] = v; };
+  for (let x = 0; x < w; x++) for (let y = GROUND; y < ROWS; y++) set(x, y, 1);
+  for (let y = 0; y < GROUND; y++) { set(0, y, 5); set(w - 1, y, 5); }
+  const room = { i: i, g: g, w: w, foes: [], candles: [], gifts: {}, checkpoint: null, petSpot: null, arenaX: 0, arenaW: w - 1, len: w, room: true };
+  const rr = rng(7001 + i * 97 + j * 13);
+  const pz = { kind: kind, room: room, stage: i, j: j, solved: false, gold: null, step: 0, ents: [], lamps: [], order: [], t: 0, exitT: 0 };
+  const n = i >= 6 ? 4 : 3;
+  if (kind === 'switches') {
+    const xs = [6, 10, 14, 18, 22].slice(0, n);
+    pz.ents = xs.map((x, k) => ({ x: x * T, color: SWITCH_COLORS[k], on: false, was: false }));
+    const order = xs.map((x, k) => k);
+    for (let k = order.length - 1; k > 0; k--) { const m = Math.floor(rr() * (k + 1)); const tmp = order[k]; order[k] = order[m]; order[m] = tmp; }
+    if (order.every((v, k) => v === k)) order.reverse();   /* never just left to right */
+    pz.order = order;
+  } else if (kind === 'lights') {
+    const xs = n === 3 ? [8, 13, 18] : [6, 10, 14, 18];
+    pz.ents = xs.map((x) => ({ x: x * T, was: false }));
+    pz.lamps = xs.map(() => true);
+    const presses = 1 + (i % 2) + (n === 4 ? 1 : 0);
+    for (let k = 0; k < presses; k++) toggleLamps(pz, Math.floor(rr() * n));
+    if (pz.lamps.every(Boolean)) toggleLamps(pz, 0);
+  } else {
+    /* shelves you can jump up through from below; each overlaps the one under it by two tiles */
+    const flip = j % 2 === 1, X = (x) => (flip ? w - 1 - x : x);
+    for (let x = 3; x <= 8; x++) set(X(x), 8, 7);
+    for (let x = 7; x <= 12; x++) set(X(x), 5, 7);
+    for (let x = 11; x <= 16; x++) set(X(x), 2, 7);
+    pz.gold = { x: X(14) * T + 3, y: 2 * T - 15, w: 10, h: 14, got: false };
+  }
+  return pz;
+}
+function toggleLamps(pz, k) { for (const q of [k - 1, k, k + 1]) if (q >= 0 && q < pz.lamps.length) pz.lamps[q] = !pz.lamps[q]; }
+function enterPuzzle(pc) {
+  const i = L.i, kind = PUZZLE_KINDS[(i + pc.j) % 3];
+  const pz = buildRoom(i, pc.j, kind);
+  pz.saved = { L: L, x: P.x, y: P.y, face: P.face, camX: camX, lastSafe: { x: lastSafe.x, y: lastSafe.y } };
+  puzzle = pz;
+  L = pz.room;
+  P.x = 2.5 * T; P.y = GROUND * T - P.h; P.vx = 0; P.vy = 0; P.face = 1; P.onGround = true;
+  trail = []; shots = []; blasts = []; camX = 0;
+  el.stageLbl.textContent = 'STAGE ' + (i + 1) + ' · PUZZLE ROOM';
+  SFX.flag();
+  toast(PUZZLE_HELP[kind], 3400);
+}
+function exitPuzzle() {
+  const sv = puzzle.saved, j = puzzle.j;
+  L = sv.L; P.x = sv.x; P.y = sv.y; P.vx = 0; P.vy = 0; P.face = sv.face; P.inv = Math.max(P.inv, 60);
+  P.onGround = false; P.coyote = 0;   /* back in the air where he jumped in: he falls, the room floor does not come with him */
+  camX = sv.camX; lastSafe = sv.lastSafe; trail = [];
+  pieceCool[j] = 90;   /* no stepping straight back in */
+  puzzle = null;
+  pets.cats.forEach((c, k) => { c.x = P.x - 18 - k * 16; c.y = P.y + 7; });
+  pets.dogs.forEach((d, k) => { d.x = P.x - 80 - k * 20; d.y = P.y + 6; });
+  el.stageLbl.textContent = 'STAGE ' + (L.i + 1) + ' / 11 · ' + LV[L.i].place.toUpperCase();
+}
+function solvePuzzle(pz) {
+  pz.solved = true;
+  pz.gold = { x: 13 * T + 3, y: GROUND * T - 52, w: 10, h: 14, got: false };   /* floats above the middle: a small jump to grab it */
+  SFX.power();
+  toast('<b>Solved!</b> Grab the golden candle! 🕯', 2000);
+}
+function puzzlePress(pz, k) {
+  if (pz.kind === 'switches') {
+    const e = pz.ents[k];
+    if (e.on) return;
+    if (pz.order[pz.step] === k) {
+      e.on = true; pz.step++; SFX.candle();
+      sparks(e.x + 8, GROUND * T - 4, 8, [e.color, '#fff']);
+      if (pz.step === pz.ents.length) solvePuzzle(pz);
+    } else {
+      pz.ents.forEach((q) => { q.on = false; }); pz.step = 0;
+      AudioSys.tone(180, 0.18, { type: 'triangle', vol: 0.12, slide: 120 });
+      toast('Oops! Start again: follow the dots on the sign, from the left.', 2000);
+    }
+  } else if (pz.kind === 'lights') {
+    toggleLamps(pz, k); SFX.click();
+    if (pz.lamps.every(Boolean)) solvePuzzle(pz);
+  }
+}
+function collectGold(pz) {
+  pz.gold.got = true;
+  progress.gold = progress.gold || {};
+  progress.gold[pz.stage] = (progress.gold[pz.stage] || 0) | (1 << pz.j);
+  progress.wallet = (progress.wallet || 0) + 25;
+  save();
+  SFX.heart();
+  sparks(pz.gold.x + 5, pz.gold.y + 6, 24, ['#f6c445', '#fff3b0', '#ffffff']);
+  toast('🕯 <b>Golden candle!</b> ' + goldCount(pz.stage) + ' of 3 here · +25 for the Party Shop', 2400);
+  pz.exitT = 70;
+}
+function updatePuzzle() {
+  const pz = puzzle;
+  pz.t++;
+  input.fireBuf = 0;
+  updatePlayer();
+  camX = 0;
+  if (progress.trail && progress.trail !== 'none' && (Math.abs(P.vx) > 0.6 || !P.onGround) && frame % 3 === 0) trailPart(progress.trail, P.x + 5 - P.face * 4, P.y + P.h - 4);
+  const onFloor = P.onGround && Math.abs((P.y + P.h) - GROUND * T) < 1;
+  pz.ents.forEach((e, k) => {
+    const on = onFloor && P.x + P.w > e.x + 3 && P.x < e.x + 13;
+    if (on && !e.was && !pz.solved) puzzlePress(pz, k);
+    e.was = on;
+  });
+  if (pz.gold && !pz.gold.got && overlap(P, pz.gold)) collectGold(pz);
+  if (pz.exitT > 0 && --pz.exitT === 0) { exitPuzzle(); return; }
+  if (P.x < T * 1.2 && pz.t > 20 && !pz.exitT) { exitPuzzle(); return; }
+  updateFx();
+}
+function drawPiece(x, y, t) {
+  const bob = Math.round(Math.sin(t / 14) * 2), X = x - 2, Y = y - 2 + bob;
+  glowDisc(x + 5, Y + 7, 16, 'rgba(255,215,90,.6)', 0.5 + 0.25 * Math.sin(t / 9));
+  ctx.fillStyle = '#8a5a14'; ctx.fillRect(X, Y + 3, 13, 11); ctx.fillRect(X + 4, Y, 5, 4); ctx.fillRect(X + 12, Y + 6, 3, 5);
+  ctx.fillStyle = '#f6c445'; ctx.fillRect(X + 1, Y + 4, 11, 9); ctx.fillRect(X + 5, Y + 1, 3, 3); ctx.fillRect(X + 12, Y + 7, 2, 3);
+  ctx.fillStyle = '#fff3b0'; ctx.fillRect(X + 2, Y + 5, 3, 2); ctx.fillRect(X + 6, Y + 2, 1, 1);
+  if (Math.floor(t / 20) % 3 === 0) { ctx.fillStyle = '#ffffff'; ctx.fillRect(X + 11, Y + 1, 1, 3); ctx.fillRect(X + 10, Y + 2, 3, 1); }
+}
+function drawGoldCandle(g) {
+  const bob = Math.round(Math.sin(frame / 10) * 2);
+  glowDisc(g.x + 5, g.y + 6 + bob, 16, 'rgba(255,215,90,.7)', 0.8);
+  ctx.save(); ctx.translate(g.x - 2, g.y - 2 + bob); ctx.scale(2, 2); ctx.drawImage(SP.goldCandle, 0, 0); ctx.restore();
+}
+function drawPuzzle() {
+  const pz = puzzle, th = LV[pz.stage];
+  ctx.save();
+  drawSky(pz.stage, th);
+  drawBackdrop(th, pz.stage);
+  drawAtmosphere(th);
+  drawTiles(th);
+  /* the way out */
+  ctx.fillStyle = '#6b4423'; ctx.fillRect(T + 1, GROUND * T - 30, 14, 30);
+  ctx.fillStyle = '#a9743f'; ctx.fillRect(T + 3, GROUND * T - 28, 10, 26);
+  ctx.fillStyle = '#f6c445'; ctx.fillRect(T + 10, GROUND * T - 16, 2, 2);
+  ctx.font = 'bold 8px "Pixelify Sans",monospace'; ctx.textAlign = 'center';
+  ctx.fillStyle = '#1b1220'; ctx.fillText('◀ EXIT', T + 9, GROUND * T - 33);
+  ctx.fillStyle = '#fff'; ctx.fillText('◀ EXIT', T + 8, GROUND * T - 34);
+  /* the sign */
+  const sw = pz.kind === 'climb' ? 130 : 150;
+  const sx0 = pz.kind === 'climb' ? (pz.j % 2 === 1 ? 10 : W - 140) : W / 2 - sw / 2;   /* the climb sign sits beside the shelves */
+  ctx.fillStyle = 'rgba(17,19,43,.85)'; ctx.fillRect(sx0, 14, sw, 30);
+  ctx.strokeStyle = '#f4f1e8'; ctx.lineWidth = 2; ctx.strokeRect(sx0, 14, sw, 30);
+  ctx.fillStyle = '#f6c445';
+  ctx.fillText(pz.kind === 'switches' ? 'FOLLOW THE DOTS' : (pz.kind === 'lights' ? 'LIGHT ALL THE LAMPS' : 'CLIMB TO THE TOP'), sx0 + sw / 2, 26);
+  if (pz.kind === 'switches') {
+    pz.order.forEach((k, n) => {
+      const cx = W / 2 - (pz.order.length - 1) * 9 + n * 18;
+      ctx.fillStyle = SWITCH_COLORS[k]; ctx.beginPath(); ctx.arc(cx, 36, 5, 0, 6.284); ctx.fill();
+      if (n < pz.step) { ctx.fillStyle = '#fff'; ctx.fillRect(cx - 2, 35, 4, 2); }
+    });
+  }
+  /* the puzzle */
+  pz.ents.forEach((e, k) => {
+    if (pz.kind === 'switches') {
+      ctx.fillStyle = 'rgba(0,0,0,.5)'; ctx.fillRect(e.x - 1, GROUND * T - 5, 18, 5);
+      ctx.fillStyle = e.color; ctx.fillRect(e.x + 1, GROUND * T - (e.on ? 6 : 9), 14, e.on ? 3 : 5);
+      ctx.fillStyle = 'rgba(255,255,255,.45)'; ctx.fillRect(e.x + 2, GROUND * T - (e.on ? 6 : 9), 12, 1);
+      if (e.on) glowDisc(e.x + 8, GROUND * T - 10, 14, e.color, 0.6);
+    } else {
+      const lx = e.x + 8, ly = 4 * T;
+      if (k > 0) { ctx.strokeStyle = 'rgba(244,241,232,.35)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(pz.ents[k - 1].x + 14, ly); ctx.lineTo(lx - 6, ly); ctx.stroke(); }
+      if (pz.lamps[k]) glowDisc(lx, ly, 16, 'rgba(255,225,120,.75)', 0.8);
+      ctx.fillStyle = pz.lamps[k] ? '#ffe27a' : '#3b3f52'; ctx.beginPath(); ctx.arc(lx, ly, 6, 0, 6.284); ctx.fill();
+      ctx.fillStyle = '#8f95ad'; ctx.fillRect(lx - 1, ly - 14, 2, 8);
+      ctx.fillStyle = '#5e5e6a'; ctx.fillRect(e.x - 1, GROUND * T - 5, 18, 5);
+      ctx.fillStyle = '#e8364b'; ctx.fillRect(e.x + 2, GROUND * T - 9, 12, 4);
+      ctx.fillStyle = 'rgba(255,255,255,.4)'; ctx.fillRect(e.x + 3, GROUND * T - 9, 10, 1);
+    }
+  });
+  if (pz.gold && !pz.gold.got) drawGoldCandle(pz.gold);
+  drawPlayer();
+  drawDaylight(th);
+  drawParticles();
+  ctx.restore();
+  drawVignette();
+}
 /* ============================================================
    PARTY SHOP — the candles Kinan collects are money here.
    Everything is a look (outfits, hats, trails, Smash costumes); nothing changes how the game plays.
@@ -3776,6 +4013,7 @@ function howToScreen() {
     '<li><span class="ico">⛑️</span><span><b>Shad</b> drops in at checkpoints and boss fights: his slam clears the screen and gives you a <b>hard hat</b> that blocks one hit.</span></li>' +
     '<li><span class="ico">⭐</span><span>Earn up to <b>3 stars</b> per stage: clear it, grab 70% of the candles, and never lose a heart. Stars unlock <b>hats</b>.</span></li>' +
     '<li><span class="ico">🍰</span><span>Every <b>25 candles</b> = an extra heart. Trampolines launch you sky-high. The game saves itself at every checkpoint and whenever you pause.</span></li>' +
+    '<li><span class="ico">🧩</span><span>Every stage hides <b>3 puzzle pieces</b> up in the air. Jump into one for a puzzle room with a <b>golden candle</b> (+25 for the Party Shop). There is always a door out.</span></li>' +
     '<li><span class="ico">🥊</span><span><b>Family Smash:</b> pick a family member, jump on heads, press <b>POW</b> for their special move, knock everyone else off the cake. Beat story stages to unlock more arenas.</span></li>' +
     '</ul>' +
     '<p class="tiny">Phone or tablet: turn it sideways; the buttons float over the picture. Keyboard: ← → move · SPACE jump · X pow · P pause. Gamepad works too.</p>' +
@@ -3834,7 +4072,7 @@ function mapScreen() {
       '<span class="n">' + (i + 1) + '</span>' +
       '<span><span class="t">' + (open ? th.place : 'Locked') + '</span>' +
       '<span class="s">' + (open ? (done ? 'Boss: ' + th.boss.title + (bt ? ' · best ' + fmtTime(bt) : '') : 'Boss: ' + th.boss.title) : 'Beat stage ' + i + ' first') + '</span></span>' +
-      '<span class="stars">' + starStr + '</span></button></li>';
+      '<span class="stars">' + starStr + (open ? '<span class="gold">🕯' + goldCount(i) + '/3</span>' : '') + '</span></button></li>';
   }).join('');
   const hats = HATS.filter((h) => !h.shop || ownsItem('hat:' + h.id)).map((h) => {
     const unlocked = h.shop ? true : stars >= h.need;
@@ -3944,6 +4182,7 @@ function resultsScreen(i) {
     '</dl>' +
     (st < 3 ? '<p class="wrapnote">' + (pct < 0.7 ? 'Grab 70% of the candles' : '') + (pct < 0.7 && heartsLost > 0 ? ' and ' : '') + (heartsLost > 0 ? 'never lose a heart' : '') + ' for 3 stars.</p>' : '<p class="wrapnote">Perfect run. Kinan is unstoppable. ⭐⭐⭐</p>') +
     '<p class="wrapnote" id="walletNote">🛍️ +' + got + ' candles for the Party Shop · you have <b>' + (progress.wallet || 0) + '</b></p>' +
+    '<p class="wrapnote" id="goldNote">' + (goldCount(i) === 3 ? '🕯 All 3 golden candles found here!' : '🕯 Golden candles here: <b>' + goldCount(i) + '</b> / 3 · jump into the 🧩 puzzle pieces to find them') + '</p>' +
     (th.meanwhile ? '<p class="lede meanwhile"><b>Meanwhile…</b> ' + th.meanwhile.replace('{candles}', String(progress.totalCandles || 0)) + '</p>' : '') +
     (firstClear && i > 0 ? '<p class="wrapnote" id="arenaNote">🥊 New Family Smash arena unlocked: <b>' + ARENAS[i].name + '</b></p>' : '') +
     '<div class="btnrow"><button class="btn go" type="button" id="nextBtn">' + (i < 10 ? 'NEXT STAGE ▶' : 'FINISH') + '</button>' +
@@ -3990,6 +4229,7 @@ function ending() {
     '<p class="lede"><b>MOM:</b> Okay... you win, my boy. You beat ALL of us. But there\'s one move nobody can dodge... the <b>BIRTHDAY HUG!</b></p>' +
     '<p class="lede"><b>Four cats. Two dogs. One very good family.</b> From Saskatoon, Saskatchewan — with love. 💛</p>' +
     '<p class="wrapnote">🥊 All 11 <b>Family Smash</b> arenas are unlocked, Birthday Cake Volcano included.</p>' +
+    '<p class="wrapnote">🕯 Golden candles found: <b>' + goldTotal() + '</b> / 33' + (goldTotal() < 33 ? ' · the 🧩 puzzle pieces are still out there' : ' · every single one!') + '</p>' +
     '<div class="heroline"><span class="pill">⭐ ' + stars + ' / 33 stars</span><span class="pill"><i class="candle-ico"></i> ' + (progress.totalCandles || 0) + ' candles collected</span><span class="pill">🎂 11 years old</span><span class="pill">🐱 ' + progress.pets.ids.filter((id) => petDef(id).kind === 'cat').length + ' · 🐶 ' + progress.pets.ids.filter((id) => petDef(id).kind === 'dog').length + '</span></div>' +
     '<div class="divider"></div>' +
     '<ul class="credits">' +
@@ -4183,6 +4423,7 @@ function myFighter() {
 }
 
 function startSmash(opts) {
+  puzzle = null;
   stopTyping(false);
   if (advance) { advance = null; el.dialog.hidden = true; el.portrait.style.visibility = 'hidden'; Music.duck(false); }
   const arena = ARENAS[opts.arena] ? opts.arena : newestArena();
@@ -5063,6 +5304,9 @@ window.__k11 = {
   allies: () => allies.length,
   audio: () => (AudioSys.ctx ? AudioSys.ctx.state : 'none'),
   drawInfo: () => (window.__k11Draw ? Object.assign({}, window.__k11Draw) : null),
+  puzzle: () => (puzzle ? { kind: puzzle.kind, stage: puzzle.stage, j: puzzle.j, solved: puzzle.solved, step: puzzle.step, lamps: puzzle.lamps.slice(), order: puzzle.order.slice(),
+    ents: puzzle.ents.map((e) => ({ x: e.x, on: !!e.on })), gold: puzzle.gold ? Object.assign({}, puzzle.gold) : null } : null),
+  pieces: () => pieces.map((pc) => ({ x: pc.x, y: pc.y, j: pc.j, got: hasGold(L.i, pc.j), cool: pieceCool[pc.j] })),
   smash: {
     start: (o) => playSmash(o),
     arenas: () => ARENAS.map((a, i) => ({ i: i, name: a.name, layout: a.layout, unlocked: arenaUnlocked(i) })),
