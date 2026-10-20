@@ -250,6 +250,17 @@ h1.title .t2{display:block;font-size:clamp(24px,6.4vw,40px);color:var(--edge)}
   .toast{font-size:11.5px;padding:3px 8px}
   .combo{top:44px}
 }
+/* Family Smash screens */
+.pickgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin:6px 0 10px}
+.pickbtn{background:var(--panel);border:2px solid var(--panel2);border-radius:8px;color:var(--text);padding:8px 4px;display:grid;justify-items:center;gap:3px;cursor:pointer;font:inherit;min-height:44px}
+.pickbtn img{image-rendering:pixelated}
+.pickbtn small{color:var(--dim);font-size:11px;line-height:1.2;text-align:center}
+.pickbtn.on{border-color:var(--gold);background:#2b2d5a;box-shadow:0 0 0 2px var(--gold)}
+.roomcode{letter-spacing:.3em}
+.codein{font:inherit;font-size:28px;letter-spacing:.3em;text-transform:uppercase;width:7ch;text-align:center;background:var(--deep);color:var(--text);border:2px solid var(--panel2);border-radius:8px;padding:6px}
+.mono{font-family:ui-monospace,Menlo,monospace;font-size:12px;word-break:break-all;color:var(--sky)}
+.btn.small{min-height:28px;padding:2px 10px;font-size:14px}
+@media (max-width:560px){.pickgrid{grid-template-columns:repeat(3,1fr)}}
 @media (prefers-reduced-motion:reduce){
   .dialog .next,.btnbeat,.starslot.on,.combo.pop{animation:none!important}
   *{scroll-behavior:auto!important}
@@ -950,6 +961,20 @@ let cratePet = null;
    INPUT
    ============================================================ */
 const input = { left: false, right: false, jump: false, jumpBuf: 0, fireBuf: 0, down: false };
+/* second keyboard player for Family Smash on one computer (A D W J) */
+const input2 = { left: false, right: false, jump: false, jumpBuf: 0, fireBuf: 0 };
+function actionDown2(k) {
+  if (k === 'left') input2.left = true;
+  else if (k === 'right') input2.right = true;
+  else if (k === 'jump') { if (!input2.jump) input2.jumpBuf = 8; input2.jump = true; }
+  else if (k === 'fire') input2.fireBuf = 10;
+}
+function actionUp2(k) {
+  if (k === 'left') input2.left = false;
+  else if (k === 'right') input2.right = false;
+  else if (k === 'jump') input2.jump = false;
+}
+const P2_KEYS = { KeyA: 'left', KeyD: 'right', KeyW: 'jump', KeyJ: 'fire', ShiftLeft: 'fire' };
 function actionDown(k) {
   if (k === 'left') input.left = true;
   else if (k === 'right') input.right = true;
@@ -967,6 +992,7 @@ window.addEventListener('keydown', (e) => {
   if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Space'].indexOf(k) >= 0) e.preventDefault();
   if (e.repeat) return;
   AudioSys.init();
+  if (smash && smash.local2 && P2_KEYS[k]) { actionDown2(P2_KEYS[k]); return; }
   if (k === 'ArrowLeft' || k === 'KeyA') actionDown('left');
   else if (k === 'ArrowRight' || k === 'KeyD') actionDown('right');
   else if (k === 'Space' || k === 'ArrowUp' || k === 'KeyW' || k === 'KeyZ') actionDown('jump');
@@ -977,12 +1003,14 @@ window.addEventListener('keydown', (e) => {
 });
 window.addEventListener('keyup', (e) => {
   const k = e.code;
+  if (smash && smash.local2 && P2_KEYS[k]) { actionUp2(P2_KEYS[k]); return; }
   if (k === 'ArrowLeft' || k === 'KeyA') actionUp('left');
   else if (k === 'ArrowRight' || k === 'KeyD') actionUp('right');
   else if (k === 'Space' || k === 'ArrowUp' || k === 'KeyW' || k === 'KeyZ') actionUp('jump');
 });
 window.addEventListener('blur', () => {
   input.left = input.right = input.jump = false;
+  input2.left = input2.right = input2.jump = false;
   if (running && !pausedByUser) setPaused(true, true);
 });
 document.addEventListener('visibilitychange', () => { if (document.hidden && running && !pausedByUser) setPaused(true, true); });
@@ -1197,9 +1225,18 @@ function setSound(on) {
 el.snd.addEventListener('click', () => { AudioSys.init(); setSound(!AudioSys.on); });
 el.pauseBtn.addEventListener('click', togglePause);
 $('#resumeBtn').addEventListener('click', () => { setPaused(false); SFX.click(); });
-$('#restartBtn').addEventListener('click', () => { setPaused(false); SFX.click(); if (L) dropSave(L.i); startStage(L ? L.i : 0, true); });
+$('#restartBtn').addEventListener('click', () => {
+  setPaused(false); SFX.click();
+  if (smash) { smashRematch(); return; }
+  if (L) dropSave(L.i);
+  startStage(L ? L.i : 0, true);
+});
 $('#saveBtn').addEventListener('click', manualSave);
-$('#mapBtnP').addEventListener('click', () => { setPaused(false); running = false; Music.stop(); mapScreen(); });
+$('#mapBtnP').addEventListener('click', () => {
+  setPaused(false); running = false; Music.stop();
+  if (smash) { const online = smash.online; endSmash(); if (online) netLeave(); smashMenu(); return; }
+  mapScreen();
+});
 $('#fullBtn').addEventListener('click', () => {
   const st = el.stage;
   if (document.fullscreenElement) document.exitFullscreen();
@@ -2141,6 +2178,7 @@ function updateFx() {
   if (shake > 0.05) shake *= 0.86; else shake = 0;
 }
 function update() {
+  if (smash) { updateSmash(); return; }
   frame++;
   pollGamepad();
   if (P.dead) {
@@ -3234,6 +3272,7 @@ function drawVignette() {
   ctx.drawImage(vignette, 0, 0);
 }
 function draw() {
+  if (smash) { drawSmash(); return; }
   if (!L || !P) return;
   const th = LV[L.i];
   const shx = shake > 0.2 ? Math.round(rand(-shake, shake)) : 0;
@@ -3314,6 +3353,7 @@ const HATS = [
 ];
 
 function titleScreen() {
+  if (smash) endSmash();
   Music.play('title');
   el.stageLbl.textContent = 'KINAN vs. MOM · BIRTHDAY REMASTER';
   setHearts(maxHearts(), maxHearts());
@@ -3332,6 +3372,7 @@ function titleScreen() {
     (cont ? '<button class="btn go btnbeat" id="startBtn" type="button">▶ CONTINUE' + (rs ? ' · Stage ' + (rs.i + 1) : '') + '</button>' : '<button class="btn go btnbeat" id="startBtn" type="button">▶ START</button>') +
     (cont ? '<button class="btn" id="mapBtn" type="button">Stage map</button>' : '') +
     (cont ? '<button class="btn ghost" id="newBtn" type="button">Start over</button>' : '') +
+    '<button class="btn" id="smashBtn" type="button">🥊 Family Smash</button>' +
     (IS_STANDALONE ? '' : '<button class="btn ghost" id="installBtn2" type="button">📲 Install app</button>') +
     '</div>' +
     (rs ? '<p class="tiny" id="saveNote">Saved spot: <b>Stage ' + (rs.i + 1) + ' · ' + LV[rs.i].place + '</b>' + (rs.atBoss ? ' · at the boss' : (rs.cpHit ? ' · past the checkpoint' : '')) + ' · ' + rs.got + ' candles</p>' : '') +
@@ -3364,6 +3405,7 @@ function titleScreen() {
   });
   const ib2 = $('#installBtn2');
   if (ib2) ib2.addEventListener('click', openInstall);
+  $('#smashBtn').addEventListener('click', () => { AudioSys.init(); SFX.click(); smashMenu(); });
 }
 function fmtTime(frames) {
   const t = Math.floor(frames / 60), m = Math.floor(t / 60), s = t % 60;
@@ -3662,6 +3704,768 @@ document.addEventListener('visibilitychange', () => {
 });
 
 /* ============================================================
+   FAMILY SMASH — versus arena for the whole family: 2 to 5 players
+   on one screen, against the computer, or online by room code
+   ============================================================ */
+const SMASH_CHARS = {
+  kinan: { name: 'Kinan', w: 10, h: 16, sprite: 'k', special: 'Party Popper', pow: 'POP', spd: 1.0, jump: 1.0, cool: 45, color: '#ff6b7a' },
+  shad: { name: 'Shad', w: 10, h: 16, sprite: 's', special: 'Construction Slam', pow: 'SLAM', spd: 0.92, jump: 1.0, cool: 150, color: '#ff8a3d' },
+  chenoa: { name: 'Chenoa', w: 12, h: 26, sprite: 'c', special: 'Order Up! (plates)', pow: 'PLATES', spd: 1.0, jump: 1.05, cool: 90, color: '#5be37a' },
+  mom: { name: 'Mom', w: 10, h: 16, sprite: 'm', special: 'Laundry Lob', pow: 'LOB', spd: 0.95, jump: 1.0, cool: 100, color: '#f39ac0' },
+  dad: { name: 'Dad', w: 10, h: 16, sprite: 'd', special: 'Hydro Vac', pow: 'VAC', spd: 0.9, jump: 0.95, cool: 170, color: '#6fc8ff' }
+};
+const SMASH_ORDER = ['kinan', 'shad', 'chenoa', 'mom', 'dad'];
+const SMASH_STOCKS = 3, SMASH_MAX = 5, ARENA_PAD = 6;   /* ARENA_PAD: tiles of open air past each screen edge (the blast zones) */
+const SMASH_SPOTS = [13, 7, 19, 10, 16];                 /* starting tiles across the main floor, by player slot */
+let smash = null, lastSmash = null;
+
+function buildArena() {
+  const w = 27 + ARENA_PAD * 2;
+  const g = new Uint8Array(w * ROWS);
+  const set = (x, y, v) => { if (x >= 0 && x < w && y >= 0 && y < ROWS) g[y * w + x] = v; };
+  for (let x = ARENA_PAD + 4; x <= ARENA_PAD + 22; x++) { set(x, GROUND, 1); set(x, GROUND + 1, 1); }   /* main floor */
+  for (let x = ARENA_PAD + 7; x <= ARENA_PAD + 10; x++) set(x, GROUND - 4, 7);                            /* left shelf */
+  for (let x = ARENA_PAD + 16; x <= ARENA_PAD + 19; x++) set(x, GROUND - 4, 7);                           /* right shelf */
+  for (let x = ARENA_PAD + 11; x <= ARENA_PAD + 15; x++) set(x, GROUND - 7, 7);                           /* top shelf */
+  return { i: 10, g: g, w: w, foes: [], candles: [], gifts: {}, checkpoint: null, petSpot: null, arenaX: ARENA_PAD, arenaW: 27, len: 27, smash: true };
+}
+function makeFighter(who, slot, opts) {
+  const c = SMASH_CHARS[who] || SMASH_CHARS.kinan;
+  return Object.assign({
+    slot: slot, who: who, name: c.name, w: c.w, h: c.h, x: 0, y: 0, vx: 0, vy: 0, onGround: false, face: slot % 2 ? -1 : 1,
+    dmg: 0, stocks: SMASH_STOCKS, inv: 0, stun: 0, airJumps: 1, coyote: 0, cool: 0, act: null, anim: 0, squash: 0, stretch: 0,
+    ko: 0, out: false, kos: 0, falls: 0, prevBottom: 0, landTile: 0, hitBy: null, lastHit: -1, cpuT: 0, cpuDir: 0,
+    input: { left: false, right: false, jump: false, jumpBuf: 0, fireBuf: 0 }, cpu: false, peer: null, netJp: 0, netFp: 0
+  }, opts || {});
+}
+function placeFighter(f, fromTop) {
+  f.x = (ARENA_PAD + SMASH_SPOTS[f.slot % SMASH_SPOTS.length]) * T + 3;
+  f.y = fromTop ? (GROUND - 10) * T : GROUND * T - f.h;
+  f.vx = 0; f.vy = 0; f.stun = 0; f.act = null; f.onGround = !fromTop;
+}
+function myFighter() {
+  if (!smash) return null;
+  return smash.fighters[smash.online && smash.online.role === 'client' ? smash.online.me : 0] || null;
+}
+
+function startSmash(opts) {
+  if (advance) { advance = null; el.dialog.hidden = true; el.portrait.style.visibility = 'hidden'; Music.duck(false); }
+  L = buildArena(); P = null;
+  foes = []; shots = []; blasts = []; allyShots = []; bosses = []; allies = []; items = []; candles = [];
+  pops = []; parts = []; rings = []; trail = []; pets = { cats: [], dogs: [] }; dad = null; bro = null; crate = null;
+  boss = 'off'; camX = ARENA_PAD * T; shake = 0; hitStop = 0; cpHit = false; paused = false; pausedByUser = false;
+  const players = opts.players.slice(0, SMASH_MAX);
+  const counts = {};
+  smash = {
+    fighters: players.map((p, k) => {
+      const base = SMASH_CHARS[p.who] ? p.who : 'kinan';
+      counts[base] = (counts[base] || 0) + 1;
+      return makeFighter(base, k, { cpu: !!p.cpu, peer: p.peer || null, name: p.name || (SMASH_CHARS[base].name + (counts[base] > 1 ? ' ' + counts[base] : '')) });
+    }),
+    shots: [], t: 0, state: 'countdown', count: 150, winner: -1, online: opts.online || null, local2: !!opts.local2, lastSnap: 0, powKey: ''
+  };
+  smash.fighters.forEach((f) => placeFighter(f, false));
+  const mine = myFighter();
+  if (mine && !mine.cpu) mine.input = input;              /* this device's player uses the pad / keys */
+  if (smash.local2 && smash.fighters[1]) smash.fighters[1].input = input2;
+  el.stageLbl.textContent = 'FAMILY SMASH' + (smash.online ? ' · ROOM ' + NET.code : '');
+  el.hearts.innerHTML = ''; el.cnt.hidden = true; el.scoreEl.hidden = true; el.petStat.hidden = true;
+  el.comboEl.hidden = true; el.bossHud.hidden = true; el.pauseBtn.hidden = false;
+  el.stage.classList.remove('bossmode');
+  $('#saveBtn').hidden = true;
+  $('#restartBtn').textContent = 'Rematch';
+  $('#restartBtn').hidden = !!(smash.online && smash.online.role === 'client');
+  $('#mapBtnP').textContent = 'Leave the fight';
+  el.keys.textContent = smash.local2 ? 'P1: ← → SPACE X · P2: A D W J · P pause' : '← → move · SPACE jump · X special · P pause';
+  updateSmashPow(true);
+  Music.play('boss');
+  SFX.boss();
+}
+function updateSmashPow(force) {
+  const f = myFighter();
+  if (!f) return;
+  const c = SMASH_CHARS[f.who];
+  const key = c.pow + ':' + (f.cool > 0 || f.act || f.out || f.ko > 0 ? 'x' : 'ok');
+  if (!force && key === smash.powKey) return;
+  smash.powKey = key;
+  el.pow.disabled = key.slice(-2) !== 'ok';
+  el.pow.textContent = c.pow;
+}
+/* ---- the fight ---- */
+function updateSmash() {
+  const S = smash;
+  frame++;
+  pollGamepad();
+  if (S.online && S.online.role === 'client') { smashClientTick(); return; }
+  if (hitStop > 0) { hitStop--; updateFx(); return; }
+  if (paused) { updateFx(); return; }
+  S.t++;
+  if (S.state === 'countdown') {
+    S.count--;
+    if (S.count === 90 || S.count === 30) SFX.click();
+    if (S.count <= 0) { S.state = 'fight'; SFX.flag(); toast('<b>FIGHT!</b> Knock everyone else off the cake.', 1600); smashEvent('go'); }
+    S.fighters.forEach((f) => { f.inv = 20; });
+    updateFx(); if (S.online) smashNetTick(); return;
+  }
+  if (S.state === 'over') { S.fighters.forEach((f) => { if (!f.out && f.ko === 0) updateFighter(f); }); updateFx(); if (S.online) smashNetTick(); return; }
+  S.fighters.forEach((f) => { if (f.cpu || (window.__smashAuto && f.input === input)) cpuThink(f); });
+  S.fighters.forEach(updateFighter);
+  smashStomps();
+  updateSmashShots();
+  updateFx();
+  updateSmashPow();
+  checkSmashOver();
+  if (S.online) smashNetTick();
+}
+function updateFighter(f) {
+  const c = SMASH_CHARS[f.who], inp = f.input;
+  if (f.out) return;
+  if (f.ko > 0) { f.ko--; if (f.ko === 0) { placeFighter(f, true); f.inv = 150; f.dmg = 0; } return; }
+  const wasGround = f.onGround;
+  const control = f.stun === 0 && !(f.act && f.act.lock);
+  const acc = (f.onGround ? 0.55 : 0.38) * c.spd, max = RUN_MAX * c.spd;
+  if (control && inp.left && !inp.right) { f.vx = Math.max(-max, f.vx - acc); f.face = -1; }
+  else if (control && inp.right && !inp.left) { f.vx = Math.min(max, f.vx + acc); f.face = 1; }
+  else if (f.stun === 0) { f.vx *= f.onGround ? 0.76 : 0.96; if (Math.abs(f.vx) < 0.08) f.vx = 0; }
+  else f.vx *= f.onGround ? 0.9 : 0.995;
+  if (f.onGround) { f.coyote = 7; f.airJumps = 1; if (Math.abs(f.vx) > 0.4) f.anim += Math.abs(f.vx) * 0.045; }
+  else if (f.coyote > 0) f.coyote--;
+  if (inp.jumpBuf > 0) inp.jumpBuf--;
+  if (control && inp.jumpBuf > 0) {
+    if (f.coyote > 0) { f.vy = JUMP_V * c.jump; f.coyote = 0; inp.jumpBuf = 0; f.stretch = 8; SFX.jump(); dust(f.x + 5, f.y + f.h, 3); }
+    else if (f.airJumps > 0 && f.vy > -2.4) { f.vy = AIR_JUMP_V * c.jump; f.airJumps--; inp.jumpBuf = 0; f.stretch = 7; SFX.djump(); sparks(f.x + 5, f.y + f.h - 1, 6, ['#f6c445', '#fff']); }
+  }
+  const grav = f.vy < 0 ? (inp.jump && f.stun === 0 ? GRAV_HOLD : GRAV_TAP) : GRAV_FALL;
+  if (f.act && f.act.kind === 'slam' && f.act.phase === 'drop') f.vy = 9;
+  else f.vy = Math.min(MAX_FALL, f.vy + grav);
+  moveX(f);
+  f.prevBottom = f.y + f.h;
+  moveY(f);
+  if (!wasGround && f.onGround) {
+    f.squash = 6;
+    if (Math.abs(f.vy) > 2) dust(f.x + 5, f.y + f.h, 4);
+    if (f.act && f.act.kind === 'slam') slamLand(f);
+  }
+  if (f.inv > 0) f.inv--;
+  if (f.stun > 0) f.stun--;
+  if (f.squash > 0) f.squash--;
+  if (f.stretch > 0) f.stretch--;
+  if (f.cool > 0) f.cool--;
+  if (inp.fireBuf > 0) inp.fireBuf--;
+  if (control && inp.fireBuf > 0 && f.cool === 0 && !f.act) { inp.fireBuf = 0; useSpecial(f); }
+  if (f.act) updateAct(f);
+  const cx = f.x + f.w / 2, centre = camX + W / 2;
+  if (f.y > H + 24 || f.y + f.h < -70 || Math.abs(cx - centre) > W / 2 + 60) smashKO(f);
+}
+function useSpecial(f) {
+  const c = SMASH_CHARS[f.who];
+  f.cool = c.cool;
+  if (f.who === 'kinan') {
+    smash.shots.push({ kind: 'pop', owner: f.slot, x: f.x + (f.face > 0 ? f.w : -6), y: f.y + 6, w: 6, h: 6, vx: f.face * 4.6, vy: 0, g: 0, life: 60, dmg: 7, kx: 3.0, ky: -2.5 });
+    SFX.pew();
+    part(f.x + (f.face > 0 ? 12 : -2), f.y + 9, { vx: f.face * 1.2, vy: -0.4, life: 12, size: 2, color: '#ff6fae', glow: true });
+  } else if (f.who === 'shad') {
+    f.act = { kind: 'slam', phase: f.onGround ? 'up' : 'drop', t: 0, lock: true };
+    f.vy = f.onGround ? -7.2 : 9;
+    SFX.jump(); pop(f.x, f.y - 10, 'SLAM!', 24, '#f6c445');
+  } else if (f.who === 'chenoa') {
+    for (let k = -1; k <= 1; k++) smash.shots.push({ kind: 'plate', owner: f.slot, x: f.x + 2, y: f.y + 4, w: 8, h: 8, vx: f.face * (2.0 + Math.abs(k) * 0.5), vy: -4.2 + k * 0.7, g: 0.16, life: 160, dmg: 6, kx: 2.6, ky: -3 });
+    SFX.pew(); pop(f.x, f.y - 10, 'ORDER UP!', 24, '#fff');
+  } else if (f.who === 'mom') {
+    smash.shots.push({ kind: 'prop', prop: '🧺', owner: f.slot, x: f.x + 2, y: f.y - 2, w: 9, h: 9, vx: f.face * 2.3, vy: -5.2, g: 0.17, life: 200, dmg: 11, kx: 3.2, ky: -5 });
+    SFX.pew(); pop(f.x, f.y - 10, 'LAUNDRY!', 24, '#f39ac0');
+  } else if (f.who === 'dad') {
+    f.act = { kind: 'vac', t: 50, lock: false };
+    AudioSys.noise(0.8, { filter: 'lowpass', freq: 500, vol: 0.14 });
+    pop(f.x, f.y - 10, 'HYDRO VAC!', 30, '#9fe0ff');
+  }
+  smashEvent('special', { s: f.slot, who: f.who, x: Math.round(f.x), y: Math.round(f.y) });
+}
+function updateAct(f) {
+  const a = f.act;
+  if (a.kind === 'slam') {
+    a.t++;
+    if (a.phase === 'up' && f.vy >= 0) a.phase = 'drop';
+    if (a.t > 150) f.act = null;
+  } else if (a.kind === 'vac') {
+    a.t--;
+    const dir = f.face, nozzle = f.x + (dir > 0 ? f.w + 2 : -2), ny = f.y + 9;
+    if (frame % 2 === 0) part(nozzle + dir * ri(30, 130), ny + ri(-18, 18), { vx: -dir * 4.5, vy: 0, life: 14, size: 2, color: 'rgba(200,230,255,.8)', g: 0 });
+    for (const o of smash.fighters) {
+      if (o === f || o.out || o.ko > 0 || o.inv > 0) continue;
+      const dx = (o.x + o.w / 2) - nozzle, dy = (o.y + o.h / 2) - ny;
+      if (Math.abs(dy) > 44 || Math.abs(dx) > 130 || dx * dir < -20) continue;   /* not in front of the hose */
+      if (dx * dir > 10) o.vx = clamp(o.vx - dir * 0.6, -3.4, 3.4);             /* sucked in... */
+      else o.vx *= 0.5;                                                           /* ...and held at the nozzle */
+      if (a.t === 0) smashHit(o, f, 12, dir * 4.5, -6.5, 'SPAT OUT!');          /* then spat out */
+    }
+    if (a.t <= 0) f.act = null;
+  }
+}
+function slamLand(f) {
+  f.act = null;
+  SFX.thud(); SFX.stomp(); shakeIt(7);
+  rings.push({ x: f.x + f.w / 2, y: f.y + f.h, r: 4, t: 26 });
+  sparks(f.x + 5, f.y + f.h, 10, ['#f6c445', '#ff8a3d', '#fff']);
+  for (const o of smash.fighters) {
+    if (o === f || o.out || o.ko > 0) continue;
+    const dx = (o.x + o.w / 2) - (f.x + f.w / 2);
+    if (Math.abs(dx) < 46 && Math.abs((o.y + o.h) - (f.y + f.h)) < 26) smashHit(o, f, 14, (dx < 0 ? -1 : 1) * 5.5, -5.2, 'SLAM!');
+  }
+  smashEvent('slam', { x: Math.round(f.x), y: Math.round(f.y + f.h) });
+}
+function smashHit(o, by, dmg, kx, ky, txt) {
+  if (o.inv > 0 || o.ko > 0 || o.out) return;
+  o.dmg = Math.min(999, o.dmg + dmg);
+  const k = 1 + o.dmg / 60;                /* the more damage, the further you fly */
+  o.vx = kx * k; o.vy = ky * k;
+  o.stun = Math.round(14 + o.dmg * 0.25); o.inv = 18; o.onGround = false; o.act = null;
+  o.hitBy = by ? by.slot : null; o.lastHit = frame;
+  const label = (txt || 'BONK') + ' ' + dmg + '%';
+  pop(o.x, o.y - 10, label, 34, '#ff6fae');
+  sparks(o.x + o.w / 2, o.y + 6, 10, ['#ff6b6b', '#fff', '#f6c445']);
+  SFX.hit(); shakeIt(3); hitStop = 2;
+  smashEvent('hit', { s: o.slot, by: by ? by.slot : -1, dmg: dmg, txt: label, x: Math.round(o.x), y: Math.round(o.y) });
+}
+function smashStomps() {
+  const fs = smash.fighters.filter((f) => !f.out && f.ko === 0);
+  for (const a of fs) {
+    for (const b of fs) {
+      if (a === b || b.inv > 0 || a.stun > 0 || !overlap(a, b)) continue;
+      const stomp = a.vy > 0.4 && (a.y + a.h) - b.y < 12 && a.prevBottom <= b.y + 8;
+      if (!stomp) continue;
+      smashHit(b, a, 8, (b.x + b.w / 2 >= a.x + a.w / 2 ? 1 : -1) * 2.2, 1.0, 'BONK');
+      a.vy = a.input.jump ? -7.8 : -6.0; a.squash = 4; a.y = b.y - a.h + 1; a.airJumps = 1;
+      SFX.stomp();
+    }
+  }
+}
+function updateSmashShots() {
+  for (const s of smash.shots) {
+    s.vy += s.g || 0; s.x += s.vx; s.y += s.vy; s.life--;
+    if (solid(Math.floor((s.x + s.w / 2) / T), Math.floor((s.y + s.h / 2) / T))) s.life = 0;
+    if (s.kind === 'pop' && Math.random() < 0.6) part(s.x + 3, s.y + 3, { vx: -s.vx * 0.2, vy: rand(-0.6, 0.6), life: 14, size: 2, color: pick(['#ff6fae', '#f6c445', '#fff']), glow: true, g: 0 });
+    for (const o of smash.fighters) {
+      if (s.life <= 0 || o.slot === s.owner || o.out || o.ko > 0 || o.inv > 0 || !overlap(s, o)) continue;
+      smashHit(o, smash.fighters[s.owner], s.dmg, (s.vx < 0 ? -1 : 1) * s.kx, s.ky, s.kind === 'pop' ? 'POP!' : (s.kind === 'plate' ? 'CLANG!' : 'OOF'));
+      s.life = 0;
+    }
+    if (s.y > H + 20 || s.x < camX - 80 || s.x > camX + W + 80) s.life = 0;
+  }
+  smash.shots = smash.shots.filter((s) => s.life > 0);
+}
+function smashKO(f) {
+  if (f.ko > 0 || f.out) return;
+  f.stocks--; f.falls++;
+  const by = f.hitBy != null && frame - f.lastHit < 240 ? smash.fighters[f.hitBy] : null;
+  if (by && by !== f) by.kos++;
+  SFX.lose(); shakeIt(6); flashScreen();
+  sparks(clamp(f.x + f.w / 2, camX + 4, camX + W - 4), clamp(f.y, 4, H - 4), 24, ['#fff', '#f6c445', '#ff6fae']);
+  toast('<b>' + escAttr(f.name) + '</b> is off the cake! ' + (f.stocks > 0 ? f.stocks + ' ❤ left' : 'Out of hearts!'), 1500);
+  f.x = -9999; f.vx = 0; f.vy = 0; f.stun = 0; f.act = null;
+  if (f.stocks <= 0) { f.out = true; f.ko = 0; } else f.ko = 75;
+  smashEvent('ko', { s: f.slot, by: by ? by.slot : -1, stocks: f.stocks, name: f.name });
+}
+function checkSmashOver() {
+  const alive = smash.fighters.filter((f) => !f.out);
+  if (alive.length <= 1 && smash.fighters.length >= 2) {
+    smash.state = 'over'; smash.winner = alive[0] ? alive[0].slot : -1;
+    SFX.win();
+    toast(alive[0] ? '<b>' + escAttr(alive[0].name) + ' WINS!</b> 🏆' : '<b>Draw!</b>', 2500);
+    smashEvent('over', { winner: smash.winner });
+    setTimeout(() => { if (smash && smash.state === 'over') smashResults(); }, 1700);
+  }
+}
+/* ---- the computer player ---- */
+function cpuThink(f) {
+  if (f.out || f.ko > 0) return;
+  const inp = f.input, S = smash;
+  const others = S.fighters.filter((o) => o !== f && !o.out && o.ko === 0);
+  inp.jump = false;
+  if (!others.length) { inp.left = inp.right = false; return; }
+  let tgt = others[0];
+  for (const o of others) if (Math.abs(o.x - f.x) < Math.abs(tgt.x - f.x)) tgt = o;
+  const dx = tgt.x - f.x, dy = tgt.y - f.y;
+  f.cpuT++;
+  if (f.cpuT % 8 === 0) f.cpuDir = Math.abs(dx) > 18 ? sign(dx) : (Math.random() < 0.4 ? -sign(dx || 1) : 0);
+  let dir = f.cpuDir;
+  const ahead = Math.floor((f.x + f.w / 2 + dir * 12) / T), below = Math.floor((f.y + f.h + 2) / T);
+  if (f.onGround && dir && !solid(ahead, below) && tileAt(ahead, below) !== 7 && !solid(ahead, below + 1) && !solid(ahead, below + 2)) { dir = -dir; f.cpuDir = dir; }
+  if (f.stun > 0 && !f.onGround) dir = f.x + f.w / 2 < camX + W / 2 ? 1 : -1;   /* knocked away: steer back towards the middle */
+  inp.left = dir < 0; inp.right = dir > 0;
+  if ((dy < -20 || (Math.abs(dx) < 40 && Math.random() < 0.03) || (f.stun === 0 && !f.onGround && f.vy > 0 && f.y > GROUND * T - 8)) && f.cpuT % 5 === 0) { inp.jumpBuf = 8; inp.jump = true; }
+  if (f.stun > 0 && !f.onGround && f.airJumps > 0 && f.y > (GROUND - 2) * T) { inp.jumpBuf = 8; inp.jump = true; }
+  const danger = S.shots.some((s) => s.owner !== f.slot && Math.abs(s.x - f.x) < 60 && Math.abs(s.y - f.y) < 30 && sign(f.x - s.x) === sign(s.vx || 1));
+  if (danger && f.onGround && f.cpuT % 3 === 0) { inp.jumpBuf = 8; inp.jump = true; }
+  const range = f.who === 'kinan' ? 150 : (f.who === 'shad' ? 40 : 100);
+  if (f.cool === 0 && !f.act && Math.abs(dx) < range && Math.abs(dy) < 44 && (f.face === sign(dx) || Math.abs(dx) < 30) && Math.random() < 0.08) inp.fireBuf = 10;
+}
+/* ---- drawing ---- */
+function fighterImage(f) {
+  const sp = SMASH_CHARS[f.who].sprite;
+  const walking = Math.abs(f.vx) > 0.35 && f.onGround, fi = Math.floor(f.anim) % 2;
+  if (sp === 'k') return !f.onGround ? (f.vy < 0 ? SP.kJump : SP.kFall) : (walking && fi ? SP.kWalk : SP.kStand);
+  if (sp === 's') return !f.onGround ? SP.sJump : (walking && fi ? SP.sWalk : SP.sStand);
+  if (sp === 'c') return walking && fi ? SP.cWalk : SP.cStand;
+  if (sp === 'm') return walking && fi ? SP.mWalk : SP.mStand;
+  return walking && fi ? SP.dWalk : SP.dStand;
+}
+function drawFighter(f) {
+  if (f.out || f.ko > 0) return;
+  const c = SMASH_CHARS[f.who], img = fighterImage(f);
+  const w = img.width, h = img.height;
+  const sx = Math.round(f.x + f.w / 2 - w / 2 - camX), sy = Math.round(f.y + f.h - h);
+  if (f.onGround) { ctx.fillStyle = 'rgba(0,0,0,.22)'; ctx.beginPath(); ctx.ellipse(sx + w / 2, sy + h, 7, 2.4, 0, 0, 6.284); ctx.fill(); }
+  if (f.inv > 0 && Math.floor(frame / 6) % 2) ctx.globalAlpha = 0.45;
+  ctx.save();
+  ctx.translate(sx, sy + (f.squash > 3 ? 1 : (f.stretch > 4 ? -1 : 0)));
+  if (f.face < 0) { ctx.translate(w, 0); ctx.scale(-1, 1); }
+  ctx.drawImage(img, 0, 0);
+  if (f.who === 'kinan' && f === myFighter()) drawKinanHat(0, 0, progress.hat);
+  if (f.act && f.act.kind === 'vac') {
+    ctx.fillStyle = '#4a4f57'; ctx.fillRect(w - 2, 9, 14, 4);
+    ctx.fillStyle = '#8f95ad'; ctx.fillRect(w + 10, 7, 5, 8);
+    ctx.fillStyle = 'rgba(200,230,255,' + (0.35 + Math.sin(frame / 3) * 0.2) + ')'; ctx.fillRect(w + 15, 8, 6, 6);
+  }
+  ctx.restore();
+  ctx.globalAlpha = 1;
+  if (f.stun > 0) { ctx.font = '8px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('💫', sx + w / 2, sy - 12); }
+  ctx.font = 'bold 8px "Pixelify Sans",monospace'; ctx.textAlign = 'center';
+  const tag = f.name + ' ' + f.dmg + '%';
+  ctx.fillStyle = '#1b1220'; ctx.fillText(tag, sx + w / 2 + 1, sy - 3);
+  ctx.fillStyle = c.color; ctx.fillText(tag, sx + w / 2, sy - 4);
+}
+function drawSmashShots() {
+  for (const s of smash.shots) {
+    const sx = Math.round(s.x - camX), sy = Math.round(s.y);
+    if (s.kind === 'pop') {
+      ctx.fillStyle = ['#ff6fae', '#f6c445', '#fff'][Math.floor(frame / 15) % 3];
+      ctx.fillRect(sx, sy, 3, 3); ctx.fillRect(sx + 3, sy + 1, 2, 2);
+      glowDisc(sx + 3, sy + 3, 8, 'rgba(255,120,180,.6)', 0.6);
+    } else if (s.kind === 'plate') {
+      ctx.fillStyle = '#c9c9cf'; ctx.beginPath(); ctx.ellipse(sx + 4, sy + 5, 5, 3, 0, 0, 6.284); ctx.fill();
+      ctx.fillStyle = '#f4f1e8'; ctx.beginPath(); ctx.ellipse(sx + 4, sy + 4, 5, 3, 0, 0, 6.284); ctx.fill();
+      ctx.fillStyle = '#3fa9f5'; ctx.fillRect(sx + 2, sy + 3, 4, 1);
+    } else {
+      ctx.font = '10px "Segoe UI Emoji",sans-serif'; ctx.textAlign = 'center';
+      ctx.fillText(s.prop || '🧺', sx + 4, sy + 8);
+    }
+  }
+}
+function drawSmashBar() {
+  const S = smash, n = S.fighters.length, cw = Math.floor(W / n), y0 = H - 30;
+  ctx.fillStyle = 'rgba(10,11,24,.78)'; ctx.fillRect(0, y0, W, 30);
+  ctx.fillStyle = 'rgba(255,255,255,.12)'; ctx.fillRect(0, y0, W, 1);
+  const mine = myFighter();
+  S.fighters.forEach((f, k) => {
+    const x = k * cw, c = SMASH_CHARS[f.who];
+    if (f === mine) { ctx.fillStyle = 'rgba(246,196,69,.10)'; ctx.fillRect(x, y0 + 1, cw, 29); }
+    const img = fighterImage(Object.assign({}, f, { vx: 0, onGround: true, anim: 0 }));
+    const sc = 24 / img.height;
+    ctx.globalAlpha = f.out ? 0.35 : 1;
+    ctx.drawImage(img, x + 3, y0 + 3, Math.round(img.width * sc), 24);
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    ctx.font = 'bold 8px "Pixelify Sans",monospace'; ctx.fillStyle = c.color;
+    ctx.fillText(f.name.toUpperCase().slice(0, 9) + (f === mine ? ' ◂' : ''), x + 24, y0 + 11);
+    ctx.font = 'bold 11px "Pixelify Sans",monospace'; ctx.fillStyle = f.dmg >= 100 ? '#ff6b6b' : (f.dmg >= 50 ? '#f6c445' : '#f4f1e8');
+    ctx.fillText(f.out ? 'OUT' : f.dmg + '%', x + 24, y0 + 24);
+    ctx.font = '9px sans-serif'; ctx.fillStyle = '#ff5d7a';
+    let hearts = ''; for (let s = 0; s < SMASH_STOCKS; s++) hearts += s < f.stocks ? '♥' : '♡';
+    ctx.fillText(hearts, x + 56, y0 + 24);
+    ctx.globalAlpha = 1;
+  });
+}
+function drawSmash() {
+  const S = smash, th = LV[L.i];
+  const shx = shake > 0.2 ? Math.round(rand(-shake, shake)) : 0;
+  const shy = shake > 0.2 ? Math.round(rand(-shake, shake)) : 0;
+  ctx.save();
+  ctx.translate(shx, shy);
+  drawSky(L.i, th);
+  drawBackdrop(th, L.i);
+  drawAtmosphere(th);
+  drawTiles(th);
+  /* cake candles on the main floor edges */
+  ctx.drawImage(SP.candle, (ARENA_PAD + 4) * T - camX + 5, GROUND * T - 8);
+  ctx.drawImage(SP.candle, (ARENA_PAD + 22) * T - camX + 5, GROUND * T - 8);
+  drawSmashShots();
+  for (const f of S.fighters) drawFighter(f);
+  drawParticles();
+  ctx.restore();
+  drawVignette();
+  drawSmashBar();
+  if (S.state === 'countdown') {
+    const n = Math.ceil(S.count / 50), label = n > 0 ? String(n) : 'FIGHT!';
+    ctx.font = 'bold 30px "Pixelify Sans",monospace'; ctx.textAlign = 'center';
+    ctx.fillStyle = '#1b1220'; ctx.fillText(label, W / 2 + 2, 92);
+    ctx.fillStyle = '#f6c445'; ctx.fillText(label, W / 2, 90);
+  } else if (S.state === 'over' && S.winner >= 0) {
+    const name = S.fighters[S.winner].name.toUpperCase() + ' WINS!';
+    ctx.font = 'bold 24px "Pixelify Sans",monospace'; ctx.textAlign = 'center';
+    ctx.fillStyle = '#1b1220'; ctx.fillText(name, W / 2 + 2, 92);
+    ctx.fillStyle = '#f6c445'; ctx.fillText(name, W / 2, 90);
+  }
+}
+/* ---- screens ---- */
+function endSmash() {
+  if (smash) lastSmash = smash;
+  smash = null;
+  el.cnt.hidden = false; el.scoreEl.hidden = false;
+  $('#saveBtn').hidden = false;
+  $('#restartBtn').textContent = 'Restart stage'; $('#restartBtn').hidden = false;
+  $('#mapBtnP').textContent = 'Stage map';
+  el.keys.textContent = '← → move · SPACE jump (hold = higher) · X pow · P pause · M mute';
+  el.pow.textContent = 'POW'; el.pow.disabled = true;
+}
+function pickCard(who, sel, attr) {
+  const c = SMASH_CHARS[who];
+  return '<button type="button" class="pickbtn' + (sel === who ? ' on' : '') + '" ' + attr + ' data-who="' + who + '">' + imgOf(SP[c.sprite + 'Stand'], 3) +
+    '<b>' + c.name + '</b><small>' + c.special + '</small></button>';
+}
+function smashMenu() {
+  endSmash();
+  Music.play('title');
+  el.stageLbl.textContent = 'FAMILY SMASH';
+  showScreen(
+    '<p class="eyebrow">Family Smash · the whole family in one ring</p>' +
+    '<h1 class="title"><span class="t1">Family Smash</span><span class="t2">Knock everyone else off the birthday cake.</span></h1>' +
+    '<p class="lede">Pick a family member, each with a special move from their real job: Kinan\'s <b>Party Popper</b>, Shad\'s <b>Construction Slam</b>, Chenoa\'s <b>plates</b>, Mom\'s <b>laundry lob</b> and Dad\'s <b>hydro vac</b>. Jump on heads, blast with POW, send them flying. 3 hearts each; last one standing wins.</p>' +
+    '<div class="btnrow">' +
+    '<button class="btn go" id="smOnline" type="button">🌐 Play online · up to 5 players</button>' +
+    '<button class="btn" id="smLocal" type="button">👫 Two players, one keyboard</button>' +
+    '<button class="btn" id="smCpu" type="button">🤖 Practice vs. the computer</button>' +
+    '<button class="btn ghost" id="smBack" type="button">Title screen</button>' +
+    '</div>' +
+    '<p class="tiny">Online: one player makes a room and gets a 4-letter code; everyone else types it in. Works from the game\'s web address on any phone or tablet.</p>'
+  );
+  $('#smOnline').addEventListener('click', () => { AudioSys.init(); SFX.click(); smashOnlineScreen(); });
+  $('#smLocal').addEventListener('click', () => { AudioSys.init(); SFX.click(); smashPickScreen('local'); });
+  $('#smCpu').addEventListener('click', () => { AudioSys.init(); SFX.click(); smashPickScreen('cpu'); });
+  $('#smBack').addEventListener('click', () => { SFX.click(); netLeave(); titleScreen(); });
+}
+let smashPicks = { p1: 'kinan', p2: 'shad', cpuN: 1 };
+function smashPickScreen(mode) {
+  Music.play('title');
+  const cards = (sel, tag) => '<div class="pickgrid">' + SMASH_ORDER.map((w) => pickCard(w, sel, 'data-tag="' + tag + '"')).join('') + '</div>';
+  showScreen(
+    '<p class="eyebrow">Family Smash · ' + (mode === 'local' ? 'two players, one keyboard' : 'practice vs. the computer') + '</p>' +
+    '<h1 class="title"><span class="t2">Pick your fighters</span></h1>' +
+    '<p class="tiny"><b>Player 1</b> ' + (mode === 'local' ? '(← → SPACE X)' : '(you)') + '</p>' + cards(smashPicks.p1, 'p1') +
+    (mode === 'local' ? '<p class="tiny"><b>Player 2</b> (A D W J)</p>' + cards(smashPicks.p2, 'p2')
+      : '<p class="tiny"><b>Computer players:</b> <button class="btn ghost small" type="button" id="cpuLess">−</button> <b id="cpuN">' + smashPicks.cpuN + '</b> <button class="btn ghost small" type="button" id="cpuMore">+</button></p>') +
+    '<div class="btnrow"><button class="btn go" id="smGo" type="button">FIGHT!</button><button class="btn" id="smBack" type="button">Back</button></div>'
+  );
+  $$('.pickbtn', el.screen).forEach((b) => b.addEventListener('click', () => {
+    SFX.click(); smashPicks[b.dataset.tag] = b.dataset.who;
+    $$('.pickbtn[data-tag="' + b.dataset.tag + '"]', el.screen).forEach((o) => o.classList.toggle('on', o === b));
+  }));
+  const less = $('#cpuLess'), more = $('#cpuMore');
+  if (less) less.addEventListener('click', () => { smashPicks.cpuN = Math.max(1, smashPicks.cpuN - 1); $('#cpuN').textContent = smashPicks.cpuN; SFX.click(); });
+  if (more) more.addEventListener('click', () => { smashPicks.cpuN = Math.min(SMASH_MAX - 1, smashPicks.cpuN + 1); $('#cpuN').textContent = smashPicks.cpuN; SFX.click(); });
+  $('#smBack').addEventListener('click', () => { SFX.click(); smashMenu(); });
+  $('#smGo').addEventListener('click', () => {
+    AudioSys.init(); SFX.click();
+    if (mode === 'local') playSmash({ players: [{ who: smashPicks.p1 }, { who: smashPicks.p2 }], local2: true });
+    else {
+      const players = [{ who: smashPicks.p1 }];
+      const pool = SMASH_ORDER.filter((w) => w !== smashPicks.p1);
+      for (let k = 0; k < smashPicks.cpuN; k++) players.push({ who: pool[k % pool.length], cpu: true });
+      playSmash({ players: players });
+    }
+  });
+}
+function playSmash(opts) {
+  AudioSys.init();
+  showGame(true);
+  startSmash(opts);
+  running = true;
+  run();
+  draw();
+  last = 0; acc = 0;
+}
+function smashRematch() {
+  const S = smash || lastSmash;
+  if (!S) return smashMenu();
+  if (S.online && S.online.role === 'host') { netStartFight(); return; }
+  if (S.online) return;
+  playSmash({ players: S.fighters.map((f) => ({ who: f.who, cpu: f.cpu, name: f.name })), local2: S.local2 });
+}
+function smashResults() {
+  const S = smash;
+  if (!S) return;
+  const win = S.winner >= 0 ? S.fighters[S.winner] : null;
+  const rows = S.fighters.slice().sort((a, b) => (b.stocks - a.stocks) || (a.dmg - b.dmg)).map((f) =>
+    '<li><b style="color:' + SMASH_CHARS[f.who].color + '">' + escAttr(f.name) + '</b> · ' + (f.out ? 'out' : f.stocks + ' ❤') + ' · ' + f.kos + ' KO' + (f.kos === 1 ? '' : 's') + ' · fell ' + f.falls + 'x</li>').join('');
+  const online = S.online;
+  endSmash();
+  Music.play('title');
+  showScreen(
+    '<p class="eyebrow">Family Smash · fight over</p>' +
+    '<h1 class="title"><span class="t1">' + (win ? escAttr(win.name) + ' wins!' : 'Draw!') + '</span><span class="t2">' + (win ? imgOf(fighterImage(Object.assign({}, win, { vx: 0, onGround: true, anim: 0 })), 4) : '') + '</span></h1>' +
+    '<ul class="credits">' + rows + '</ul>' +
+    '<div class="btnrow">' +
+    (!online || online.role === 'host' ? '<button class="btn go" id="smAgain" type="button">Rematch</button>' : '<p class="tiny">Waiting for the host to start the next fight…</p>') +
+    (online ? '<button class="btn" id="smLobby" type="button">Back to the room</button>' : '<button class="btn" id="smPick" type="button">Change fighters</button>') +
+    '<button class="btn ghost" id="smLeave" type="button">Leave</button></div>'
+  );
+  if (win && (!online || online.me === win.slot)) confetti();
+  const again = $('#smAgain'); if (again) again.addEventListener('click', () => { SFX.click(); if (online) netStartFight(); else playSmash({ players: lastSmash.fighters.map((f) => ({ who: f.who, cpu: f.cpu, name: f.name })), local2: lastSmash.local2 }); });
+  const lob = $('#smLobby'); if (lob) lob.addEventListener('click', () => { SFX.click(); smashLobbyScreen(); });
+  const pk = $('#smPick'); if (pk) pk.addEventListener('click', () => { SFX.click(); smashPickScreen(lastSmash.local2 ? 'local' : 'cpu'); });
+  $('#smLeave').addEventListener('click', () => { SFX.click(); netLeave(); smashMenu(); });
+}
+/* ============================================================
+   FAMILY SMASH ONLINE — peer-to-peer rooms by 4-letter code.
+   No game server: phones find each other through public Nostr relays
+   (trystero) and then talk directly over WebRTC. The room's host runs
+   the fight; everyone else sends their buttons and sees the host's picture.
+   ============================================================ */
+const NET = { lib: null, room: null, code: null, role: null, peers: {}, send: null, myWho: 'kinan', status: 'off', error: '', ping: {}, jp: 0, fp: 0, selfId: null, lastIn: '', lastInAt: 0, pingTimer: null };
+const NET_LIB_URLS = ['https://cdn.jsdelivr.net/npm/trystero@0.26.0/+esm', 'https://unpkg.com/trystero@0.26.0?module'];
+const ROOM_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+function roomCode() { let s = ''; for (let k = 0; k < 4; k++) s += ROOM_ALPHABET[Math.floor(Math.random() * ROOM_ALPHABET.length)]; return s; }
+async function netLib() {
+  if (NET.lib) return NET.lib;
+  let err = null;
+  for (const u of NET_LIB_URLS) {
+    try { NET.lib = await import(u); return NET.lib; } catch (e) { err = e; }
+  }
+  throw err || new Error('network library not available');
+}
+/* Open Relay's free TURN (metered.ca, static-auth): a fallback path when two home networks cannot connect directly */
+async function turnServers() {
+  try {
+    const secret = 'openrelayprojectsecret', user = String(Math.floor(Date.now() / 1000) + 6 * 3600);
+    const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(secret), { name: 'HMAC', hash: 'SHA-1' }, false, ['sign']);
+    const sig = new Uint8Array(await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(user)));
+    let bin = ''; sig.forEach((b) => { bin += String.fromCharCode(b); });
+    return [{ urls: ['turn:staticauth.openrelay.metered.ca:80', 'turn:staticauth.openrelay.metered.ca:443', 'turns:staticauth.openrelay.metered.ca:443?transport=tcp'], username: user, credential: btoa(bin) }];
+  } catch (e) { return []; }
+}
+/* trystero 0.26: makeAction() gives an object; messages arrive by assigning onMessage = (data, {peerId}) => …
+   (older versions gave [send, receive] with (data, peerId)); both shapes are handled */
+function netAction(name) {
+  const a = NET.room.makeAction(name);
+  const peerOf = (meta) => (meta && typeof meta === 'object' ? meta.peerId : meta);
+  if (Array.isArray(a)) return { send: (d, to) => a[0](d, to), on: (fn) => a[1]((d, meta) => fn(d, peerOf(meta))) };
+  return { send: (d, to) => a.send(d, to ? { target: to } : undefined), on: (fn) => { a.onMessage = (d, meta) => fn(d, peerOf(meta)); } };
+}
+function netOn(evt, fn) {
+  if (typeof NET.room[evt] === 'function') NET.room[evt](fn); else NET.room[evt] = fn;
+}
+async function netJoin(code, role) {
+  netLeave();
+  NET.status = 'loading'; NET.error = ''; NET.code = code; NET.role = role; NET.peers = {};
+  refreshLobby();
+  const lib = await netLib();
+  NET.selfId = lib.selfId;
+  const turn = await turnServers();
+  NET.room = lib.joinRoom({ appId: 'kinan-vs-mom-smash', turnConfig: turn }, 'kvm-smash-' + code);
+  NET.status = 'open';
+  const hello = netAction('hello'), pick = netAction('pick'), start = netAction('start'), inp = netAction('input'), state = netAction('state'), ev = netAction('event');
+  NET.send = { hello: hello.send, pick: pick.send, start: start.send, input: inp.send, state: state.send, event: ev.send };
+  netOn('onPeerJoin', (id) => {
+    NET.peers[id] = NET.peers[id] || { who: null, name: null, role: null, at: Date.now() };
+    hello.send({ who: NET.myWho, role: NET.role }, id);
+    refreshLobby();
+    if (NET.role === 'host' && !NET.pingTimer) NET.pingTimer = setInterval(netPing, 2500);
+  });
+  netOn('onPeerLeave', (id) => {
+    delete NET.peers[id]; delete NET.ping[id];
+    if (smash && smash.online) smashPeerLeft(id);
+    else if (NET.role === 'client' && !Object.keys(NET.peers).length) NET.error = 'The room closed.';
+    refreshLobby();
+  });
+  hello.on((d, id) => { NET.peers[id] = Object.assign(NET.peers[id] || { at: Date.now() }, { who: d.who, role: d.role }); refreshLobby(); });
+  pick.on((d, id) => { if (NET.peers[id]) NET.peers[id].who = d.who; refreshLobby(); });
+  start.on((d) => { if (NET.role === 'client') netClientStart(d); });
+  inp.on((d, id) => { if (NET.role === 'host' && smash) netApplyInput(d, id); });
+  state.on((d) => { if (NET.role === 'client' && smash) smashApplySnapshot(d); });
+  ev.on((d) => { if (NET.role === 'client') smashClientEvent(d); });
+  refreshLobby();
+}
+function netPing() {
+  if (!NET.room) return;
+  Object.keys(NET.peers).forEach((id) => { NET.room.ping(id).then((ms) => { NET.ping[id] = ms; if (!smash) refreshLobby(); }).catch(() => {}); });
+}
+function netLeave() {
+  if (NET.pingTimer) { clearInterval(NET.pingTimer); NET.pingTimer = null; }
+  if (NET.room) { try { NET.room.leave(); } catch (e) { /* ignore */ } }
+  NET.room = null; NET.send = null; NET.peers = {}; NET.ping = {}; NET.status = 'off'; NET.code = null; NET.role = null;
+}
+function netPeerList() {
+  return Object.keys(NET.peers).sort((a, b) => (NET.peers[a].at || 0) - (NET.peers[b].at || 0));
+}
+/* the host decides the line-up: slot 0 = host, then the others in the order they joined */
+function netStartFight() {
+  if (NET.role !== 'host' || !NET.send) return;
+  const peers = netPeerList().filter((id) => NET.peers[id].who);
+  const players = [{ who: NET.myWho, peer: NET.selfId }].concat(peers.map((id) => ({ who: NET.peers[id].who, peer: id }))).slice(0, SMASH_MAX);
+  if (players.length < 2) { toast('Need at least 2 players in the room.', 1600); return; }
+  NET.send.start({ players: players });
+  playSmash({ players: players, online: { role: 'host', me: 0 } });
+}
+function netClientStart(d) {
+  const me = d.players.findIndex((p) => p.peer === NET.selfId);
+  if (me < 0) return;
+  NET.jp = 0; NET.fp = 0; NET.lastIn = '';
+  playSmash({ players: d.players, online: { role: 'client', me: me } });
+}
+function netApplyInput(d, id) {
+  const f = smash.fighters.filter((o) => o.peer === id)[0];
+  if (!f || f.input === input) return;
+  f.input.left = !!d.l; f.input.right = !!d.r; f.input.jump = !!d.j;
+  if (d.jp !== f.netJp) { f.netJp = d.jp; f.input.jumpBuf = 8; }
+  if (d.fp !== f.netFp) { f.netFp = d.fp; f.input.fireBuf = 10; }
+}
+function smashPeerLeft(id) {
+  const f = smash.fighters.filter((o) => o.peer === id)[0];
+  if (NET.role === 'host') {
+    if (f && !f.out) { f.out = true; f.stocks = 0; f.x = -9999; toast('<b>' + escAttr(f.name) + '</b> left the fight.', 2000); smashEvent('left', { s: f.slot }); checkSmashOver(); }
+  } else if (f && f.slot === 0) {
+    toast('The host left the fight.', 2500);
+    setTimeout(() => { if (smash) { netLeave(); smashMenu(); } }, 1200);
+  }
+}
+/* host -> everyone: the picture, 20 times a second; client -> host: the buttons, on change and as a heartbeat */
+function smashSnapshot() {
+  const S = smash;
+  return {
+    t: S.t, st: S.state, c: S.count, w: S.winner,
+    fs: S.fighters.map((o) => [Math.round(o.x * 10) / 10, Math.round(o.y * 10) / 10, Math.round(o.vx * 100) / 100, Math.round(o.vy * 100) / 100, o.face, o.dmg, o.stocks, o.inv, o.stun, o.ko, o.out ? 1 : 0, o.onGround ? 1 : 0, Math.round(o.anim * 10) / 10, o.cool, o.act ? o.act.kind : '', o.kos, o.falls]),
+    sh: S.shots.map((s) => [s.kind, Math.round(s.x), Math.round(s.y), s.vx, s.vy, s.owner, s.prop || ''])
+  };
+}
+function smashApplySnapshot(d) {
+  const S = smash;
+  if (!S || !d || !d.fs) return;
+  S.t = d.t; S.count = d.c; S.winner = d.w;
+  d.fs.forEach((a, k) => {
+    const o = S.fighters[k]; if (!o) return;
+    o.x = a[0]; o.y = a[1]; o.vx = a[2]; o.vy = a[3]; o.face = a[4]; o.dmg = a[5]; o.stocks = a[6]; o.inv = a[7]; o.stun = a[8]; o.ko = a[9];
+    o.out = !!a[10]; o.onGround = !!a[11]; o.anim = a[12]; o.cool = a[13]; o.act = a[14] ? { kind: a[14] } : null; o.kos = a[15]; o.falls = a[16];
+  });
+  S.shots = d.sh.map((a) => ({ kind: a[0], x: a[1], y: a[2], vx: a[3], vy: a[4], owner: a[5], prop: a[6], w: 8, h: 8 }));
+  if (d.st !== S.state) {
+    S.state = d.st;
+    if (d.st === 'over') setTimeout(() => { if (smash && smash.state === 'over') smashResults(); }, 1700);
+  }
+  S.lastSnap = frame;
+}
+function smashNetTick() {
+  if (!NET.send || NET.role !== 'host') return;
+  if (frame % 3 === 0) NET.send.state(smashSnapshot());
+}
+function smashClientTick() {
+  const S = smash;
+  if (paused) { updateFx(); return; }
+  const mine = myFighter();
+  if (window.__smashAuto && mine) cpuThink(mine);
+  /* button presses become counters the host can't miss */
+  if (input.jumpBuf > 0) { NET.jp++; input.jumpBuf = 0; }
+  if (input.fireBuf > 0) { NET.fp++; input.fireBuf = 0; }
+  /* between pictures from the host, keep things moving smoothly */
+  if (frame - S.lastSnap < 12) {
+    S.fighters.forEach((o) => { if (!o.out && o.ko === 0) { o.x += o.vx; o.y += o.vy; if (!o.onGround) o.vy = Math.min(MAX_FALL, o.vy + GRAV_FALL); if (Math.abs(o.vx) > 0.4 && o.onGround) o.anim += Math.abs(o.vx) * 0.045; } });
+    S.shots.forEach((s) => { s.x += s.vx; s.y += s.vy; });
+  }
+  updateFx();
+  updateSmashPow();
+  if (!NET.send) return;
+  const cur = [input.left ? 1 : 0, input.right ? 1 : 0, input.jump ? 1 : 0, NET.jp, NET.fp].join(',');
+  if (cur !== NET.lastIn || frame - NET.lastInAt > 10) {
+    NET.lastIn = cur; NET.lastInAt = frame;
+    NET.send.input({ l: input.left, r: input.right, j: input.jump, jp: NET.jp, fp: NET.fp });
+  }
+}
+function smashEvent(type, data) {
+  if (!smash || !smash.online || NET.role !== 'host' || !NET.send) return;
+  NET.send.event({ t: type, d: data || {} });
+}
+function smashClientEvent(m) {
+  if (!smash) return;
+  const d = m.d || {};
+  if (m.t === 'hit') { pop(d.x, d.y - 10, d.txt, 34, '#ff6fae'); sparks(d.x + 5, d.y + 6, 10, ['#ff6b6b', '#fff', '#f6c445']); SFX.hit(); shakeIt(3); }
+  else if (m.t === 'ko') { SFX.lose(); shakeIt(6); flashScreen(); toast('<b>' + escAttr(d.name || 'Someone') + '</b> is off the cake! ' + (d.stocks > 0 ? d.stocks + ' ❤ left' : 'Out of hearts!'), 1500); }
+  else if (m.t === 'go') { SFX.flag(); toast('<b>FIGHT!</b> Knock everyone else off the cake.', 1600); }
+  else if (m.t === 'special') { const c = SMASH_CHARS[d.who]; if (c) { pop(d.x, d.y - 10, c.pow + '!', 24, '#f6c445'); if (d.who === 'dad') AudioSys.noise(0.8, { filter: 'lowpass', freq: 500, vol: 0.14 }); else SFX.pew(); } }
+  else if (m.t === 'slam') { SFX.thud(); shakeIt(7); rings.push({ x: d.x + 5, y: d.y, r: 4, t: 26 }); }
+  else if (m.t === 'over') { SFX.win(); const w = smash.fighters[d.winner]; toast(w ? '<b>' + escAttr(w.name) + ' WINS!</b> 🏆' : '<b>Draw!</b>', 2500); }
+  else if (m.t === 'left') { const f = smash.fighters[d.s]; if (f) toast('<b>' + escAttr(f.name) + '</b> left the fight.', 2000); }
+}
+/* ---- online screens ---- */
+function smashOnlineScreen(prefill) {
+  Music.play('title');
+  showScreen(
+    '<p class="eyebrow">Family Smash · online</p>' +
+    '<h1 class="title"><span class="t2">Play with the family, anywhere</span></h1>' +
+    '<p class="lede">One person taps <b>Make a room</b> and gets a 4-letter code. Everyone else taps <b>Join</b> and types it. Up to 5 in a fight. Everyone needs internet; the game\'s web address works on any phone, tablet or computer.</p>' +
+    '<div class="btnrow"><button class="btn go" id="smMake" type="button">Make a room</button></div>' +
+    '<p class="tiny">or join a friend\'s room:</p>' +
+    '<div class="btnrow"><input class="codein" id="smCode" maxlength="4" autocapitalize="characters" autocomplete="off" spellcheck="false" placeholder="CODE" value="' + escAttr(prefill || '') + '"><button class="btn" id="smJoin" type="button">Join</button></div>' +
+    '<div class="btnrow"><button class="btn ghost" id="smBack" type="button">Back</button></div>'
+  );
+  $('#smMake').addEventListener('click', () => { AudioSys.init(); SFX.click(); smashLobbyScreen(roomCode(), 'host'); });
+  const go = () => {
+    const code = $('#smCode').value.toUpperCase().replace(/[^A-Z]/g, '');
+    if (code.length !== 4) { toast('The code is 4 letters.', 1400); return; }
+    AudioSys.init(); SFX.click(); smashLobbyScreen(code, 'client');
+  };
+  $('#smJoin').addEventListener('click', go);
+  $('#smCode').addEventListener('keydown', (e) => { if (e.key === 'Enter') go(); });
+  $('#smBack').addEventListener('click', () => { SFX.click(); smashMenu(); });
+}
+function smashLobbyScreen(code, role) {
+  Music.play('title');
+  endSmash();
+  if (code && (code !== NET.code || !NET.room)) {
+    netJoin(code, role).catch((e) => { NET.status = 'error'; NET.error = 'Could not connect: ' + (e && e.message ? e.message : e) + '. Is the internet on?'; refreshLobby(); });
+  }
+  showScreen('<div id="lobby"></div>');
+  refreshLobby();
+}
+function refreshLobby() {
+  const box = $('#lobby');
+  if (!box) return;
+  const link = location.origin + location.pathname + '?smash=' + (NET.code || '');
+  const peers = netPeerList();
+  const rows = ['<li><b style="color:' + SMASH_CHARS[NET.myWho].color + '">' + SMASH_CHARS[NET.myWho].name + '</b> · you' + (NET.role === 'host' ? ' · host' : '') + '</li>'].concat(peers.map((id) => {
+    const p = NET.peers[id];
+    const who = p.who && SMASH_CHARS[p.who] ? SMASH_CHARS[p.who] : null;
+    return '<li>' + (who ? '<b style="color:' + who.color + '">' + who.name + '</b>' : '<b>…picking</b>') + (p.role === 'host' ? ' · host' : '') + (NET.ping[id] != null ? ' · ' + Math.round(NET.ping[id]) + ' ms' : '') + '</li>';
+  }));
+  const n = peers.length + 1;
+  box.innerHTML =
+    '<p class="eyebrow">Family Smash · ' + (NET.role === 'host' ? 'your room' : 'joined room') + '</p>' +
+    '<h1 class="title"><span class="t2">Room code</span><span class="t1 roomcode">' + (NET.code || '----').split('').join(' ') + '</span></h1>' +
+    (NET.role === 'host' ? '<p class="tiny">Tell everyone the code, or send them the link:<br><span class="mono">' + escAttr(link) + '</span></p>' +
+      '<div class="btnrow"><button class="btn" id="smShare" type="button">Share the link</button></div>' : '') +
+    (NET.status === 'loading' ? '<p class="tiny">Connecting…</p>' : '') +
+    (NET.error ? '<p class="tiny" style="color:#ff6b6b">' + escAttr(NET.error) + '</p>' : '') +
+    '<p class="eyebrow">In the room · ' + n + ' of ' + SMASH_MAX + '</p><ul class="credits" id="lobbyList">' + rows.join('') + '</ul>' +
+    '<p class="tiny"><b>Your fighter</b></p><div class="pickgrid">' + SMASH_ORDER.map((w) => pickCard(w, NET.myWho, 'data-tag="net"')).join('') + '</div>' +
+    '<div class="btnrow">' +
+    (NET.role === 'host' ? '<button class="btn go" id="smStart" type="button"' + (n < 2 || NET.status !== 'open' ? ' disabled' : '') + '>START THE FIGHT · ' + n + ' player' + (n === 1 ? '' : 's') + '</button>' : '<p class="tiny">Waiting for the host to start the fight…</p>') +
+    '<button class="btn ghost" id="smLeave" type="button">Leave the room</button></div>';
+  $$('.pickbtn', box).forEach((b) => b.addEventListener('click', () => {
+    SFX.click(); NET.myWho = b.dataset.who;
+    if (NET.send) NET.send.pick({ who: NET.myWho });
+    refreshLobby();
+  }));
+  const sh = $('#smShare');
+  if (sh) sh.addEventListener('click', async () => {
+    SFX.click();
+    const text = 'Family Smash! Join my room ' + NET.code + ': ' + link;
+    try {
+      if (navigator.share) await navigator.share({ title: 'Family Smash', text: text, url: link });
+      else { await navigator.clipboard.writeText(link); toast('Link copied! Paste it to the family.', 1800); }
+    } catch (e) { /* cancelled */ }
+  });
+  const st = $('#smStart'); if (st) st.addEventListener('click', () => { SFX.click(); netStartFight(); });
+  $('#smLeave').addEventListener('click', () => { SFX.click(); netLeave(); smashMenu(); });
+}
+
+/* ============================================================
    BOOT
    ============================================================ */
 function ensureAudio() {
@@ -3691,6 +4495,9 @@ if (IS_STANDALONE || !document.fullscreenEnabled || !FINE_POINTER) $('#fullBtn')
 el.snd.setAttribute('aria-pressed', String(AudioSys.on));
 el.snd.textContent = AudioSys.on ? '♪' : '♪̶';
 titleScreen();
+/* a shared room link (…?smash=ABCD) opens the join screen with the code filled in */
+const SMASH_LINK = (new URLSearchParams(location.search).get('smash') || '').toUpperCase().replace(/[^A-Z]/g, '');
+if (SMASH_LINK.length === 4) smashOnlineScreen(SMASH_LINK);
 
 /* test hooks — used by the automated smoke test, harmless otherwise */
 window.__k11 = {
@@ -3787,6 +4594,21 @@ window.__k11 = {
   allies: () => allies.length,
   audio: () => (AudioSys.ctx ? AudioSys.ctx.state : 'none'),
   drawInfo: () => (window.__k11Draw ? Object.assign({}, window.__k11Draw) : null),
+  smash: {
+    start: (o) => playSmash(o),
+    state: () => (smash ? { t: smash.t, state: smash.state, winner: smash.winner, online: smash.online, local2: smash.local2,
+      fighters: smash.fighters.map((f) => ({ slot: f.slot, who: f.who, name: f.name, x: Math.round(f.x), y: Math.round(f.y), vx: Math.round(f.vx * 100) / 100, vy: Math.round(f.vy * 100) / 100,
+        dmg: f.dmg, stocks: f.stocks, out: f.out, ko: f.ko, cool: f.cool, act: f.act ? f.act.kind : null, cpu: f.cpu, peer: f.peer, onGround: f.onGround, stun: f.stun, kos: f.kos, falls: f.falls, mine: f.input === input })),
+      shots: smash.shots.map((s) => s.kind) } : null),
+    setInput: (slot, o) => { const f = smash && smash.fighters[slot]; if (!f) return false; Object.assign(f.input, o); return true; },
+    cpu: (slot, on) => { const f = smash && smash.fighters[slot]; if (f) f.cpu = !!on; return !!f; },
+    autopilot: (on) => { window.__smashAuto = !!on; },
+    net: () => ({ status: NET.status, code: NET.code, role: NET.role, peers: Object.keys(NET.peers).map((id) => Object.assign({ id: id }, NET.peers[id])), selfId: NET.selfId, error: NET.error, ping: NET.ping, lib: !!NET.lib }),
+    join: (code, role) => smashLobbyScreen(code, role),
+    startFight: () => netStartFight(),
+    menu: () => smashMenu(),
+    pick: (who) => { NET.myWho = who; if (NET.send) NET.send.pick({ who: who }); refreshLobby(); }
+  },
   spriteSheet: () => {
     const names = ['kStand', 'kJump', 'mStand', 'dStand', 'cStand', 'sStand', 'cat', 'dog'];
     const scale = 8, cellW = 150, cellH = 230, cols = 4;
