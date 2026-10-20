@@ -3570,7 +3570,10 @@ initPWA();
 if (IS_IOS && !IS_STANDALONE && el.install) el.install.hidden = false;
 /* inside the installed app there is nothing to install and it is already full screen */
 if (IS_STANDALONE) $('#installBtnP').hidden = true;
-if (IS_STANDALONE || !document.fullscreenEnabled) $('#fullBtn').hidden = true;
+/* Fullscreen only enlarges the game picture; the touch controls and the pause button sit outside it and would
+   vanish with no way back, so only mouse + keyboard players get the button */
+const FINE_POINTER = !!(window.matchMedia && matchMedia('(hover: hover) and (pointer: fine)').matches);
+if (IS_STANDALONE || !document.fullscreenEnabled || !FINE_POINTER) $('#fullBtn').hidden = true;
 el.snd.setAttribute('aria-pressed', String(AudioSys.on));
 el.snd.textContent = AudioSys.on ? '♪' : '♪̶';
 titleScreen();
