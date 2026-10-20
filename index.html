@@ -3282,11 +3282,12 @@ function mapScreen() {
     const open = i < progress.unlocked, done = progress.beaten.includes(i);
     const st = progress.stars[i] || 0;
     const best = progress.bestScore[i] || 0;
+    const bt = progress.bestTime && progress.bestTime[i];   /* no time yet (old save) = no "best" shown */
     const starStr = [0, 1, 2].map((k) => '<span class="' + (k < st ? '' : 'off') + '">' + (k < st ? '★' : '☆') + '</span>').join('');
     return '<li><button type="button" class="lvbtn" data-lv="' + i + '"' + (open ? '' : ' disabled') + '>' +
       '<span class="n">' + (i + 1) + '</span>' +
       '<span><span class="t">' + (open ? th.place : 'Locked') + '</span>' +
-      '<span class="s">' + (open ? (done ? 'Boss: ' + th.boss.title + ' · best ' + fmtTime(progress.bestTime && progress.bestTime[i] || 0) : 'Boss: ' + th.boss.title) : 'Beat stage ' + i + ' first') + '</span></span>' +
+      '<span class="s">' + (open ? (done ? 'Boss: ' + th.boss.title + (bt ? ' · best ' + fmtTime(bt) : '') : 'Boss: ' + th.boss.title) : 'Beat stage ' + i + ' first') + '</span></span>' +
       '<span class="stars">' + starStr + '</span></button></li>';
   }).join('');
   const hats = HATS.map((h) => {
