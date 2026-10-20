@@ -284,6 +284,8 @@ html.rotated .turnhint{display:block}
 .kartrow{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin:4px 0 8px}.kartrow img{width:88px;height:auto;image-rendering:pixelated}
 .kartpick img{width:74px;height:auto;image-rendering:pixelated}
 .stage.kartmode .toast{top:calc(20% + 4px)}
+.worldtabs{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 10px}.worldtab{background:var(--panel);border:2px solid var(--panel2);border-radius:8px;color:var(--text);padding:7px 10px;font:inherit;font-size:13px;cursor:pointer;min-height:40px}.worldtab.on{border-color:var(--gold);box-shadow:inset 0 0 0 1px var(--gold)}.worldtab:disabled{opacity:.45;cursor:default}
+.lockcard{background:var(--panel);border:2px dashed var(--panel2);border-radius:10px;padding:10px 14px;margin:6px 0 10px}.codein.wide{width:min(260px,70vw);letter-spacing:.08em}
 /* Party Shop */
 .wallet{margin:0;font-size:18px}
 .wallet b{color:var(--gold)}
@@ -602,7 +604,7 @@ const PAL = {
   y: '#f6c445', j: '#3f63a8', H: '#1d1416', t: '#b88a3e', d: '#3b2618', p: '#9b2d6b', J: '#2b2f45', b: '#2a5bd7',
   o: '#ff8a3d', R: '#e8364b', P: '#f39ac0', u: '#7a3f26', E: '#44c55a', G: '#2f6b3a', T: '#c4ad84', V: '#8a8a98',
   q: '#6b6f7a', Q: '#c9c9cf', F: '#4f7a5a', a: '#9a9aa6', A: '#5e5e6a', n: '#a8692e', L: '#6b3f18', W: '#f0e2c8', Y: '#f3e6a6',
-  S: '#c98d63'
+  S: '#c98d63', l: '#c6f03a'
 };
 const KINAN = ['....kkkkkkkk....', '...khhhhhhhhk...', '..khhhhtthhhhk..', '..khhssssssshk..', '..khsksssksshk..', '..khssPssPsshk..',
   '..khsssmmssshk..', '...khhsssshhk...', '..krrrrrrrrrrk..', '.krrrrryyrrrrrk.', '.krrrrrwwrrrrrk.', 'ksrrrrrwwrrrrrsk',
@@ -686,6 +688,8 @@ const BULLY = recolor(KINAN, { g: 'R', m: 'q', c: 'q', y: 'q', h: 'd', s: 'S' })
 const NEIGH = recolor(DAD, { g: 'Q', b: 'F', d: 'Q' });
 /* Dad Robin runs a hydro vac in the oilfield: hi-vis orange over the shirt */
 const DAD_VEST = recolor(DAD, { b: 'o' });
+/* the Safety Foreman (World 2): yellow hard hat, lime hi-vis vest, white beard */
+const FOREMAN = recolor(DAD, { g: 'y', Q: 'Y', b: 'l', d: 'w' });
 /* the Lego Mega-Mech's face for story boxes (the mech itself is drawn with rectangles in drawBoss) */
 const MECH = ['..RRRRRRRRRRRR..', '..RRRRRRRRRRRR..', '.kQQQQQQQQQQQQk.', '.kQQwwwQQQwwwQk.', '.kQQwkwQQQwkwQk.', '.kQQwwwQQQwwwQk.',
   '.kQQQQQVVQQQQQk.', '.kQQQQQQQQQQQQk.', '..kkkkkkkkkkkk..', 'kJJJJJJJJJJJJJJk', 'kJRRRRRRRRRRRRJk', 'kJRyRRRyRRRyRRJk',
@@ -698,6 +702,7 @@ const SP = {
   cStand: bake(CHENOA.concat(CROCS.stand)), cWalk: bake(CHENOA.concat(CROCS.walk)),
   bStand: bake(legs(BULLY, LEGS.stand, 'J')), bWalk: bake(legs(BULLY, LEGS.walk, 'J')),
   nStand: bake(legs(NEIGH, LEGS.stand, 'J')), nWalk: bake(legs(NEIGH, LEGS.walk, 'J')),
+  fStand: bake(legs(FOREMAN, LEGS.stand, 'J')), fWalk: bake(legs(FOREMAN, LEGS.walk, 'J')),
   cat: bakeOutlined(CAT, { a: PAL.a, A: PAL.A }), dog: bakeOutlined(DOG, { n: PAL.n, L: PAL.L }), candle: bake(CANDLE), flag: bake(FLAG)
 };
 const CH_H = SP.cStand.height;
@@ -841,8 +846,109 @@ const LV = [
     taunts: ['MWAH! MWAH! Come here!', 'Let me pinch those CHEEKS!', 'Happy birthday to YOUUU!'], win: []
   }
 ];
+/* World 2: "Kinan vs. Dad", Bring-Your-Kid-to-Work Day at Dad's oilfield job site. It opens with a grown-up's
+   reward code once World 1 is beaten. Stages without a boss end at Dad's truck. */
+LV.push(
+  {
+    place: 'The Highway at Dawn', bg: 'prairie', world: 2, sky: ['#3a2a63', '#ff9e6e'], far: '#5a3f6e', mid: '#7a5a5e',
+    ground: '#6b4a2a', top: '#d6b45a', brick: '#9a6a3a', accent: '#f6c445', foes: ['gopher', 'crow', 'tumbleweed'],
+    intro: ['The day after the party. 5:30 in the morning. Dad\'s truck is rumbling in the driveway.', '<b>DAD:</b> Big day, bud. Bring-Your-Kid-to-Work Day. Grab your hard hat, we\'re heading out to the patch.',
+      '<b>KINAN:</b> The oilfield?! Where you go when you\'re "out of town"?!', '<b>DAD:</b> That\'s the one. Meet me at the truck down the road... and watch out for gophers. They\'re EVERYWHERE out here.'],
+    boss: null,
+    win: ['<b>DAD:</b> There you are! Hop in, it\'s a long drive.', '<b>KINAN:</b> Dad, the gophers were chasing me.', '<b>DAD:</b> Yeah. They do that.'],
+    meanwhile: 'Mom packs Kinan\'s lunch: two sandwiches, a juice box and a note that says "Be good for Dad 💛".'
+  },
+  {
+    place: 'Camp Breakfast', bg: 'camp', world: 2, sky: ['#6d8fbf', '#dbe7f2'], far: '#6f7f96', mid: '#55647a',
+    ground: '#5a3f2a', top: '#8a6a48', brick: '#9aa1ab', accent: '#ff8a3d', foes: ['mud', 'mosquito', 'cone'],
+    intro: ['Dad\'s work camp: rows of trailers, a giant breakfast tent... and mud. So. Much. Mud.', '<b>DAD:</b> This is where I sleep when I\'m away. Breakfast is that way. Don\'t let the mosquitoes carry you off.',
+      '<b>KINAN:</b> Dad. The MUD is moving.'],
+    boss: null,
+    win: ['<b>DAD:</b> Back at the truck! Did you eat?', '<b>KINAN:</b> Four pancakes and a mosquito.', '<b>DAD:</b> ...That\'s camp life.'],
+    meanwhile: 'Back home, the four cats have taken over Kinan\'s bed. All of it.'
+  },
+  {
+    place: 'The Muddy Lease Road', bg: 'prairie', overcast: true, world: 2, sky: ['#7d8ca3', '#dfe5ec'], far: '#6d7d6a', mid: '#56664f',
+    ground: '#4f3622', top: '#7a5634', brick: '#8a6a4a', accent: '#c6f03a', foes: ['mud', 'gopher', 'tumbleweed'],
+    intro: ['The lease road out to the job site. It rained last night, and the truck is NOT happy about it.', '<b>DAD:</b> We\'ll walk the last bit. Stay on the road, and if you see a moose... let him go first.'],
+    boss: { kind: 'moose', title: 'The Big Bull Moose', hp: 4, face: 'k' },
+    bossIntro: ['Something HUGE steps out of the willows...', 'A <b>BULL MOOSE</b>. He looks at Kinan. He looks at the road. He snorts.', 'When he gets mad he CHARGES. Jump out of his way, and stomp him while he\'s dizzy from hitting the fence.'],
+    taunts: ['HHHRRRNNNK!', '*angry moose noises*', '*stomps a hoof*', 'SNORT!'],
+    win: ['The moose shakes his antlers, decides Kinan is too much trouble, and wanders off to eat willows.', '<b>DAD:</b> Did you just... out-stubborn a MOOSE? That\'s my boy.'],
+    meanwhile: 'Chenoa texts Dad: "Is he wearing his hard hat?" Dad sends a photo. It\'s on backwards.'
+  },
+  {
+    place: 'Pumpjack Plains', bg: 'oilfield', world: 2, sky: ['#3f8fd8', '#c4e6fa'], far: '#8a9a7a', mid: '#6a7d55',
+    ground: '#5a4030', top: '#8db04f', brick: '#b5523b', accent: '#f6c445', foes: ['crow', 'cone', 'mud'],
+    intro: ['Pumpjacks as far as you can see, nodding up and down like big metal horses.', '<b>KINAN:</b> They look like they\'re saying YES to everything!',
+      '<b>DAD:</b> They\'re pumping oil up from way, WAY down. Don\'t climb on them. I\'m serious.'],
+    boss: null,
+    win: ['<b>DAD:</b> You\'re fast, bud. Faster than the new guy.', '<b>KINAN:</b> Is the new guy also eleven?'],
+    meanwhile: 'Shad calls Dad on his break: "Is he keeping up?" Dad: "Keeping up? He\'s AHEAD of me."'
+  },
+  {
+    place: 'The Hydro Vac Yard', bg: 'truckyard', world: 2, sky: ['#4a9ae0', '#d3ecfb'], far: '#a3aab4', mid: '#7d8590',
+    ground: '#45484f', top: '#9a9da6', brick: '#d8342c', accent: '#f2c230', foes: ['cone', 'mosquito', 'mud'],
+    intro: ['The truck yard! A whole row of hydro vac trucks, just like Dad\'s.', '<b>DAD:</b> These trucks dig with water and suck the mud up with a giant vacuum. Way safer than a shovel when there are pipes in the ground.',
+      '<b>KINAN:</b> A GIANT VACUUM. I need one for my room.'],
+    boss: { kind: 'foreman', title: 'The Safety Foreman', hp: 4, face: 'f' },
+    bossIntro: ['<b>FOREMAN:</b> HOLD IT RIGHT THERE! No hard hat, no entry! ...Oh. You have a hard hat. Is it on properly?!', '<b>FOREMAN:</b> I\'m the Safety Foreman. Nobody gets past me without a SAFETY BRIEFING. It\'s forty-five minutes long.',
+      'He shouts through his megaphone and throws spare hard hats! Stomp him when he stops to catch his breath.'],
+    taunts: ['SAFETY FIRST!', 'Where is your SAFETY VEST?!', 'Three points of contact!', 'Hydrate! HYDRATE!'],
+    win: ['<b>FOREMAN:</b> Okay, okay! You pass the safety test. Gold star. Hard hat stays ON.', '<b>DAD:</b> He made ME do the forty-five minute one.'],
+    meanwhile: 'Mom calls: "Is he eating?" Dad: "He traded his juice box for a hard hat sticker."'
+  },
+  {
+    place: 'Pipe Rack Maze', bg: 'oilfield', pipes: true, world: 2, sky: ['#5aa8e8', '#e0f2fd'], far: '#8a96a6', mid: '#6d7888',
+    ground: '#55473a', top: '#a08a5a', brick: '#c8a24a', accent: '#ff8a3d', foes: ['mud', 'mosquito', 'gopher'],
+    intro: ['Lunch time! Kinan\'s sandwiches are... somewhere past the pipe racks.', '<b>DAD:</b> Pipes run everywhere out here. We dig around them slow and careful. That\'s my whole job.',
+      '<b>KINAN:</b> It\'s like a giant Lego set. A Lego set that HISSES.'],
+    boss: null,
+    win: ['<b>KINAN:</b> Found the sandwiches!', '<b>DAD:</b> Your mom wrote you a note. "Be good for Dad." ...Are you being good for Dad?', '<b>KINAN:</b> I beat a moose.'],
+    meanwhile: 'In Saskatoon, the leftover birthday cake has gone missing. Chenoa is not answering questions.'
+  },
+  {
+    place: 'The Big Dig', bg: 'dig', world: 2, sky: ['#e8a868', '#fbe4c0'], far: '#a0785a', mid: '#8a5f40',
+    ground: '#6b4528', top: '#a87a4a', brick: '#7a5a3a', accent: '#f6c445', foes: ['gopher', 'mud', 'cone'],
+    intro: ['The big dig: a huge hole where the crew is uncovering an old pipe, slow and careful.', '<b>DAD:</b> Stay back from the edge, bud. And... is that pumpjack moving on its own?'],
+    boss: { kind: 'pumpjack', title: 'Pumpjack Pete', hp: 5, face: 'mech' },
+    bossIntro: ['<b>PUMPJACK PETE:</b> CREAK. CREAK. I HAVE BEEN NODDING FOR FORTY YEARS.', '<b>PUMPJACK PETE:</b> FORTY YEARS OF YES. TODAY... I SAY... NO!', 'Dodge the bouncing pipe fittings and jump on his head!'],
+    taunts: ['CREAK!', 'NO! NO! NO!', 'MY BACK!', 'NEEDS... OIL...'],
+    win: ['<b>PUMPJACK PETE:</b> creak... maybe... a little... yes...', 'Pete goes back to nodding. He looks happier now.', '<b>DAD:</b> Eight years I\'ve worked here, and he\'s never talked to ME.'],
+    meanwhile: 'Shad texts the family chat from the job site: "Kinan beat a PUMPJACK? Proud of you bro."'
+  },
+  {
+    place: 'Storm on the Prairie', bg: 'storm', world: 2, sky: ['#26303f', '#5d6a7e'], far: '#3a4556', mid: '#2f3a48',
+    ground: '#3f3326', top: '#6d7a4a', brick: '#5a5f6a', accent: '#9fd3f5', foes: ['tumbleweed', 'crow', 'mosquito'],
+    intro: ['The sky turns dark grey-green. A prairie storm is rolling in, FAST.', '<b>DAD:</b> Back to the truck, bud! When a storm comes, we stop work and wait it out. Safety first.',
+      '<b>KINAN:</b> The tumbleweeds are going SIDEWAYS!'],
+    boss: null,
+    win: ['<b>DAD:</b> Made it! We\'ll wait out the storm in here.', '<b>KINAN:</b> Dad... do you miss home when you\'re out here?', '<b>DAD:</b> Every single day, bud. Every single day.'],
+    meanwhile: 'Mom sees the storm on the weather app and texts Dad four times in one minute.'
+  },
+  {
+    place: 'Night Shift', bg: 'night', world: 2, sky: ['#070b22', '#242c5c'], far: '#141a3a', mid: '#1d2448',
+    ground: '#2e2a30', top: '#4a4f5a', brick: '#ff8a3d', accent: '#f6c445', foes: ['mosquito', 'cone', 'mud'],
+    intro: ['The storm passes. Night falls. The rig lights up like a giant birthday cake.', '<b>DAD:</b> One last job at the rig before we drive home. Wait in the truck, okay?', '(Kinan did not wait in the truck.)'],
+    boss: null,
+    win: ['<b>KINAN:</b> Dad\'s truck! ...Wait. Where\'s Dad?', 'Somewhere near the rig, a hydro vac engine roars to life...'],
+    meanwhile: 'At home in Saskatoon, Mom leaves the porch light on.'
+  },
+  {
+    place: "Dad's Rig", bg: 'night', rig: true, world: 2, sky: ['#0b0f2a', '#3a2453'], far: '#191536', mid: '#241d44',
+    ground: '#33262a', top: '#5a4a52', brick: '#d8342c', accent: '#ff6fae', foes: ['mud', 'gopher', 'mosquito', 'cone'], final2: true,
+    intro: ['The rig at night. Lights everywhere. And Dad, at the controls of the biggest hydro vac Kinan has ever seen.', '<b>DAD:</b> Hey bud. You were supposed to wait in the truck.'],
+    boss: { kind: 'dadboss', title: 'Hydro Vac Dad', hp: 6, face: 'd' },
+    bossIntro: ['<b>DAD:</b> You want to see what a hydro vac operator can REALLY do? Okay. Let\'s go.', '<b>DAD:</b> I can dig a hole without touching one single pipe. I can suck up a mud puddle in two seconds. And I can DEFINITELY catch one sneaky kid.',
+      'His hydro vac pulls you in! Jump over the pull, dodge the water, and stomp Dad <b>6 times</b>!'],
+    taunts: ['Ha! Missed me!', 'Hard hat ON, mister!', 'You are SO grounded... after ice cream.', 'This hose is LOUD, eh?', 'Okay, that one tickled!'],
+    win: []
+  }
+);
 /* the day goes by: one birthday from 7 am in the bedroom to the 7 pm party (the story's own times: bedtime at 6:55, the Mega-Mech's orders until 1900 hours). The light follows the clock. */
-const DAY = [['dawn', '7:00 am'], ['morning', '8:00 am'], ['morning', '8:30 am'], ['day', '10:30 am'], ['day', '12:30 pm'], ['afternoon', '2:00 pm'], ['afternoon', '3:30 pm'], ['late', '4:30 pm'], ['sunset', '5:45 pm'], ['dusk', '6:55 pm'], ['night', '7:00 pm']];
+const DAY = [['dawn', '7:00 am'], ['morning', '8:00 am'], ['morning', '8:30 am'], ['day', '10:30 am'], ['day', '12:30 pm'], ['afternoon', '2:00 pm'], ['afternoon', '3:30 pm'], ['late', '4:30 pm'], ['sunset', '5:45 pm'], ['dusk', '6:55 pm'], ['night', '7:00 pm'],
+  /* World 2: a work day out of town, from the 5:30 am drive to the 9 pm rig */
+  ['dawn', '5:30 am'], ['morning', '6:15 am'], ['morning', '7:00 am'], ['day', '8:30 am'], ['day', '10:00 am'], ['day', '12:00 pm'], ['afternoon', '2:00 pm'], ['dusk', '4:30 pm'], ['night', '8:00 pm'], ['night', '9:00 pm']];
 LV.forEach((th, i) => { th.tod = DAY[i][0]; th.clock = DAY[i][1]; });
 const GRADE = { dawn: 'rgba(255,150,110,.10)', morning: 'rgba(255,236,190,.05)', day: '', afternoon: 'rgba(255,210,140,.06)', late: 'rgba(255,175,100,.10)', sunset: 'rgba(255,105,60,.14)', dusk: 'rgba(70,60,170,.10)', night: 'rgba(40,40,120,.07)' };
 
@@ -872,7 +978,13 @@ const FOE = {
   sheep: { beh: 'walker', kind: 'sheep', color: '#f4f1e8', spd: 0.4 },
   ghost: { beh: 'flyer', kind: 'ghost', color: '#e8e8ff' },
   sparkler: { beh: 'flyer', kind: 'sparkler', color: '#f6c445' },
-  cupcake: { beh: 'hopper', kind: 'cupcake', color: '#f39ac0' }
+  cupcake: { beh: 'hopper', kind: 'cupcake', color: '#f39ac0' },
+  gopher: { beh: 'hopper', kind: 'gopher', color: '#a8743a' },
+  crow: { beh: 'flyer', kind: 'crow', color: '#2a2830' },
+  tumbleweed: { beh: 'walker', kind: 'tumbleweed', color: '#c9a26a', spd: 1.25 },
+  mud: { beh: 'walker', kind: 'mud', color: '#6b4a2a', spd: 0.4, split: true },
+  mosquito: { beh: 'flyer', kind: 'mosquito', color: '#5a5f6a' },
+  cone: { beh: 'walker', kind: 'cone', color: '#ff8a3d', spd: 0.6 }
 };
 /* ============================================================
    LEVEL BUILDER — seeded chunks, guaranteed set pieces
@@ -890,7 +1002,7 @@ function rng(seed) {
 }
 function build(i) {
   const r = rng(917 + i * 271);
-  const len = 118 + i * 8, arenaW = 28, w = len + arenaW + 60;
+  const len = 118 + Math.min(i, 10) * 8 + Math.max(0, i - 10) * 3, arenaW = 28, w = len + arenaW + 60;
   const g = new Uint8Array(w * ROWS);
   const set = (x, y, v) => { if (x >= 0 && x < w && y >= 0 && y < ROWS) g[y * w + x] = v; };
   const foes = [], candles = [], gifts = {};
@@ -995,7 +1107,7 @@ function build(i) {
    STATE
    ============================================================ */
 const DEFAULT_PROGRESS = { unlocked: 1, beaten: [], stars: {}, bestScore: {}, totalCandles: 0, pets: { ids: [], names: {} }, hat: 'none', won: false, sound: true, lite: false,
-  wallet: 0, owned: [], outfit: 'classic', trail: 'none', costumes: {}, gold: {}, smashItems: true };
+  wallet: 0, owned: [], outfit: 'classic', trail: 'none', costumes: {}, gold: {}, smashItems: true, codes: [], wonWorlds: [] };
 function loadProgress() {
   let p = store.get(SAVE_KEY, null);
   if (!p) {
@@ -1025,13 +1137,15 @@ function loadProgress() {
   if (oldPets.cat && ids.indexOf('cat1') < 0) ids.push('cat1');
   if (oldPets.dog && ids.indexOf('dog1') < 0) ids.push('dog1');
   out.pets = { ids: ids.filter((id) => PET_DEFS.some((d) => d.id === id)), names: Object.assign({}, oldPets.names || {}) };
-  if (out.resume && !(typeof out.resume === 'object' && out.resume.i >= 0 && out.resume.i < 11)) delete out.resume;
+  if (out.resume && !(typeof out.resume === 'object' && out.resume.i >= 0 && out.resume.i < LV.length)) delete out.resume;
   /* Party Shop: the candles already collected become the first spending money */
   if (typeof p.wallet !== 'number') out.wallet = Math.max(0, Math.floor(Number(out.totalCandles) || 0));
   out.owned = Array.isArray(p.owned) ? p.owned.filter((id) => typeof id === 'string') : [];
   out.costumes = p.costumes && typeof p.costumes === 'object' ? Object.assign({}, p.costumes) : {};
   out.gold = p.gold && typeof p.gold === 'object' ? Object.assign({}, p.gold) : {};
   out.smashItems = p.smashItems !== false;
+  out.codes = Array.isArray(p.codes) ? p.codes.map(Number).filter((n) => n >= 2 && n <= 11) : [];
+  out.wonWorlds = Array.isArray(p.wonWorlds) ? p.wonWorlds.map(Number).filter((n) => n >= 2 && n <= 11) : [];
   return out;
 }
 let progress = loadProgress();
@@ -1271,6 +1385,7 @@ const FACE_DEF = {
   m: { rows: () => MOM, eye: 5, eyes: [5, 9], mouth: 7, m: [7, 8], ink: 'm', crop: [2, 14, 0, 12] },
   d: { rows: () => DAD_VEST, eye: 4, eyes: [5, 9], mouth: 7, m: [7, 8], ink: 'm', teeth: true, crop: [1, 15, 0, 11] },
   n: { rows: () => NEIGH, eye: 4, eyes: [5, 9], mouth: 7, m: [7, 8], ink: 'm', teeth: true, crop: [1, 15, 0, 11] },
+  f: { rows: () => FOREMAN, eye: 4, eyes: [5, 9], mouth: 7, m: [7, 8], ink: 'm', teeth: true, crop: [1, 15, 0, 11] },
   s: { rows: () => SHAD, eye: 4, eyes: [5, 9], mouth: 6, m: [6, 7], ink: 'm', crop: [2, 14, 0, 11] },
   c: { rows: () => CHENOA, eye: 4, eyes: [5, 10], mouth: 6, m: [7, 8], ink: 'r', wide: [6, 9], crop: [2, 14, 0, 11] },
   mech: { rows: () => MECH, mech: true, crop: [0, 16, 0, 11] }
@@ -1309,7 +1424,7 @@ function portraitFor(who, mood) {
   return PORTRAIT_SRC[id];
 }
 /* who is talking: a line that starts with "<b>NAME:</b>" shows that person's face and voice; narration shows Kinan, no voice */
-const SPEAKERS = { 'MOM': 'm', 'CHENOA': 'c', 'KINAN': 'k', 'ROBIN': 'd', 'DAD': 'd', 'SHAD': 's', 'NOSY NEIGHBOUR': 'n', 'NEIGHBOUR': 'n', 'BIG KID': 'b', 'MEGA-MECH': 'mech', '???': 'mech' };
+const SPEAKERS = { 'MOM': 'm', 'CHENOA': 'c', 'KINAN': 'k', 'ROBIN': 'd', 'DAD': 'd', 'SHAD': 's', 'NOSY NEIGHBOUR': 'n', 'NEIGHBOUR': 'n', 'BIG KID': 'b', 'MEGA-MECH': 'mech', '???': 'mech', 'FOREMAN': 'f', 'SAFETY FOREMAN': 'f', 'PUMPJACK PETE': 'mech' };
 function speakerOf(html, who) {
   const m = /^<b>([^<:(]+?)\s*(?:\([^)]*\))?:<\/b>/.exec(html || '');
   if (!m) return null;
@@ -1324,7 +1439,7 @@ function moodOf(html, fallback) {
   return fallback || 'n';
 }
 /* each voice: [pitch Hz, wave]; one short beep every couple of letters, like old game text */
-const VOICES = { k: [540, 'square'], m: [700, 'triangle'], c: [820, 'square'], d: [300, 'square'], s: [390, 'square'], n: [250, 'sawtooth'], b: [460, 'square'], mech: [980, 'square'] };
+const VOICES = { k: [540, 'square'], m: [700, 'triangle'], c: [820, 'square'], d: [300, 'square'], s: [390, 'square'], n: [250, 'sawtooth'], b: [460, 'square'], mech: [980, 'square'], f: [270, 'sawtooth'] };
 let typing = null;
 function tokenizeHTML(html) {
   const out = [], re = /(<[^>]+>|&[a-z#0-9]+;)/gi;
@@ -1440,7 +1555,7 @@ function makeFoe(f) {
     type: f.type, def: def, mini: mini,
     x: f.x != null ? f.x : f.tx * T + 1, y: f.y != null ? f.y : f.ty * T + 1,
     w: mini ? 9 : 13, h: mini ? 9 : 13,
-    vx: -((def.spd || 0.55) + L.i * 0.035) * (mini ? 2 : 1),
+    vx: -((def.spd || 0.55) + stageDiff(L.i) * 0.035) * (mini ? 2 : 1),
     vy: 0, alive: true, t: ri(0, 90), charge: 0, hurtT: 0, squash: 0, dead: 0,
     face: -1, baseY: 0, originX: 0, cool: 0
   };
@@ -1491,11 +1606,11 @@ function startStage(i, silent) {
   cratePet = nextPet;
   crate = nextPet && L.petSpot ? { x: L.petSpot.x, y: L.petSpot.y, w: 16, h: 16, pet: nextPet, open: false, t: 0 } : null;
   camX = 0; shake = 0; hitStop = 0;
-  el.stageLbl.textContent = 'STAGE ' + (i + 1) + ' / 11 · ' + LV[i].place.toUpperCase();
+  el.stageLbl.textContent = stageLabel(i);
   el.pauseBtn.hidden = false;
   updHud();
-  Music.play(LV[i].final ? 'final' : 'stage');
-  if (!silent) toast('<b>STAGE ' + (i + 1) + '</b> · ' + LV[i].place + ' · ' + LV[i].clock, 1700);
+  Music.play(LV[i].final || LV[i].final2 ? 'final' : 'stage');
+  if (!silent) toast('<b>' + stageName(i).toUpperCase() + '</b> · ' + LV[i].place + ' · ' + LV[i].clock, 1700);
 }
 /* ============================================================
    SAVE SPOT — auto (checkpoint, pause, app switch) and manual (pause menu)
@@ -1849,15 +1964,16 @@ function updatePets() {
 }
 
 function callDad(mode) {
+  if (worldOf(L.i) > 1 && mode !== 'heal') return;
   const inBoss = boss === 'fight';
   if (mode === 'heal') {
     if (inBoss ? dadUsedBoss : dadUsedStage) return;
     if (inBoss) dadUsedBoss = true; else dadUsedStage = true;
   }
   if (dad) return;
-  dad = { x: Math.max(camX - 20, P.x - W * 0.5), y: (GROUND - 2) * T, w: 12, h: 18, state: 'in', t: 0, mode: mode, vac: 0, vacTarget: null, face: 1 };
+  dad = { x: Math.max(camX - 20, P.x - W * 0.5), y: (GROUND - 2) * T, w: 12, h: 18, state: 'in', t: 0, mode: mode, vac: 0, vacTarget: null, face: 1, mom: worldOf(L.i) > 1 };
   SFX.dad();
-  if (mode !== 'party') toast(mode === 'heal' ? '<b>DAD ROBIN</b> is back from the oilfield!' : '<b>DAD ROBIN</b> rolled in with the hydro vac! 💨', 1700);
+  if (mode !== 'party') toast(dad.mom ? '<b>MOM</b> drove out with a care package! 💛' : (mode === 'heal' ? '<b>DAD ROBIN</b> is back from the oilfield!' : '<b>DAD ROBIN</b> rolled in with the hydro vac! 💨'), 1700);
 }
 /* Dad's job: hydro vac operator. His special sucks everything on screen towards the hose. */
 function startVac(target) {
@@ -2086,7 +2202,7 @@ function updateShots() {
 const BOSS_NAMES = { mom: 'MOM', chenoa: 'CHENOA', mech: 'MEGA-MECH', neighbour: 'NEIGHBOUR', bully: 'BIG KID' };
 function bossName(b) { return BOSS_NAMES[b.kind] || 'BOSS'; }
 function makeBoss(kind, x, hp, prop) {
-  const sizes = { mom: [14, 22], chenoa: [12, CH_H], mech: [28, 34], neighbour: [14, 22], bully: [14, 22] };
+  const sizes = { mom: [14, 22], chenoa: [12, CH_H], mech: [28, 34], neighbour: [14, 22], bully: [14, 22], moose: [36, 32], foreman: [14, 22], pumpjack: [28, 34], dadboss: [14, 22] };
   const s = sizes[kind] || [12, 18];
   return {
     kind: kind, x: x, homeX: x, y: GROUND * T - s[1], w: s[0], h: s[1], vx: 0, vy: 0,
@@ -2116,6 +2232,7 @@ function updateBossHud() {
   el.bossName.style.color = alive.some((b) => b.kind === 'final') ? '#ff6fae' : '';
 }
 async function startBoss() {
+  if (!LV[L.i].boss) { goalReached(); return; }   /* no boss here: this stage ends at Dad's truck */
   boss = 'intro';
   paused = true;
   Music.duck(true);
@@ -2123,11 +2240,11 @@ async function startBoss() {
   const ax = L.arenaX;
   shots = []; allyShots = [];
   SFX.boss(); shakeIt(5); flashScreen();
-  Music.play(LV[i].final ? 'final' : 'boss');
+  Music.play(LV[i].final || LV[i].final2 ? 'final' : 'boss');
   dadSpecialDone = false;
-  dadSpecialPlan = d.kind === 'final' || Math.random() < 0.65;
+  dadSpecialPlan = worldOf(i) === 1 && (d.kind === 'final' || Math.random() < 0.65);
   const kind = (d.kind === 'team' || d.kind === 'final') ? 'mom' : d.kind;
-  bosses = [makeBoss(kind, (ax + (kind === 'mech' ? 12 : 13)) * T, d.hp, d.prop)];
+  bosses = [makeBoss(kind, (ax + (kind === 'mech' || kind === 'pumpjack' || kind === 'moose' ? 12 : 13)) * T, d.hp, d.prop)];
   await say('<b>BOSS:</b> ' + d.title.toUpperCase() + '!', d.face || 'm', 'a');
   await story(LV[i].bossIntro, d.face || 'm', 'a');
   if (d.kind === 'team') {
@@ -2199,6 +2316,7 @@ async function bossDefeated() {
   SFX.win();
   const i = L.i;
   if (LV[i].final) return ending();
+  if (LV[i].final2) return ending2();
   await story(LV[i].win, LV[i].boss.face || 'm', 'h');
   firstClear = !progress.beaten.includes(i);   /* first time through: this world is now a Family Smash arena too */
   if (firstClear) progress.beaten.push(i);
@@ -2316,13 +2434,102 @@ function bossAI(b) {
       if (--b.t <= 0) { b.state = 'walk'; b.t = 100; }
     }
   }
+  else if (b.kind === 'moose') {
+    /* the Big Bull Moose: snorts, charges down the road, gets dizzy when he hits the fence (that is when you stomp) */
+    if (b.state === 'walk') {
+      if (b.vx === 0) b.vx = dx < 0 ? -0.6 : 0.6;
+      if (--b.t <= 0) { b.state = 'windup'; b.t = 44; b.vx = 0; b.dir = sign(dx); AudioSys.tone(110, 0.3, { type: 'sawtooth', vol: 0.12, slide: 70 }); }
+    } else if (b.state === 'windup') {
+      b.vx = 0;
+      if (b.t % 5 === 0) part(b.x + (b.dir > 0 ? 2 : b.w - 4), b.y + b.h - 2, { vx: -b.dir * rand(0.5, 1.5), vy: rand(-1, 0), life: 16, size: 2, color: '#8a6a4a' });
+      if (--b.t <= 0) b.state = 'charge';
+    } else if (b.state === 'charge') {
+      b.vx = b.dir * (3.8 + (b.anger ? 0.8 : 0));
+      if (b.x <= lo + 1 || b.x >= hi - 1) {
+        b.state = 'dizzy'; b.t = 140; b.vx = 0; SFX.thud(); shakeIt(5);
+        pop(b.x, b.y - 10, '💫 STOMP NOW!', 46, '#f6c445');
+        sparks(b.x + b.w / 2, b.y + 4, 10, ['#f6c445', '#fff']);
+      }
+    } else if (b.state === 'dizzy') {
+      b.vx = 0;
+      if (--b.t <= 0) { b.state = 'walk'; b.t = 90; }
+    }
+  } else if (b.kind === 'foreman') {
+    /* the Safety Foreman: his megaphone pushes you back, he throws spare hard hats, then stops to catch his breath */
+    if (b.state === 'walk') {
+      if (b.vx === 0) b.vx = dx < 0 ? -0.75 : 0.75;
+      if (--b.t <= 0) {
+        b.state = Math.random() < 0.5 ? 'blow' : 'throw'; b.t = b.state === 'blow' ? 120 : 50; b.vx = 0;
+        if (b.state === 'blow') toast('<b>FOREMAN:</b> ' + pick(['SAFETY BRIEFING, MINUTE ONE!', 'LIFT WITH YOUR LEGS!', 'EYES UP! HARD HAT ON!']), 1500);
+      }
+    } else if (b.state === 'blow') {
+      b.vx = 0;
+      if (Math.abs(dx) < 190 && Math.abs(P.y - b.y) < 46) P.vx = clamp(P.vx + sign(dx) * 0.2, -3, 3);
+      if (frame % 6 === 0) part(b.x + (dx < 0 ? -8 : b.w + 4), b.y + 6, { vx: sign(dx) * 3, vy: rand(-0.4, 0.4), life: 18, size: 2, color: 'rgba(255,240,170,.8)' });
+      if (--b.t <= 0) { b.state = 'rest'; b.t = 70; }
+    } else if (b.state === 'rest') {
+      b.vx = 0;
+      if (--b.t <= 0) { b.state = 'walk'; b.t = 80; }
+    } else {
+      b.vx = 0;
+      if (b.t === 50 || b.t === 30 || (b.anger && b.t === 10)) { shots.push({ x: b.x + 2, y: b.y - 4, w: 9, h: 7, vx: clamp(dx / 50, -2.8, 2.8) || sign(dx), vy: -4.6, g: 0.17, life: 240, kind: 'hardhat' }); SFX.pew(); }
+      if (--b.t <= 0) { b.state = 'walk'; b.t = 90; }
+    }
+  } else if (b.kind === 'pumpjack') {
+    /* Pumpjack Pete: rocks along, flings bouncing pipe fittings, calls the gophers when he is hurt */
+    const sp = 0.35 * anger;
+    if (b.hold > 0) { b.hold--; b.vx = 0; } else b.vx = dx < 0 ? -sp : sp;
+    if (--b.t <= 0) {
+      shots.push({ x: b.x + (dx < 0 ? -4 : b.w), y: b.y + 8, w: 9, h: 7, vx: sign(dx) * 2.2, vy: -1.4, g: 0.16, bounce: 3.4, life: 220, kind: 'pipe' });
+      if (b.hp <= b.max / 2) shots.push({ x: b.x + 8, y: b.y - 4, w: 9, h: 7, vx: sign(dx) * 1.3, vy: -5.2, g: 0.18, bounce: 2.8, life: 220, kind: 'pipe' });
+      b.t = 92 + ri(0, 30); b.hold = 24; SFX.pew();
+    }
+    if (b.onGround && Math.random() < 0.003) b.vy = -4.4;
+    if (!b.spawned && b.hp <= b.max / 2) {
+      b.spawned = true;
+      foes.push(makeFoe({ type: 'gopher', x: b.x - 14, y: b.y + 20, vx: -1.2 }));
+      foes.push(makeFoe({ type: 'gopher', x: b.x + b.w + 2, y: b.y + 20, vx: 1.2 }));
+      toast('<b>PUMPJACK PETE:</b> GOPHERS! ASSIST ME!', 1700);
+    }
+  } else if (b.kind === 'dadboss') {
+    /* Hydro Vac Dad: the hose pulls you in (jump over it and land on him), water jets arc over, mud balls fly */
+    const sp = 0.8 * anger;
+    if (b.state === 'vac') {
+      b.vx = 0;
+      const dir = b.face;
+      if (Math.abs(dx) < 210 && Math.abs(P.y - b.y) < 70 && sign(dx) === dir) P.vx = clamp(P.vx - dir * 0.2, -3.2, 3.2);
+      if (frame % 2 === 0) part(b.x + b.w / 2 + dir * ri(30, 150), b.y + 10 + ri(-14, 14), { vx: -dir * 4.5, vy: 0, life: 14, size: 2, color: 'rgba(200,230,255,.8)', g: 0 });
+      if (--b.t <= 0) { b.state = 'walk'; b.t = 70; b.hold = 20; }
+    } else if (b.state === 'spray') {
+      b.vx = 0;
+      if (b.t % 9 === 0) { shots.push({ x: b.x + b.w / 2, y: b.y + 2, w: 7, h: 7, vx: sign(dx) * rand(1.1, 3.3), vy: rand(-5.6, -3.8), g: 0.17, life: 220, kind: 'water' }); SFX.pew(); }
+      if (--b.t <= 0) { b.state = 'walk'; b.t = 80; b.hold = 16; }
+    } else {
+      if (b.hold > 0) { b.hold--; b.vx = 0; }
+      else if (b.vx === 0 || Math.random() < 0.01) b.vx = dx < 0 ? -sp : sp;
+      if (b.onGround && Math.random() < 0.006) b.vy = -6.2;
+      if (--b.t <= 0) {
+        const r = Math.random();
+        if (r < 0.42) { b.state = 'vac'; b.t = 110; AudioSys.noise(1.6, { filter: 'lowpass', freq: 500, vol: 0.14 }); toast('<b>DAD:</b> ' + pick(['Hydro vac, ON!', 'Here comes the suck!', 'Hold on to your hard hat!']), 1500); }
+        else if (r < 0.78) { b.state = 'spray'; b.t = b.anger ? 72 : 48; }
+        else { shots.push({ x: b.x + 2, y: b.y - 4, w: 9, h: 9, vx: clamp(dx / 50, -2.9, 2.9) || sign(dx), vy: -4.6, g: 0.17, life: 240, kind: 'mudball' }); b.t = 60; b.hold = 14; SFX.pew(); }
+      }
+    }
+    if (!b.spawned && b.hp <= b.max / 3) {
+      b.spawned = true;
+      foes.push(makeFoe({ type: 'mud', x: b.x - 14, y: b.y + 8, vx: -1 }));
+      foes.push(makeFoe({ type: 'mud', x: b.x + b.w + 2, y: b.y + 8, vx: 1 }));
+      toast('<b>DAD:</b> Oops. That is a LOT of mud. My bad!', 1700);
+    }
+  }
   moveX(b);
-  if (b.x <= lo) { b.x = lo; if (b.kind !== 'bully' || b.state !== 'charge') b.vx = Math.abs(b.vx); }
-  if (b.x >= hi) { b.x = hi; if (b.kind !== 'bully' || b.state !== 'charge') b.vx = -Math.abs(b.vx); }
+  const charging = (b.kind === 'bully' || b.kind === 'moose') && b.state === 'charge';
+  if (b.x <= lo) { b.x = lo; if (!charging) b.vx = Math.abs(b.vx); }
+  if (b.x >= hi) { b.x = hi; if (!charging) b.vx = -Math.abs(b.vx); }
   moveY(b);
 }
 
-const bossPad = (b) => b.kind === 'mom' ? (LV[L.i].final ? 10 : 7) : (b.kind === 'neighbour' || b.kind === 'bully' ? 4 : 0);
+const bossPad = (b) => (b.kind === 'mom' || b.kind === 'dadboss') ? (LV[L.i].final ? 10 : 7) : (['neighbour', 'bully', 'foreman', 'moose'].indexOf(b.kind) >= 0 ? 4 : 0);
 function bossTouch(b) {
   const pad = bossPad(b);
   return P.x < b.x + b.w && P.x + P.w > b.x && P.y < b.y + b.h && P.y + P.h > b.y - pad;
@@ -2330,10 +2537,15 @@ function bossTouch(b) {
 function bossContact(b) {
   if (b.out || !bossTouch(b)) return;
   const pad = bossPad(b);
-  const reach = b.kind === 'mech' ? 16 : 14;
+  const reach = b.kind === 'mech' || b.kind === 'pumpjack' ? 16 : 14;
   const fromAbove = P.vy > 0.1 && (P.y + P.h) - (b.y - pad) < reach;
   if (fromAbove) {
     if (b.inv > 0) { P.vy = -4.6; return; }
+    if (b.kind === 'moose' && b.state !== 'dizzy') {
+      P.vy = -6.2; b.inv = 24;
+      toast('The moose shrugs you off! (Wait till he is dizzy!)', 1500);
+      return;
+    }
     if (b.kind === 'bully' && b.state !== 'dizzy') {
       P.vy = -6.2; b.inv = 24;
       toast('<b>BIG KID:</b> Ha! Too slow! (Wait till he\'s dizzy!)', 1500);
@@ -2346,7 +2558,7 @@ function bossContact(b) {
     return;
   }
   if (P.rush > 0) { if (b.inv === 0) damage(b, 0.34); P.vx = sign(P.x - b.x) * 3.2; return; }
-  if (b.inv === 0 && b.stun === 0 && !(b.kind === 'bully' && b.state === 'dizzy')) hurt(b.x);
+  if (b.inv === 0 && b.stun === 0 && !((b.kind === 'bully' || b.kind === 'moose') && b.state === 'dizzy')) hurt(b.x);
 }
 
 function updateAllies() {
@@ -2472,7 +2684,7 @@ function glowDisc(x, y, r, color, alpha) {
 }
 function drawBackdrop(th, i) {
   const p1 = Math.round(camX * 0.12), p2 = Math.round(camX * 0.3), p3 = Math.round(camX * 0.55);
-  const dark = th.bg === 'castle' || th.bg === 'cake' || th.bg === 'room';
+  const dark = th.bg === 'castle' || th.bg === 'cake' || th.bg === 'room' || th.bg === 'night' || th.bg === 'storm';
   if (th.bg === 'room') {
     ctx.globalAlpha = 0.5; ctx.fillStyle = th.far;
     for (let k = -1; k < 12; k++) { const x = k * 44 - (p2 % 44); ctx.fillRect(x, 0, 16, GROUND * T); }
@@ -2746,6 +2958,10 @@ function drawBackdrop(th, i) {
     }
     ctx.globalAlpha = 1;
     ctx.fillStyle = 'rgba(30,6,12,.4)'; ctx.fillRect(0, 186, W, 30);
+  } else if (W2BG[th.bg]) {
+    W2BG[th.bg](th, p1, p2, p3);
+    /* below the ground line it is all earth, so a pit looks like a hole, not like sky */
+    ctx.fillStyle = th.ground; ctx.fillRect(-8, 176, W + 16, H - 168); ctx.fillStyle = 'rgba(0,0,0,.45)'; ctx.fillRect(-8, 176, W + 16, H - 168);
   }
   /* soft ground fog */
   const fg = ctx.createLinearGradient(0, GROUND * T - 34, 0, GROUND * T + 6);
@@ -2792,6 +3008,9 @@ function drawAtmosphere(th) {
       ctx.globalAlpha = 0.35 + a.z * 0.4;
       ctx.fillStyle = ['#ff9fc0', '#f6c445', '#fff'][i % 3];
       ctx.fillRect(Math.round(x), Math.round(y), 2, 2);
+    } else if (bg === 'night') {
+      ctx.globalAlpha = (0.3 + a.z * 0.6) * (0.65 + 0.35 * Math.sin(frame / 40 + a.p)); ctx.fillStyle = '#f4f8ff';
+      ctx.fillRect(Math.round(a.x), Math.round(a.y * 0.55), 1, 1);
     } else if (bg === 'outdoor' || bg === 'school' || bg === 'lego') {
       const x = (a.x + Math.sin(frame / 110 + a.p) * 12 + W) % W;
       const y = a.y + Math.sin(frame / 80 + a.p) * 5;
@@ -2805,6 +3024,11 @@ function drawAtmosphere(th) {
       ctx.fillStyle = bg === 'art' ? '#ffd0e8' : '#fff2cf';
       ctx.fillRect(Math.round(x), Math.round(y), 1, 1);
     }
+  }
+  if (bg === 'storm') {   /* prairie rain */
+    ctx.globalAlpha = 0.35; ctx.strokeStyle = '#bcd7ef'; ctx.lineWidth = 1; ctx.beginPath();
+    for (let k = 0; k < (lite ? 30 : 70); k++) { const x = (k * 37 + frame * 5) % (W + 40) - 20, y = (k * 53 + frame * 9) % 200; ctx.moveTo(x, y); ctx.lineTo(x - 3, y + 8); }
+    ctx.stroke();
   }
   ctx.restore();
   ctx.globalAlpha = 1;
@@ -3082,7 +3306,7 @@ function drawPets() {
 }
 function drawHelpers() {
   if (dad) {
-    const img = dad.state !== 'act' && Math.floor(frame / 14) % 2 ? SP.dWalk : SP.dStand;
+    const img = dad.state !== 'act' && Math.floor(frame / 14) % 2 ? (dad.mom ? SP.mWalk : SP.dWalk) : (dad.mom ? SP.mStand : SP.dStand);
     ctx.fillStyle = 'rgba(0,0,0,.20)';
     ctx.beginPath(); ctx.ellipse(Math.round(dad.x - camX) + 6, dad.y + 18, 6, 2, 0, 0, 6.284); ctx.fill();
     const dface = dad.state === 'out' ? -1 : (dad.vac > 0 ? dad.face : 1);
@@ -3277,6 +3501,54 @@ function drawFoe(f) {
       ctx.fillStyle = '#e8364b'; ctx.fillRect(x + 6, y, 2, 2);
       eye(3, 8, 1); eye(8, 8, 1);
       break;
+    case 'gopher':
+      ctx.fillStyle = col;
+      ctx.beginPath(); ctx.ellipse(x + w / 2, y + h - 4, w / 2, 5, 0, 0, 6.284); ctx.fill();
+      ctx.beginPath(); ctx.arc(x + w / 2, y + 4, 4.5, 0, 6.284); ctx.fill();
+      ctx.fillRect(x + 2, y, 2, 2); ctx.fillRect(x + w - 4, y, 2, 2);
+      ctx.fillStyle = '#e8c9a0'; ctx.fillRect(x + w / 2 - 2, y + 5, 5, 3);
+      ctx.fillStyle = '#ffffff'; ctx.fillRect(x + w / 2 - 1, y + 8, 1, 2); ctx.fillRect(x + w / 2 + 1, y + 8, 1, 2);
+      eye(3, 2, 2); eye(w - 5, 2, 2);
+      break;
+    case 'crow': {
+      const flap = Math.floor(frame / 6) % 2;
+      ctx.fillStyle = col; ctx.beginPath(); ctx.ellipse(x + w / 2 + 1, y + h / 2 + 1, 5, 3.5, 0, 0, 6.284); ctx.fill();
+      ctx.beginPath(); ctx.arc(x + 3, y + h / 2 - 1, 2.6, 0, 6.284); ctx.fill();
+      ctx.fillRect(x + w - 3, y + h / 2, 3, 2);
+      ctx.fillStyle = '#4a4552'; ctx.fillRect(x + 4, y + (flap ? 1 : h / 2 + 2), 6, flap ? 4 : 3);
+      ctx.fillStyle = '#f6c445'; ctx.fillRect(x - 1, y + h / 2 - 1, 2, 1);
+      eye(2, Math.floor(h / 2) - 2, 1);
+      break; }
+    case 'tumbleweed': {
+      ctx.save(); ctx.translate(x + w / 2, y + h / 2); ctx.rotate(-f.x / 6);
+      ctx.strokeStyle = col; ctx.lineWidth = 1.2;
+      for (let k = 0; k < 5; k++) { ctx.beginPath(); ctx.arc(Math.cos(k * 1.3) * 1.5, Math.sin(k * 1.3) * 1.5, w / 2 - 2 + (k % 2), k, k + 3.6); ctx.stroke(); }
+      ctx.strokeStyle = '#8a6a3a'; ctx.beginPath(); ctx.arc(0, 0, w / 2 - 0.5, 0, 6.284); ctx.stroke();
+      ctx.restore();
+      eye(3, 5, 1); eye(w - 4, 5, 1);
+      break; }
+    case 'mud': {
+      const wob = Math.sin(frame / 8 + f.x) * 0.8;
+      ctx.fillStyle = col; ctx.beginPath(); ctx.ellipse(x + w / 2, y + h - 4, w / 2 + wob * 0.5, 4.5 - wob * 0.3, 0, 0, 6.284); ctx.fill();
+      ctx.beginPath(); ctx.arc(x + w / 2, y + h - 7, w / 3, 0, 6.284); ctx.fill();
+      ctx.fillStyle = '#8a6440'; ctx.fillRect(x + 3, y + h - 8, 3, 2);
+      ctx.fillStyle = col; ctx.fillRect(x + 1, y + h - 2, 2, 2);
+      eye(3, h - 10, 2); eye(w - 5, h - 10, 2);
+      break; }
+    case 'mosquito': {
+      const buzz = Math.floor(frame / 3) % 2;
+      ctx.fillStyle = 'rgba(220,235,255,.75)'; ctx.fillRect(x + 4, y + 1 + buzz, 3, 4); ctx.fillRect(x + 8, y + 1 + buzz, 3, 4);
+      ctx.fillStyle = col; ctx.fillRect(x + 4, y + 5, 7, 3); ctx.fillRect(x + 9, y + 6, 3, 2);
+      ctx.fillStyle = '#9aa1ab'; ctx.fillRect(x + 6, y + 6, 3, 1);
+      ctx.fillStyle = '#1b1220'; ctx.fillRect(x, y + 6, 4, 1); ctx.fillRect(x + 5, y + 8, 1, 3); ctx.fillRect(x + 8, y + 8, 1, 3);
+      eye(3, 5, 1);
+      break; }
+    case 'cone':
+      ctx.fillStyle = col; ctx.beginPath(); ctx.moveTo(x + w / 2, y); ctx.lineTo(x + w - 2, y + h - 2); ctx.lineTo(x + 2, y + h - 2); ctx.fill();
+      ctx.fillStyle = '#ffffff'; ctx.fillRect(x + 4, y + Math.floor(h / 2), w - 8, 2);
+      ctx.fillStyle = '#3a3f47'; ctx.fillRect(x, y + h - 2, w, 2);
+      eye(Math.floor(w / 2) - 2, Math.floor(h / 3), 1); eye(Math.floor(w / 2) + 1, Math.floor(h / 3), 1);
+      break;
     case 'neighbor':
       ctx.drawImage(SP.nStand, x - 1, y - 5);
       break;
@@ -3369,7 +3641,11 @@ function drawBoss(b) {
       }
       ctx.fillStyle = '#4a4f57'; ctx.fillRect(sx + b.w / 2 + dir * 10, sy + 10, dir * 6, 4);
     }
-  } else if (b.kind === 'bully') {
+  } else if (b.kind === 'moose') drawMoose(b, sx, sy);
+  else if (b.kind === 'foreman') drawForeman(b, sx, sy);
+  else if (b.kind === 'pumpjack') drawPumpjack(b, sx, sy);
+  else if (b.kind === 'dadboss') drawDadBoss(b, sx, sy);
+  else if (b.kind === 'bully') {
     const walking = Math.abs(b.vx) > 0.2 && b.onGround;
     drawBig(walking && Math.floor(frame / 12) % 2 ? SP.bWalk : SP.bStand, sx + b.w / 2, sy + b.h, b.face, 1.45);
     if (b.state === 'dizzy') {
@@ -3430,6 +3706,20 @@ function drawShots() {
       ctx.fillStyle = '#ff5d7a';
       ctx.beginPath(); ctx.arc(sx + 2, sy + 2, 2.5, 0, 6.284); ctx.arc(sx + 6, sy + 2, 2.5, 0, 6.284); ctx.fill();
       ctx.beginPath(); ctx.moveTo(sx, sy + 3); ctx.lineTo(sx + 4, sy + 8); ctx.lineTo(sx + 8, sy + 3); ctx.fill();
+    } else if (s.kind === 'hardhat') {
+      ctx.fillStyle = '#f6c445'; ctx.beginPath(); ctx.arc(sx + 4, sy + 5, 4, Math.PI, 0); ctx.fill(); ctx.fillRect(sx - 1, sy + 5, 10, 2);
+      ctx.fillStyle = '#c99a1e'; ctx.fillRect(sx + 3, sy + 1, 2, 4);
+    } else if (s.kind === 'pipe') {
+      ctx.fillStyle = '#9aa1ab'; ctx.fillRect(sx, sy + 1, 9, 5); ctx.fillStyle = '#6d7480'; ctx.fillRect(sx, sy, 2, 7); ctx.fillRect(sx + 7, sy, 2, 7);
+      ctx.fillStyle = 'rgba(255,255,255,.5)'; ctx.fillRect(sx + 2, sy + 2, 5, 1);
+    } else if (s.kind === 'mudball') {
+      ctx.fillStyle = '#6b4a2a'; ctx.beginPath(); ctx.arc(sx + 4, sy + 4, 4.5, 0, 6.284); ctx.fill();
+      ctx.fillStyle = '#8a6440'; ctx.fillRect(sx + 2, sy + 2, 2, 2);
+    } else if (s.kind === 'water') {
+      glowDisc(sx + 3, sy + 3, 7, 'rgba(120,190,255,.6)', 0.6);
+      ctx.fillStyle = '#6fc8ff'; ctx.beginPath(); ctx.arc(sx + 3, sy + 4, 3, 0, 6.284); ctx.fill();
+      ctx.beginPath(); ctx.moveTo(sx, sy + 3); ctx.lineTo(sx + 3, sy - 2); ctx.lineTo(sx + 6, sy + 3); ctx.fill();
+      ctx.fillStyle = 'rgba(255,255,255,.8)'; ctx.fillRect(sx + 2, sy + 2, 1, 2);
     } else if (s.kind === 'burger') {
       ctx.font = '11px "Segoe UI Emoji",sans-serif'; ctx.textAlign = 'center';
       ctx.fillText('🍔', sx + 5, sy + 8);
@@ -3530,6 +3820,7 @@ function draw() {
   }
   drawTiles(th);
   drawProps(th);
+  drawGoal();
   for (const f of foes) drawFoe(f);
   for (const b of bosses) drawBoss(b);
   drawHelpers();
@@ -3710,7 +4001,7 @@ function exitPuzzle() {
   puzzle = null;
   pets.cats.forEach((c, k) => { c.x = P.x - 18 - k * 16; c.y = P.y + 7; });
   pets.dogs.forEach((d, k) => { d.x = P.x - 80 - k * 20; d.y = P.y + 6; });
-  el.stageLbl.textContent = 'STAGE ' + (L.i + 1) + ' / 11 · ' + LV[L.i].place.toUpperCase();
+  el.stageLbl.textContent = stageLabel(L.i);
 }
 function solvePuzzle(pz) {
   pz.solved = true;
@@ -3830,6 +4121,388 @@ function drawPuzzle() {
   drawParticles();
   ctx.restore();
   drawVignette();
+}
+/* ============================================================
+   WORLDS — World 1 is the birthday at home. More worlds open one at a
+   time with a secret reward code from a grown-up, once the world before
+   is beaten. The codes themselves are not in this file, only salted
+   fingerprints of them. Opened worlds stay open.
+   ============================================================ */
+const WORLDS = [
+  { n: 1, name: 'Kinan vs. Mom', where: 'the birthday, at home in Saskatoon', from: 0, to: 10 },
+  { n: 2, name: 'Kinan vs. Dad', where: "Dad's oilfield job site", from: 11, to: 20 }
+];
+for (let n = 3; n <= 11; n++) WORLDS.push({ n: n, name: 'World ' + n, where: 'being built', from: -1, to: -1, soon: true });
+const CODE_SALT = '38c60e5665866a0e';
+const CODE_HASH = {'2': '9ad410626f9342abc9682aec5aa5e01d6092ccb2d00b216ca8e8e56f191acbdb', '3': '2cc4446b83762f35763d948917db7518994a710291fd78f559ffb370bb1fdf09', '4': 'cd961045d7d2a30a4e590a3f2998e9b52f7931c3822b33e4d56567ef6e4a8fae', '5': '26bb21be1bec703f8ac1e2cd2b273bcadfa35c2aadbe708b84c32be340d10dba', '6': '8a20c57f7f6150912709d8a4d745f4330114d60a01deacc4268bf201f777f6f9', '7': '99f2c87e392edb24489bcecc48a065cf857a70f7a7412410f00c1f72b0babbb2', '8': '42650263170026ab707abd47791545eb75ab75d832f45d42a3542b10db757560', '9': '8ca4b0034588262258e6209e44e9f3e5a7d6ec5cc581c01eac7d04f42c5c8512', '10': 'e91ae5fd91428cd7c323dd3481612276a7a26113fc9b5e128dec8cbb8da042bf', '11': 'e69c5eeadaa728ec6e6c67b9ec066aac7babfc18030d0f6e7b05291d67e0d282'};
+const worldOf = (i) => (i > 10 ? 2 : 1);
+const worldInfo = (i) => WORLDS[worldOf(i) - 1];
+function worldBeaten(n) { return n === 1 ? !!progress.won : (progress.wonWorlds || []).indexOf(n) >= 0; }
+function worldOpen(n) {
+  const w = WORLDS[n - 1];
+  if (!w || w.soon) return false;
+  return n === 1 || ((progress.codes || []).indexOf(n) >= 0 && worldBeaten(n - 1));
+}
+function stageOpen(i) { return !!LV[i] && i < progress.unlocked && worldOpen(worldOf(i)); }
+/* a world that just opened: its first stage is ready to play */
+function refreshWorlds() { WORLDS.forEach((w) => { if (w.n > 1 && worldOpen(w.n)) progress.unlocked = Math.max(progress.unlocked, w.from + 1); }); }
+function stageNum(i) { return i - worldInfo(i).from + 1; }
+function stageName(i) { return (worldOf(i) > 1 ? 'World ' + worldOf(i) + ' · ' : '') + 'Stage ' + stageNum(i); }
+function stageLabel(i) { const w = worldInfo(i); return (w.n > 1 ? 'WORLD ' + w.n + ' · ' : '') + 'STAGE ' + stageNum(i) + ' / ' + (w.to - w.from + 1) + ' · ' + LV[i].place.toUpperCase(); }
+/* how hard a stage is: World 2 starts a bit harder than the end of World 1 and climbs gently */
+const stageDiff = (i) => (i <= 10 ? i : 8 + (i - 11) * 0.4);
+/* the next stage to play: the first open stage not beaten yet, in the newest open world */
+function nextStage() {
+  for (let n = WORLDS.length; n >= 1; n--) {
+    if (!worldOpen(n)) continue;
+    const w = WORLDS[n - 1];
+    for (let i = w.from; i <= w.to; i++) if (stageOpen(i) && progress.beaten.indexOf(i) < 0) return i;
+    if (n > 1) return w.to;
+  }
+  return Math.min(10, Math.max(0, progress.unlocked - 1));
+}
+async function codeWorld(text) {
+  const norm = String(text || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+  if (norm.length < 4) return 0;
+  if (!(window.crypto && crypto.subtle && window.TextEncoder)) return -1;
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(CODE_SALT + norm));
+  const hex = Array.from(new Uint8Array(buf)).map((b) => (b < 16 ? '0' : '') + b.toString(16)).join('');
+  for (const n in CODE_HASH) if (CODE_HASH[n] === hex) return Number(n);
+  return 0;
+}
+async function useCode(text) {
+  const n = await codeWorld(text);
+  if (n < 0) return { ok: false, msg: 'Reward codes need the game\'s web address. Open the game from its link and try again.' };
+  if (!n) return { ok: false, msg: 'Hmm, that is not a reward code. Check the spelling with a grown-up.' };
+  progress.codes = progress.codes || [];
+  const already = progress.codes.indexOf(n) >= 0;
+  if (!already) progress.codes.push(n);
+  refreshWorlds(); save();
+  const w = WORLDS[n - 1];
+  if (w.soon) return { ok: true, n: n, msg: '🎁 Code saved for <b>World ' + n + '</b>! It is still being built, and it opens as soon as it arrives in an update.' };
+  if (worldOpen(n)) return { ok: true, n: n, opened: true, msg: (already ? 'That code is already in. ' : '') + '🎉 <b>World ' + n + ': ' + w.name + '</b> is OPEN! Find it on the stage map.' };
+  return { ok: true, n: n, msg: '🎁 Code accepted for <b>World ' + n + ': ' + w.name + '</b>! It opens as soon as you beat World ' + (n - 1) + '.' };
+}
+function worldStatus(w) {
+  if (w.n === 1) return worldBeaten(1) ? '✅ beaten' : '✅ open';
+  const coded = (progress.codes || []).indexOf(w.n) >= 0;
+  if (w.soon) return coded ? '🎁 code saved · being built' : '🔒 being built';
+  if (worldOpen(w.n)) return worldBeaten(w.n) ? '✅ beaten' : '✅ open';
+  if (coded) return '🎁 code in · beat World ' + (w.n - 1) + ' to open it';
+  return '🔒 needs a reward code' + (worldBeaten(w.n - 1) ? '' : ' (and World ' + (w.n - 1) + ' beaten)');
+}
+function codeScreen(back) {
+  Music.play('title');
+  showScreen(
+    '<p class="eyebrow">Reward codes · a grown-up gives these out</p>' +
+    '<h1 class="title"><span class="t2">Got a reward code?</span></h1>' +
+    '<p class="lede">When you have been awesome, a grown-up can give you a secret code. Type it here, and the next world opens once you have beaten the world before it. Worlds stay open for good.</p>' +
+    '<div class="btnrow"><input class="codein wide" id="rcode" maxlength="24" autocapitalize="characters" autocomplete="off" spellcheck="false" placeholder="WORD-1234" aria-label="Reward code"><button class="btn go" id="rcodeGo" type="button">Unlock</button></div>' +
+    '<p class="wrapnote" id="rcodeMsg" aria-live="polite"></p>' +
+    '<ul class="credits" id="worldList">' + WORLDS.slice(0, 4).map((w) => '<li><b>World ' + w.n + '</b>' + (w.soon ? '' : ' · ' + escAttr(w.name)) + ' · ' + worldStatus(w) + '</li>').join('') +
+    '<li>Worlds 5 to 11 · being built</li></ul>' +
+    '<div class="btnrow"><button class="btn" id="rcodeBack" type="button">Back</button></div>'
+  );
+  const go = async () => {
+    const r = await useCode($('#rcode').value);
+    $('#rcodeMsg').innerHTML = r.msg;
+    $('#rcodeMsg').style.color = r.ok ? '' : '#ff6b6b';
+    if (r.ok) { SFX.power(); if (r.opened) confetti(); $('#rcode').value = ''; }
+    else SFX.click();
+    $('#worldList').innerHTML = WORLDS.slice(0, 4).map((w) => '<li><b>World ' + w.n + '</b>' + (w.soon ? '' : ' · ' + escAttr(w.name)) + ' · ' + worldStatus(w) + '</li>').join('') + '<li>Worlds 5 to 11 · being built</li>';
+  };
+  $('#rcodeGo').addEventListener('click', () => { AudioSys.init(); go(); });
+  $('#rcode').addEventListener('keydown', (e) => { if (e.key === 'Enter') go(); });
+  $('#rcodeBack').addEventListener('click', () => { SFX.click(); if (back === 'map') mapScreen(); else titleScreen(); });
+}
+/* a stage with no boss ends at Dad's truck */
+async function goalReached() {
+  boss = 'done';
+  paused = true;
+  shots = []; blasts = []; allyShots = [];
+  SFX.flag();
+  sparks(P.x + 5, P.y, 16, ['#f6c445', '#fff', '#ff6fae']);
+  const i = L.i;
+  await story(LV[i].win, 'd', 'h');
+  firstClear = !progress.beaten.includes(i);
+  if (firstClear) progress.beaten.push(i);
+  progress.unlocked = Math.max(progress.unlocked, i + 2);
+  save();
+  resultsScreen(i);
+}
+function drawGoal() {
+  if (!L || LV[L.i].boss || L.room) return;
+  const gx = (L.arenaX + 6) * T - camX, gy = GROUND * T;
+  if (gx < -200 || gx > W + 40) return;
+  /* Dad's hydro vac truck, parked, and a checkered flag */
+  const rs = kartRideSprites('dad'), img = rs.frames[4], sc = 0.62;
+  ctx.drawImage(img, Math.round(gx + 40 - rs.ax * sc), Math.round(gy - rs.ay * sc + 2), Math.round(rs.cw * sc), Math.round(rs.ch * sc));
+  ctx.fillStyle = '#d9d4e3'; ctx.fillRect(Math.round(gx), gy - 54, 2, 54);
+  const wave = Math.round(Math.sin(frame / 9) * 2);
+  for (let r = 0; r < 3; r++) for (let c = 0; c < 4; c++) { ctx.fillStyle = (r + c) % 2 ? '#1b1220' : '#ffffff'; ctx.fillRect(Math.round(gx) + 2 + c * 4, gy - 54 + r * 4 + (c % 2 ? wave : 0), 4, 4); }
+}
+function ending2() {
+  progress.wonWorlds = progress.wonWorlds || [];
+  if (progress.wonWorlds.indexOf(2) < 0) progress.wonWorlds.push(2);
+  const i = L.i;
+  if (progress.beaten.indexOf(i) < 0) progress.beaten.push(i);
+  progress.stars[i] = Math.max(3, progress.stars[i] || 0);
+  progress.bestScore[i] = Math.max(progress.bestScore[i] || 0, score);
+  progress.bestTime = progress.bestTime || {};
+  if (!progress.bestTime[i] || stageTime < progress.bestTime[i]) progress.bestTime[i] = stageTime;
+  progress.totalCandles = (progress.totalCandles || 0) + got;
+  progress.wallet = (progress.wallet || 0) + got;
+  delete progress.resume;
+  refreshWorlds();
+  save();
+  Music.play('title');
+  let stars = 0, gold = 0;
+  for (let k = 11; k <= 20; k++) { stars += progress.stars[k] || 0; gold += goldCount(k); }
+  showScreen(
+    '<p class="eyebrow">World 2 clear · Kinan vs. Dad · Dad\'s oilfield job site</p>' +
+    '<h1 class="title"><span class="t2">Best day ever,</span><span class="t1">Kinan!</span></h1>' +
+    '<div class="cast"><figure class="hero">' + imgOf(SP.kJump, 5) + '<figcaption><b>Kinan</b><br>LV 11</figcaption></figure>' +
+    '<figure>' + imgOf(SP.dStand, 4) + '<figcaption>Hydro Vac Dad</figcaption></figure>' +
+    '<figure>' + imgOf(kartCard('dad'), 1) + '<figcaption>Dad\'s truck</figcaption></figure></div>' +
+    '<p class="lede">You outran the gophers, survived camp breakfast, out-stubborned a moose, passed the safety briefing, made Pumpjack Pete smile, waited out a prairie storm (mostly) and beat <b>Hydro Vac Dad</b> at his own rig.</p>' +
+    '<p class="lede"><b>DAD:</b> Okay, okay. You win, bud. You know what? I\'m proud of you. I miss you every single day I\'m out here. Let\'s go home.</p>' +
+    '<p class="lede">Two hours later, the truck pulls into the driveway in Saskatoon. Mom left the porch light on. 💛</p>' +
+    '<p class="wrapnote">🕯 Golden candles in World 2: <b>' + gold + '</b> / 30 · ⭐ ' + stars + ' / 30 stars</p>' +
+    '<p class="wrapnote">🎁 <b>World 3</b> is being built. Keep being awesome: a grown-up has the next reward code.</p>' +
+    '<ul class="credits">' +
+    '<li><b>Kinan</b> as The Hero (hard hat on, mostly)</li>' +
+    '<li><b>Dad Robin</b> as Hydro Vac Dad (hydro vac operator, out of town, misses home)</li>' +
+    '<li><b>The Big Bull Moose</b>, <b>the Safety Foreman</b> and <b>Pumpjack Pete</b> as themselves</li>' +
+    '<li><b>Mom</b>, <b>Chenoa</b> and <b>Big Bro Shad</b> as the family group chat</li>' +
+    '</ul>' +
+    '<div class="btnrow"><button class="btn go" type="button" id="mapBtn">Stage map</button>' +
+    '<button class="btn" type="button" id="titleBtn">Title screen</button>' +
+    '<button class="btn ghost" type="button" id="againBtn">Play the rig again</button></div>'
+  );
+  el.stageLbl.textContent = 'KINAN · LV 11';
+  $('#mapBtn').addEventListener('click', () => { SFX.click(); mapScreen(); });
+  $('#titleBtn').addEventListener('click', () => { SFX.click(); titleScreen(); });
+  $('#againBtn').addEventListener('click', () => { SFX.click(); playStage(20); });
+  SFX.win();
+  confetti();
+}
+/* ---- World 2 backgrounds: the prairie, the work camp, the oilfield, the truck yard, the dig, a storm, the night shift ---- */
+const W2BG = {
+  prairie(th, p1, p2, p3) {
+    if (th.overcast) {
+      ctx.fillStyle = 'rgba(120,130,150,.55)';
+      for (let k = -1; k < 5; k++) { const x = k * 130 - (p1 % 130); ctx.beginPath(); ctx.ellipse(x + 40, 46 + (k % 2) * 14, 70, 16, 0, 0, 6.284); ctx.fill(); }
+    } else {
+      glowDisc(320 - (p1 % 640), 124, 70, 'rgba(255,190,110,.8)', 0.85);
+      ctx.fillStyle = '#ffd48a'; ctx.beginPath(); ctx.arc(320 - (p1 % 640), 128, 18, Math.PI, 0); ctx.fill();
+    }
+    ctx.fillStyle = th.far; ctx.fillRect(0, 128, W, 60);
+    for (let k = -1; k < 3; k++) {   /* grain elevators on the horizon */
+      const x = k * 300 - (p1 % 300) + 80;
+      ctx.fillRect(x, 92, 20, 40); ctx.beginPath(); ctx.moveTo(x - 2, 93); ctx.lineTo(x + 10, 80); ctx.lineTo(x + 22, 93); ctx.fill();
+      ctx.fillRect(x + 20, 112, 26, 20); ctx.fillRect(x + 6, 74, 8, 8);
+    }
+    ctx.strokeStyle = 'rgba(30,20,30,.55)'; ctx.lineWidth = 1;
+    for (let k = -1; k < 7; k++) {   /* power poles and their wires */
+      const x = k * 90 - (p2 % 90);
+      ctx.beginPath(); ctx.moveTo(x, 112); ctx.lineTo(x, 150); ctx.moveTo(x - 6, 116); ctx.lineTo(x + 6, 116); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(x, 116); ctx.quadraticCurveTo(x + 45, 126, x + 90, 116); ctx.stroke();
+    }
+    ctx.fillStyle = th.mid;
+    ctx.beginPath(); ctx.moveTo(-40, 200);
+    for (let x = -40; x <= W + 40; x += 8) ctx.lineTo(x, 150 + Math.sin((x + p2) / 70) * 6);
+    ctx.lineTo(W + 40, 200); ctx.fill();
+    ctx.fillStyle = 'rgba(255,220,140,.18)';
+    for (let k = 0; k < 6; k++) ctx.fillRect(0, 156 + k * 4, W, 1);   /* rows in the field */
+    ctx.fillStyle = 'rgba(60,40,30,.6)';
+    for (let k = -1; k < 11; k++) { const x = k * 46 - (p3 % 46); ctx.fillRect(x, 160, 3, 16); ctx.fillRect(x - 20, 165, 46, 1); }
+  },
+  camp(th, p1, p2, p3) {
+    ctx.fillStyle = th.far;   /* the spruce tree line */
+    ctx.beginPath(); ctx.moveTo(-20, 150);
+    for (let x = -20; x <= W + 20; x += 10) { const ox = x + (p1 % 10); ctx.lineTo(x, 112 + ((Math.floor((ox + p1) / 10) * 37) % 17)); ctx.lineTo(x + 5, 130); }
+    ctx.lineTo(W + 20, 150); ctx.fill();
+    for (let k = -1; k < 4; k++) {   /* the trailers */
+      const x = k * 170 - (p2 % 170);
+      ctx.fillStyle = '#e3e6ea'; ctx.fillRect(x, 128, 130, 30);
+      ctx.fillStyle = '#c3c8cf'; ctx.fillRect(x, 126, 130, 4);
+      for (let w = 0; w < 6; w++) { ctx.fillStyle = '#7fa8cf'; ctx.fillRect(x + 8 + w * 20, 136, 10, 8); }
+      ctx.fillStyle = '#8a6a48'; ctx.fillRect(x + 54, 152, 14, 6);
+      ctx.fillStyle = th.mid; ctx.fillRect(x + 140, 96, 3, 62);   /* a light tower */
+      ctx.fillStyle = '#f4f1e8'; ctx.fillRect(x + 134, 92, 15, 6);
+    }
+    ctx.fillStyle = 'rgba(70,45,25,.5)';
+    for (let k = -1; k < 8; k++) { const x = k * 70 - (p3 % 70); ctx.beginPath(); ctx.ellipse(x + 30, 172, 26, 4, 0, 0, 6.284); ctx.fill(); }
+  },
+  oilfield(th, p1, p2, p3) {
+    ctx.fillStyle = th.far; ctx.fillRect(0, 134, W, 60);
+    for (let k = -1; k < 3; k++) {   /* storage tanks and the flare stack */
+      const x = k * 260 - (p1 % 260) + 40;
+      ctx.fillRect(x, 110, 34, 26); ctx.beginPath(); ctx.ellipse(x + 17, 110, 17, 4, 0, 0, 6.284); ctx.fill();
+      ctx.fillRect(x + 40, 116, 26, 20); ctx.beginPath(); ctx.ellipse(x + 53, 116, 13, 3, 0, 0, 6.284); ctx.fill();
+      ctx.fillRect(x + 110, 70, 4, 66);
+      const fl = 3 + Math.sin(frame / 5 + k) * 1.5;
+      glowDisc(x + 112, 66, 10, 'rgba(255,170,60,.8)', 0.8);
+      ctx.fillStyle = '#ffb02e'; ctx.beginPath(); ctx.ellipse(x + 112, 66, fl, fl * 1.6, 0, 0, 6.284); ctx.fill();
+      ctx.fillStyle = th.far;
+    }
+    ctx.fillStyle = th.mid;
+    if (th.pipes) {   /* pipe racks */
+      for (let k = -1; k < 5; k++) {
+        const x = k * 120 - (p2 % 120);
+        ctx.fillRect(x, 128, 4, 34); ctx.fillRect(x + 60, 128, 4, 34);
+        ctx.fillStyle = '#9aa1ab'; ctx.fillRect(x - 10, 130, 140, 5); ctx.fillStyle = '#c8a24a'; ctx.fillRect(x - 10, 140, 140, 4); ctx.fillStyle = '#d8342c'; ctx.fillRect(x - 10, 148, 140, 3);
+        ctx.fillStyle = th.mid;
+      }
+    } else {
+      for (let k = -1; k < 4; k++) {   /* pumpjacks, nodding */
+        const x = k * 150 - (p2 % 150) + 30, rock = Math.sin(frame / 22 + k * 1.7) * 0.3;
+        ctx.fillRect(x + 18, 136, 4, 26); ctx.fillRect(x + 8, 158, 26, 4);
+        ctx.save(); ctx.translate(x + 20, 136); ctx.rotate(rock);
+        ctx.fillRect(-22, -2, 44, 4); ctx.fillRect(-26, -6, 7, 12); ctx.fillRect(18, -3, 6, 8);
+        ctx.restore();
+        ctx.fillRect(x - 6 + Math.round(rock * 6), 140, 2, 22);
+      }
+    }
+    ctx.fillStyle = 'rgba(60,64,72,.6)';
+    for (let k = -1; k < 6; k++) { const x = k * 90 - (p3 % 90); ctx.fillRect(x, 168, 80, 4); ctx.fillRect(x + 76, 164, 6, 12); }
+  },
+  truckyard(th, p1, p2, p3) {
+    ctx.fillStyle = th.far;   /* the shop */
+    for (let k = -1; k < 2; k++) {
+      const x = k * 420 - (p1 % 420) + 40;
+      ctx.fillRect(x, 92, 230, 70); ctx.fillStyle = '#c3c8cf'; ctx.fillRect(x - 6, 86, 242, 8);
+      for (let d = 0; d < 3; d++) { ctx.fillStyle = '#6d7480'; ctx.fillRect(x + 16 + d * 72, 110, 50, 52); ctx.fillStyle = 'rgba(255,255,255,.15)'; for (let s = 0; s < 6; s++) ctx.fillRect(x + 16 + d * 72, 112 + s * 8, 50, 1); }
+      ctx.fillStyle = '#d8342c'; ctx.fillRect(x + 80, 96, 70, 10); ctx.fillStyle = '#f4f1e8'; ctx.font = 'bold 8px monospace'; ctx.textAlign = 'center'; ctx.fillText('SHOP', x + 115, 104);
+      ctx.fillStyle = th.far;
+    }
+    const cols = [['#d8342c', '#f2c230'], ['#f3f3f0', '#2f5fb3'], ['#ff8a3d', '#9aa1ab']];
+    for (let k = -1; k < 4; k++) {   /* hydro vac trucks parked in a row */
+      const x = k * 150 - (p2 % 150) + 10, c = cols[((k % 3) + 3) % 3];
+      ctx.fillStyle = '#24252b'; ctx.fillRect(x + 4, 160, 96, 4);
+      ctx.fillStyle = c[1]; ctx.beginPath(); ctx.ellipse(x + 40, 146, 34, 14, 0, 0, 6.284); ctx.fill();
+      ctx.fillStyle = c[0]; ctx.fillRect(x + 78, 134, 24, 26);
+      ctx.fillStyle = '#1e2a40'; ctx.fillRect(x + 88, 138, 12, 8);
+      ctx.fillStyle = '#24252b'; for (const wx of [x + 16, x + 34, x + 90]) { ctx.beginPath(); ctx.arc(wx, 164, 6, 0, 6.284); ctx.fill(); }
+      ctx.fillStyle = '#8f95a0'; ctx.fillRect(x + 20, 128, 54, 4);
+    }
+    ctx.fillStyle = 'rgba(120,124,132,.55)';
+    for (let k = -1; k < 7; k++) { const x = k * 80 - (p3 % 80); ctx.beginPath(); ctx.moveTo(x, 176); ctx.lineTo(x + 20, 164); ctx.lineTo(x + 44, 176); ctx.fill(); }
+  },
+  dig(th, p1, p2, p3) {
+    ctx.fillStyle = th.far; ctx.fillRect(0, 128, W, 60);
+    for (let k = -1; k < 3; k++) {   /* a distant pumpjack */
+      const x = k * 330 - (p1 % 330) + 200, rock = Math.sin(frame / 22 + k) * 0.3;
+      ctx.fillRect(x, 108, 3, 22); ctx.save(); ctx.translate(x + 1, 108); ctx.rotate(rock); ctx.fillRect(-16, -2, 32, 3); ctx.fillRect(-19, -5, 5, 9); ctx.restore();
+    }
+    ctx.fillStyle = th.mid;
+    for (let k = -1; k < 3; k++) {   /* the excavator and its dirt piles */
+      const x = k * 260 - (p2 % 260) + 60, arm = Math.sin(frame / 40 + k) * 0.15;
+      ctx.fillStyle = '#3a3f47'; ctx.fillRect(x, 150, 60, 10);
+      ctx.fillStyle = '#f2c230'; ctx.fillRect(x + 6, 128, 40, 22); ctx.fillStyle = '#1e2a40'; ctx.fillRect(x + 28, 132, 14, 9);
+      ctx.save(); ctx.translate(x + 46, 132); ctx.rotate(-0.5 + arm); ctx.fillStyle = '#e0b02a'; ctx.fillRect(0, -3, 44, 6); ctx.translate(44, 0); ctx.rotate(1.3 - arm * 2); ctx.fillRect(0, -2, 30, 5); ctx.fillStyle = '#3a3f47'; ctx.fillRect(26, -2, 9, 10); ctx.restore();
+      ctx.fillStyle = th.mid; ctx.beginPath(); ctx.moveTo(x + 120, 176); ctx.lineTo(x + 160, 138); ctx.lineTo(x + 210, 176); ctx.fill();
+    }
+    for (let k = 0; k < 4; k++) { ctx.fillStyle = k % 2 ? 'rgba(90,55,30,.45)' : 'rgba(120,80,45,.45)'; ctx.fillRect(0, 160 + k * 4, W, 4); }
+  },
+  storm(th, p1, p2, p3) {
+    for (let k = -1; k < 6; k++) {   /* rolling clouds */
+      const x = ((k * 120 - (p1 % 120) - frame * 0.3) % (W + 240)) + 120;
+      ctx.fillStyle = 'rgba(30,36,48,.75)'; ctx.beginPath(); ctx.ellipse(x, 40 + (k % 3) * 14, 80, 22, 0, 0, 6.284); ctx.fill();
+      ctx.fillStyle = 'rgba(70,80,96,.5)'; ctx.beginPath(); ctx.ellipse(x - 20, 34 + (k % 3) * 14, 50, 12, 0, 0, 6.284); ctx.fill();
+    }
+    ctx.fillStyle = th.far; ctx.fillRect(0, 132, W, 60);
+    for (let k = -1; k < 3; k++) { const x = k * 300 - (p1 % 300) + 120; ctx.fillRect(x, 98, 18, 36); ctx.beginPath(); ctx.moveTo(x - 2, 99); ctx.lineTo(x + 9, 86); ctx.lineTo(x + 20, 99); ctx.fill(); }
+    ctx.strokeStyle = th.mid; ctx.lineWidth = 2;
+    for (let k = -1; k < 30; k++) { const x = k * 16 - (p2 % 16), lean = Math.sin(frame / 14 + k) * 3 + 6; ctx.beginPath(); ctx.moveTo(x, 176); ctx.lineTo(x + lean, 156 + (k % 3) * 3); ctx.stroke(); }
+  },
+  night(th, p1, p2, p3) {
+    ctx.fillStyle = '#f4f1e8'; ctx.beginPath(); ctx.arc(360 - (p1 % 700), 40, 12, 0, 6.284); ctx.fill();
+    ctx.fillStyle = th.sky[0]; ctx.beginPath(); ctx.arc(355 - (p1 % 700), 37, 11, 0, 6.284); ctx.fill();
+    ctx.fillStyle = th.far; ctx.fillRect(0, 134, W, 60);
+    const rigs = th.rig ? 1 : 2;
+    for (let k = -1; k < rigs + 1; k++) {   /* the drilling rig: a lattice tower full of lights */
+      const x = k * (th.rig ? 520 : 300) - (p1 % (th.rig ? 520 : 300)) + 150, top = th.rig ? 30 : 70;
+      ctx.strokeStyle = '#3a3560'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(x - 22, 136); ctx.lineTo(x - 3, top); ctx.lineTo(x + 3, top); ctx.lineTo(x + 22, 136); ctx.stroke();
+      ctx.lineWidth = 1;
+      for (let y = top + 10; y < 136; y += 12) { const hw = 3 + (y - top) * 0.19; ctx.beginPath(); ctx.moveTo(x - hw, y); ctx.lineTo(x + hw, y + 12); ctx.moveTo(x + hw, y); ctx.lineTo(x - hw, y + 12); ctx.stroke(); }
+      for (let y = top + 6; y < 136; y += 9) { ctx.fillStyle = (Math.floor(frame / 20) + y) % 3 ? '#f6c445' : '#fff3b0'; ctx.fillRect(x - 1 - (y - top) * 0.17, y, 2, 2); ctx.fillRect(x - 1 + (y - top) * 0.17, y, 2, 2); }
+      if (Math.floor(frame / 30) % 2) { glowDisc(x, top - 3, 8, 'rgba(255,60,60,.9)', 0.9); }
+      ctx.fillStyle = '#ff3b3b'; ctx.fillRect(x - 1, top - 4, 3, 3);
+    }
+    for (let k = -1; k < 4; k++) {   /* light towers and lit trailer windows */
+      const x = k * 160 - (p2 % 160) + 40;
+      ctx.fillStyle = th.mid; ctx.fillRect(x, 104, 3, 60); ctx.fillRect(x + 30, 140, 90, 22);
+      ctx.fillStyle = 'rgba(255,240,170,.10)'; ctx.beginPath(); ctx.moveTo(x - 4, 106); ctx.lineTo(x + 8, 106); ctx.lineTo(x + 40, 176); ctx.lineTo(x - 36, 176); ctx.fill();
+      ctx.fillStyle = '#fff3b0'; ctx.fillRect(x - 5, 100, 13, 5);
+      for (let w = 0; w < 4; w++) { ctx.fillStyle = (w + k) % 3 ? '#f6c445' : '#3a3560'; ctx.fillRect(x + 36 + w * 20, 146, 9, 7); }
+    }
+    ctx.fillStyle = 'rgba(30,30,50,.7)';
+    for (let k = -1; k < 6; k++) { const x = k * 90 - (p3 % 90); ctx.fillRect(x, 168, 80, 4); }
+  }
+};
+/* ---- World 2 bosses ---- */
+function drawMoose(b, sx, sy) {
+  ctx.save();
+  ctx.translate(sx + b.w / 2, sy);
+  ctx.scale(b.face > 0 ? -1.36 : 1.36, 1.36);   /* drawn at 26 x 24, shown big: a real moose towers over a kid */
+  const x = -13, y = 0, step = Math.abs(b.vx) > 0.2 ? Math.floor(frame / 6) % 2 : 0;
+  const body = '#5a3a24', dark = '#3b2618', light = '#7a5236', ant = '#d8c49a';
+  ctx.fillStyle = dark;
+  ctx.fillRect(x + 8, y + 16, 3, 8 - step); ctx.fillRect(x + 12, y + 16, 3, 8); ctx.fillRect(x + 19, y + 16, 3, 7 + step); ctx.fillRect(x + 23, y + 16, 3, 8);
+  ctx.fillStyle = body; ctx.fillRect(x + 7, y + 8, 20, 10);
+  ctx.fillStyle = light; ctx.fillRect(x + 7, y + 8, 20, 2);
+  ctx.fillStyle = dark; ctx.fillRect(x + 11, y + 6, 6, 4);
+  ctx.fillStyle = body; ctx.fillRect(x + 1, y + 8, 8, 6); ctx.fillRect(x - 1, y + 10, 4, 5);
+  ctx.fillStyle = dark; ctx.fillRect(x + 3, y + 14, 3, 4);
+  ctx.fillStyle = '#1b1220'; ctx.fillRect(x + 3, y + 9, 2, 2); ctx.fillRect(x - 1, y + 12, 1, 1);
+  ctx.fillStyle = ant;
+  ctx.fillRect(x + 1, y + 4, 4, 3); ctx.fillRect(x + 6, y + 4, 4, 3); ctx.fillRect(x, y + 1, 2, 3); ctx.fillRect(x + 3, y, 2, 4); ctx.fillRect(x + 7, y, 2, 4); ctx.fillRect(x + 10, y + 1, 2, 3);
+  if (b.state === 'windup') { ctx.fillStyle = 'rgba(255,255,255,.75)'; ctx.fillRect(x - 4, y + 11, 3, 1); ctx.fillRect(x - 5, y + 13, 3, 1); }
+  ctx.restore();
+  ctx.textAlign = 'center';
+  if (b.state === 'dizzy') { ctx.font = '10px sans-serif'; ctx.fillText('💫', Math.round(sx + b.w / 2 + Math.sin(frame / 30) * 3), sy - 6); }
+  else if (b.state === 'windup') { ctx.fillStyle = '#ff6b6b'; ctx.font = 'bold 11px monospace'; ctx.fillText('!', Math.round(sx + b.w / 2), sy - 6); }
+}
+function drawPumpjack(b, sx, sy) {
+  const x = sx, y = sy, rock = Math.sin(frame / 16) * 0.28, f = b.face < 0 ? -1 : 1;
+  ctx.fillStyle = '#4a4f57'; ctx.fillRect(x, y + 30, 28, 4);
+  ctx.fillStyle = '#6d7480'; ctx.fillRect(x + 12, y + 12, 4, 18); ctx.fillRect(x + 8, y + 26, 12, 4);
+  ctx.fillStyle = '#5a6170'; ctx.fillRect(f < 0 ? x + 20 : x + 1, y + 22, 7, 8);
+  ctx.save(); ctx.translate(x + 14, y + 12); ctx.rotate(rock * f);
+  ctx.fillStyle = '#d8342c'; ctx.fillRect(-15, -2, 30, 4);
+  const hx = f < 0 ? -19 : 12;
+  ctx.fillStyle = '#e8364b'; ctx.fillRect(hx, -6, 7, 13);
+  ctx.fillStyle = '#ffffff'; ctx.fillRect(hx + 1, -4, 2, 3); ctx.fillRect(hx + 4, -4, 2, 3);
+  ctx.fillStyle = '#1b1220'; ctx.fillRect(hx + (f < 0 ? 1 : 2), -3, 1, 1); ctx.fillRect(hx + (f < 0 ? 4 : 5), -3, 1, 1);
+  ctx.fillStyle = '#4a4f57'; ctx.fillRect(f < 0 ? 12 : -18, -3, 6, 7);
+  ctx.restore();
+  ctx.strokeStyle = '#3a3f47'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x + 14 + f * 16, y + 18); ctx.lineTo(x + 14 + f * 16, y + 30); ctx.stroke();
+  if (b.hp <= b.max / 2 && frame % 10 < 5) { ctx.fillStyle = 'rgba(40,30,30,.55)'; ctx.fillRect(f < 0 ? x + 23 : x + 2, y + 17, 3, 3); }
+}
+function drawDadBoss(b, sx, sy) {
+  const walking = Math.abs(b.vx) > 0.2 && b.onGround;
+  drawBig(walking && Math.floor(frame / 12) % 2 ? SP.dWalk : SP.dStand, sx + b.w / 2, sy + b.h, b.face, 1.6);
+  if (b.state === 'vac' || b.state === 'spray') {   /* the hydro vac hose in Dad's hands */
+    const dir = b.face, hx = Math.round(sx + b.w / 2 + dir * 9), hy = Math.round(sy + b.h * 0.5);
+    ctx.fillStyle = '#4a4f57'; ctx.fillRect(dir > 0 ? hx : hx - 16, hy, 16, 5);
+    ctx.fillStyle = '#8f95ad'; ctx.fillRect(dir > 0 ? hx + 14 : hx - 21, hy - 2, 7, 9);
+    if (b.state === 'vac') { ctx.fillStyle = 'rgba(200,230,255,' + (0.35 + Math.sin(frame / 3) * 0.2) + ')'; ctx.fillRect(dir > 0 ? hx + 21 : hx - 29, hy - 1, 8, 7); }
+    else glowDisc(dir > 0 ? hx + 24 : hx - 24, hy + 2, 10, 'rgba(120,190,255,.7)', 0.7);
+  }
+}
+function drawForeman(b, sx, sy) {
+  const walking = Math.abs(b.vx) > 0.2 && b.onGround;
+  drawBig(walking && Math.floor(frame / 14) % 2 ? SP.fWalk : SP.fStand, sx + b.w / 2, sy + b.h, b.face, 1.45);
+  if (b.state === 'blow') {   /* the megaphone */
+    const dir = b.face, mx = Math.round(sx + b.w / 2 + dir * 9), my = Math.round(sy + 6);
+    ctx.fillStyle = '#f4f1e8'; ctx.beginPath(); ctx.moveTo(mx, my + 1); ctx.lineTo(mx + dir * 9, my - 3); ctx.lineTo(mx + dir * 9, my + 7); ctx.lineTo(mx, my + 4); ctx.fill();
+    ctx.strokeStyle = 'rgba(255,240,170,.7)'; ctx.lineWidth = 1;
+    for (let k = 1; k <= 3; k++) { ctx.beginPath(); ctx.arc(mx + dir * 9, my + 2, 4 + k * 4 + (frame % 12) / 3, dir > 0 ? -0.7 : Math.PI - 0.7, dir > 0 ? 0.7 : Math.PI + 0.7); ctx.stroke(); }
+  } else if (b.state === 'rest') {
+    ctx.font = '9px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('💦', Math.round(sx + b.w / 2 + 8), sy - 4);
+  }
 }
 /* ============================================================
    PARTY SHOP — the candles Kinan collects are money here.
@@ -3959,9 +4632,9 @@ function titleScreen() {
   renderPetStat();
   const rs = progress.resume && LV[progress.resume.i] ? progress.resume : null;
   const cont = !!rs || progress.beaten.length > 0 || progress.unlocked > 1;
-  const next = Math.min(10, Math.max(0, progress.unlocked - 1));
-  const storySub = rs ? 'Continue · Stage ' + (rs.i + 1) + ' · ' + LV[rs.i].place + (rs.atBoss ? ' · at the boss' : (rs.cpHit ? ' · past the checkpoint' : '')) + ' · ' + rs.got + ' candles'
-    : (cont ? 'Continue · Stage ' + (next + 1) + ' · ' + LV[next].place + ' · ' + progress.beaten.length + ' of 11 cleared' : '11 stages · 1 birthday · 4 cats · 2 dogs');
+  const next = nextStage();
+  const storySub = rs ? 'Continue · ' + stageName(rs.i) + ' · ' + LV[rs.i].place + (rs.atBoss ? ' · at the boss' : (rs.cpHit ? ' · past the checkpoint' : '')) + ' · ' + rs.got + ' candles'
+    : (cont ? 'Continue · ' + stageName(next) + ' · ' + LV[next].place + ' · ' + progress.beaten.filter((b) => worldOf(b) === worldOf(next)).length + ' of ' + (worldInfo(next).to - worldInfo(next).from + 1) + ' cleared' : '11 stages · 1 birthday · 4 cats · 2 dogs');
   /* the front door: pick a game. The story text and the moves live under "How to play". */
   showScreen(
     '<img class="logo" src="apple-touch-icon.png" alt="Kinan vs. Mom icon">' +
@@ -3977,10 +4650,11 @@ function titleScreen() {
     (cont ? '<button class="btn" id="mapBtn" type="button">Stage map</button>' : '') +
     '<button class="btn" id="howBtn" type="button">How to play</button>' +
     '<button class="btn" id="shopBtn" type="button">🛍️ Party Shop</button>' +
+    '<button class="btn ghost" id="codeBtn" type="button">🎁 Reward code</button>' +
     (cont ? '<button class="btn ghost" id="newBtn" type="button">Start over</button>' : '') +
     (IS_STANDALONE ? '' : '<button class="btn ghost" id="installBtn2" type="button">📲 Install app</button>') +
     '</div>' +
-    '<p class="tiny">' + (totalStars() ? '<b>' + totalStars() + '</b> ⭐ collected so far. Can you get all 33?' : 'No stars yet — go get some.') + '</p>'
+    '<p class="tiny">' + (totalStars() ? '<b>' + totalStars() + '</b> ⭐ collected so far. Can you get all ' + (worldOpen(2) ? 63 : 33) + '?' : 'No stars yet — go get some.') + '</p>'
   );
   $('#startBtn').addEventListener('click', () => {
     AudioSys.init(); SFX.click();
@@ -3989,6 +4663,7 @@ function titleScreen() {
   });
   $('#howBtn').addEventListener('click', () => { AudioSys.init(); SFX.click(); howToScreen(); });
   $('#shopBtn').addEventListener('click', () => { AudioSys.init(); SFX.click(); shopScreen('title'); });
+  $('#codeBtn').addEventListener('click', () => { AudioSys.init(); SFX.click(); codeScreen('title'); });
   const mb = $('#mapBtn'); if (mb) mb.addEventListener('click', () => { AudioSys.init(); SFX.click(); mapScreen(); });
   const nb = $('#newBtn');
   if (nb) nb.addEventListener('click', () => {
@@ -4066,16 +4741,24 @@ function starHTML(n, animate) {
 function mapScreen() {
   Music.play('title');
   const stars = totalStars();
-  const list = LV.map((th, i) => {
-    const open = i < progress.unlocked, done = progress.beaten.includes(i);
+  const want = progress.mapWorld || worldOf(nextStage());
+  const mw = WORLDS[want - 1] && !WORLDS[want - 1].soon ? want : 1, wd = WORLDS[mw - 1];
+  const tabs = '<div class="worldtabs">' + WORLDS.slice(0, 3).map((w) => '<button type="button" class="worldtab' + (w.n === mw ? ' on' : '') + '" data-world="' + w.n + '"' + (w.soon ? ' disabled' : '') + '>' +
+    (worldOpen(w.n) ? '' : '🔒 ') + '<b>World ' + w.n + '</b> · ' + (w.soon ? 'coming soon' : escAttr(w.name)) + '</button>').join('') + '<button type="button" class="worldtab" id="codeBtnM">🎁 Reward code</button></div>';
+  const lock = worldOpen(mw) ? '' : '<div class="lockcard"><p><b>🔒 World ' + mw + ': ' + escAttr(wd.name) + '</b> · ' + escAttr(wd.where) + ' · 10 new stages and a new boss</p><p class="tiny">' + worldStatus(wd) + '. A grown-up gives out reward codes when you have been awesome.</p></div>';
+  const here = []; for (let i = wd.from; i <= wd.to; i++) here.push(i);
+  const clearedHere = here.filter((i) => progress.beaten.includes(i)).length, starsHere = here.reduce((a, i) => a + (progress.stars[i] || 0), 0);
+  const list = !worldOpen(mw) ? '' : here.map((i) => {
+    const th = LV[i];
+    const open = stageOpen(i), done = progress.beaten.includes(i);
     const st = progress.stars[i] || 0;
     const best = progress.bestScore[i] || 0;
     const bt = progress.bestTime && progress.bestTime[i];   /* no time yet (old save) = no "best" shown */
     const starStr = [0, 1, 2].map((k) => '<span class="' + (k < st ? '' : 'off') + '">' + (k < st ? '★' : '☆') + '</span>').join('');
     return '<li><button type="button" class="lvbtn" data-lv="' + i + '"' + (open ? '' : ' disabled') + '>' +
-      '<span class="n">' + (i + 1) + '</span>' +
+      '<span class="n">' + stageNum(i) + '</span>' +
       '<span><span class="t">' + (open ? th.place : 'Locked') + '</span>' +
-      '<span class="s">' + (open ? (done ? 'Boss: ' + th.boss.title + (bt ? ' · best ' + fmtTime(bt) : '') : 'Boss: ' + th.boss.title) : 'Beat stage ' + i + ' first') + '</span></span>' +
+      '<span class="s">' + (open ? (th.boss ? 'Boss: ' + th.boss.title : 'Goal: Dad\'s truck') + (done && bt ? ' · best ' + fmtTime(bt) : '') : 'Beat stage ' + (stageNum(i) - 1) + ' first') + '</span></span>' +
       '<span class="stars">' + starStr + (open ? '<span class="gold">🕯' + goldCount(i) + '/3</span>' : '') + '</span></button></li>';
   }).join('');
   const hats = HATS.filter((h) => !h.shop || ownsItem('hat:' + h.id)).map((h) => {
@@ -4093,8 +4776,9 @@ function mapScreen() {
       '<span class="perk">' + (own ? d.perk : 'Not rescued yet') + '</span></span></label>';
   }).join('');
   showScreen(
-    '<p class="eyebrow">Stage map · ' + progress.beaten.length + ' of 11 cleared · ' + stars + ' of 33 stars</p>' +
+    '<p class="eyebrow">Stage map · World ' + mw + ' · ' + clearedHere + ' of ' + here.length + ' cleared · ' + starsHere + ' of ' + here.length * 3 + ' stars</p>' +
     '<h1 class="title"><span class="t2">Pick a stage, birthday boy</span></h1>' +
+    tabs + lock +
     '<ul class="mapgrid">' + list + '</ul>' +
     '<div class="divider"></div>' +
     '<p class="eyebrow">Hat locker · stars unlock hats</p>' +
@@ -4129,11 +4813,13 @@ function mapScreen() {
   const pn = $('#playNext');
   if (pn) pn.addEventListener('click', () => {
     AudioSys.init(); SFX.click();
-    const next = Math.min(10, Math.max(0, progress.unlocked - 1));
+    const next = nextStage();
     playStage(next);
   });
   $('#titleBtn').addEventListener('click', () => { SFX.click(); titleScreen(); });
   $('#shopBtnM').addEventListener('click', () => { SFX.click(); shopScreen('map'); });
+  $$('.worldtab[data-world]', el.screen).forEach((b) => b.addEventListener('click', () => { if (b.disabled) return; SFX.click(); progress.mapWorld = Number(b.dataset.world); save(); mapScreen(); }));
+  $('#codeBtnM').addEventListener('click', () => { SFX.click(); codeScreen('map'); });
 }
 
 async function playStage(i, opts) {
@@ -4147,7 +4833,7 @@ async function playStage(i, opts) {
   running = true;
   run();
   draw();
-  if (rs) toast('<b>Welcome back!</b> Stage ' + (i + 1) + ' · ' + LV[i].place, 2000);
+  if (rs) toast('<b>Welcome back!</b> ' + stageName(i) + ' · ' + LV[i].place, 2000);
   else await story(LV[i].intro, 'k');
   paused = false;
   last = 0; acc = 0;
@@ -4155,7 +4841,7 @@ async function playStage(i, opts) {
 }
 
 function resultsScreen(i) {
-  const th = LV[i];
+  const th = LV[i], wi = worldInfo(i);
   const pct = totalCandles ? got / totalCandles : 1;
   let st = 1;
   if (pct >= 0.7) st++;
@@ -4175,8 +4861,8 @@ function resultsScreen(i) {
   Music.play('title');
   SFX.win();
   showScreen(
-    '<p class="eyebrow">Stage ' + (i + 1) + ' clear · ' + th.place + ' · ' + th.clock + '</p>' +
-    '<h1 class="title"><span class="t1">Boss down!</span><span class="t2">' + (10 - i) + ' stage' + (10 - i === 1 ? '' : 's') + ' to go</span></h1>' +
+    '<p class="eyebrow">' + stageName(i) + ' clear · ' + th.place + ' · ' + th.clock + '</p>' +
+    '<h1 class="title"><span class="t1">' + (th.boss ? 'Boss down!' : 'Stage clear!') + '</span><span class="t2">' + (wi.to - i) + ' stage' + (wi.to - i === 1 ? '' : 's') + ' to go</span></h1>' +
     starHTML(st, true) +
     '<dl class="bigstats">' +
     '<div><dt>Candles</dt><dd><b>' + got + '</b> / ' + totalCandles + '</dd></div>' +
@@ -4188,23 +4874,24 @@ function resultsScreen(i) {
     '<p class="wrapnote" id="walletNote">🛍️ +' + got + ' candles for the Party Shop · you have <b>' + (progress.wallet || 0) + '</b></p>' +
     '<p class="wrapnote" id="goldNote">' + (goldCount(i) === 3 ? '🕯 All 3 golden candles found here!' : '🕯 Golden candles here: <b>' + goldCount(i) + '</b> / 3 · jump into the 🧩 puzzle pieces to find them') + '</p>' +
     (th.meanwhile ? '<p class="lede meanwhile"><b>Meanwhile…</b> ' + th.meanwhile.replace('{candles}', String(progress.totalCandles || 0)) + '</p>' : '') +
-    (firstClear && i > 0 ? '<p class="wrapnote" id="arenaNote">🥊 New Family Smash arena unlocked: <b>' + ARENAS[i].name + '</b></p>' : '') +
-    '<div class="btnrow"><button class="btn go" type="button" id="nextBtn">' + (i < 10 ? 'NEXT STAGE ▶' : 'FINISH') + '</button>' +
+    (firstClear && i > 0 && i <= 10 ? '<p class="wrapnote" id="arenaNote">🥊 New Family Smash arena unlocked: <b>' + ARENAS[i].name + '</b></p>' : '') +
+    (firstClear && i > 0 && KART_TRACKS.some((t) => t.stage === i) ? '<p class="wrapnote" id="trackNote">🏎️ New Family Kart track unlocked: <b>' + KART_TRACKS.filter((t) => t.stage === i)[0].name + '</b></p>' : '') +
+    '<div class="btnrow"><button class="btn go" type="button" id="nextBtn">' + (i < wi.to ? 'NEXT STAGE ▶' : 'FINISH') + '</button>' +
     '<button class="btn" type="button" id="replayBtn">Replay</button>' +
     '<button class="btn" type="button" id="mapBtn">Stage map</button></div>'
   );
   el.stageLbl.textContent = 'KINAN · LV 11';
   setHearts(maxHearts(), maxHearts());
   $('#nextBtn').focus();
-  $('#nextBtn').addEventListener('click', () => { SFX.click(); playStage(Math.min(10, i + 1)); });
+  $('#nextBtn').addEventListener('click', () => { SFX.click(); playStage(Math.min(wi.to, i + 1)); });
   $('#replayBtn').addEventListener('click', () => { SFX.click(); playStage(i); });
   $('#mapBtn').addEventListener('click', () => { SFX.click(); mapScreen(); });
   if (st === 3) confetti();
 }
 function ending() {
   progress.won = true;
-  progress.unlocked = 11;
-  progress.beaten = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+  progress.unlocked = Math.max(progress.unlocked, 11);
+  for (let n = 0; n <= 10; n++) if (progress.beaten.indexOf(n) < 0) progress.beaten.push(n);
   progress.stars[10] = Math.max(3, progress.stars[10] || 0);
   progress.bestScore[10] = Math.max(progress.bestScore[10] || 0, score);
   progress.bestTime = progress.bestTime || {};
@@ -4212,6 +4899,7 @@ function ending() {
   progress.totalCandles = (progress.totalCandles || 0) + got;
   progress.wallet = (progress.wallet || 0) + got;   /* Party Shop money */
   delete progress.resume;
+  refreshWorlds();
   save();
   Music.play('title');
   const stars = totalStars();
@@ -4235,6 +4923,7 @@ function ending() {
     '<p class="wrapnote">🥊 All 11 <b>Family Smash</b> arenas are unlocked, Birthday Cake Volcano included.</p>' +
     '<p class="wrapnote">🕯 Golden candles found: <b>' + goldTotal() + '</b> / 33' + (goldTotal() < 33 ? ' · the 🧩 puzzle pieces are still out there' : ' · every single one!') + '</p>' +
     '<div class="heroline"><span class="pill">⭐ ' + stars + ' / 33 stars</span><span class="pill"><i class="candle-ico"></i> ' + (progress.totalCandles || 0) + ' candles collected</span><span class="pill">🎂 11 years old</span><span class="pill">🐱 ' + progress.pets.ids.filter((id) => petDef(id).kind === 'cat').length + ' · 🐶 ' + progress.pets.ids.filter((id) => petDef(id).kind === 'dog').length + '</span></div>' +
+    '<p class="wrapnote" id="w2Note">' + (worldOpen(2) ? '🛢️ <b>World 2: Kinan vs. Dad</b> is open! Find it on the stage map.' : '🔒 <b>World 2: Kinan vs. Dad</b> is waiting at Dad\'s oilfield job site. Ask a grown-up for a reward code!') + '</p>' +
     '<div class="divider"></div>' +
     '<ul class="credits">' +
     '<li><b>Kinan</b> as The Hero</li>' +
@@ -4245,6 +4934,7 @@ function ending() {
     '<li><b>Big Bro Shad</b> as The Construction Slammer (carpenter apprentice, and the guy who made this game)</li>' +
     '</ul>' +
     '<div class="btnrow"><button class="btn go" type="button" id="mapBtn">Stage map</button>' +
+    '<button class="btn" type="button" id="codeBtnE">🎁 Reward code</button>' +
     '<button class="btn" type="button" id="titleBtn">Title screen</button>' +
     '<button class="btn ghost" type="button" id="againBtn">Play final again</button></div>' +
     '<p class="tiny">Made with love, pixels and far too many candles. 💛</p>'
@@ -4254,6 +4944,7 @@ function ending() {
   $('#mapBtn').addEventListener('click', () => { SFX.click(); mapScreen(); });
   $('#titleBtn').addEventListener('click', () => { SFX.click(); titleScreen(); });
   $('#againBtn').addEventListener('click', () => { SFX.click(); playStage(10); });
+  $('#codeBtnE').addEventListener('click', () => { SFX.click(); codeScreen('title'); });
   SFX.win();
   confetti();
 }
@@ -6946,6 +7637,10 @@ window.__k11 = {
   puzzle: () => (puzzle ? { kind: puzzle.kind, stage: puzzle.stage, j: puzzle.j, solved: puzzle.solved, step: puzzle.step, lamps: puzzle.lamps.slice(), order: puzzle.order.slice(),
     ents: puzzle.ents.map((e) => ({ x: e.x, on: !!e.on })), gold: puzzle.gold ? Object.assign({}, puzzle.gold) : null } : null),
   pieces: () => pieces.map((pc) => ({ x: pc.x, y: pc.y, j: pc.j, got: hasGold(L.i, pc.j), cool: pieceCool[pc.j] })),
+  worlds: {
+    open: (n) => worldOpen(n), next: () => nextStage(), code: (t) => useCode(t), status: () => WORLDS.slice(0, 3).map((w) => worldStatus(w)),
+    stages: () => LV.map((th, i) => ({ i: i, world: worldOf(i), num: stageNum(i), place: th.place, boss: th.boss ? th.boss.kind : null, open: stageOpen(i), clock: th.clock }))
+  },
   kart: {
     start: (o) => playKart(o),
     cpuRace: (who, track) => playKart(kartCpuRace(who, track)),
