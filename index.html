@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
 <meta name="theme-color" content="#0b0d20">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -3564,6 +3564,9 @@ window.addEventListener('pointerdown', ensureAudio, { passive: true });
 window.addEventListener('touchend', ensureAudio, { passive: true });
 window.addEventListener('click', ensureAudio);
 window.addEventListener('keydown', ensureAudio);
+/* no pinch-zoom: a stray two-finger pinch would leave the game zoomed and offset. Android Chrome honours
+   user-scalable=no in the viewport tag; Safari ignores that and needs this gesture guard instead */
+document.addEventListener('gesturestart', (e) => e.preventDefault(), { passive: false });
 
 bindPad();
 AudioSys.on = progress.sound !== false;
