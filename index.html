@@ -286,6 +286,11 @@ html.rotated .turnhint{display:block}
 .stage.kartmode .toast{top:calc(20% + 4px)}
 .worldtabs{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 10px}.worldtab{background:var(--panel);border:2px solid var(--panel2);border-radius:8px;color:var(--text);padding:7px 10px;font:inherit;font-size:13px;cursor:pointer;min-height:40px}.worldtab.on{border-color:var(--gold);box-shadow:inset 0 0 0 1px var(--gold)}.worldtab:disabled{opacity:.45;cursor:default}
 .lockcard{background:var(--panel);border:2px dashed var(--panel2);border-radius:10px;padding:10px 14px;margin:6px 0 10px}.codein.wide{width:min(260px,70vw);letter-spacing:.08em}
+.kwheel{display:none;touch-action:none;-webkit-user-select:none;user-select:none}.kwheel svg{width:100%;height:100%;display:block;transition:transform .05s linear}
+@media (hover:none){html.kartpad .dpad button{display:none}html.kartpad .kwheel{display:block;pointer-events:auto;width:clamp(104px,19vmin,150px);height:clamp(104px,19vmin,150px);opacity:.62}}
+.pad button.spec{background:var(--panel);color:var(--gold);font-size:22px}.pad button.spec:not(:disabled){background:var(--gold);color:var(--night);animation:specglow 1s ease-in-out infinite}
+@keyframes specglow{50%{filter:brightness(1.25)}}
+html.sideways .pad button.spec:not(:disabled){opacity:.92}
 /* Party Shop */
 .wallet{margin:0;font-size:18px}
 .wallet b{color:var(--gold)}
@@ -377,10 +382,12 @@ html.rotated .turnhint{display:block}
 
   <div class="pad" id="pad" hidden>
     <div class="dpad">
+      <div class="kwheel" id="kwheel" aria-label="Steering wheel: touch and slide left or right"><svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="42" fill="none" stroke="#f4f1e8" stroke-width="9"/><circle cx="50" cy="50" r="42" fill="none" stroke="#1b1220" stroke-width="2.5"/><circle cx="50" cy="50" r="11" fill="#f4f1e8"/><rect x="47" y="8" width="6" height="11" rx="2" fill="#ff6fae"/><path d="M39 50 L10 47 L10 53 Z M61 50 L90 47 L90 53 Z M50 61 L47 91 L53 91 Z" fill="#f4f1e8"/></svg></div>
       <button class="win" type="button" data-k="left" aria-label="Move left">◀</button>
       <button class="win" type="button" data-k="right" aria-label="Move right">▶</button>
     </div>
     <div class="acts">
+      <button class="win spec" type="button" data-k="special" id="specBtn" aria-label="Special move" hidden disabled>★</button>
       <button class="win pow" type="button" data-k="fire" id="powBtn" aria-label="Superpower" disabled>POW</button>
       <button class="win jump" type="button" data-k="jump" aria-label="Jump">JUMP</button>
     </div>
@@ -1167,7 +1174,7 @@ let puzzle = null, pieces = [], pieceCool = [];   /* puzzle room in progress; th
 /* ============================================================
    INPUT
    ============================================================ */
-const input = { left: false, right: false, jump: false, jumpBuf: 0, fireBuf: 0, down: false };
+const input = { left: false, right: false, jump: false, jumpBuf: 0, fireBuf: 0, down: false, specBuf: 0 };
 /* second keyboard player for Family Smash on one computer (A D W J) */
 const input2 = { left: false, right: false, jump: false, jumpBuf: 0, fireBuf: 0 };
 function actionDown2(k) {
@@ -1187,6 +1194,7 @@ function actionDown(k) {
   else if (k === 'right') input.right = true;
   else if (k === 'jump') { if (!input.jump) input.jumpBuf = 8; input.jump = true; }
   else if (k === 'fire') input.fireBuf = 10;
+  else if (k === 'special') input.specBuf = 10;
 }
 function actionUp(k) {
   if (k === 'left') input.left = false;
@@ -1204,6 +1212,7 @@ window.addEventListener('keydown', (e) => {
   else if (k === 'ArrowRight' || k === 'KeyD') actionDown('right');
   else if (k === 'Space' || k === 'ArrowUp' || k === 'KeyW' || k === 'KeyZ') actionDown('jump');
   else if (k === 'ArrowDown' || k === 'KeyS') input.down = true;
+  else if (k === 'KeyC' || k === 'KeyV') actionDown('special');
   else if (k === 'KeyX' || k === 'KeyJ' || k === 'ShiftLeft' || k === 'ShiftRight') actionDown('fire');
   else if (k === 'Enter') advanceDialog();
   else if (k === 'KeyP' || k === 'Escape') togglePause();
@@ -6620,16 +6629,17 @@ function kartRideSprites(who) {
 function kartCard(who) { return kartRideSprites(who).frames[6]; }
 /* ---- the race ---- */
 let kart = null, lastKart = null;
-const KIT = ['cake', 'balloon', 'frosting', 'popper', 'star', 'candles'];
-const KIT_ICON = { cake: '🍰', balloon: '🎈', frosting: '🧁', popper: '🎉', star: '⭐', candles: '🕯' };
-const KIT_NAME = { cake: 'Sugar Rush', balloon: 'Water balloon', frosting: 'Frosting splat', popper: 'Party popper', star: 'Birthday star', candles: '3 candles' };
+const KIT = ['cake', 'cake3', 'balloon', 'banana', 'frosting', 'popper', 'star', 'candles'];
+const KIT_ICON = { cake: '🍰', cake3: '🍰', balloon: '🎈', banana: '🍌', frosting: '🧁', popper: '🎉', star: '⭐', candles: '🕯' };
+const KIT_HOW = { cake: 'tap ITEM for a speed boost', cake3: 'three speed boosts', balloon: 'throw it ahead', banana: 'drop it behind you: they slip', frosting: 'a sticky puddle behind you', popper: 'it chases the one ahead', star: 'super fast, nothing stops you', candles: '+3 candles' };
+const KIT_NAME = { cake3: 'Triple Sugar Rush', banana: 'Banana peel', cake: 'Sugar Rush', balloon: 'Water balloon', frosting: 'Frosting splat', popper: 'Party popper', star: 'Birthday star', candles: '3 candles' };
 /* better items the further back you are */
 const KIT_ODDS = [
-  { frosting: 35, balloon: 30, candles: 25, cake: 10 },
-  { balloon: 30, frosting: 25, cake: 20, candles: 15, popper: 10 },
-  { cake: 25, balloon: 22, popper: 25, frosting: 13, star: 15 },
-  { cake: 30, popper: 30, star: 22, balloon: 18 },
-  { cake: 30, popper: 30, star: 30, balloon: 10 }
+  { banana: 30, frosting: 20, balloon: 25, candles: 20, cake: 5 },
+  { banana: 20, balloon: 25, frosting: 15, cake: 20, candles: 10, popper: 10 },
+  { cake: 22, balloon: 18, popper: 22, banana: 10, cake3: 13, star: 15 },
+  { cake: 18, cake3: 22, popper: 28, star: 20, balloon: 12 },
+  { cake3: 30, popper: 30, star: 30, cake: 10 }
 ];
 function kartRoll(place) {
   const odds = KIT_ODDS[clamp(place - 1, 0, 4)], tot = Object.keys(odds).reduce((a, k) => a + odds[k], 0);
@@ -6644,7 +6654,8 @@ function makeKart(who, slot, opts) {
     drift: 0, driftT: 0, slide: 0, boostT: 0, spinT: 0, spinA: 0, starT: 0, bumpT: 0,
     idx: -1, s: 0, lat: 0, ta: 0, prog: 0, lap: 1, done: false, finishT: 0, place: slot + 1,
     candles: 0, got: 0, item: null, roulette: 0, cpu: false, auto: false, skill: 1, rb: 1, lane: 0, itemT: 0, wrongT: 0,
-    input: { left: false, right: false, jump: false, jumpBuf: 0, fireBuf: 0, down: false },
+    input: { left: false, right: false, jump: false, jumpBuf: 0, fireBuf: 0, down: false, specBuf: 0, steer: null },
+    st: 0, meter: 0, itemN: 0, vacT: 0, slamT: 0, assist: false,
     r: Math.max(rs.wid * 0.5, rs.len * 0.3), len: rs.len, camD: 66 + rs.len * 0.45, peer: null
   }, opts || {});
 }
@@ -6682,6 +6693,7 @@ function startKart(opts) {
     online: opts.online || null, players: players
   };
   kart.me = opts.online ? opts.online.me : 0;
+  kart.karts[kart.me].assist = progress.kartAssist !== false;
   /* the grid: whoever is listed first starts at the back, the computer drivers in front */
   const n = kart.karts.length;
   kart.karts.forEach((k, i) => kartGrid(k, opts.online ? i : n - 1 - i));
@@ -6697,9 +6709,12 @@ function startKart(opts) {
   $('#restartBtn').textContent = 'Restart the race';
   $('#restartBtn').hidden = !!(kart.online && kart.online.role === 'client');
   $('#mapBtnP').textContent = 'Leave the race';
-  el.keys.textContent = '← → steer · SPACE hop (hold while turning = drift) · X item · ↓ brake · P pause';
+  el.keys.textContent = '← → steer · SPACE hop (hold while turning = drift) · X item · C special · ↓ brake · P pause';
   $('#pad .jump').textContent = 'HOP';
   el.pow.textContent = 'ITEM'; el.pow.disabled = true;
+  $('#specBtn').hidden = false; $('#specBtn').disabled = true;
+  $('#specBtn').textContent = KART_SPECIALS[kart.karts[kart.me].who].icon;   /* your own special, like in Smash */
+  document.documentElement.classList.add('kartpad');
   Music.play('race');
 }
 function endKart() {
@@ -6713,6 +6728,9 @@ function endKart() {
   el.keys.textContent = '← → move · SPACE jump (hold = higher) · X pow · P pause · M mute';
   $('#pad .jump').textContent = 'JUMP';
   el.pow.textContent = 'POW'; el.pow.disabled = true;
+  $('#specBtn').hidden = true; $('#specBtn').textContent = '★';
+  document.documentElement.classList.remove('kartpad');
+  kWheel.id = null; kWheel.v = 0;
 }
 function playKart(opts) {
   AudioSys.init();
@@ -6742,6 +6760,8 @@ function kartUpdate() {
     mi.left = input.left || padIn.left; mi.right = input.right || padIn.right; mi.jump = input.jump || padIn.jump; mi.down = !!input.down;
     if (input.jumpBuf > 0) { mi.jumpBuf = input.jumpBuf; input.jumpBuf = 0; }
     if (input.fireBuf > 0) { mi.fireBuf = input.fireBuf; input.fireBuf = 0; }
+    if (input.specBuf > 0) { mi.specBuf = input.specBuf; input.specBuf = 0; }
+    mi.steer = kWheel.id != null ? kWheel.v : null;
   }
   for (const k of K.karts) {
     if (k.remote) { kartRemoteStep(k); continue; }   /* another player's kart in an online race: it moves by their messages */
@@ -6750,6 +6770,7 @@ function kartUpdate() {
   }
   kartCollide();
   kartPickups();
+  kartVacStep();
   kartShotsStep();
   kartPlaces();
   kartCamera(false);
@@ -6757,7 +6778,8 @@ function kartUpdate() {
   if (K.msg && --K.msg.t <= 0) K.msg = null;
   if (me) {
     el.pow.disabled = !(me.item && !me.roulette && K.state === 'race');
-    const lbl = me.roulette ? '…' : (me.item ? KIT_ICON[me.item] : 'ITEM');
+    const lbl = me.roulette ? '…' : (me.item ? KIT_ICON[me.item] + (me.item === 'cake3' ? me.itemN : '') : 'ITEM');
+    const sb = $('#specBtn'); if (sb) { const on = me.meter >= 100 && K.state === 'race'; if (sb.disabled === on) sb.disabled = !on; }
     if (el.pow.textContent !== lbl) el.pow.textContent = lbl;
   }
   if (K.online) kartNetTick();
@@ -6772,13 +6794,20 @@ function kartUpdate() {
 function kartStep(k) {
   const K = kart, d = KART_DRIVERS[k.who], inp = k.input, tr = K.track, path = K.path;
   const racing = K.state !== 'countdown';
-  const steer = (inp.left ? -1 : 0) + (inp.right ? 1 : 0);
+  /* steering: the wheel gives any amount; buttons and keys ease in rather than snapping to full lock */
+  const want = inp.steer != null ? inp.steer : (inp.left ? -1 : 0) + (inp.right ? 1 : 0);
+  k.st = k.cpu || k.auto ? want : k.st + (want - k.st) * 0.3;
+  const steer = k.st, steerDir = Math.abs(steer) > 0.35 ? Math.sign(steer) : 0;
   /* hop; landing from a hop while turning starts a drift */
   if (inp.jumpBuf > 0) inp.jumpBuf--;
   if (inp.jumpBuf > 0 && k.z <= 0 && racing && !k.spinT) { k.vz = 2.3; k.z = 0.01; inp.jumpBuf = 0; if (k === kartMe()) SFX.jump(); }
   if (k.z > 0 || k.vz > 0) {
     k.vz -= 0.3; k.z += k.vz;
-    if (k.z <= 0) { k.z = 0; k.vz = 0; if (inp.jump && steer && k.v > 1.6 && !k.drift) { k.drift = steer; k.driftT = 0; } }
+    if (k.z <= 0) {
+      k.z = 0; k.vz = 0;
+      if (k.slamT) kartSlamLand(k);
+      if (inp.jump && steerDir && k.v > 1.6 && !k.drift) { k.drift = steerDir; k.driftT = 0; }
+    }
   }
   if (k.drift) {
     if (!inp.jump || k.v < 1.2 || k.spinT) {   /* let go of HOP: a mini boost if the drift was long enough */
@@ -6807,6 +6836,12 @@ function kartStep(k) {
   if (k.z > 0) turn *= 0.7;
   if (k.spinT > 0) turn = 0;
   k.a = kAng(k.a + turn * (k.v < 0 ? -1 : 1));
+  /* steering help (on unless turned off): when you are not steering hard, the ride gently follows the road */
+  if (k.assist && !k.spinT && !k.drift && k.v > 0.5) {
+    const lp = kartPointAt(path, k.s + 70 + k.v * 10, clamp(k.lat, -tr.width / 2 + 16, tr.width / 2 - 16));
+    const d = kAng(Math.atan2(lp.y - k.y, lp.x - k.x) - k.a);
+    if (Math.abs(d) < 1.3) k.a = kAng(k.a + clamp(d * 0.09, -0.024, 0.024) * (1 - Math.min(1, Math.abs(steer))) * (Math.abs(k.lat) > tr.width / 2 ? 1.6 : 1));
+  }
   k.slide += ((k.drift ? k.drift * 0.34 : 0) - k.slide) * 0.12;
   const ma = k.a - k.slide;
   k.x += Math.cos(ma) * k.v; k.y += Math.sin(ma) * k.v;
@@ -6870,6 +6905,8 @@ function kartAI(k) {
   /* a little help or a little holding back, so races stay close */
   if (me && k !== me && !k.done) k.rb = k.skill * (1 + clamp((me.prog - k.prog) / 2600, -0.07, 0.09));
   else k.rb = 1;
+  if (k.meter >= 100 && !k.done && (K.t + k.slot * 17) % 50 === 0) inp.specBuf = 2;   /* the computer uses its special soon after it is ready */
+  inp.steer = null;
   /* items */
   if (k.item && !k.roulette) {
     k.itemT++;
@@ -6882,14 +6919,17 @@ function kartAI(k) {
   } else k.itemT = 0;
 }
 function kartUseItem(k) {
-  const K = kart, it = k.item;
-  k.item = null; k.itemT = 0;
+  const K = kart;
+  let it = k.item;
+  if (it === 'cake3') { it = 'cake'; if (--k.itemN > 0) { k.itemT = 0; } else k.item = null; }   /* three boosts, one per tap */
+  else k.item = null;
+  k.itemT = 0;
   const fx = Math.cos(k.a), fy = Math.sin(k.a), mine = k === kartMe();
   if (it === 'cake') { k.boostT = Math.max(k.boostT, 75); kartBoostFx(k); if (mine) SFX.power(); }
   else if (it === 'star') { k.starT = 360; if (mine) SFX.power(); }
   else if (it === 'candles') { k.candles = Math.min(99, k.candles + 3); k.got += 3; if (mine) SFX.candle(); }
-  else if (it === 'frosting') {
-    const h = { kind: 'frosting', x: Math.round(k.x - fx * (k.len / 2 + 12)), y: Math.round(k.y - fy * (k.len / 2 + 12)), owner: k.slot, age: 0 };
+  else if (it === 'frosting' || it === 'banana') {
+    const h = { kind: it, x: Math.round(k.x - fx * (k.len / 2 + 12)), y: Math.round(k.y - fy * (k.len / 2 + 12)), owner: k.slot, age: 0 };
     K.hazards.push(h); if (K.hazards.length > 10) K.hazards.shift(); if (mine) SFX.stomp();
     if (K.online) kartNetEvent('item', { s: k.slot, it: it, x: h.x, y: h.y });
   }
@@ -6899,6 +6939,51 @@ function kartUseItem(k) {
     K.shots.push(sh);
     if (mine) SFX.pew();
     if (K.online) kartNetEvent('item', { s: k.slot, it: it, x: Math.round(sh.x), y: Math.round(sh.y), a: Math.round(sh.a * 1000) / 1000, v: Math.round(sh.v * 100) / 100, tg: sh.target, id: sh.id });
+  }
+}
+/* each family member's own special, like in Family Smash; candles fill the meter */
+const KART_SPECIALS = {
+  kinan: { name: 'Party Popper Turbo', icon: '🎉' }, shad: { name: 'Construction Slam', icon: '🔨' }, chenoa: { name: 'Order Up!', icon: '🍽️' }, mom: { name: 'Laundry Lob', icon: '🧺' }, dad: { name: 'Hydro Vac', icon: '💨' }
+};
+function kartSpecial(k) {
+  const K = kart, mine = k === kartMe(), fx = Math.cos(k.a), fy = Math.sin(k.a);
+  K.floats.push({ x: k.x, y: k.y, z: 34, text: KART_SPECIALS[k.who].name.toUpperCase() + '!', t: 70, col: KART_DRIVERS[k.who].color });
+  if (k.who === 'kinan') { k.boostT = Math.max(k.boostT, 120); k.starT = Math.max(k.starT, 120); kartBoostFx(k); if (mine) SFX.power(); }
+  else if (k.who === 'shad') { k.vz = 3.6; k.z = 0.01; k.slamT = 1; if (mine) SFX.jump(); }
+  else if (k.who === 'chenoa' || k.who === 'mom') {
+    const list = k.who === 'chenoa' ? [-0.2, 0, 0.2] : [0];
+    const tgt = k.who === 'mom' ? K.karts.filter((o) => o !== k && !o.done && o.place < k.place).sort((p2, q) => q.place - p2.place)[0] : null;
+    list.forEach((off) => {
+      const sh = { kind: k.who === 'chenoa' ? 'plate' : 'laundry', x: k.x + fx * (k.len / 2 + 8), y: k.y + fy * (k.len / 2 + 8), a: kAng(k.a + off), v: Math.max(6.2, k.v + 3), life: k.who === 'chenoa' ? 170 : 400,
+        owner: k.slot, idx: -1, s: 0, lat: 0, ta: 0, bounces: 0, age: 0, target: tgt ? tgt.slot : -1, id: K.me * 100000 + (kShotId++) };
+      K.shots.push(sh);
+      if (K.online) kartNetEvent('item', { s: k.slot, it: sh.kind, x: Math.round(sh.x), y: Math.round(sh.y), a: Math.round(sh.a * 1000) / 1000, v: Math.round(sh.v * 100) / 100, tg: sh.target, id: sh.id });
+    });
+    if (mine) SFX.pew();
+  } else if (k.who === 'dad') { k.vacT = 140; if (mine) AudioSys.noise(1.6, { filter: 'lowpass', freq: 500, vol: 0.14 }); if (K.online) kartNetEvent('vac', { s: k.slot }); }
+}
+/* Shad's slam lands: everyone close by spins out */
+function kartSlamLand(k) {
+  const K = kart;
+  k.slamT = 0; k.boostT = Math.max(k.boostT, 30);
+  for (let n = 0; n < 24; n++) { const a = n / 24 * 6.284; K.parts.push({ x: k.x + Math.cos(a) * 12, y: k.y + Math.sin(a) * 12, z: 2, vx: Math.cos(a) * 3, vy: Math.sin(a) * 3, vz: 0.6, life: 26, col: n % 2 ? '#f6c445' : '#ff8a3d', sz: 3 }); }
+  for (const o of K.karts) if (o !== k && Math.hypot(o.x - k.x, o.y - k.y) < 110) kartSpin(o, k);
+  if (k === kartMe()) { SFX.thud(); SFX.stomp(); }
+  if (K.online) kartNetEvent('slam', { s: k.slot, x: Math.round(k.x), y: Math.round(k.y) });
+}
+/* Dad's hydro vac: whoever is just ahead gets pulled back, Dad gets pulled forward */
+function kartVacStep() {
+  const K = kart;
+  for (const k of K.karts) {
+    if (!(k.vacT > 0)) continue;
+    k.vacT--;
+    if (!k.remote) k.boostT = Math.max(k.boostT, 2);
+    for (const o of K.karts) {
+      if (o === k || o.remote || o.starT > 0) continue;
+      const dx = o.x - k.x, dy = o.y - k.y, d = Math.hypot(dx, dy);
+      if (d < 260 && d > 1 && Math.abs(kAng(Math.atan2(dy, dx) - k.a)) < 0.5) { o.v *= 0.95; if (K.t % 3 === 0) K.parts.push({ x: o.x, y: o.y, z: 6, vx: -dx / d * 3, vy: -dy / d * 3, vz: 0, life: 20, col: 'rgba(200,230,255,.85)', sz: 2 }); }
+    }
+    if (K.t % 2 === 0) { const r = rand(40, 240), a = k.a + rand(-0.4, 0.4); K.parts.push({ x: k.x + Math.cos(a) * r, y: k.y + Math.sin(a) * r, z: 8, vx: -Math.cos(a) * 5, vy: -Math.sin(a) * 5, vz: 0, life: Math.floor(r / 5), col: 'rgba(200,230,255,.7)', sz: 2 }); }
   }
 }
 function kartSpin(k, by) {
@@ -6927,8 +7012,12 @@ function kartPickups() {
   for (const b of K.boxes) if (b.t > 0) b.t--;
   for (const c of K.cands) if (c.t > 0) c.t--;
   for (const k of K.karts) {
-    if (k.roulette > 0 && --k.roulette === 0) { k.item = kartRoll(k.place); if (k === kartMe()) SFX.gift(); }
+    if (k.roulette > 0 && --k.roulette === 0) {
+      k.item = kartRoll(k.place); k.itemN = k.item === 'cake3' ? 3 : 1;
+      if (k === kartMe()) { SFX.gift(); K.itemNote = { text: KIT_ICON[k.item] + ' ' + KIT_NAME[k.item] + ': ' + KIT_HOW[k.item], t: 150 }; }
+    }
     if (k.input.fireBuf > 0) { k.input.fireBuf--; if (k.item && !k.roulette && K.state === 'race') { k.input.fireBuf = 0; kartUseItem(k); } }
+    if (k.input.specBuf > 0) { k.input.specBuf--; if (k.meter >= 100 && K.state === 'race' && !k.spinT) { k.input.specBuf = 0; k.meter = 0; k.ready = false; kartSpecial(k); } }
     if (k.remote) continue;
     K.boxes.forEach((b, bi) => {
       if (b.t > 0 || Math.abs(b.x - k.x) > k.r + 10 || Math.abs(b.y - k.y) > k.r + 10 || k.z > 10) return;
@@ -6943,11 +7032,15 @@ function kartPickups() {
       c.t = 900;
       if (K.online) kartNetEvent('cand', { i: ci });
       k.candles = Math.min(99, k.candles + 1); k.got++;
+      k.meter = Math.min(100, k.meter + 13);
+      if (k.meter >= 100 && k === kartMe() && !k.ready) { k.ready = true; SFX.power(); kart.msg = { text: 'SPECIAL READY! ★', t: 70, col: '#f6c445' }; }
       if (k === kartMe()) SFX.candle();
     });
     for (const h of K.hazards) {
       if (h.hit || k.z > 4 || Math.hypot(h.x - k.x, h.y - k.y) > k.r + 7) continue;
-      h.hit = true; kartSpin(k, null);
+      h.hit = true;
+      if (h.kind === 'frosting') { k.v *= 0.45; k.boostT = 0; kart.floats.push({ x: k.x, y: k.y, z: 24, text: 'STICKY!', t: 40, col: '#ff9cc6' }); }   /* sticky: slows you right down */
+      else kartSpin(k, null);
       if (K.online) kartNetEvent('hz', { x: Math.round(h.x), y: Math.round(h.y) });
     }
   }
@@ -6957,7 +7050,7 @@ function kartShotsStep() {
   const K = kart, path = K.path, tr = K.track;
   for (const s of K.shots) {
     s.age++; s.life--;
-    if (s.kind === 'popper') {
+    if (s.kind === 'popper' || s.kind === 'laundry') {
       const t = s.target >= 0 ? K.karts[s.target] : null;
       let want;
       if (t && !t.done && s.age > 12) want = Math.atan2(t.y - s.y, t.x - s.x);
@@ -7090,12 +7183,24 @@ function drawKartScene() {
     } else if (it.t === 'cand') {
       const sc = p.s * 1.4, img = SP.candle;
       if (sc > 0.35) ctx.drawImage(img, Math.round(p.x - img.width * sc / 2), Math.round(p.y - img.height * sc), Math.round(img.width * sc), Math.round(img.height * sc));
+    } else if (it.t === 'hz' && o.kind === 'banana') {
+      const sz = Math.max(1, p.s);
+      ctx.fillStyle = '#f6c445'; ctx.beginPath(); ctx.ellipse(p.x, p.y - 2 * sz, 6 * sz, 2.4 * sz, -0.35, 0, 6.284); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(p.x - 4 * sz, p.y - 1 * sz, 4 * sz, 1.6 * sz, 0.7, 0, 6.284); ctx.ellipse(p.x + 4 * sz, p.y - 1 * sz, 4 * sz, 1.6 * sz, -0.7, 0, 6.284); ctx.fill();
+      ctx.fillStyle = '#8a6a1e'; ctx.fillRect(Math.round(p.x - sz), Math.round(p.y - 4 * sz), Math.max(1, Math.round(2 * sz)), Math.max(1, Math.round(2 * sz)));
     } else if (it.t === 'hz') {
       ctx.fillStyle = '#ff9cc6'; ctx.beginPath(); ctx.ellipse(p.x, p.y, 9 * p.s, 3.2 * p.s, 0, 0, 6.284); ctx.fill();
       ctx.fillStyle = '#ffd0e2'; ctx.beginPath(); ctx.ellipse(p.x - 2 * p.s, p.y - 0.8 * p.s, 4 * p.s, 1.4 * p.s, 0, 0, 6.284); ctx.fill();
     } else if (it.t === 'shot') {
       const r = Math.max(1.5, 5 * p.s);
-      if (o.kind === 'balloon') {
+      if (o.kind === 'plate') {
+        ctx.fillStyle = '#c9c9cf'; ctx.beginPath(); ctx.ellipse(p.x, p.y + r * 0.2, r * 1.3, r * 0.55, (K.t + o.id) / 3, 0, 6.284); ctx.fill();
+        ctx.fillStyle = '#f4f1e8'; ctx.beginPath(); ctx.ellipse(p.x, p.y, r * 1.3, r * 0.55, (K.t + o.id) / 3, 0, 6.284); ctx.fill();
+      } else if (o.kind === 'laundry') {
+        ctx.fillStyle = '#c99a5a'; ctx.fillRect(Math.round(p.x - r), Math.round(p.y - r * 0.6), Math.round(r * 2), Math.round(r * 1.3));
+        ctx.fillStyle = '#ff6fae'; ctx.fillRect(Math.round(p.x - r * 0.7), Math.round(p.y - r), Math.round(r * 0.6), Math.round(r * 0.5));
+        ctx.fillStyle = '#6fc8ff'; ctx.fillRect(Math.round(p.x + r * 0.1), Math.round(p.y - r * 1.1), Math.round(r * 0.6), Math.round(r * 0.5));
+      } else if (o.kind === 'balloon') {
         ctx.fillStyle = '#4f97e0'; ctx.beginPath(); ctx.ellipse(p.x, p.y, r, r * 1.15, 0, 0, 6.284); ctx.fill();
         ctx.fillStyle = 'rgba(255,255,255,.7)'; ctx.fillRect(Math.round(p.x - r * 0.4), Math.round(p.y - r * 0.6), Math.max(1, Math.round(r * 0.3)), Math.max(1, Math.round(r * 0.4)));
       } else {
@@ -7134,6 +7239,8 @@ function kText(txt, x, y, size, col, align) {
 }
 function drawKartItemIcon(it, x, y) {
   if (it === 'cake' || it === 'popper' || it === 'balloon') { ctx.save(); ctx.translate(x - 12, y - 12); ctx.scale(2, 2); drawPickup(it, 0, 0, 0); ctx.restore(); }
+  else if (it === 'banana') { ctx.fillStyle = '#f6c445'; ctx.beginPath(); ctx.ellipse(x, y + 2, 11, 5, -0.35, 0, 6.284); ctx.fill(); ctx.fillStyle = '#8a6a1e'; ctx.fillRect(x - 9, y - 2, 3, 3); ctx.fillRect(x + 8, y + 3, 2, 2); }
+  else if (it === 'cake3') { for (let k = -1; k <= 1; k++) { ctx.save(); ctx.translate(x - 8 + k * 7, y - 6 + Math.abs(k) * 3); ctx.scale(1.3, 1.3); drawPickup('cake', 0, 0, 0); ctx.restore(); } }
   else if (it === 'frosting') { ctx.fillStyle = '#ff9cc6'; ctx.beginPath(); ctx.ellipse(x, y + 4, 11, 6, 0, 0, 6.284); ctx.fill(); ctx.fillStyle = '#ffd0e2'; ctx.beginPath(); ctx.ellipse(x - 3, y + 1, 5, 3, 0, 0, 6.284); ctx.fill(); ctx.fillStyle = '#e8364b'; ctx.beginPath(); ctx.arc(x + 2, y - 3, 3, 0, 6.284); ctx.fill(); }
   else if (it === 'star') { ctx.fillStyle = '#f6c445'; ctx.beginPath(); for (let k = 0; k < 10; k++) { const r = k % 2 ? 5 : 12, a = -Math.PI / 2 + k * Math.PI / 5; ctx.lineTo(x + Math.cos(a) * r, y + Math.sin(a) * r); } ctx.closePath(); ctx.fill(); ctx.fillStyle = '#fff3b0'; ctx.fillRect(x - 3, y - 4, 2, 4); }
   else if (it === 'candles') { for (let k = -1; k <= 1; k++) ctx.drawImage(SP.candle, Math.round(x + k * 8 - SP.candle.width), Math.round(y - SP.candle.height), SP.candle.width * 2, SP.candle.height * 2); }
@@ -7146,6 +7253,12 @@ function drawKartHud() {
   kText(kTime(me.done ? me.finishT : K.raceT), 8, 32, 10, '#c9c4bb');
   ctx.drawImage(SP.candle, 8, 38, SP.candle.width * 1.5, SP.candle.height * 1.5);
   kText('x' + me.candles, 22, 50, 11, '#f6c445');
+  /* the special meter: candles fill it; full = your special is ready */
+  const full = me.meter >= 100;
+  ctx.fillStyle = 'rgba(10,11,24,.7)'; ctx.fillRect(8, 56, 64, 8);
+  ctx.fillStyle = full ? (Math.floor(K.t / 8) % 2 ? '#f6c445' : '#fff3b0') : KART_DRIVERS[me.who].color; ctx.fillRect(9, 57, Math.round(62 * me.meter / 100), 6);
+  kText(full ? '★ ' + KART_SPECIALS[me.who].name.toUpperCase() : 'SPECIAL', 8, 74, 8, full ? '#f6c445' : '#c9c4bb');
+  if (K.itemNote && K.itemNote.t > 0) { K.itemNote.t--; ctx.font = 'bold 9px "Pixelify Sans",monospace'; kText(K.itemNote.text, W / 2, 50, 9, '#fff3b0', 'center'); }
   /* place, top right */
   const suf = ['st', 'nd', 'rd', 'th', 'th'][me.place - 1] || 'th', pc = ['#f6c445', '#dfe3e8', '#e09a5a', '#f4f1e8', '#f4f1e8'][me.place - 1] || '#f4f1e8';
   kText(String(me.place), W - 34, 34, 30, pc, 'right'); kText(suf, W - 32, 22, 12, pc, 'left');
@@ -7227,7 +7340,7 @@ function kartMenu() {
     '<button class="btn" id="kOnline" type="button">🌐 Race online · up to 5 players</button>' +
     '<button class="btn ghost" id="kBack" type="button">Title screen</button>' +
     '</div>' +
-    '<p class="tiny">Steer with ◀ ▶. Tap <b>HOP</b> to hop; hold it while you turn to <b>drift</b>, and let go after the sparks for a boost. <b>ITEM</b> uses what you got from a gift box: 🍰 Sugar Rush, 🎈 water balloon, 🧁 frosting splat, 🎉 party popper (it chases the one ahead), ⭐ birthday star, 🕯 3 candles.</p>'
+    '<p class="tiny">Steer with the <b>wheel</b> (slide your thumb left or right) or ◀ ▶. Tap <b>HOP</b> to hop; hold it while you turn to <b>drift</b>, and let go after the sparks for a boost. <b>ITEM</b> uses what you got from a gift box: 🍰 Sugar Rush, 🍌 banana peel, 🎈 water balloon, 🧁 sticky frosting, 🎉 party popper (it chases the one ahead), ⭐ birthday star. Candles fill your <b>★ SPECIAL</b>: Kinan\'s turbo, Shad\'s slam, Chenoa\'s plates, Mom\'s laundry lob, Dad\'s hydro vac.</p>'
   );
   $('#kRace').addEventListener('click', () => { AudioSys.init(); SFX.click(); kartPickScreen(); });
   $('#kOnline').addEventListener('click', () => { AudioSys.init(); SFX.click(); kartOnlineScreen(); });
@@ -7241,6 +7354,7 @@ function kartPickScreen() {
     '<h1 class="title"><span class="t2">Pick your ride</span></h1>' +
     '<div class="pickgrid">' + KART_ORDER.map((w) => kartPickCard(w, kartPicks.who, 'data-tag="kart"')).join('') + '</div>' +
     trackRowHTML(kartPicks.track) +
+    '<p class="tiny"><b>Steering help</b> <button type="button" class="arenabtn" id="kAssist">' + (progress.kartAssist === false ? 'OFF' : 'ON 🛞') + '</button> keeps you on the road when you are not steering</p>' +
     '<p class="tiny"><b>Computer drivers</b> ' + ['easy', 'normal', 'hard'].map((l) => '<button type="button" class="arenabtn kartlvl' + ((progress.kartLevel || 'normal') === l ? ' on' : '') + '" data-lvl="' + l + '">' + l[0].toUpperCase() + l.slice(1) + '</button>').join(' ') + '</p>' +
     '<div class="btnrow"><button class="btn go" id="kGo" type="button">RACE!</button><button class="btn" id="kBack" type="button">Back</button></div>'
   );
@@ -7249,6 +7363,7 @@ function kartPickScreen() {
     $$('.pickbtn[data-tag="kart"]', el.screen).forEach((o) => o.classList.toggle('on', o === b));
   }));
   bindTrackRow(el.screen, (i) => { kartPicks.track = i; });
+  $('#kAssist').addEventListener('click', () => { SFX.click(); progress.kartAssist = progress.kartAssist === false; save(); $('#kAssist').textContent = progress.kartAssist === false ? 'OFF' : 'ON 🛞'; });
   $$('.kartlvl', el.screen).forEach((b) => b.addEventListener('click', () => { SFX.click(); progress.kartLevel = b.dataset.lvl; save(); $$('.kartlvl', el.screen).forEach((o) => o.classList.toggle('on', o === b)); }));
   $('#kBack').addEventListener('click', () => { SFX.click(); kartMenu(); });
   $('#kGo').addEventListener('click', () => { AudioSys.init(); SFX.click(); playKart(kartCpuRace(kartPicks.who, kartPicks.track)); });
@@ -7401,10 +7516,12 @@ function kartOnEvent(m) {
   const k = K.karts[m.s];
   K.netSeen[m.t] = (K.netSeen[m.t] || 0) + 1;
   if (m.t === 'item' && k && k.remote) {
-    if (m.it === 'frosting') K.hazards.push({ kind: 'frosting', x: m.x, y: m.y, owner: m.s, age: 0 });
-    else if (m.it === 'balloon' || m.it === 'popper') K.shots.push({ kind: m.it, x: m.x, y: m.y, a: m.a, v: m.v, life: m.it === 'popper' ? 420 : 300, owner: m.s, idx: -1, s: 0, lat: 0, ta: 0, bounces: 3, age: 0, target: m.tg, id: m.id });
+    if (m.it === 'frosting' || m.it === 'banana') K.hazards.push({ kind: m.it, x: m.x, y: m.y, owner: m.s, age: 0 });
+    else if (m.it === 'balloon' || m.it === 'popper' || m.it === 'plate' || m.it === 'laundry') K.shots.push({ kind: m.it, x: m.x, y: m.y, a: m.a, v: m.v, life: m.it === 'popper' || m.it === 'laundry' ? 420 : 300, owner: m.s, idx: -1, s: 0, lat: 0, ta: 0, bounces: 3, age: 0, target: m.tg, id: m.id });
   } else if (m.t === 'hit') { K.shots = K.shots.filter((s) => !(m.id && s.id === m.id)); if (k) K.floats.push({ x: k.x, y: k.y, z: 24, text: 'OOPS!', t: 50, col: '#ff6fae' }); }
   else if (m.t === 'hz') { K.hazards = K.hazards.filter((h) => Math.hypot(h.x - m.x, h.y - m.y) > 4); }
+  else if (m.t === 'slam') { for (const o of K.karts) if (!o.remote && o !== k && Math.hypot(o.x - m.x, o.y - m.y) < 110) kartSpin(o, k); }
+  else if (m.t === 'vac' && k) k.vacT = 140;
   else if (m.t === 'box' && K.boxes[m.i]) K.boxes[m.i].t = 200;
   else if (m.t === 'cand' && K.cands[m.i]) K.cands[m.i].t = 900;
   else if (m.t === 'finish' && k && k.remote && !k.done) { k.done = true; k.finishT = m.tm; }
@@ -7496,6 +7613,25 @@ function refreshKartLobby() {
   const st = $('#kStart'); if (st) st.addEventListener('click', () => { SFX.click(); kartNetStart(); });
   $('#kLeave').addEventListener('click', () => { SFX.click(); netLeave(); kartMenu(); });
 }
+const kWheel = { id: null, v: 0, cx: 0, span: 1 };
+function bindWheel() {
+  const w = $('#kwheel');
+  if (!w) return;
+  const set = (v) => { kWheel.v = clamp(v, -1, 1); w.firstElementChild.style.transform = 'rotate(' + Math.round(kWheel.v * 110) + 'deg)'; };
+  /* on an upright phone the race is drawn turned a quarter clockwise, so the wheel's left-right runs down the screen */
+  const at = (e) => (document.documentElement.classList.contains('rotated') ? e.clientY : e.clientX);
+  w.addEventListener('pointerdown', (e) => {
+    e.preventDefault(); AudioSys.init();
+    try { w.setPointerCapture(e.pointerId); } catch (er) { /* ignore */ }
+    const r = w.getBoundingClientRect(), rot = document.documentElement.classList.contains('rotated');
+    kWheel.id = e.pointerId; kWheel.cx = rot ? r.top + r.height / 2 : r.left + r.width / 2; kWheel.span = (rot ? r.height : r.width) * 0.38;
+    set((at(e) - kWheel.cx) / kWheel.span);
+  });
+  w.addEventListener('pointermove', (e) => { if (e.pointerId !== kWheel.id) return; e.preventDefault(); set((at(e) - kWheel.cx) / kWheel.span); });
+  const off = (e) => { if (e.pointerId !== kWheel.id) return; kWheel.id = null; set(0); };
+  w.addEventListener('pointerup', off); w.addEventListener('pointercancel', off); w.addEventListener('lostpointercapture', off);
+  w.addEventListener('contextmenu', (e) => e.preventDefault());
+}
 function kartRestart() {
   const K = kart; if (!K) return;
   if (K.online) { if (K.online.role === 'host') kartNetStart(); return; }
@@ -7519,6 +7655,7 @@ window.addEventListener('keydown', ensureAudio);
 document.addEventListener('gesturestart', (e) => e.preventDefault(), { passive: false });
 
 bindPad();
+bindWheel();
 AudioSys.on = progress.sound !== false;
 applyLite();
 initPWA();
@@ -7647,10 +7784,12 @@ window.__k11 = {
     state: () => (kart ? { t: kart.t, state: kart.state, count: kart.count, raceT: kart.raceT, track: kart.ti, me: kart.me, online: kart.online, len: Math.round(kart.path.len),
       karts: kart.karts.map((k) => ({ slot: k.slot, who: k.who, name: k.name, x: Math.round(k.x), y: Math.round(k.y), a: Math.round(k.a * 100) / 100, v: Math.round(k.v * 100) / 100, z: Math.round(k.z * 10) / 10,
         lap: k.lap, prog: Math.round(k.prog), place: k.place, done: k.done, finishT: k.finishT, item: k.item, roulette: k.roulette, candles: k.candles, got: k.got, spin: k.spinT, boost: k.boostT, star: k.starT,
-        drift: k.drift, driftT: k.driftT, lat: Math.round(k.lat), cpu: !!k.cpu, remote: !!k.remote, peer: k.peer, auto: !!k.auto })),
+        drift: k.drift, driftT: k.driftT, lat: Math.round(k.lat), cpu: !!k.cpu, remote: !!k.remote, peer: k.peer, auto: !!k.auto, meter: k.meter, itemN: k.itemN, vacT: k.vacT, st: Math.round(k.st * 100) / 100, assist: k.assist })),
       shots: kart.shots.map((s) => s.kind), hazards: kart.hazards.length, boxes: kart.boxes.filter((b) => !b.t).length, endT: kart.endT, seen: kart.netSeen } : null),
     autopilot: (on) => { window.__kartAuto = !!on; },
-    give: (item) => { const k = kartMe(); if (k) { k.item = item; k.roulette = 0; } return !!k; },
+    give: (item) => { const k = kartMe(); if (k) { k.item = item; k.itemN = item === 'cake3' ? 3 : 1; k.roulette = 0; } return !!k; },
+    meter: (slot, v) => { const k = kart && kart.karts[slot == null ? kart.me : slot]; if (k) k.meter = v; return !!k; },
+    wheel: () => ({ v: kWheel.v, id: kWheel.id }),
     tweak: (slot, o) => { const k = kart && kart.karts[slot]; if (k) Object.assign(k, o); return !!k; },
     tracks: () => KART_TRACKS.map((t, i) => ({ i: i, name: t.name, unlocked: trackUnlocked(i), len: Math.round(kartPath(t).len) })),
     menu: () => kartMenu(),
