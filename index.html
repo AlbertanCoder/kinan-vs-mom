@@ -291,6 +291,15 @@ html.rotated .turnhint{display:block}
 .pad button.spec{background:var(--panel);color:var(--gold);font-size:22px}.pad button.spec:not(:disabled){background:var(--gold);color:var(--night);animation:specglow 1s ease-in-out infinite}
 @keyframes specglow{50%{filter:brightness(1.25)}}
 html.sideways .pad button.spec:not(:disabled){opacity:.92}
+.chat{position:fixed;right:0;top:30%;z-index:40;display:flex;align-items:flex-start;pointer-events:none}.chat>*{pointer-events:auto}
+.chattab{background:rgba(20,22,43,.72);border:2px solid var(--edge);border-right:0;border-radius:10px 0 0 10px;color:var(--text);font-size:19px;width:40px;height:46px;padding:0;cursor:pointer;position:relative;opacity:.8}
+.chattab b{position:absolute;top:-7px;left:-7px;background:var(--pink);color:var(--night);border-radius:9px;font-size:11px;min-width:18px;height:18px;line-height:18px;text-align:center;padding:0 4px}
+.chatbox{width:min(270px,62vw);max-height:min(330px,72vh);display:flex;flex-direction:column;background:rgba(14,16,34,.95);border:2px solid var(--edge);border-right:0;border-radius:10px 0 0 10px;padding:8px}
+.chathead{display:flex;align-items:center;gap:6px;font-size:13px}.chatsub{flex:1;font-size:10px;opacity:.7}.chatx{background:none;border:0;color:var(--text);font-size:16px;cursor:pointer;padding:2px 4px}
+.chatlog{list-style:none;margin:6px 0;padding:0;overflow-y:auto;flex:1;min-height:60px;font-size:13px;line-height:1.35}.chatlog li{margin:2px 0;overflow-wrap:anywhere}
+.chatquick{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px}.chatquick button{background:var(--panel);border:1px solid var(--panel2);border-radius:6px;color:var(--text);font:inherit;font-size:12px;padding:4px 6px;cursor:pointer}
+.chatform{display:flex;gap:4px}.chatform input{flex:1;min-width:0;background:#0b0d1e;border:1px solid var(--panel2);border-radius:6px;color:var(--text);font:inherit;font-size:13px;padding:5px}
+.chatform button{background:var(--gold);color:var(--night);border:0;border-radius:6px;font:inherit;font-size:12px;font-weight:700;padding:5px 8px;cursor:pointer}
 /* Party Shop */
 .wallet{margin:0;font-size:18px}
 .wallet b{color:var(--gold)}
@@ -397,6 +406,15 @@ html.sideways .pad button.spec:not(:disabled){opacity:.92}
   <p class="mobilefoot" id="mobileFoot">4 cats · 2 dogs · made by Shad in Edmonton</p>
 
   <section class="screen win" id="screen"></section>
+  <aside class="chat" id="chat" hidden>
+    <button class="chattab" id="chatTab" type="button" aria-label="Open the room chat" aria-expanded="false">💬<b id="chatBadge" hidden>0</b></button>
+    <div class="chatbox" id="chatBox" hidden>
+      <div class="chathead"><b>Room chat</b><span class="chatsub">only the people in this room · not saved</span><button type="button" class="chatx" id="chatX" aria-label="Close the chat">✕</button></div>
+      <ul class="chatlog" id="chatLog"></ul>
+      <div class="chatquick" id="chatQuick"></div>
+      <form class="chatform" id="chatForm"><input id="chatIn" maxlength="100" autocomplete="off" placeholder="Say something nice…" aria-label="Chat message"><button type="submit">Send</button></form>
+    </div>
+  </aside>
 </div>
 
 <div class="sheet" id="sheet" hidden>
@@ -5858,8 +5876,8 @@ async function netJoin(code, role, mode) {
   NET.room = lib.joinRoom({ appId: 'kinan-vs-mom-smash', turnConfig: turn }, 'kvm-' + NET.mode + '-' + code);   /* kvm-smash-CODE or kvm-kart-CODE */
   NET.status = 'open';
   const hello = netAction('hello'), pick = netAction('pick'), start = netAction('start'), inp = netAction('input'), state = netAction('state'), ev = netAction('event');
-  const kst = netAction('kstate'), kev = netAction('kevent');
-  NET.send = { hello: hello.send, pick: pick.send, start: start.send, input: inp.send, state: state.send, event: ev.send, kstate: kst.send, kevent: kev.send };
+  const kst = netAction('kstate'), kev = netAction('kevent'), chat = netAction('chat');
+  NET.send = { hello: hello.send, pick: pick.send, start: start.send, input: inp.send, state: state.send, event: ev.send, kstate: kst.send, kevent: kev.send, chat: chat.send };
   netOn('onPeerJoin', (id) => {
     NET.peers[id] = NET.peers[id] || { who: null, name: null, role: null, at: Date.now() };
     hello.send({ who: NET.myWho, role: NET.role, look: lookFor(NET.myWho) }, id);
@@ -5878,6 +5896,8 @@ async function netJoin(code, role, mode) {
   start.on((d) => { if (NET.role === 'client') { if (d && d.mode === 'kart') kartNetClientStart(d); else netClientStart(d); } });
   kst.on((d) => { if (kart && kart.online) kartApplyState(d); });
   kev.on((d) => { kartOnEvent(d); });
+  chat.on((d) => { if (d && typeof d.m === 'string') chatAdd(String(d.n || 'Someone').slice(0, 20), d.w, d.m.slice(0, 100)); });
+  chatShow(true);
   inp.on((d, id) => { if (NET.role === 'host' && smash) netApplyInput(d, id); });
   state.on((d) => { if (NET.role === 'client' && smash) smashApplySnapshot(d); });
   ev.on((d) => { if (NET.role === 'client') smashClientEvent(d); });
@@ -5888,6 +5908,7 @@ function netPing() {
   Object.keys(NET.peers).forEach((id) => { NET.room.ping(id).then((ms) => { NET.ping[id] = ms; if (!smash) refreshLobby(); }).catch(() => {}); });
 }
 function netLeave() {
+  chatShow(false);
   if (NET.pingTimer) { clearInterval(NET.pingTimer); NET.pingTimer = null; }
   if (NET.room) { try { NET.room.leave(); } catch (e) { /* ignore */ } }
   NET.room = null; NET.send = null; NET.peers = {}; NET.ping = {}; NET.status = 'off'; NET.code = null; NET.role = null;
@@ -7730,6 +7751,50 @@ function kartRestart() {
   playKart(kartCpuRace(kartMe().who, K.ti));
 }
 
+/* ---- the room chat: tucked away on the side, only for the people in your online room, never saved ---- */
+const CHAT = { log: [], unread: 0, open: false, last: 0 };
+const CHAT_QUICK = ['👍', '😂', '🎉', 'Nice one!', 'Good game!', 'Rematch?', 'Wait for me!', 'Happy birthday, Kinan! 🎂'];
+const chatName = (who) => (SMASH_CHARS[who] || KART_DRIVERS[who] || { name: 'Someone' }).name;
+function chatShow(on) {
+  const c = $('#chat'); if (!c) return;
+  c.hidden = !on;
+  if (!on) { CHAT.log = []; CHAT.unread = 0; chatOpen(false); }
+}
+function chatOpen(on) {
+  CHAT.open = on;
+  $('#chatBox').hidden = !on; $('#chatTab').setAttribute('aria-expanded', String(on));
+  if (on) CHAT.unread = 0;
+  chatRender(); chatBadge();
+}
+function chatBadge() { const b = $('#chatBadge'); b.hidden = !CHAT.unread; b.textContent = CHAT.unread > 9 ? '9+' : String(CHAT.unread); }
+function chatRender() {
+  const log = $('#chatLog'); if (!log) return;
+  log.innerHTML = CHAT.log.length ? CHAT.log.map((m) => '<li><b style="color:' + m.color + '">' + escAttr(m.n) + ':</b> ' + escAttr(m.m) + '</li>').join('') : '<li class="chatsub">Say hi to the room! 👋</li>';
+  log.scrollTop = log.scrollHeight;
+}
+function chatAdd(n, who, m) {
+  CHAT.log.push({ n: n, m: m, color: (SMASH_CHARS[who] || KART_DRIVERS[who] || { color: '#f4f1e8' }).color });
+  if (CHAT.log.length > 40) CHAT.log.shift();
+  if (!CHAT.open) CHAT.unread++;
+  chatBadge(); chatRender();
+}
+function chatSend(text) {
+  const m = String(text || '').replace(/\s+/g, ' ').trim().slice(0, 100);
+  if (!m || !NET.send || !NET.send.chat) return;
+  const now = Date.now();
+  if (now - CHAT.last < 700) { setTimeout(() => chatSend(m), 700 - (now - CHAT.last)); return; }   /* no flooding: too fast waits its turn */
+  CHAT.last = now;
+  NET.send.chat({ n: chatName(NET.myWho), w: NET.myWho, m: m });
+  chatAdd(chatName(NET.myWho) + ' (you)', NET.myWho, m);
+}
+function bindChat() {
+  $('#chatTab').addEventListener('click', () => { SFX.click(); chatOpen(!CHAT.open); });
+  $('#chatX').addEventListener('click', () => { SFX.click(); chatOpen(false); });
+  $('#chatQuick').innerHTML = CHAT_QUICK.map((q) => '<button type="button">' + escAttr(q) + '</button>').join('');
+  $$('#chatQuick button').forEach((b) => b.addEventListener('click', () => chatSend(b.textContent)));
+  $('#chatForm').addEventListener('submit', (e) => { e.preventDefault(); chatSend($('#chatIn').value); $('#chatIn').value = ''; });
+}
+
 /* ============================================================
    BOOT
    ============================================================ */
@@ -7748,6 +7813,7 @@ document.addEventListener('gesturestart', (e) => e.preventDefault(), { passive: 
 
 bindPad();
 bindWheel();
+bindChat();
 AudioSys.on = progress.sound !== false;
 applyLite();
 initPWA();
@@ -7909,6 +7975,7 @@ window.__k11 = {
     join: (code, role) => smashLobbyScreen(code, role),
     startFight: () => netStartFight(),
     menu: () => smashMenu(),
+    chat: () => ({ shown: !$('#chat').hidden, open: CHAT.open, unread: CHAT.unread, log: CHAT.log.map((m) => m.n + ': ' + m.m) }),
     pick: (who) => { NET.myWho = who; if (NET.send) NET.send.pick({ who: who, look: lookFor(who) }); refreshLobby(); }
   },
   spriteSheet: () => {
