@@ -1160,7 +1160,7 @@ function toast(html, ms) {
   toastTimer = setTimeout(() => { el.toast.hidden = true; }, ms || 1600);
 }
 function setPaused(on, showMenu) {
-  paused = on;
+  paused = on || !!advance;   /* a story box still on screen keeps the game frozen until it is tapped */
   pausedByUser = on;
   el.pause.hidden = !(on && showMenu !== false);
   if (on) { input.left = input.right = input.jump = false; }
