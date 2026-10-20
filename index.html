@@ -3214,6 +3214,13 @@ function titleScreen() {
     '<p class="eyebrow">A birthday game from Shad · Saskatoon, Saskatchewan</p>' +
     '<h1 class="title"><span class="t1">Kinan vs. Mom</span><span class="t2">11 stages. 1 birthday. 4 cats. 2 dogs.</span></h1>' +
     '<div class="cast">' + castHTML() + '</div>' +
+    /* buttons sit above the story so START is on screen without scrolling on a tablet */
+    '<div class="btnrow">' +
+    (cont ? '<button class="btn go btnbeat" id="startBtn" type="button">▶ CONTINUE</button>' : '<button class="btn go btnbeat" id="startBtn" type="button">▶ START</button>') +
+    (cont ? '<button class="btn" id="mapBtn" type="button">Stage map</button>' : '') +
+    (cont ? '<button class="btn ghost" id="newBtn" type="button">Start over</button>' : '') +
+    '<button class="btn ghost" id="installBtn2" type="button">📲 Install app</button>' +
+    '</div>' +
     '<p class="lede">It\'s Kinan\'s <b>11th birthday</b> in <b>Saskatoon</b> and the whole house has gone wild. Lego monsters, runaway toys, nosy neighbours... and at the end of every stage, a <b>family boss</b>. Mom is the big boss. <b>Big Sis Chenoa</b> might be on your team, or she might not. <b>Dad Robin</b> shows up when you need him, and big bro <b>Shad</b> crashes in with a <b>Construction Slam</b>.</p>' +
     '<ul class="howto">' +
     '<li><span class="ico">👟</span><span><b>Jump on enemies</b> to bonk them. Chain bonks without landing for a <b>combo multiplier</b>.</span></li>' +
@@ -3224,12 +3231,6 @@ function titleScreen() {
     '<li><span class="ico">⭐</span><span>Earn up to <b>3 stars</b> per stage: clear it, grab 70% of the candles, and never lose a heart. Stars unlock <b>hats</b>.</span></li>' +
     '<li><span class="ico">🍰</span><span>Every <b>25 candles</b> = an extra heart. Trampolines launch you sky-high.</span></li>' +
     '</ul>' +
-    '<div class="btnrow">' +
-    (cont ? '<button class="btn go btnbeat" id="startBtn" type="button">▶ CONTINUE</button>' : '<button class="btn go btnbeat" id="startBtn" type="button">▶ START</button>') +
-    (cont ? '<button class="btn" id="mapBtn" type="button">Stage map</button>' : '') +
-    (cont ? '<button class="btn ghost" id="newBtn" type="button">Start over</button>' : '') +
-    '<button class="btn ghost" id="installBtn2" type="button">📲 Install app</button>' +
-    '</div>' +
     '<p class="tiny">Keyboard: ← → move · SPACE jump · X pow · P pause. Touch controls below the screen. Gamepad works too.</p>' +
     '<p class="tiny">' + (totalStars() ? '<b>' + totalStars() + '</b> ⭐ collected so far. Can you get all 33?' : 'No stars yet — go get some.') + '</p>'
   );
