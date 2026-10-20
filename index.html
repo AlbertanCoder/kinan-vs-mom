@@ -280,6 +280,18 @@ html.rotated,html.rotated body{height:100%;overflow:hidden}
 html.rotated body{padding:0;display:block}
 html.rotated .app{position:fixed;top:0;left:0;width:100vh;width:100dvh;height:100vw;height:100dvw;max-width:none;overflow:hidden;transform-origin:0 0;transform:rotate(90deg) translate(0,-100%);padding:max(5px,env(safe-area-inset-right,0px)) max(6px,env(safe-area-inset-bottom,0px)) max(5px,env(safe-area-inset-left,0px)) max(6px,env(safe-area-inset-top,0px))}
 html.rotated .turnhint{display:block}
+/* Party Shop */
+.wallet{margin:0;font-size:18px}
+.wallet b{color:var(--gold)}
+.shopgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:8px}
+.shopcard{display:grid;justify-items:center;align-content:start;gap:4px;padding:8px 6px;background:var(--panel);border:2px solid var(--panel2);border-radius:8px;color:var(--text);font:inherit;cursor:pointer;min-height:44px}
+.shopcard img{image-rendering:pixelated}
+.shopcard b{font-size:13px;text-align:center;line-height:1.2}
+.shopcard small{font-size:12px;color:var(--gold)}
+.shopcard.own small{color:var(--mint)}
+.shopcard.on{border-color:var(--gold);box-shadow:0 0 0 2px var(--gold);background:#2b2d5a}
+.shopico{font-size:30px;line-height:1.3}
+#shopMsg{min-height:1.3em;color:var(--gold)}
 /* the front door: pick a game */
 .modes{display:grid;gap:10px;margin:8px 0 6px}
 .modebtn{display:flex;align-items:center;gap:14px;text-align:left;width:100%;padding:12px 16px;background:var(--panel);border:3px solid var(--edge);border-radius:10px;color:var(--text);font:inherit;cursor:pointer;box-shadow:inset 0 0 0 2px var(--panel),inset 0 0 0 4px var(--panel2),3px 3px 0 var(--shadow)}
@@ -971,7 +983,8 @@ function build(i) {
 /* ============================================================
    STATE
    ============================================================ */
-const DEFAULT_PROGRESS = { unlocked: 1, beaten: [], stars: {}, bestScore: {}, totalCandles: 0, pets: { ids: [], names: {} }, hat: 'none', won: false, sound: true, lite: false };
+const DEFAULT_PROGRESS = { unlocked: 1, beaten: [], stars: {}, bestScore: {}, totalCandles: 0, pets: { ids: [], names: {} }, hat: 'none', won: false, sound: true, lite: false,
+  wallet: 0, owned: [], outfit: 'classic', trail: 'none', costumes: {} };
 function loadProgress() {
   let p = store.get(SAVE_KEY, null);
   if (!p) {
@@ -983,6 +996,7 @@ function loadProgress() {
       base.beaten = Array.isArray(old.beaten) ? old.beaten.map(Number).filter((n) => n >= 0 && n < 11) : [];
       base.won = !!old.won;
       base.totalCandles = Number(old.totalCandles) || 0;
+      base.wallet = base.totalCandles;
       base.sound = store.get('k11v3-sound', true) !== false;
       base.pets.ids = [];
       if (old.pets && old.pets.cat) base.pets.ids.push('cat1');
@@ -1001,6 +1015,10 @@ function loadProgress() {
   if (oldPets.dog && ids.indexOf('dog1') < 0) ids.push('dog1');
   out.pets = { ids: ids.filter((id) => PET_DEFS.some((d) => d.id === id)), names: Object.assign({}, oldPets.names || {}) };
   if (out.resume && !(typeof out.resume === 'object' && out.resume.i >= 0 && out.resume.i < 11)) delete out.resume;
+  /* Party Shop: the candles already collected become the first spending money */
+  if (typeof p.wallet !== 'number') out.wallet = Math.max(0, Math.floor(Number(out.totalCandles) || 0));
+  out.owned = Array.isArray(p.owned) ? p.owned.filter((id) => typeof id === 'string') : [];
+  out.costumes = p.costumes && typeof p.costumes === 'object' ? Object.assign({}, p.costumes) : {};
   return out;
 }
 let progress = loadProgress();
@@ -1684,7 +1702,15 @@ function giveItem(kind) {
   }
   updHud();
 }
+function trailPart(kind, x, y) {
+  if (kind === 'sparkle') part(x, y, { vx: rand(-0.3, 0.3), vy: rand(-0.6, -0.1), life: 18, size: 2, color: pick(['#f6c445', '#fff3b0', '#ffffff']), glow: true, g: 0 });
+  else if (kind === 'confetti') part(x, y - 4, { vx: rand(-0.9, 0.9), vy: rand(-1.4, -0.5), life: 26, size: 2, color: pick(['#ff6fae', '#f6c445', '#6fc8ff', '#7be3a3', '#ff8a3d']), g: 0.08 });
+  else if (kind === 'bubbles') part(x, y - 6, { vx: rand(-0.2, 0.2), vy: -0.45, life: 24, size: 1, type: 'bubble', color: '#9fe0ff', g: -0.005 });
+  else if (kind === 'hearts') part(x, y - 6, { vx: rand(-0.3, 0.3), vy: -0.5, life: 22, size: 2, color: '#ff6fae', glow: true, g: 0 });
+  else if (kind === 'stars') part(x, y - 4, { vx: -P.face * rand(0.4, 1.0), vy: rand(-0.3, 0.3), life: 14, size: ri(1, 3), color: pick(['#ffffff', '#fff3b0']), glow: true, g: 0 });
+}
 function updateWorld() {
+  if (progress.trail && progress.trail !== 'none' && !P.dead && (Math.abs(P.vx) > 0.6 || !P.onGround) && frame % 3 === 0) trailPart(progress.trail, P.x + 5 - P.face * 4, P.y + P.h - 4);
   if (L.checkpoint && !cpHit && P.x > L.checkpoint.x) {
     cpHit = true;
     spawn = { x: L.checkpoint.x, y: (L.checkpoint.ty - 1) * T };
@@ -2936,34 +2962,52 @@ function drawSprite(img, x, y, face, flipV) {
     ctx.drawImage(img, Math.round(x), Math.round(y));
   }
 }
-function drawKinanHat(x, y, kind) {
+function drawKinanHat(x, y, kind, c) {
   if (!kind || kind === 'none') return;
+  c = c || ctx;
   if (kind === 'party') {
-    ctx.fillStyle = '#ff6fae';
-    ctx.beginPath(); ctx.moveTo(x + 8, y - 6); ctx.lineTo(x + 13, y + 3); ctx.lineTo(x + 3, y + 3); ctx.fill();
-    ctx.fillStyle = '#f6c445';
-    ctx.fillRect(x + 3, y + 2, 10, 2); ctx.fillRect(x + 7, y - 7, 2, 2);
+    c.fillStyle = '#ff6fae';
+    c.beginPath(); c.moveTo(x + 8, y - 6); c.lineTo(x + 13, y + 3); c.lineTo(x + 3, y + 3); c.fill();
+    c.fillStyle = '#f6c445';
+    c.fillRect(x + 3, y + 2, 10, 2); c.fillRect(x + 7, y - 7, 2, 2);
   } else if (kind === 'ninja') {
-    ctx.fillStyle = '#8c2338'; ctx.fillRect(x + 2, y + 1, 12, 3);
-    ctx.fillStyle = '#c2414f'; ctx.fillRect(x + 12, y + 4, 4, 2); ctx.fillRect(x + 13, y + 6, 3, 2);
-    ctx.fillStyle = '#fff'; ctx.fillRect(x + 10, y + 2, 2, 1);
+    c.fillStyle = '#8c2338'; c.fillRect(x + 2, y + 1, 12, 3);
+    c.fillStyle = '#c2414f'; c.fillRect(x + 12, y + 4, 4, 2); c.fillRect(x + 13, y + 6, 3, 2);
+    c.fillStyle = '#fff'; c.fillRect(x + 10, y + 2, 2, 1);
   } else if (kind === 'crown') {
-    ctx.fillStyle = '#f6c445';
-    ctx.beginPath(); ctx.moveTo(x + 3, y + 2); ctx.lineTo(x + 3, y - 4); ctx.lineTo(x + 6, y - 1);
-    ctx.lineTo(x + 8, y - 6); ctx.lineTo(x + 10, y - 1); ctx.lineTo(x + 13, y - 4); ctx.lineTo(x + 13, y + 2); ctx.fill();
-    ctx.fillStyle = '#ff4fa3'; ctx.fillRect(x + 8, y - 1, 1, 1);
+    c.fillStyle = '#f6c445';
+    c.beginPath(); c.moveTo(x + 3, y + 2); c.lineTo(x + 3, y - 4); c.lineTo(x + 6, y - 1);
+    c.lineTo(x + 8, y - 6); c.lineTo(x + 10, y - 1); c.lineTo(x + 13, y - 4); c.lineTo(x + 13, y + 2); c.fill();
+    c.fillStyle = '#ff4fa3'; c.fillRect(x + 8, y - 1, 1, 1);
   } else if (kind === 'halo') {
     const bob = Math.round(Math.sin(frame / 30));
-    ctx.strokeStyle = 'rgba(255,235,140,.95)'; ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.ellipse(x + 8, y - 5 + bob, 7, 2.4, 0, 0, 6.284); ctx.stroke();
-    glowDisc(x + 8, y - 5 + bob, 10, 'rgba(255,235,140,.4)', 0.6);
+    c.strokeStyle = 'rgba(255,235,140,.95)'; c.lineWidth = 2;
+    c.beginPath(); c.ellipse(x + 8, y - 5 + bob, 7, 2.4, 0, 0, 6.284); c.stroke();
+    if (c === ctx) glowDisc(x + 8, y - 5 + bob, 10, 'rgba(255,235,140,.4)', 0.6);
+  } else if (kind === 'hardhat') {
+    c.fillStyle = '#f6c445'; c.fillRect(x + 3, y - 3, 10, 4); c.fillRect(x + 1, y + 1, 14, 2);
+    c.fillStyle = '#b9861c'; c.fillRect(x + 7, y - 3, 2, 4);
+  } else if (kind === 'cap') {
+    c.fillStyle = '#2a5bd7'; c.fillRect(x + 3, y - 1, 10, 4); c.fillRect(x + 11, y + 2, 5, 2);
+    c.fillStyle = '#fff'; c.fillRect(x + 7, y, 2, 2);
+  } else if (kind === 'cowboy') {
+    c.fillStyle = '#8a5a2a'; c.fillRect(x + 4, y - 4, 8, 5); c.fillRect(x - 1, y + 1, 18, 2);
+    c.fillStyle = '#c2414f'; c.fillRect(x + 4, y, 8, 1);
+  } else if (kind === 'viking') {
+    c.fillStyle = '#8f95ad'; c.fillRect(x + 3, y - 2, 10, 4);
+    c.fillStyle = '#f4f1e8'; c.fillRect(x + 1, y - 5, 2, 4); c.fillRect(x + 13, y - 5, 2, 4); c.fillRect(x + 2, y - 6, 1, 1); c.fillRect(x + 13, y - 6, 1, 1);
+  } else if (kind === 'propeller') {
+    c.fillStyle = '#e8364b'; c.fillRect(x + 3, y - 1, 10, 3);
+    c.fillStyle = '#f6c445'; c.fillRect(x + 7, y - 4, 2, 3);
+    c.fillStyle = '#3fa9f5'; if (Math.floor(frame / 4) % 2) c.fillRect(x + 3, y - 5, 10, 1); else c.fillRect(x + 6, y - 5, 4, 1);
   }
 }
 function drawPlayer() {
   const walking = Math.abs(P.vx) > 0.35 && P.onGround;
   const frameIdx = Math.floor(P.anim) % 2;
-  let img = !P.onGround ? (P.vy < 0 ? SP.kJump : SP.kFall) : (walking && frameIdx ? SP.kWalk : SP.kStand);
-  if (P.skid > 3) img = SP.kStand;
+  const KS = kinanSprites(progress.outfit);   /* the Party Shop outfit he is wearing */
+  let img = !P.onGround ? (P.vy < 0 ? KS.kJump : KS.kFall) : (walking && frameIdx ? KS.kWalk : KS.kStand);
+  if (P.skid > 3) img = KS.kStand;
   const w = 16, h = 18;
   const sx = Math.round(P.x + P.w / 2 - w / 2 - camX);
   const sy = Math.round(P.y + P.h - h);
@@ -3395,7 +3439,10 @@ function drawParticles() {
     const a = clamp(p.life / p.max, 0, 1);
     const sx = Math.round(p.x - camX), sy = Math.round(p.y);
     ctx.globalAlpha = a;
-    if (p.type === 'ring') {
+    if (p.type === 'bubble') {
+      ctx.strokeStyle = p.color; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.arc(sx, sy, 2 + (1 - a) * 2, 0, 6.284); ctx.stroke();
+    } else if (p.type === 'ring') {
       ctx.strokeStyle = p.color; ctx.lineWidth = 1.5;
       ctx.beginPath(); ctx.arc(sx, sy, (1 - a) * 16 + 2, 0, 6.284); ctx.stroke();
     } else {
@@ -3539,8 +3586,129 @@ const HATS = [
   { id: 'party', name: 'Party Hat', icon: '🎉', need: 3 },
   { id: 'ninja', name: 'Ninja Band', icon: '🥷', need: 9 },
   { id: 'crown', name: 'Crown', icon: '👑', need: 18 },
-  { id: 'halo', name: 'Halo', icon: '😇', need: 27 }
+  { id: 'halo', name: 'Halo', icon: '😇', need: 27 },
+  { id: 'hardhat', name: 'Hard hat', icon: '⛑️', shop: true },
+  { id: 'cap', name: 'Ball cap', icon: '🧢', shop: true },
+  { id: 'cowboy', name: 'Cowboy hat', icon: '🤠', shop: true },
+  { id: 'viking', name: 'Viking helmet', icon: '🪖', shop: true },
+  { id: 'propeller', name: 'Propeller beanie', icon: '🌀', shop: true }
 ];
+/* ============================================================
+   PARTY SHOP — the candles Kinan collects are money here.
+   Everything is a look (outfits, hats, trails, Smash costumes); nothing changes how the game plays.
+   ============================================================ */
+const SHOP = [
+  { id: 'outfit:hoodie', cat: 'outfit', name: 'Blue hoodie', price: 60, map: { r: 'b', m: 'J' } },
+  { id: 'outfit:dino', cat: 'outfit', name: 'Dino green', price: 80, map: { r: 'E', m: 'G' } },
+  { id: 'outfit:hockey', cat: 'outfit', name: 'Hockey jersey', price: 100, map: { r: 'w', m: 'R', y: 'R', w: 'b' } },
+  { id: 'outfit:ninja', cat: 'outfit', name: 'Ninja black', price: 120, map: { r: 'J', m: 'k', y: 'R', w: 'R' }, pant: 'J' },
+  { id: 'outfit:gold', cat: 'outfit', name: 'Golden birthday suit', price: 150, map: { r: 'y', m: 't', y: 'w', w: 'R' }, pant: 't' },
+  { id: 'outfit:space', cat: 'outfit', name: 'Space suit', price: 200, map: { r: 'Q', m: 'a', y: 'b', w: 'b' }, pant: 'Q' },
+  { id: 'hat:hardhat', cat: 'hat', name: 'Hard hat', price: 40 },
+  { id: 'hat:cap', cat: 'hat', name: 'Ball cap', price: 50 },
+  { id: 'hat:cowboy', cat: 'hat', name: 'Cowboy hat', price: 70 },
+  { id: 'hat:viking', cat: 'hat', name: 'Viking helmet', price: 90 },
+  { id: 'hat:propeller', cat: 'hat', name: 'Propeller beanie', price: 120 },
+  { id: 'trail:sparkle', cat: 'trail', name: 'Gold sparkles', price: 80, icon: '✨' },
+  { id: 'trail:confetti', cat: 'trail', name: 'Confetti', price: 100, icon: '🎊' },
+  { id: 'trail:bubbles', cat: 'trail', name: 'Bubbles', price: 100, icon: '💦' },
+  { id: 'trail:hearts', cat: 'trail', name: 'Hearts', price: 120, icon: '💖' },
+  { id: 'trail:stars', cat: 'trail', name: 'Shooting stars', price: 150, icon: '🌠' },
+  { id: 'costume:shad:blue', cat: 'costume', name: 'Shad: blue shirt', price: 100, map: { o: 'b', b: 'o' } },
+  { id: 'costume:chenoa:pink', cat: 'costume', name: 'Chenoa: pink', price: 100, map: { c: 'P', G: 'p' } },
+  { id: 'costume:mom:blue', cat: 'costume', name: 'Mom: blue', price: 100, map: { p: 'b' } },
+  { id: 'costume:dad:red', cat: 'costume', name: 'Dad: red jacket', price: 100, map: { o: 'R' } }
+];
+const SHOP_BY_ID = {};
+SHOP.forEach((it) => { SHOP_BY_ID[it.id] = it; });
+const ownsItem = (id) => !!(progress.owned && progress.owned.indexOf(id) >= 0);
+/* Kinan in an outfit: only the shirt rows (8 and down) and the trousers are recoloured, so the face never changes */
+const OUTFIT_SP = {};
+function kinanSprites(outfit) {
+  const id = outfit && SHOP_BY_ID['outfit:' + outfit] ? outfit : 'classic';
+  if (OUTFIT_SP[id]) return OUTFIT_SP[id];
+  if (id === 'classic') return (OUTFIT_SP[id] = { kStand: SP.kStand, kWalk: SP.kWalk, kJump: SP.kJump, kFall: SP.kFall });
+  const it = SHOP_BY_ID['outfit:' + id], pant = it.pant || 'j';
+  const body = KINAN.map((r, i) => (i >= 8 ? r.replace(/./g, (ch) => (ch === 'j' ? pant : (it.map[ch] || ch))) : r));
+  return (OUTFIT_SP[id] = { kStand: bake(legs(body, LEGS.stand, pant)), kWalk: bake(legs(body, LEGS.walk, pant)), kJump: bake(legs(body, LEGS.jump, pant)), kFall: bake(legs(body, LEGS.fall, pant)) });
+}
+const COSTUME_SP = {};
+function costumeSprites(who, look) {
+  const it = look ? SHOP_BY_ID['costume:' + who + ':' + look] : null;
+  const base = { shad: SHAD, chenoa: CHENOA, mom: MOM, dad: DAD_VEST }[who];
+  if (!it || !base) return null;
+  if (COSTUME_SP[it.id]) return COSTUME_SP[it.id];
+  const rows = recolor(base, it.map);
+  let out;
+  if (who === 'chenoa') out = { stand: bake(rows.concat(CROCS.stand)), walk: bake(rows.concat(CROCS.walk)) };
+  else if (who === 'shad') out = { stand: bake(legs(rows, LEGS.stand, 'n')), walk: bake(legs(rows, LEGS.walk, 'n')), jump: bake(legs(rows, LEGS.jump, 'n')) };
+  else out = { stand: bake(legs(rows, LEGS.stand, 'J')), walk: bake(legs(rows, LEGS.walk, 'J')) };
+  return (COSTUME_SP[it.id] = out);
+}
+/* what this device's player wears as a fighter: Kinan's outfit, or a bought costume for the others */
+function lookFor(who) {
+  if (who === 'kinan') return progress.outfit && progress.outfit !== 'classic' ? progress.outfit : null;
+  return (progress.costumes && progress.costumes[who]) || null;
+}
+function isEquipped(it) {
+  const k = it.id.split(':');
+  if (it.cat === 'outfit') return progress.outfit === k[1];
+  if (it.cat === 'hat') return progress.hat === k[1];
+  if (it.cat === 'trail') return progress.trail === k[1];
+  if (it.cat === 'costume') return (progress.costumes || {})[k[1]] === k[2];
+  return false;
+}
+function equip(it, on) {
+  const k = it.id.split(':');
+  if (it.cat === 'outfit') progress.outfit = on ? k[1] : 'classic';
+  else if (it.cat === 'hat') progress.hat = on ? k[1] : 'none';
+  else if (it.cat === 'trail') progress.trail = on ? k[1] : 'none';
+  else if (it.cat === 'costume') { progress.costumes = progress.costumes || {}; if (on) progress.costumes[k[1]] = k[2]; else delete progress.costumes[k[1]]; }
+}
+function shopPreview(it) {
+  const k = it.id.split(':');
+  if (it.cat === 'outfit') return imgOf(kinanSprites(k[1]).kStand, 3);
+  if (it.cat === 'costume') { const cs = costumeSprites(k[1], k[2]); return cs ? imgOf(cs.stand, k[1] === 'chenoa' ? 2 : 3) : ''; }
+  if (it.cat === 'hat') {
+    const c = document.createElement('canvas'); c.width = 20; c.height = 26;
+    const x = c.getContext('2d'); x.drawImage(SP.kStand, 2, 7); drawKinanHat(2, 7, k[1], x);
+    return imgOf(c, 3);
+  }
+  return '<span class="shopico">' + (it.icon || '✨') + '</span>';
+}
+let shopConfirm = null, shopMsg = '';
+function shopScreen(from) {
+  Music.play('title');
+  const cats = [['outfit', "Kinan's outfits"], ['hat', 'Hats'], ['trail', 'Sparkle trails (when he runs and jumps)'], ['costume', 'Family Smash costumes']];
+  const card = (it) => {
+    const own = ownsItem(it.id), on = own && isEquipped(it);
+    const label = on ? 'Wearing ✓' : (own ? 'Tap to wear' : (shopConfirm === it.id ? 'Tap again: buy for ' + it.price + ' 🕯' : it.price + ' 🕯'));
+    return '<button type="button" class="shopcard' + (on ? ' on' : '') + (own ? ' own' : '') + '" data-item="' + it.id + '">' + shopPreview(it) + '<b>' + it.name + '</b><small>' + label + '</small></button>';
+  };
+  showScreen(
+    '<p class="eyebrow">Party Shop · the candles you collect are money here</p>' +
+    '<h1 class="title"><span class="t2">Party Shop</span></h1>' +
+    '<p class="wallet">🕯 <b id="walletN">' + (progress.wallet || 0) + '</b> candles to spend</p>' +
+    '<p class="tiny" id="shopMsg">' + shopMsg + '</p>' +
+    cats.map((c) => '<p class="eyebrow">' + c[1] + '</p><div class="shopgrid">' + SHOP.filter((it) => it.cat === c[0]).map(card).join('') + '</div>').join('') +
+    '<div class="btnrow"><button class="btn go" id="shopBack" type="button">' + (from === 'map' ? 'Back to the map' : 'Back') + '</button></div>' +
+    '<p class="tiny">Tap something you own to wear it; tap it again to take it off. Everything here is just for looks.</p>'
+  );
+  shopMsg = '';
+  $$('.shopcard', el.screen).forEach((b) => b.addEventListener('click', () => shopTap(b.dataset.item, from)));
+  $('#shopBack').addEventListener('click', () => { SFX.click(); shopConfirm = null; if (from === 'map') mapScreen(); else titleScreen(); });
+}
+function shopTap(id, from) {
+  const it = SHOP_BY_ID[id];
+  if (!it) return;
+  const y = window.scrollY;
+  if (ownsItem(id)) { equip(it, !isEquipped(it)); shopConfirm = null; save(); SFX.save(); }
+  else if ((progress.wallet || 0) < it.price) { shopConfirm = null; SFX.click(); shopMsg = 'Need <b>' + (it.price - (progress.wallet || 0)) + '</b> more candles for the ' + it.name + '.'; }
+  else if (shopConfirm !== id) { shopConfirm = id; SFX.click(); }
+  else { progress.wallet -= it.price; progress.owned.push(id); shopConfirm = null; equip(it, true); save(); SFX.power(); shopMsg = '🛍️ <b>' + it.name + '</b> is yours!'; }
+  shopScreen(from);
+  window.scrollTo(0, y);   /* stay where you were in the list */
+}
 
 function titleScreen() {
   if (smash) endSmash();
@@ -3569,6 +3737,7 @@ function titleScreen() {
     '<div class="btnrow">' +
     (cont ? '<button class="btn" id="mapBtn" type="button">Stage map</button>' : '') +
     '<button class="btn" id="howBtn" type="button">How to play</button>' +
+    '<button class="btn" id="shopBtn" type="button">🛍️ Party Shop</button>' +
     (cont ? '<button class="btn ghost" id="newBtn" type="button">Start over</button>' : '') +
     (IS_STANDALONE ? '' : '<button class="btn ghost" id="installBtn2" type="button">📲 Install app</button>') +
     '</div>' +
@@ -3580,6 +3749,7 @@ function titleScreen() {
     else playStage(cont ? next : 0);
   });
   $('#howBtn').addEventListener('click', () => { AudioSys.init(); SFX.click(); howToScreen(); });
+  $('#shopBtn').addEventListener('click', () => { AudioSys.init(); SFX.click(); shopScreen('title'); });
   const mb = $('#mapBtn'); if (mb) mb.addEventListener('click', () => { AudioSys.init(); SFX.click(); mapScreen(); });
   const nb = $('#newBtn');
   if (nb) nb.addEventListener('click', () => {
@@ -3666,8 +3836,8 @@ function mapScreen() {
       '<span class="s">' + (open ? (done ? 'Boss: ' + th.boss.title + (bt ? ' · best ' + fmtTime(bt) : '') : 'Boss: ' + th.boss.title) : 'Beat stage ' + i + ' first') + '</span></span>' +
       '<span class="stars">' + starStr + '</span></button></li>';
   }).join('');
-  const hats = HATS.map((h) => {
-    const unlocked = stars >= h.need;
+  const hats = HATS.filter((h) => !h.shop || ownsItem('hat:' + h.id)).map((h) => {
+    const unlocked = h.shop ? true : stars >= h.need;
     const on = progress.hat === h.id;
     return '<button class="hatbtn' + (on ? ' on' : '') + '" type="button" data-hat="' + h.id + '"' + (unlocked ? '' : ' disabled') + ' title="' + (unlocked ? h.name : 'Earn ' + h.need + ' stars to unlock') + '">' +
       '<span style="font-size:20px">' + (unlocked ? h.icon : '🔒') + '</span><span>' + h.name + '</span></button>';
@@ -3691,6 +3861,7 @@ function mapScreen() {
     '<p class="eyebrow">The pet pack · ' + progress.pets.ids.length + ' of 6 rescued · tap a name to change it</p>' +
     '<div class="petedit">' + petEditor + '</div>' +
     '<div class="btnrow"><button class="btn go" type="button" id="playNext">' + (progress.won ? 'Replay final stage' : 'Play next stage') + '</button>' +
+    '<button class="btn" type="button" id="shopBtnM">🛍️ Party Shop</button>' +
     '<button class="btn" type="button" id="titleBtn">Title screen</button></div>' +
     '<p class="wrapnote">Tip: 3 stars needs a clean run — clear the boss, collect 70% of candles and lose zero hearts.</p>'
   );
@@ -3720,6 +3891,7 @@ function mapScreen() {
     playStage(next);
   });
   $('#titleBtn').addEventListener('click', () => { SFX.click(); titleScreen(); });
+  $('#shopBtnM').addEventListener('click', () => { SFX.click(); shopScreen('map'); });
 }
 
 async function playStage(i, opts) {
@@ -3754,6 +3926,7 @@ function resultsScreen(i) {
   const prevTime = progress.bestTime[i] || 0;
   if (!prevTime || stageTime < prevTime) progress.bestTime[i] = stageTime;
   progress.totalCandles = (progress.totalCandles || 0) + got;
+  progress.wallet = (progress.wallet || 0) + got;   /* Party Shop money */
   if (progress.resume && progress.resume.i === i) delete progress.resume;   /* cleared stage: nothing left to resume */
   save();
   const newBest = score > prevBest;
@@ -3770,6 +3943,7 @@ function resultsScreen(i) {
     '<div><dt>Best combo</dt><dd>' + (bestCombo > 1 ? 'x' + bestCombo : '—') + '</dd></div>' +
     '</dl>' +
     (st < 3 ? '<p class="wrapnote">' + (pct < 0.7 ? 'Grab 70% of the candles' : '') + (pct < 0.7 && heartsLost > 0 ? ' and ' : '') + (heartsLost > 0 ? 'never lose a heart' : '') + ' for 3 stars.</p>' : '<p class="wrapnote">Perfect run. Kinan is unstoppable. ⭐⭐⭐</p>') +
+    '<p class="wrapnote" id="walletNote">🛍️ +' + got + ' candles for the Party Shop · you have <b>' + (progress.wallet || 0) + '</b></p>' +
     (th.meanwhile ? '<p class="lede meanwhile"><b>Meanwhile…</b> ' + th.meanwhile.replace('{candles}', String(progress.totalCandles || 0)) + '</p>' : '') +
     (firstClear && i > 0 ? '<p class="wrapnote" id="arenaNote">🥊 New Family Smash arena unlocked: <b>' + ARENAS[i].name + '</b></p>' : '') +
     '<div class="btnrow"><button class="btn go" type="button" id="nextBtn">' + (i < 10 ? 'NEXT STAGE ▶' : 'FINISH') + '</button>' +
@@ -3793,6 +3967,7 @@ function ending() {
   progress.bestTime = progress.bestTime || {};
   if (!progress.bestTime[10] || stageTime < progress.bestTime[10]) progress.bestTime[10] = stageTime;
   progress.totalCandles = (progress.totalCandles || 0) + got;
+  progress.wallet = (progress.wallet || 0) + got;   /* Party Shop money */
   delete progress.resume;
   save();
   Music.play('title');
@@ -4021,7 +4196,7 @@ function startSmash(opts) {
     fighters: players.map((p, k) => {
       const base = SMASH_CHARS[p.who] ? p.who : 'kinan';
       counts[base] = (counts[base] || 0) + 1;
-      return makeFighter(base, k, { cpu: !!p.cpu, peer: p.peer || null, name: p.name || (SMASH_CHARS[base].name + (counts[base] > 1 ? ' ' + counts[base] : '')) });
+      return makeFighter(base, k, { cpu: !!p.cpu, peer: p.peer || null, look: typeof p.look === 'string' ? p.look : null, name: p.name || (SMASH_CHARS[base].name + (counts[base] > 1 ? ' ' + counts[base] : '')) });
     }),
     shots: [], t: 0, state: 'countdown', count: 150, winner: -1, online: opts.online || null, local2: !!opts.local2, lastSnap: 0, powKey: '', arena: arena
   };
@@ -4269,11 +4444,12 @@ function cpuThink(f) {
 function fighterImage(f) {
   const sp = SMASH_CHARS[f.who].sprite;
   const walking = Math.abs(f.vx) > 0.35 && f.onGround, fi = Math.floor(f.anim) % 2;
-  if (sp === 'k') return !f.onGround ? (f.vy < 0 ? SP.kJump : SP.kFall) : (walking && fi ? SP.kWalk : SP.kStand);
-  if (sp === 's') return !f.onGround ? SP.sJump : (walking && fi ? SP.sWalk : SP.sStand);
-  if (sp === 'c') return walking && fi ? SP.cWalk : SP.cStand;
-  if (sp === 'm') return walking && fi ? SP.mWalk : SP.mStand;
-  return walking && fi ? SP.dWalk : SP.dStand;
+  if (sp === 'k') { const K = kinanSprites(f.look); return !f.onGround ? (f.vy < 0 ? K.kJump : K.kFall) : (walking && fi ? K.kWalk : K.kStand); }
+  const cs = f.look ? costumeSprites(f.who, f.look) : null;   /* Party Shop costume, if any */
+  if (sp === 's') return !f.onGround ? (cs ? cs.jump : SP.sJump) : (walking && fi ? (cs ? cs.walk : SP.sWalk) : (cs ? cs.stand : SP.sStand));
+  if (sp === 'c') return walking && fi ? (cs ? cs.walk : SP.cWalk) : (cs ? cs.stand : SP.cStand);
+  if (sp === 'm') return walking && fi ? (cs ? cs.walk : SP.mWalk) : (cs ? cs.stand : SP.mStand);
+  return walking && fi ? (cs ? cs.walk : SP.dWalk) : (cs ? cs.stand : SP.dStand);
 }
 function drawFighter(f) {
   if (f.out || f.ko > 0) return;
@@ -4391,7 +4567,7 @@ function endSmash() {
 }
 function pickCard(who, sel, attr) {
   const c = SMASH_CHARS[who];
-  return '<button type="button" class="pickbtn' + (sel === who ? ' on' : '') + '" ' + attr + ' data-who="' + who + '">' + imgOf(SP[c.sprite + 'Stand'], 3) +
+  return '<button type="button" class="pickbtn' + (sel === who ? ' on' : '') + '" ' + attr + ' data-who="' + who + '">' + imgOf(fighterImage({ who: who, vx: 0, onGround: true, anim: 0, look: lookFor(who) }), 3) +
     '<b>' + c.name + '</b><small>' + c.special + '</small></button>';
 }
 function smashMenu() {
@@ -4454,9 +4630,9 @@ function smashPickScreen(mode) {
   $('#smBack').addEventListener('click', () => { SFX.click(); smashMenu(); });
   $('#smGo').addEventListener('click', () => {
     AudioSys.init(); SFX.click();
-    if (mode === 'local') playSmash({ players: [{ who: smashPicks.p1 }, { who: smashPicks.p2 }], local2: true, arena: smashPicks.arena });
+    if (mode === 'local') playSmash({ players: [{ who: smashPicks.p1, look: lookFor(smashPicks.p1) }, { who: smashPicks.p2, look: lookFor(smashPicks.p2) }], local2: true, arena: smashPicks.arena });
     else {
-      const players = [{ who: smashPicks.p1 }];
+      const players = [{ who: smashPicks.p1, look: lookFor(smashPicks.p1) }];
       const pool = SMASH_ORDER.filter((w) => w !== smashPicks.p1);
       for (let k = 0; k < smashPicks.cpuN; k++) players.push({ who: pool[k % pool.length], cpu: true });
       playSmash({ players: players, arena: smashPicks.arena });
@@ -4555,7 +4731,7 @@ async function netJoin(code, role) {
   NET.send = { hello: hello.send, pick: pick.send, start: start.send, input: inp.send, state: state.send, event: ev.send };
   netOn('onPeerJoin', (id) => {
     NET.peers[id] = NET.peers[id] || { who: null, name: null, role: null, at: Date.now() };
-    hello.send({ who: NET.myWho, role: NET.role }, id);
+    hello.send({ who: NET.myWho, role: NET.role, look: lookFor(NET.myWho) }, id);
     refreshLobby();
     if (NET.role === 'host' && !NET.pingTimer) NET.pingTimer = setInterval(netPing, 2500);
   });
@@ -4565,8 +4741,8 @@ async function netJoin(code, role) {
     else if (NET.role === 'client' && !Object.keys(NET.peers).length) NET.error = 'The room closed.';
     refreshLobby();
   });
-  hello.on((d, id) => { NET.peers[id] = Object.assign(NET.peers[id] || { at: Date.now() }, { who: d.who, role: d.role }); refreshLobby(); });
-  pick.on((d, id) => { if (NET.peers[id]) NET.peers[id].who = d.who; refreshLobby(); });
+  hello.on((d, id) => { NET.peers[id] = Object.assign(NET.peers[id] || { at: Date.now() }, { who: d.who, role: d.role, look: d.look || null }); refreshLobby(); });
+  pick.on((d, id) => { if (NET.peers[id]) { NET.peers[id].who = d.who; NET.peers[id].look = d.look || null; } refreshLobby(); });
   start.on((d) => { if (NET.role === 'client') netClientStart(d); });
   inp.on((d, id) => { if (NET.role === 'host' && smash) netApplyInput(d, id); });
   state.on((d) => { if (NET.role === 'client' && smash) smashApplySnapshot(d); });
@@ -4589,7 +4765,7 @@ function netPeerList() {
 function netStartFight() {
   if (NET.role !== 'host' || !NET.send) return;
   const peers = netPeerList().filter((id) => NET.peers[id].who);
-  const players = [{ who: NET.myWho, peer: NET.selfId }].concat(peers.map((id) => ({ who: NET.peers[id].who, peer: id }))).slice(0, SMASH_MAX);
+  const players = [{ who: NET.myWho, peer: NET.selfId, look: lookFor(NET.myWho) }].concat(peers.map((id) => ({ who: NET.peers[id].who, peer: id, look: NET.peers[id].look || null }))).slice(0, SMASH_MAX);
   if (players.length < 2) { toast('Need at least 2 players in the room.', 1600); return; }
   if (!arenaUnlocked(NET.arena)) NET.arena = newestArena();
   NET.send.start({ players: players, arena: NET.arena });
@@ -4740,7 +4916,7 @@ function refreshLobby() {
     '<button class="btn ghost" id="smLeave" type="button">Leave the room</button></div>';
   $$('.pickbtn', box).forEach((b) => b.addEventListener('click', () => {
     SFX.click(); NET.myWho = b.dataset.who;
-    if (NET.send) NET.send.pick({ who: NET.myWho });
+    if (NET.send) NET.send.pick({ who: NET.myWho, look: lookFor(NET.myWho) });
     refreshLobby();
   }));
   bindArenaRow(box, (i) => { NET.arena = i; });
@@ -4892,7 +5068,7 @@ window.__k11 = {
     arenas: () => ARENAS.map((a, i) => ({ i: i, name: a.name, layout: a.layout, unlocked: arenaUnlocked(i) })),
     state: () => (smash ? { t: smash.t, state: smash.state, winner: smash.winner, online: smash.online, local2: smash.local2, arena: smash.arena,
       fighters: smash.fighters.map((f) => ({ slot: f.slot, who: f.who, name: f.name, x: Math.round(f.x), y: Math.round(f.y), vx: Math.round(f.vx * 100) / 100, vy: Math.round(f.vy * 100) / 100,
-        dmg: f.dmg, stocks: f.stocks, out: f.out, ko: f.ko, cool: f.cool, act: f.act ? f.act.kind : null, cpu: f.cpu, peer: f.peer, onGround: f.onGround, stun: f.stun, kos: f.kos, falls: f.falls, mine: f.input === input })),
+        dmg: f.dmg, stocks: f.stocks, out: f.out, ko: f.ko, cool: f.cool, act: f.act ? f.act.kind : null, cpu: f.cpu, peer: f.peer, onGround: f.onGround, stun: f.stun, kos: f.kos, falls: f.falls, mine: f.input === input, look: f.look })),
       shots: smash.shots.map((s) => s.kind) } : null),
     setInput: (slot, o) => { const f = smash && smash.fighters[slot]; if (!f) return false; Object.assign(f.input, o); return true; },
     cpu: (slot, on) => { const f = smash && smash.fighters[slot]; if (f) f.cpu = !!on; return !!f; },
@@ -4901,7 +5077,7 @@ window.__k11 = {
     join: (code, role) => smashLobbyScreen(code, role),
     startFight: () => netStartFight(),
     menu: () => smashMenu(),
-    pick: (who) => { NET.myWho = who; if (NET.send) NET.send.pick({ who: who }); refreshLobby(); }
+    pick: (who) => { NET.myWho = who; if (NET.send) NET.send.pick({ who: who, look: lookFor(who) }); refreshLobby(); }
   },
   spriteSheet: () => {
     const names = ['kStand', 'kJump', 'mStand', 'dStand', 'cStand', 'sStand', 'cat', 'dog'];
