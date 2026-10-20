@@ -710,97 +710,107 @@ const LV = [
   {
     place: "Kinan's Bedroom", bg: 'room', sky: ['#241b4d', '#5b4a93'], far: '#2f2657', mid: '#3d3168',
     ground: '#6d4a30', top: '#a8794f', brick: '#8a5a8a', accent: '#f6c445', foes: ['sock', 'lego', 'teddy'],
-    intro: ["It's <b>Kinan's 11th birthday</b>! But the house has gone WILD.", 'The toys are alive, the Lego is angry... and every boss in this house is <b>family</b>.', 'One of your <b>four cats</b> is hiding in a box. Find her for a <b>double jump</b>!'],
+    intro: ["It's <b>Kinan's 11th birthday</b>! He wakes up... and the house has gone WILD.", '<b>KINAN:</b> My socks are WALKING. My Lego is ANGRY. And why are there candles everywhere?!', 'Every candle you grab is one more for the cake. One of your <b>four cats</b> is hiding in a box: find her for a <b>double jump</b>!'],
     boss: { kind: 'mom', title: 'Mom, the Room Inspector', prop: '🧺', hp: 3, face: 'm' },
-    bossIntro: ['<b>MOM (DEBBIE):</b> Good morning, birthday boy!', "<b>MOM:</b> I'm home ALL DAY, so I see EVERYTHING.", '<b>MOM:</b> ...Is that a SOCK on the ceiling? CLEAN. YOUR. ROOM.'],
-    taunts: ['Ow! But your room is STILL messy!', 'Okay! Just put the socks away!', 'I fold the laundry, I run the house!'],
-    win: ["<b>MOM:</b> Fine, it's clean ENOUGH. Happy birthday, sweetie!"]
+    bossIntro: ['<b>MOM (DEBBIE):</b> Good morning, birthday boy! ...Going somewhere?', "<b>MOM:</b> I'm home ALL DAY, so I see EVERYTHING. And I see a SOCK on the ceiling.", "<b>MOM:</b> Nobody leaves this room until it's clean. CLEAN. YOUR. ROOM."],
+    taunts: ['Ow! But the room is STILL messy!', 'Okay! Just put the socks away!', 'I fold the laundry, I run the house!'],
+    win: ["<b>MOM:</b> Fine, it's clean ENOUGH. Now take your time out there, okay? No rush. NO rush.", '<b>KINAN:</b> ...Why does she keep saying no rush?'],
+    meanwhile: 'In the garage, a box the size of a fridge says DO NOT OPEN, KINAN.'
   },
   {
     place: 'The Living Room', bg: 'room', sky: ['#4a2230', '#b0603c'], far: '#5a2a3a', mid: '#7a3a30',
     ground: '#6b4a3a', top: '#c79a6a', brick: '#2f6b3a', accent: '#ff9f5a', foes: ['roomba', 'robot', 'lego'],
-    intro: ['The living room. The robot vacuum is on patrol.', 'One of your <b>two dogs</b> is stuck in a box! Rescue him and he will chase enemies for you.'],
+    intro: ['The living room. The robot vacuum is on patrol, and it has recruited the toys.', 'One of your <b>two dogs</b> is stuck in a box! Rescue him and he will chase enemies for you.'],
     boss: { kind: 'chenoa', title: 'Big Sis Chenoa', hp: 4, face: 'c' },
-    bossIntro: ['A super TALL shadow falls over the room...', "<b>CHENOA:</b> Little bro! You think you can get past your BIG sister?", '<b>CHENOA:</b> I supervise a whole restaurant. I can supervise YOU.', "<b>CHENOA:</b> I'm 6'3\"! Watch out for my PLATES... and my GROUND POUND! Jump over the shockwaves!"],
+    bossIntro: ['A super TALL shadow falls over the room...', "<b>CHENOA:</b> Little bro! You can't come through here. Mom said. I mean... nobody said anything. Why?", "<b>CHENOA:</b> I supervise a whole restaurant. I can supervise YOU. I'm 6'3\"! Watch out for my PLATES... and my GROUND POUND!"],
     taunts: ['Hey! Not the sweater!', 'Table SIX needs water!', 'No running in my restaurant!', 'Ugh, my crocs!'],
-    win: ['<b>CHENOA:</b> Okay okay, you win. Happy birthday, little bro! 💚']
+    win: ['<b>CHENOA:</b> Okay okay, you win. Happy birthday, little bro! 💚', "<b>CHENOA:</b> ...Don't go in the backyard. There's nothing there. NOTHING."],
+    meanwhile: "Chenoa texts the family group chat: 'He's past me. STALL HIM.'"
   },
   {
     place: 'The Kitchen', bg: 'kitchen', sky: ['#ff9f5a', '#ffe2ad'], far: '#e8a86a', mid: '#f0b878',
     ground: '#9b6a43', top: '#e8c07a', brick: '#c0703a', accent: '#44c55a', foes: ['egg', 'toast', 'roomba'],
-    intro: ['The kitchen smells like pancakes. The eggs look ANGRY.', 'See the blue <b>trampolines</b>? Land on them to fly!', 'Another cat is hiding by the counter. She can smell candles from a mile away.'],
+    intro: ['The kitchen smells like pancakes. The eggs look ANGRY. The toast is hopping.', 'See the blue <b>trampolines</b>? Land on them to fly!', 'Another cat is hiding by the counter. She can smell candles from a mile away.'],
     boss: { kind: 'mom', title: 'Mom, the Breakfast Boss', prop: '🥞', hp: 4, face: 'm' },
-    bossIntro: ['<b>MOM:</b> Nobody leaves this kitchen without breakfast!', '<b>MOM:</b> Most important meal of the DAY!'],
-    taunts: ['At least eat the crusts!', 'Syrup is NOT a drink!'],
-    win: ['<b>MOM:</b> Fine. At least drink your juice.']
+    bossIntro: ['<b>MOM:</b> Nobody leaves this kitchen without breakfast! Sit. Eat. SLOWLY.', '<b>MOM:</b> Most important meal of the DAY. Chew every bite forty times. We have all morning.'],
+    taunts: ['At least eat the crusts!', 'Syrup is NOT a drink!', 'Chew! SLOWER!'],
+    win: ["<b>MOM:</b> Fine. At least drink your juice. And stay OUT of the backyard, it's... muddy.", "<b>KINAN:</b> It hasn't rained in a week."],
+    meanwhile: 'Shad is in the backyard with a hammer, a tarp and a very big box.'
   },
   {
     place: 'Lego City', bg: 'lego', sky: ['#3fa9f5', '#c8ecff'], far: '#8fd3ff', mid: '#2a6fa8',
     ground: '#3a6b2c', top: '#6fd44f', brick: '#e53935', accent: '#f6c445', foes: ['lego', 'plane', 'robot'],
-    intro: ["Kinan's Lego creations came to life!", 'Big Lego monsters split into little ones when you stomp them.'],
+    intro: ["Kinan's Lego creations came to life! Big Lego monsters split into little ones when you stomp them.", "<b>KINAN:</b> I built all of these. I didn't build them to be MEAN."],
     boss: { kind: 'mech', title: 'Lego Mega-Mech', hp: 5, face: 'mech' },
-    bossIntro: ['<b>???:</b> BEEP BOOP. I AM THE LEGO MEGA-MECH.', 'Uh oh. Kinan built this one himself... and he built it TOO well.', 'Jump on its head! Jump over the flying bricks!'],
+    bossIntro: ['<b>???:</b> BEEP BOOP. I AM THE LEGO MEGA-MECH. BUILT BY KINAN. BUILT TOO WELL.', '<b>MEGA-MECH:</b> MY ORDERS: KEEP THE BUILDER BUSY UNTIL NINETEEN HUNDRED HOURS.', 'Jump on its head! Jump over the flying bricks!'],
     taunts: ['BRICK LOST. RECALCULATING.', 'OW. THAT PIECE TOOK 3 HOURS.', 'ERROR: BUILDER TOO STRONG.'],
-    win: ['<b>MEGA-MECH:</b> SYSTEM... SHUTTING... down... happy... birthday... builder.']
+    win: ['<b>MEGA-MECH:</b> SYSTEM... SHUTTING... down... happy... birthday... builder.', '<b>MEGA-MECH:</b> WHO GAVE ME ORDERS? CLASSIFIED. BEEP.'],
+    meanwhile: "Dad parks the hydro vac truck around the corner so Kinan won't see it. He drove in from camp last night. 'For the weekend.'"
   },
   {
     place: 'Bunny Photo Studio', bg: 'studio', sky: ['#8fdcb9', '#f2fff8'], far: '#b6ecd2', mid: '#7fd0b0',
     ground: '#8a6a48', top: '#c7a97a', brick: '#d4af37', accent: '#ff6fae', foes: ['bunny', 'camera', 'teddy'],
-    intro: ['Fluffy bunnies, sparkly curtains, and flying cameras.', 'Kinan feels his famous grumpy photo face coming on.', 'The second dog is stuck in a box here too. He is going to be a big help.'],
+    intro: ['Fluffy bunnies, sparkly curtains, and flying cameras. Mom booked a photo shoot. Today. Of all days.', 'Kinan feels his famous grumpy photo face coming on.', 'The second dog is stuck in a box here too. He is going to be a big help.'],
     boss: { kind: 'mom', title: 'Mom, the Photo-Op Queen', prop: '📸', hp: 5, face: 'm' },
-    bossIntro: ['<b>MOM:</b> Smile for the picture!', '<b>MOM:</b> Come ON. One REAL smile!'],
-    taunts: ['Hold still! One more photo!', 'That one was blurry! AGAIN!'],
-    win: ["<b>MOM:</b> Got it! Cutest one yet. It's going on the fridge."]
+    bossIntro: ["<b>MOM:</b> Smile for the picture! Just a hundred more and we're done!", '<b>MOM:</b> Come ON. One REAL smile. We have ALL afternoon. All of it.'],
+    taunts: ['Hold still! One more photo!', 'That one was blurry! AGAIN!', 'Chin up! Chin DOWN!'],
+    win: ["<b>MOM:</b> Got it! Cutest one yet. It's going on the fridge.", '<b>MOM:</b> ...and on the cake. I mean the FRIDGE. Go play. SLOWLY.'],
+    meanwhile: 'Chenoa is icing something in the art room with the door locked.'
   },
   {
-    place: 'Saskatoon Backyard', bg: 'outdoor', sky: ['#5ab0e6', '#dcf4ff'], far: '#8fd07a', mid: '#69b85c',
+    place: 'Saskatoon Front Yard', bg: 'outdoor', sky: ['#5ab0e6', '#dcf4ff'], far: '#8fd07a', mid: '#69b85c',
     ground: '#6b4a2a', top: '#5fb84a', brick: '#a0703a', accent: '#f6c445', foes: ['neighbor', 'squirrel', 'ball'],
-    intro: ['The backyard in <b>Saskatoon</b>. You can hear the river valley from here.', 'The <b>Meewasin Trail</b> is just down the street, and the squirrels act like they own it.', 'The neighbours are NOSY. Watch out for flying newspapers.'],
+    intro: ['The front yard in <b>Saskatoon</b>. You can hear the river valley from here. And hammering from the backyard. Why hammering?', "The backyard is 'closed for mowing'. There is no mower. The <b>Meewasin Trail</b> is just down the street, and the squirrels act like they own it.", 'The neighbours are NOSY. Watch out for flying newspapers.'],
     boss: { kind: 'neighbour', title: 'The Nosy Neighbour', hp: 5, face: 'n' },
-    bossIntro: ['<b>NOSY NEIGHBOUR:</b> Excuse me! Is that a BIRTHDAY party? Nobody invited ME!', "<b>NOSY NEIGHBOUR:</b> Keep it DOWN or I'll use my LEAF BLOWER!"],
+    bossIntro: ['<b>NOSY NEIGHBOUR:</b> Excuse me! Is that a BIRTHDAY party? Nobody invited ME!', "<b>NOSY NEIGHBOUR:</b> What party, you ask? NO party. I saw NOTHING. Keep it DOWN or I'll use my LEAF BLOWER!"],
     taunts: ["I'm telling your mother!", 'My petunias!!', 'Kids these days!'],
-    win: ['<b>NOSY NEIGHBOUR:</b> Fine! ...Is there any cake left? Happy birthday, kid.']
+    win: ["<b>NOSY NEIGHBOUR:</b> Fine! ...Is there any cake left? There WILL be cake, won't there?", '<b>KINAN:</b> What cake?', '<b>NOSY NEIGHBOUR:</b> ...Happy birthday, kid. Forget I said anything.'],
+    meanwhile: "The Neighbour borrows twelve folding chairs. 'For gardening,' he says."
   },
   {
     place: "Chenoa's Art Room", bg: 'art', sky: ['#6a4c9c', '#e2cef7'], far: '#9a7cc8', mid: '#7a5cb0',
     ground: '#4a3f5a', top: '#ffaecd', brick: '#44c55a', accent: '#ff6fae', foes: ['paint', 'brush', 'lego'],
-    intro: ["Chenoa's art room. Paintings everywhere. Paint brushes FLYING.", 'Something about this feels like a <b>TEAM-UP</b>...', 'A third cat is hiding behind a canvas. Sneaky.'],
+    intro: ["Chenoa's art room. Paintings everywhere. Paint brushes FLYING. And a half-painted banner that someone hid very badly.", 'Something about this feels like a <b>TEAM-UP</b>...', 'A third cat is hiding behind a canvas. Sneaky.'],
     boss: { kind: 'team', title: 'Mom, the Chore Commander', prop: '🧽', hp: 5, face: 'm' },
-    bossIntro: ['<b>MOM:</b> Look at this MESS! Chenoa, help me get him!'],
-    taunts: MOMT, win: ["<b>MOM:</b> Okay, okay! We'll clean it up later. Together."]
+    bossIntro: ['<b>MOM:</b> Look at this MESS! Chenoa, help me get him out of here before he SEES anything!', '<b>MOM:</b> I mean... before he sees the mess. Yes. The mess.'],
+    taunts: MOMT, win: ["<b>MOM:</b> Okay, okay! We'll clean it up later. Together. Now OUT, out, out!", '<b>CHENOA:</b> Psst. Little bro. Just... act surprised later. Trust me.'],
+    meanwhile: "Thirty balloons go up behind the fence. Shad: 'Who ordered PINK?'"
   },
   {
     place: 'School Playground', bg: 'school', sky: ['#4cbde0', '#d2f4ff'], far: '#8ad8ef', mid: '#6cc4e0',
     ground: '#b08a5a', top: '#e0c890', brick: '#e05a2a', accent: '#f6c445', foes: ['bully', 'teacher', 'ball'],
-    intro: ['School! Grumpy teachers are throwing pencils, and some big kids are looking for trouble.', 'Bullies charge at you. Jump on them before they get you!'],
+    intro: ['School! Grumpy teachers are throwing pencils, and some big kids are looking for trouble.', 'The big kids charge at you. Jump on them before they get you!'],
     boss: { kind: 'bully', title: 'The Big Kid', hp: 4, face: 'b' },
-    bossIntro: ['<b>BIG KID:</b> Hey, birthday boy! Nobody gets past ME!', 'He charges FAST. Dodge him. When he hits the wall and gets dizzy, STOMP him!'],
-    taunts: ['Hey! No fair!', "Okay, you're not bad..."],
-    win: ['<b>BIG KID:</b> ...Sorry for being mean. Happy birthday. Wanna be friends?', '<b>KINAN:</b> Sure! 🤝']
+    bossIntro: ['<b>BIG KID:</b> Hey, birthday boy! Nobody gets past ME!', "<b>BIG KID:</b> Your sister PAID me to keep you here. Two dollars. I'm a professional.", 'He charges FAST. Dodge him. When he hits the wall and gets dizzy, STOMP him!'],
+    taunts: ['Hey! No fair!', "Okay, you're not bad...", 'Two dollars is NOT enough for this!'],
+    win: ['<b>BIG KID:</b> ...Sorry for being mean. Happy birthday. Wanna be friends?', '<b>KINAN:</b> Sure! 🤝', '<b>BIG KID:</b> Cool. Cool. Save me a slice of cake. What cake? NO cake. Bye!'],
+    meanwhile: "The Big Kid texts his friends: 'Party at Kinan's. Seven o'clock. Bring a hat.'"
   },
   {
     place: 'The Dinner Table', bg: 'dinner', sky: ['#6cbf60', '#dcf8ca'], far: '#9bd68c', mid: '#7cc46e',
     ground: '#6b4a2a', top: '#4fa83d', brick: '#e07a2a', accent: '#f6c445', foes: ['broccoli', 'carrot', 'egg'],
-    intro: ['Dinner time. The vegetables have formed an ARMY.', 'The last cat is in a box near the table. Rescue her before the broccoli wins.', 'She loves loud parties - your Party Popper will fire faster.'],
+    intro: ['Dinner time. The vegetables have formed an ARMY. Mom is strangely calm about it.', 'The last cat is in a box near the table. Rescue her before the broccoli wins.', 'She loves loud parties: your Party Popper will fire faster.'],
     boss: { kind: 'mom', title: 'Mom, the Vegetable Queen', prop: '🥕', hp: 6, face: 'm' },
-    bossIntro: ['<b>MOM:</b> Three more bites.', '<b>MOM:</b> THEN you can have dessert.'],
-    taunts: ['Here comes the airplane!', "There's spinach in EVERYTHING!"],
-    win: ['<b>MOM:</b> Two bites counts. Since it\'s your birthday.']
+    bossIntro: ['<b>MOM:</b> Three more bites. THEN you can have dessert.', '<b>MOM:</b> Dessert is... later. MUCH later. Chew slowly.'],
+    taunts: ['Here comes the airplane!', "There's spinach in EVERYTHING!", 'Elbows OFF the table!'],
+    win: ["<b>MOM:</b> Two bites counts. Since it's your birthday.", '<b>MOM:</b> ...Was that a truck in the driveway? Nope. Nothing. Eat your carrots.'],
+    meanwhile: 'The cake needs candles. Someone counts the ones Kinan has found so far: {candles}.'
   },
   {
     place: 'Bedtime Castle', bg: 'castle', sky: ['#0b0d2a', '#2b2f74'], far: '#2a3270', mid: '#3a4288',
     ground: '#343456', top: '#8b87cc', brick: '#7a6ac0', accent: '#c9b6ff', foes: ['sheep', 'ghost', 'teddy'],
-    intro: ['The house gets dark. The castle lights are dimming.', 'Kinan is NOT tired. (He is a little tired.)', 'The northern lights are out over Saskatoon. Even Mom pauses to look.'],
+    intro: ['The house gets dark. Someone has pulled every curtain shut. It is 6:55 in the evening.', "<b>KINAN:</b> It's not even bedtime. Something is going on.", 'The northern lights are out over Saskatoon. Even Mom pauses to look.'],
     boss: { kind: 'team', title: 'Mom, the Bedtime Enforcer', prop: '🪥', hp: 6, face: 'm' },
-    bossIntro: ['<b>MOM:</b> Pajamas. Teeth. Bed. NOW.', '<b>MOM:</b> Chenoa! Back me up!'],
-    taunts: MOMT, win: ['<b>MOM:</b> Okay... stay up a LITTLE late. There\'s one more surprise...']
+    bossIntro: ['<b>MOM:</b> Pajamas. Teeth. Bed. NOW. Yes, at seven. Birthday rules.', "<b>MOM:</b> Chenoa! Back me up! Five more minutes and everything's ready!"],
+    taunts: MOMT, win: ["<b>MOM:</b> Okay... okay. You win. Everyone's ready anyway.", "<b>MOM:</b> Come out to the backyard, sweetie. There's one more surprise..."],
+    meanwhile: 'The backyard lights go off. Thirty people hold their breath.'
   },
   {
     place: 'Birthday Cake Volcano', bg: 'cake', sky: ['#3a0f1e', '#a03322'], far: '#5a1a22', mid: '#7a2418',
     ground: '#c47a3a', top: '#f7e1b0', brick: '#f2a6c0', accent: '#f6c445', foes: ['sparkler', 'cupcake', 'lego'], final: true,
-    intro: ['A GIANT birthday cake. Candles and sparklers EVERYWHERE.', 'The ground shakes. This is the <b>FINAL STAGE</b>.'],
+    intro: ['The backyard... is a GIANT birthday cake. Candles and sparklers EVERYWHERE. Thirty people yell <b>SURPRISE!</b>', '<b>KINAN:</b> ...I KNEW it. (I did not know it.)', 'The ground shakes. This is the <b>FINAL STAGE</b>.'],
     boss: { kind: 'final', title: 'ULTIMATE BIRTHDAY MOM', prop: '💋', hp: 8, face: 'm' },
-    bossIntro: ['<b>MOM:</b> My baby is turning ELEVEN...', "<b>MOM:</b> Which means it's time for... BIRTHDAY HUGS AND KISSES!", "<b>CHENOA:</b> Not so fast! I'm on <b>TEAM KINAN</b> for this one!"],
+    bossIntro: ['<b>MOM:</b> My boy is turning ELEVEN... and he beat every single one of us to get here.', "<b>MOM:</b> Which means it's time for... BIRTHDAY HUGS AND KISSES!", "<b>CHENOA:</b> Not so fast! I'm on <b>TEAM KINAN</b> for this one!"],
     taunts: ['MWAH! MWAH! Come here!', 'Let me pinch those CHEEKS!', 'Happy birthday to YOUUU!'], win: []
   }
 ];
@@ -1973,14 +1983,14 @@ async function startBoss() {
     await say('<b>CHENOA:</b> Hold on... whose team am I on today?', 'c');
     await say('Chenoa is thinking... 🤔 🤔 🤔', 'c');
     if (Math.random() < 0.5) {
-      await say('<b>CHENOA:</b> TEAM MOM! Sorry, little bro! 😈', 'c');
+      await say('<b>CHENOA:</b> TEAM MOM! Sorry, little bro. I made a PROMISE. 😈', 'c');
       await say('TWO bosses at once?! Kinan powers up: <b>SUPER KINAN!</b> 🎉 Party Popper + an extra heart!', 'k');
       P.power = 'popper'; P.max = Math.min(5, P.max + 1); P.hp = P.max; SFX.power();
       await say('Beat <b>both</b> of them! Tap <b>POW</b> to shoot confetti.', 'k');
     } else {
       bosses.pop();
       allies.push(chenoaAlly());
-      await say('<b>CHENOA:</b> TEAM KINAN! Let\'s get her! 💚', 'c');
+      await say("<b>CHENOA:</b> TEAM KINAN! Let's get her! 💚 (Sorry, Mom. He's my little brother.)", 'c');
       await say('Chenoa will throw paint at Mom. You still have to stomp her!', 'k');
     }
   } else if (d.kind === 'final') {
@@ -3465,6 +3475,32 @@ function howToScreen() {
     '<li><span class="ico">🥊</span><span><b>Family Smash:</b> pick a family member, jump on heads, press <b>POW</b> for their special move, knock everyone else off the cake. Beat story stages to unlock more arenas.</span></li>' +
     '</ul>' +
     '<p class="tiny">Phone or tablet: turn it sideways; the buttons float over the picture. Keyboard: ← → move · SPACE jump · X pow · P pause. Gamepad works too.</p>' +
+    '<div class="divider"></div>' +
+    '<p class="eyebrow">Who\'s who · the family</p>' +
+    '<ul class="credits">' +
+    '<li><b>Kinan</b> · the birthday boy, LV 11. Builder, puzzle-solver, very good at jumping on things.</li>' +
+    '<li><b>Mom (Debbie)</b> · stay-at-home boss. Home all day, sees everything, runs the house, and today she is running something else too.</li>' +
+    '<li><b>Chenoa</b> · big sister, 6\'3", restaurant supervisor. Plates, a ground pound, and a promise she is trying very hard to keep.</li>' +
+    '<li><b>Dad Robin</b> · hydro vac operator in the oilfield. Works out of town, home "for the weekend", shows up with burgers when you need him.</li>' +
+    '<li><b>Big Bro Shad</b> · carpenter apprentice. Builds the stage, drops in with a Construction Slam, made this game.</li>' +
+    '<li><b>The 4 cats and 2 dogs</b> · hiding in boxes all over the house. Each one gives you a power.</li>' +
+    '</ul>' +
+    '<p class="eyebrow">Who\'s who · the troublemakers</p>' +
+    '<ul class="credits">' +
+    '<li><b>Socks & teddies</b> · laundry day went wrong. The socks have been plotting since 2019.</li>' +
+    '<li><b>Lego & robots</b> · Kinan\'s own builds. Built well. Too well.</li>' +
+    '<li><b>The robot vacuum</b> · on patrol. Recruits toys. Rude.</li>' +
+    '<li><b>Eggs & toast</b> · breakfast fought back.</li>' +
+    '<li><b>Paper planes</b> · folded by Shad. Sharp.</li>' +
+    '<li><b>Bunnies & cameras</b> · the photo-shoot crew would like you to SMILE.</li>' +
+    '<li><b>Squirrels, balls & newspapers</b> · the backyard crew. The squirrels own the Meewasin Trail, apparently.</li>' +
+    '<li><b>Paint & brushes</b> · Chenoa\'s decorating supplies, escaped.</li>' +
+    '<li><b>Teachers & big kids</b> · a normal school day, except for the pencils.</li>' +
+    '<li><b>Broccoli & carrots</b> · the vegetable army. Mom\'s secret weapon.</li>' +
+    '<li><b>Sheep & ghosts</b> · bedtime stories that got out of the book.</li>' +
+    '<li><b>Sparklers & cupcakes</b> · party supplies. Excited. VERY excited.</li>' +
+    '<li><b>The Nosy Neighbour, the Big Kid, the Mega-Mech</b> · not family. All three end up at the party anyway.</li>' +
+    '</ul>' +
     '<div class="btnrow"><button class="btn go" id="backBtn" type="button">Back</button></div>'
   );
   $('#backBtn').addEventListener('click', () => { SFX.click(); titleScreen(); });
@@ -3600,6 +3636,7 @@ function resultsScreen(i) {
     '<div><dt>Best combo</dt><dd>' + (bestCombo > 1 ? 'x' + bestCombo : '—') + '</dd></div>' +
     '</dl>' +
     (st < 3 ? '<p class="wrapnote">' + (pct < 0.7 ? 'Grab 70% of the candles' : '') + (pct < 0.7 && heartsLost > 0 ? ' and ' : '') + (heartsLost > 0 ? 'never lose a heart' : '') + ' for 3 stars.</p>' : '<p class="wrapnote">Perfect run. Kinan is unstoppable. ⭐⭐⭐</p>') +
+    (th.meanwhile ? '<p class="lede meanwhile"><b>Meanwhile…</b> ' + th.meanwhile.replace('{candles}', String(progress.totalCandles || 0)) + '</p>' : '') +
     (firstClear && i > 0 ? '<p class="wrapnote" id="arenaNote">🥊 New Family Smash arena unlocked: <b>' + ARENAS[i].name + '</b></p>' : '') +
     '<div class="btnrow"><button class="btn go" type="button" id="nextBtn">' + (i < 10 ? 'NEXT STAGE ▶' : 'FINISH') + '</button>' +
     '<button class="btn" type="button" id="replayBtn">Replay</button>' +
@@ -3639,8 +3676,9 @@ function ending() {
     '<figure>' + imgOf(SP.dStand, 4) + '<figcaption>Dad Robin</figcaption></figure>' +
     '<figure>' + imgOf(SP.sStand, 4) + '<figcaption>Big Bro Shad</figcaption></figure></div>' +
     '<div class="cast petcast">' + petFigures + '</div>' +
-    '<p class="lede">You beat the Room Inspector, Big Sis Chenoa, the Lego Mega-Mech, the Nosy Neighbour, the Big Kid, the Bedtime Enforcer and even <b>ULTIMATE BIRTHDAY MOM</b>. Level 11 looks good on you.</p>' +
-    '<p class="lede"><b>MOM:</b> Okay... you win, baby. You beat ALL of us. But there\'s one move nobody can dodge... the <b>BIRTHDAY HUG!</b></p>' +
+    '<p class="lede">You beat the Room Inspector, Big Sis Chenoa, the Lego Mega-Mech, the Nosy Neighbour, the Big Kid, the Bedtime Enforcer and even <b>ULTIMATE BIRTHDAY MOM</b>. And every one of them was stalling you for the same reason: <b>SURPRISE!</b></p>' +
+    '<p class="lede">Dad hid the hydro vac truck around the corner, Chenoa iced the cake behind a locked door, Shad built the stage, the Neighbour "borrowed" the chairs, the Big Kid brought his friends, and the Mega-Mech carried the cake in. Level 11 looks good on you.</p>' +
+    '<p class="lede"><b>MOM:</b> Okay... you win, my boy. You beat ALL of us. But there\'s one move nobody can dodge... the <b>BIRTHDAY HUG!</b></p>' +
     '<p class="lede"><b>Four cats. Two dogs. One very good family.</b> From Saskatoon, Saskatchewan — with love. 💛</p>' +
     '<p class="wrapnote">🥊 All 11 <b>Family Smash</b> arenas are unlocked, Birthday Cake Volcano included.</p>' +
     '<div class="heroline"><span class="pill">⭐ ' + stars + ' / 33 stars</span><span class="pill"><i class="candle-ico"></i> ' + (progress.totalCandles || 0) + ' candles collected</span><span class="pill">🎂 11 years old</span><span class="pill">🐱 ' + progress.pets.ids.filter((id) => petDef(id).kind === 'cat').length + ' · 🐶 ' + progress.pets.ids.filter((id) => petDef(id).kind === 'dog').length + '</span></div>' +
@@ -3786,7 +3824,7 @@ let smash = null, lastSmash = null;
 /* one arena per story world; beating that stage in the story unlocks it (the bedroom is free from the start) */
 const ARENAS = [
   { name: "Kinan's Bedroom", layout: 'shelves' }, { name: 'The Living Room', layout: 'steps' }, { name: 'The Kitchen', layout: 'springs' },
-  { name: 'Lego City', layout: 'towers' }, { name: 'Bunny Photo Studio', layout: 'shelves' }, { name: 'Saskatoon Backyard', layout: 'wide' },
+  { name: 'Lego City', layout: 'towers' }, { name: 'Bunny Photo Studio', layout: 'shelves' }, { name: 'Saskatoon Front Yard', layout: 'wide' },
   { name: "Chenoa's Art Room", layout: 'steps' }, { name: 'School Playground', layout: 'towers' }, { name: 'The Dinner Table', layout: 'wide' },
   { name: 'Bedtime Castle', layout: 'tower' }, { name: 'Birthday Cake Volcano', layout: 'cake' }
 ];
