@@ -172,6 +172,8 @@ h1.title .t2{display:block;font-size:clamp(24px,6.4vw,40px);color:var(--edge)}
 .lvbtn:disabled{opacity:.42;cursor:default;filter:saturate(.4)}
 .lvbtn .boss{position:absolute;right:8px;bottom:6px;font-size:15px}
 .wrapnote{margin:0;font-size:12px;color:var(--dim)}
+.postcard{display:grid;gap:4px;margin:4px auto;padding:12px 16px;max-width:30em;text-align:center;background:#f4ecd8;color:#2a1a14;border-radius:6px;border:3px dashed #c9a26a;box-shadow:4px 4px 0 rgba(0,0,0,.35);transform:rotate(-1.2deg)}
+.postcard b{font-size:18px;color:#a8422e}.postcard span{font-size:14px}
 .hatrow{display:flex;flex-wrap:wrap;gap:8px}
 .hatbtn{display:grid;justify-items:center;gap:2px;min-width:78px;padding:7px 8px;background:#11132b;border:2px solid var(--panel2);border-radius:6px;cursor:pointer;font-size:11px;color:var(--dim)}
 .hatbtn img{image-rendering:pixelated;height:34px;width:auto}
@@ -793,6 +795,12 @@ const NEIGH = recolor(DAD, { g: 'Q', b: 'F', d: 'Q' });
 const DAD_VEST = recolor(DAD, { b: 'o' });
 /* the Safety Foreman (World 2): yellow hard hat, lime hi-vis vest, white beard */
 const FOREMAN = recolor(DAD, { g: 'y', Q: 'Y', b: 'l', d: 'w' });
+/* World 3: the Wave Pool Lifeguard (red swimsuit, a whistle), the Coaster Conductor (navy cap and jacket, white
+   moustache), a waiter (white shirt) and a street musician (green shirt, beanie) */
+const LIFEGUARD = recolor(MOM, { H: 'L', p: 'R', y: 'w' });
+const CONDUCTOR = recolor(DAD, { g: 'J', Q: 'y', b: 'J', d: 'w' });
+const WAITER = recolor(DAD, { g: 'k', Q: 'H', b: 'w', d: 's', y: 'k' });
+const BUSKER = recolor(DAD, { g: 'n', Q: 'L', b: 'E' });
 /* the Lego Mega-Mech's face for story boxes (the mech itself is drawn with rectangles in drawBoss) */
 const MECH = ['..RRRRRRRRRRRR..', '..RRRRRRRRRRRR..', '.kQQQQQQQQQQQQk.', '.kQQwwwQQQwwwQk.', '.kQQwkwQQQwkwQk.', '.kQQwwwQQQwwwQk.',
   '.kQQQQQVVQQQQQk.', '.kQQQQQQQQQQQQk.', '..kkkkkkkkkkkk..', 'kJJJJJJJJJJJJJJk', 'kJRRRRRRRRRRRRJk', 'kJRyRRRyRRRyRRJk',
@@ -806,6 +814,8 @@ const SP = {
   bStand: bake(legs(BULLY, LEGS.stand, 'J')), bWalk: bake(legs(BULLY, LEGS.walk, 'J')),
   nStand: bake(legs(NEIGH, LEGS.stand, 'J')), nWalk: bake(legs(NEIGH, LEGS.walk, 'J')),
   fStand: bake(legs(FOREMAN, LEGS.stand, 'J')), fWalk: bake(legs(FOREMAN, LEGS.walk, 'J')),
+  lgStand: bake(legs(LIFEGUARD, LEGS.stand, 's')), lgWalk: bake(legs(LIFEGUARD, LEGS.walk, 's')), cdStand: bake(legs(CONDUCTOR, LEGS.stand, 'J')),
+  waStand: bake(legs(WAITER, LEGS.stand, 'J')), buStand: bake(legs(BUSKER, LEGS.stand, 'j')),
   cat: bakeOutlined(CAT, { a: PAL.a, A: PAL.A }), dog: bakeOutlined(DOG, { n: PAL.n, L: PAL.L }), candle: bake(CANDLE), flag: bake(FLAG)
 };
 const CH_H = SP.cStand.height;
@@ -1051,10 +1061,123 @@ LV.push(
     win: []
   }
 );
+/* World 3: "Kinan vs. Shad & Chenoa", a weekend in Edmonton with his big brother and sister (Shad's pick, 2026-10-21:
+   "Edmonton, then Calgary"). They bet on who shows him the better Edmonton; it turns into a race across the city and
+   ends with a tag team on the High Level Bridge. It opens with a grown-up's reward code once World 2 is beaten.
+   Stages without a boss end at Shad's car or Chenoa's bus (goalRide). */
+LV.push(
+  {
+    place: 'The Highway into Edmonton', bg: 'edmroad', world: 3, goalRide: 'shad', sky: ['#3f8fd8', '#cfeaff'], far: '#7f9bb5', mid: '#6a8a4f',
+    ground: '#5a4632', top: '#4a4f57', brick: '#b5523b', accent: '#f6c445', foes: ['pothole', 'hopcone', 'magpie'],
+    intro: ['One week later. Dad\'s truck rolls past a big green sign: <b>WELCOME TO EDMONTON</b>.', '<b>DAD:</b> Here you go, bud. A whole weekend with your big brother and sister. Be good.',
+      '<b>SHAD:</b> Little bro! Today I\'m showing you the BEST of Edmonton.', '<b>CHENOA:</b> Excuse me? <i>I</i> am showing him the best of Edmonton.',
+      '<b>SHAD:</b> Bet. Whoever shows him the better day wins. Meet me at my car, Kinan... and watch out for the potholes.'],
+    boss: null,
+    win: ['<b>SHAD:</b> Made it! See? I told you about the potholes.', '<b>KINAN:</b> Shad. A pothole had a GREMLIN in it.', '<b>SHAD:</b> Yeah. That\'s Edmonton.'],
+    meanwhile: 'Mom texts the family chat: "Make sure he eats a vegetable." Shad replies with a picture of a donut.'
+  },
+  {
+    place: "Chenoa's Bus Ride", bg: 'busroute', world: 3, goalRide: 'chenoa', sky: ['#4a9ae0', '#d8efff'], far: '#8a96a6', mid: '#6d7888',
+    ground: '#5a5f6a', top: '#9a9da6', brick: '#2f5fb3', accent: '#ffb02e', foes: ['magpie', 'hopcone', 'pothole'],
+    intro: ['<b>CHENOA:</b> My turn! We\'re taking the bus. Real Edmontonians ride the bus.', 'The bus speaker crackles: "Next stop, Downtown. Please hold on to the railing. And your little brother."',
+      '<b>KINAN:</b> Why are those birds following the bus?!', '<b>CHENOA:</b> Magpies. They LOVE shiny things. Hold on to your coins! If one grabs a coin, stomp it to get the coin back.'],
+    boss: null,
+    win: ['<b>CHENOA:</b> Right on time! Point for me. Shad drives a car. I ride the bus. It\'s called being smart.', '<b>SHAD (on the phone):</b> I HEARD THAT.'],
+    meanwhile: 'Shad spends the whole bus ride planning a comeback. It involves a waterslide.'
+  },
+  {
+    place: 'The Mega Mall Waterpark', bg: 'waterpark', world: 3, bag: true, sky: ['#2f7fb8', '#9fdcf5'], far: '#3f8fb0', mid: '#2a6fa8',
+    ground: '#4f6f8a', top: '#6fc8ff', brick: '#ff8a3d', accent: '#f6c445', foes: ['mallwalker', 'wetsign', 'cart'],
+    intro: ['The Mega Mall: a mall so big it has a whole waterpark INSIDE. With palm trees. In Edmonton.', '<b>SHAD:</b> Ha! I win. Nothing beats an indoor waterpark.',
+      '<b>CHENOA:</b> The day is not over, Shad.', 'Something is meowing inside a shopping bag somewhere around here...'],
+    boss: { kind: 'lifeguard', title: 'The Wave Pool Lifeguard', hp: 4, face: 'lg' },
+    bossIntro: ['<b>LIFEGUARD:</b> TWEEEEET! No running by the pool!', '<b>LIFEGUARD:</b> No splashing. No cannonballs. No fun without a LIFEGUARD!',
+      'Her whistle makes <b>waves</b> and blows you back! Jump the waves, and stomp her while she catches her breath.'],
+    taunts: ['TWEEEET!', 'Walk, don\'t RUN!', 'That\'s a TIME OUT!', 'Where is your swim buddy?!'],
+    win: ['<b>LIFEGUARD:</b> Okay, okay! You can swim. But WALK on the pool deck.', '<b>SHAD:</b> Point for me. I picked the waterpark.', '<b>CHENOA:</b> The waterpark was just... there. You walked in.'],
+    meanwhile: 'Dad gets a photo from Shad: Kinan on a waterslide, mouth wide open. Dad makes it his phone background.'
+  },
+  {
+    place: 'The Mall Ice Rink', bg: 'rink', ice: true, world: 3, goalRide: 'chenoa', sky: ['#5a6f9a', '#c9d8ef'], far: '#8a9ab5', mid: '#6d7f9f',
+    ground: '#7f9bb5', top: '#e8f6ff', brick: '#c9c9cf', accent: '#6fc8ff', foes: ['zamboni', 'mallwalker', 'cart'],
+    intro: ['<b>CHENOA:</b> Next stop: the ice rink. Also inside the mall. Because Edmonton.', '<b>KINAN:</b> The floor is SLIPPERY!',
+      '<b>CHENOA:</b> It\'s ice, little bro. That\'s the whole point.', 'The ground is <b>ice</b>: Kinan slides! Start early, stop early, and watch out for the Zamboni-bot.'],
+    boss: null,
+    win: ['<b>CHENOA:</b> You skated the whole rink! Point for me.', '<b>SHAD:</b> He didn\'t skate. He slid on his belly.', '<b>KINAN:</b> It still counts!'],
+    meanwhile: 'Mom sees the ice rink photo and texts: "Is he wearing a helmet?" Nobody answers.'
+  },
+  {
+    place: 'The Indoor Rollercoaster', bg: 'coaster', world: 3, sky: ['#2a1f55', '#7a4fb0'], far: '#3a2f6a', mid: '#4a3a7a',
+    ground: '#3b3f52', top: '#e8364b', brick: '#f6c445', accent: '#ff6fae', foes: ['cart', 'mallwalker', 'wetsign'],
+    intro: ['<b>SHAD:</b> Okay, the big one: the indoor rollercoaster. It goes UPSIDE DOWN.', '<b>CHENOA:</b> Wait. The rollercoaster was MY next stop.',
+      '<b>SHAD:</b> ...You planned the rollercoaster too?', '<b>CHENOA:</b> You copied my whole day! Okay. It\'s a RACE now. Last one to the coaster loses!'],
+    boss: { kind: 'conductor', title: 'The Coaster Conductor', hp: 5, face: 'cd' },
+    bossIntro: ['<b>CONDUCTOR:</b> ALL ABOARD! Tickets, please!', '<b>CONDUCTOR:</b> No ticket? Then nobody rides MY coaster!',
+      'He races his coaster car across the floor! Jump over the car, and stomp him when it <b>stalls</b> at the end of the track.'],
+    taunts: ['CHOO CHOO!', 'Keep your arms inside the car!', 'Tickets, PLEASE!', 'Next stop: nowhere!'],
+    win: ['<b>CONDUCTOR:</b> Okay, okay. Front seat. You earned it.', 'Kinan rides the coaster four times in a row. Shad and Chenoa go a little green.', '<b>KINAN:</b> AGAIN!'],
+    meanwhile: 'In Saskatoon, the four cats have taken over Kinan\'s room again. They found the leftover birthday streamers.'
+  },
+  {
+    place: "Shad's Job Site", bg: 'jobsite', world: 3, goalRide: 'shad', hardhat: true, hats: true, sky: ['#4a9ae0', '#e0f2fd'], far: '#9aa1ab', mid: '#7d8590',
+    ground: '#6b4a2a', top: '#9a7a5a', brick: '#ff8a3d', accent: '#f6c445', foes: ['hopcone', 'magpie', 'pothole'],
+    intro: ['<b>SHAD:</b> Now you\'re seeing where I work. Rebar, scaffolds, forms for the concrete. Hard hats ON, little bro.', 'A sign on the fence says: <b>NO KIDS ALLOWED</b> (except Kinan, he\'s with Shad).',
+      '<b>SHAD:</b> My old hard hat is in the first gift box. It\'s yours now!', '<b>Shad\'s hard hat</b> takes one hit for you and bounces you up. You can find more of them in World 3\'s gift boxes.'],
+    boss: null,
+    win: ['<b>SHAD:</b> Point for me. Nobody else\'s big brother has a job site this cool.', '<b>CHENOA (texting):</b> Mine has a restaurant. With FOOD. Come at 5.'],
+    meanwhile: 'The site foreman sees the photos and laughs: "Tell Kinan he can come back when he\'s 18. Or tomorrow."'
+  },
+  {
+    place: "Chenoa's Restaurant Rush", bg: 'restaurant', world: 3, hats: true, sky: ['#4a2230', '#b0603c'], far: '#6a3036', mid: '#7a3f34',
+    ground: '#5a3a2a', top: '#c98d63', brick: '#f4f1e8', accent: '#ff6fae', foes: ['waiter', 'wetsign', 'mallwalker'],
+    intro: ['<b>CHENOA:</b> Welcome to MY restaurant. I\'m the supervisor. That means I\'m in charge of EVERYTHING.', '<b>CHENOA:</b> It\'s the dinner rush! Grab the coins and DON\'T drop a plate.',
+      '<b>KINAN:</b> Why are the waiters THROWING the plates?!', '<b>CHENOA:</b> ...That\'s new. I\'ll talk to them.'],
+    boss: { kind: 'supchenoa', title: 'Supervisor Chenoa', hp: 5, face: 'c' },
+    bossIntro: ['<b>CHENOA:</b> Table for one? NO. Table for NONE! You are NOT winning this bet for Shad!', '<b>CHENOA:</b> Supervisor mode: ON.',
+      'She throws plates, then charges: <b>TABLE FOR ONE!</b> When she holds up the menu like a shield, get <b>behind</b> her and stomp!'],
+    taunts: ['ORDER UP!', 'Hey! Not the sweater!', 'Table for NONE!', 'That\'s coming out of your tips!', 'Ugh, my crocs!'],
+    win: ['<b>CHENOA:</b> Okay, okay! You\'re the best busboy I ever had.', '<b>CHENOA:</b> ...Wait. Does that count as a point for Shad?', '<b>SHAD (from the door):</b> IT TOTALLY DOES.'],
+    meanwhile: 'The cook packs Kinan a "Supervisor\'s Special" to go: fries, a burger and two desserts.'
+  },
+  {
+    place: 'The River Valley Trails', bg: 'valley', world: 3, goalRide: 'shad', hats: true, sky: ['#ff8a5c', '#ffe0b0'], far: '#2f5a3a', mid: '#c98d2a',
+    ground: '#5a3f2a', top: '#7aa04f', brick: '#8a5a3a', accent: '#f6c445', foes: ['biker', 'magpie', 'hopcone'],
+    intro: ['The sun goes down over the river valley: trees in green and gold, all the way along the river.', '<b>SHAD:</b> Best view in the whole city. The trails go on forever.',
+      '<b>CHENOA:</b> I was LITERALLY about to say that.', 'While they argue, Kinan runs ahead. Watch out for the bikes on the trail!'],
+    boss: null,
+    win: ['<b>KINAN:</b> I beat you both to the top!', '<b>SHAD:</b> We took the funicular.', '<b>CHENOA:</b> He doesn\'t know what that is. Shh.'],
+    meanwhile: 'Dad calls to say goodnight. Kinan tells him about the coaster, the plates, the bikes and the gremlin. Dad says: "The WHAT?"'
+  },
+  {
+    place: 'Whyte Ave at Night', bg: 'whyte', world: 3, goalRide: 'chenoa', hats: true, sky: ['#0b1030', '#3a2a63'], far: '#1d2448', mid: '#2a2f5a',
+    ground: '#3b3f47', top: '#6d7480', brick: '#b5523b', accent: '#ff6fae', foes: ['busker', 'mallwalker', 'hopcone'],
+    intro: ['<b>CHENOA:</b> Whyte Ave! Music, lights, and the best street in Edmonton.', '<b>SHAD:</b> Okay. THAT one I agree with.',
+      'The street musicians are playing so hard, the music notes are flying off their guitars!'],
+    boss: null,
+    win: ['<b>CHENOA:</b> There\'s the bus to the bridge! Come on!', '<b>SHAD:</b> Race you there!', '<b>KINAN:</b> Wait. Why are you both racing ME?'],
+    meanwhile: 'Mom texts: "Is he in bed yet?" Chenoa replies: "Define bed."'
+  },
+  {
+    place: 'The High Level Bridge', bg: 'bridge', world: 3, hats: true, final3: true, sky: ['#070b22', '#2b2f74'], far: '#141a3a', mid: '#1d2448',
+    ground: '#3a3f4a', top: '#8a92a0', brick: '#ff6fae', accent: '#6fc8ff', foes: ['biker', 'magpie', 'busker', 'hopcone'],
+    intro: ['The High Level Bridge at night, lit up in every colour. Shad and Chenoa are waiting in the middle.', '<b>SHAD:</b> Okay, little bro. The bet ends HERE.',
+      '<b>CHENOA:</b> Whoever wins the bridge wins the weekend.', '<b>KINAN:</b> And what if <i>I</i> win?', '<b>SHAD AND CHENOA:</b> ...Then you win.'],
+    boss: { kind: 'siblings', title: 'Shad & Chenoa, the tag team', hp: 4, face: 's' },
+    bossIntro: ['<b>SHAD:</b> CONSTRUCTION SLAM!', '<b>CHENOA:</b> ORDER UP!', 'Shad slams the ground: jump the shockwave! Chenoa throws plates from the far side. Beat one, and the other gets FASTER!'],
+    taunts: ['Ow!', 'Okay, that one I felt!', 'No fair!'],
+    tauntsBy: {
+      shadboss: ['Ow! Measure twice, slam once!', 'Okay, that one I felt!', 'Rebar day is DONE!', 'Hard hat ON, bro!'],
+      supchenoa: ['Hey! Not the sweater!', 'ORDER UP!', 'Ugh, my crocs!', 'That\'s coming out of your tips!']
+    },
+    win: []
+  }
+);
 /* the day goes by: one birthday from 7 am in the bedroom to the 7 pm party (the story's own times: bedtime at 6:55, the Mega-Mech's orders until 1900 hours). The light follows the clock. */
 const DAY = [['dawn', '7:00 am'], ['morning', '8:00 am'], ['morning', '8:30 am'], ['day', '10:30 am'], ['day', '12:30 pm'], ['afternoon', '2:00 pm'], ['afternoon', '3:30 pm'], ['late', '4:30 pm'], ['sunset', '5:45 pm'], ['dusk', '6:55 pm'], ['night', '7:00 pm'],
   /* World 2: a work day out of town, from the 5:30 am drive to the 9 pm rig */
-  ['dawn', '5:30 am'], ['morning', '6:15 am'], ['morning', '7:00 am'], ['day', '8:30 am'], ['day', '10:00 am'], ['day', '12:00 pm'], ['afternoon', '2:00 pm'], ['dusk', '4:30 pm'], ['night', '8:00 pm'], ['night', '9:00 pm']];
+  ['dawn', '5:30 am'], ['morning', '6:15 am'], ['morning', '7:00 am'], ['day', '8:30 am'], ['day', '10:00 am'], ['day', '12:00 pm'], ['afternoon', '2:00 pm'], ['dusk', '4:30 pm'], ['night', '8:00 pm'], ['night', '9:00 pm'],
+  /* World 3: a Saturday in Edmonton, from the 10 am drive in to the bridge at 9:30 pm */
+  ['morning', '10:00 am'], ['day', '11:00 am'], ['day', '12:30 pm'], ['afternoon', '2:00 pm'], ['afternoon', '3:00 pm'], ['late', '4:30 pm'], ['sunset', '5:30 pm'], ['sunset', '6:45 pm'], ['night', '8:30 pm'], ['night', '9:30 pm']];
 LV.forEach((th, i) => { th.tod = DAY[i][0]; th.clock = DAY[i][1]; });
 const GRADE = { dawn: 'rgba(255,150,110,.10)', morning: 'rgba(255,236,190,.05)', day: '', afternoon: 'rgba(255,210,140,.06)', late: 'rgba(255,175,100,.10)', sunset: 'rgba(255,105,60,.14)', dusk: 'rgba(70,60,170,.10)', night: 'rgba(40,40,120,.07)' };
 
@@ -1090,7 +1213,19 @@ const FOE = {
   tumbleweed: { beh: 'walker', kind: 'tumbleweed', color: '#c9a26a', spd: 1.25 },
   mud: { beh: 'walker', kind: 'mud', color: '#6b4a2a', spd: 0.4, split: true },
   mosquito: { beh: 'flyer', kind: 'mosquito', color: '#5a5f6a' },
-  cone: { beh: 'walker', kind: 'cone', color: '#ff8a3d', spd: 0.6 }
+  cone: { beh: 'walker', kind: 'cone', color: '#ff8a3d', spd: 0.6 },
+  /* World 3, Edmonton: pothole gremlins pop up and duck back down; magpies grab a coin and fly off with it; mall
+     walkers can't be stomped (they just bounce you, or move you out of their way) */
+  pothole: { beh: 'peeker', kind: 'pothole', color: '#6d7480' },
+  hopcone: { beh: 'hopper', kind: 'cone', color: '#ff8a3d', spd: 0.7, seek: true },
+  magpie: { beh: 'flyer', kind: 'magpie', color: '#1b1220', thief: true },
+  mallwalker: { beh: 'walker', kind: 'mallwalker', color: '#9b2d6b', spd: 1.15, tough: true },
+  cart: { beh: 'walker', kind: 'cart', color: '#9aa1ab', spd: 1.5 },
+  zamboni: { beh: 'walker', kind: 'zamboni', color: '#f4f1e8', spd: 0.45 },
+  wetsign: { beh: 'hopper', kind: 'wetsign', color: '#f6c445', spd: 0.5, seek: true },
+  waiter: { beh: 'thrower', kind: 'waiter', throwType: 'plate' },
+  biker: { beh: 'charger', kind: 'biker', color: '#3fa9f5' },
+  busker: { beh: 'thrower', kind: 'busker', throwType: 'note' }
 };
 /* ============================================================
    LEVEL BUILDER — seeded chunks, guaranteed set pieces
@@ -1123,14 +1258,15 @@ function build(i) {
   const gift = (gx, gy) => {
     set(gx, gy, 3);
     let kind = 'candle';
-    if (giftCount === 0) kind = 'popper';
+    if (giftCount === 0) kind = LV[i].hardhat ? 'hat' : 'popper';   /* Shad's job site: his old hard hat */
     else if (!cakeGiven && gr() < 0.45) { kind = 'cake'; cakeGiven = true; }
-    else { const q = gr(); kind = q < 0.2 ? 'popper' : q < 0.3 ? 'heart' : 'candle'; }
+    else { const q = gr(); kind = q < 0.2 ? 'popper' : q < 0.3 ? 'heart' : (LV[i].hats && q < 0.4 ? 'hat' : 'candle'); }
     gifts[gy * w + gx] = kind; giftCount++;
   };
   const foe = (fx, fy) => {
     const t = types[Math.floor(r() * types.length)];
     foes.push({ tx: fx, ty: FOE[t].beh === 'flyer' ? fy - 3 : fy, type: t });
+    if (t === 'cart') for (let k = 1; k <= 2; k++) foes.push({ tx: fx + k, ty: fy, type: t });   /* shopping carts roll in a line */
   };
   flat(10);
   while (x < len) {
@@ -1208,7 +1344,7 @@ function build(i) {
   const arenaX = x + 1;
   for (let k = 0; k < arenaW + 3; k++) col(arenaX + k, GROUND);
   for (let y = 0; y < GROUND; y++) set(arenaX + arenaW, y, 5);
-  return { i, g, w, foes, candles, gifts, checkpoint, petSpot, arenaX, arenaW, len };
+  return { i, g, w, foes, candles, gifts, checkpoint, petSpot, arenaX, arenaW, len, ice: !!LV[i].ice };
 }
 /* ============================================================
    STATE
@@ -1278,7 +1414,7 @@ let score = 0, combo = 0, comboT = 0, bestCombo = 0, deaths = 0, heartsLost = 0,
 let spawn = { x: 0, y: 0 }, cpHit = false, dadUsedStage = false, dadUsedBoss = false;
 let lastSafe = { x: 0, y: 0 };
 let dadSpecialPlan = false, dadSpecialDone = false, broBoss = false, bossMusic = false;
-let cratePet = null;
+let cratePet = null, bag = null;   /* bag: World 3's cat hiding in a shopping bag at the mall */
 let puzzle = null, pieces = [], pieceCool = [];   /* puzzle room in progress; the stage's puzzle pieces */
 
 /* ============================================================
@@ -1580,6 +1716,8 @@ const FACE_DEF = {
   d: { rows: () => DAD_VEST, eye: 4, eyes: [5, 9], mouth: 7, m: [7, 8], ink: 'm', teeth: true, crop: [1, 15, 0, 11] },
   n: { rows: () => NEIGH, eye: 4, eyes: [5, 9], mouth: 7, m: [7, 8], ink: 'm', teeth: true, crop: [1, 15, 0, 11] },
   f: { rows: () => FOREMAN, eye: 4, eyes: [5, 9], mouth: 7, m: [7, 8], ink: 'm', teeth: true, crop: [1, 15, 0, 11] },
+  lg: { rows: () => LIFEGUARD, eye: 5, eyes: [5, 9], mouth: 7, m: [7, 8], ink: 'm', crop: [2, 14, 0, 12] },
+  cd: { rows: () => CONDUCTOR, eye: 4, eyes: [5, 9], mouth: 7, m: [7, 8], ink: 'm', teeth: true, crop: [1, 15, 0, 11] },
   s: { rows: () => SHAD, eye: 4, eyes: [5, 9], mouth: 6, m: [6, 7], ink: 'm', crop: [2, 14, 0, 11] },
   c: { rows: () => CHENOA, eye: 4, eyes: [5, 10], mouth: 6, m: [7, 8], ink: 'r', wide: [6, 9], crop: [2, 14, 0, 11] },
   mech: { rows: () => MECH, mech: true, crop: [0, 16, 0, 11] }
@@ -1618,7 +1756,8 @@ function portraitFor(who, mood) {
   return PORTRAIT_SRC[id];
 }
 /* who is talking: a line that starts with "<b>NAME:</b>" shows that person's face and voice; narration shows Kinan, no voice */
-const SPEAKERS = { 'MOM': 'm', 'CHENOA': 'c', 'KINAN': 'k', 'ROBIN': 'd', 'DAD': 'd', 'SHAD': 's', 'NOSY NEIGHBOUR': 'n', 'NEIGHBOUR': 'n', 'BIG KID': 'b', 'MEGA-MECH': 'mech', '???': 'mech', 'FOREMAN': 'f', 'SAFETY FOREMAN': 'f', 'PUMPJACK PETE': 'mech' };
+const SPEAKERS = { 'MOM': 'm', 'CHENOA': 'c', 'KINAN': 'k', 'ROBIN': 'd', 'DAD': 'd', 'SHAD': 's', 'NOSY NEIGHBOUR': 'n', 'NEIGHBOUR': 'n', 'BIG KID': 'b', 'MEGA-MECH': 'mech', '???': 'mech', 'FOREMAN': 'f', 'SAFETY FOREMAN': 'f', 'PUMPJACK PETE': 'mech',
+  'LIFEGUARD': 'lg', 'CONDUCTOR': 'cd', 'SHAD AND CHENOA': 's' };
 function speakerOf(html, who) {
   const m = /^<b>([^<:(]+?)\s*(?:\([^)]*\))?:<\/b>/.exec(html || '');
   if (!m) return null;
@@ -1633,7 +1772,7 @@ function moodOf(html, fallback) {
   return fallback || 'n';
 }
 /* each voice: [pitch Hz, wave]; one short beep every couple of letters, like old game text */
-const VOICES = { k: [540, 'square'], m: [700, 'triangle'], c: [820, 'square'], d: [300, 'square'], s: [390, 'square'], n: [250, 'sawtooth'], b: [460, 'square'], mech: [980, 'square'], f: [270, 'sawtooth'] };
+const VOICES = { k: [540, 'square'], m: [700, 'triangle'], c: [820, 'square'], d: [300, 'square'], s: [390, 'square'], n: [250, 'sawtooth'], b: [460, 'square'], mech: [980, 'square'], f: [270, 'sawtooth'], lg: [760, 'triangle'], cd: [330, 'square'] };
 let typing = null;
 function tokenizeHTML(html) {
   const out = [], re = /(<[^>]+>|&[a-z#0-9]+;)/gi;
@@ -1774,6 +1913,7 @@ function makeFoe(f) {
   if (def.beh === 'thrower') { o.vx = 0; o.h = 17; o.y -= 4; o.w = 13; }
   if (f.type === 'bully') { o.h = 17; o.w = 11; o.y -= 4; }
   if (def.beh === 'charger') o.face = -1;
+  if (def.beh === 'peeker') o.vx = 0;
   return o;
 }
 
@@ -1815,6 +1955,7 @@ function startStage(i, silent, custom) {
   const nextPet = !custom && PET_STAGE[i] && owned.indexOf(PET_STAGE[i]) < 0 ? PET_STAGE[i] : null;
   cratePet = nextPet;
   crate = nextPet && L.petSpot ? { x: L.petSpot.x, y: L.petSpot.y, w: 16, h: 16, pet: nextPet, open: false, t: 0 } : null;
+  bag = !custom && LV[i].bag && L.petSpot && !crate ? { x: L.petSpot.x, y: L.petSpot.y, w: 16, h: 16, open: false, t: 0 } : null;
   camX = 0; shake = 0; hitStop = 0;
   camY = custom && custom.up ? clamp(Math.round(spawn.y - H * 0.55), -custom.up * T, 0) : 0;
   const bb = $('#bBackBtn'); if (bb) bb.hidden = !(custom && custom.opts && custom.opts.editor);   /* 🔨 back to building, in a test play */
@@ -1840,7 +1981,7 @@ function snapshotStage() {
     candles: candles.map((c, k) => (c.got ? k : -1)).filter((k) => k >= 0),
     gifts: Object.keys(SL.gifts).filter((k) => SL.g[Number(k)] === 4),
     foesDead: SL.foes.map((f, k) => k).filter((k) => !foes.some((f) => f.idx === k && f.alive)),
-    atBoss: boss !== 'off', when: Date.now()
+    atBoss: boss !== 'off', bagOpen: !!(bag && bag.open), when: Date.now()
   };
 }
 /* call right after startStage(s.i, true): puts the stage back the way it was saved */
@@ -1852,6 +1993,7 @@ function restoreStage(s) {
   nextHeartAt = s.nextHeartAt; dadUsedStage = !!s.dadUsedStage; cpHit = !!s.cpHit;
   if (s.cpHit && s.spawn) spawn = { x: s.spawn.x, y: s.spawn.y };
   P.hp = s.hp; P.max = s.max; P.power = s.power || null; P.hat = !!s.hat;
+  if (s.bagOpen && bag) bag.open = true;
   if (s.atBoss) { P.x = (L.arenaX + 4) * T; P.y = (GROUND - 1) * T; }   /* the boss fight starts over from its intro */
   else { P.x = s.x; P.y = s.y; }
   P.vx = 0; P.vy = 0; P.inv = 60;
@@ -1885,7 +2027,8 @@ function dropSave(i) {
 function updatePlayer() {
   const rush = P.rush > 0;
   const left = input.left || padIn.left, right = input.right || padIn.right;
-  const acc = P.onGround ? 0.55 : 0.38, max = rush ? 3.7 : RUN_MAX;
+  const ice = !!(L.ice && P.onGround);   /* the Mall Ice Rink: slow to get going, slow to stop */
+  const acc = P.onGround ? (ice ? 0.16 : 0.55) : 0.38, max = rush ? 3.7 : RUN_MAX;
   const wasGround = P.onGround;
 
   if (left && !right) {
@@ -1895,8 +2038,9 @@ function updatePlayer() {
     if (P.vx < 0 && P.onGround) { P.skid = 6; dust(P.x + 5, P.y + P.h, 2, 'rgba(244,241,232,.5)'); }
     P.vx = Math.min(max, P.vx + acc); P.face = 1;
   } else {
-    P.vx *= P.onGround ? 0.76 : 0.96;
+    P.vx *= P.onGround ? (ice ? 0.975 : 0.76) : 0.96;
     if (Math.abs(P.vx) < 0.08) P.vx = 0;
+    if (ice && Math.abs(P.vx) > 1 && frame % 4 === 0) part(P.x + 5, P.y + P.h, { vx: -P.vx * 0.2, vy: -0.3, life: 14, size: 1, color: '#ffffff', g: 0 });
   }
   if (P.onGround) {
     P.coyote = 7;
@@ -1997,8 +2141,10 @@ function die() {
   Music.duck(true);
   (async () => {
     const atBoss = boss === 'fight';
-    const w2 = worldOf(L.i) > 1, who = atBoss && !w2 ? 'mom' : 'dad';   /* World 2 is at Dad's job site: Dad cheers him on */
-    await say(atBoss ? (w2 ? '<b>DAD:</b> So close, bud! Shake it off and try again!' : '<b>MOM:</b> Aww, come here, you need a hug. Then try again!') : '<b>ROBIN:</b> Shake it off, bud. Back to the checkpoint!', who, 'h');
+    const wn = worldOf(L.i), who = atBoss ? (wn === 1 ? 'mom' : 'dad') : (wn === 3 ? 'chenoa' : 'dad');   /* World 2 is at Dad's job site: Dad cheers him on */
+    const line = atBoss ? ({ 1: '<b>MOM:</b> Aww, come here, you need a hug. Then try again!', 3: "<b>DAD (on the phone):</b> So close, bud! You've got them. Try again!" })[wn] || '<b>DAD:</b> So close, bud! Shake it off and try again!'
+      : (wn === 3 ? '<b>CHENOA:</b> Shake it off, little bro. Back to the checkpoint!' : '<b>ROBIN:</b> Shake it off, bud. Back to the checkpoint!');
+    await say(line, who, 'h');
     if (atBoss) await bossLost();
     Music.duck(false);
     P.hp = P.max; P.dead = 0; P.inv = 110; P.vx = 0; P.vy = 0;
@@ -2007,7 +2153,7 @@ function die() {
       P.x = (L.arenaX + 2) * T; P.y = (GROUND - 1) * T;
       bosses.forEach((b) => {
         b.hp = b.max; b.out = false; b.x = b.homeX; b.y = (GROUND) * T - b.h;
-        b.inv = 60; b.state = 'walk'; b.t = 100; b.stun = 0; b.vx = 0;
+        b.inv = 60; b.state = 'walk'; b.t = 100; b.stun = 0; b.vx = 0; b.pound = false; b.hold = 0;
       });
       dadSpecialDone = false; broBoss = false;
     } else {
@@ -2053,6 +2199,7 @@ function giveItem(kind) {
     P.hp = Math.min(P.max, P.hp + 1);
     SFX.heart(); toast('❤ <b>Extra heart!</b>', 1300);
   }
+  else if (kind === 'hat') { P.hat = true; SFX.power(); toast("⛑️ <b>SHAD'S HARD HAT!</b> It takes one hit for you.", 2400); }
   updHud();
 }
 function trailPart(kind, x, y) {
@@ -2073,7 +2220,7 @@ function updateWorld() {
   if (L.checkpoint && !cpHit && P.x > L.checkpoint.x) {
     cpHit = true;
     spawn = { x: L.checkpoint.x, y: (L.checkpoint.ty - 1) * T };
-    SFX.flag(); toast('<b>CHECKPOINT!</b> 🚩 Saved.', 1300); callBro();
+    SFX.flag(); toast('<b>CHECKPOINT!</b> 🚩 Saved.', 1300); if (!LV[L.i].final3) callBro();   /* not on the bridge: Shad is waiting there */
     sparks(L.checkpoint.tx * T + 6, (L.checkpoint.ty - 1) * T, 12, ['#44c55a', '#fff', '#f6c445']);
     autoSave();
   }
@@ -2111,6 +2258,14 @@ function updateWorld() {
       pop(crate.x, crate.y - 10, def.perk.toUpperCase(), 50, '#f6c445');
       sparks(crate.x + 8, crate.y + 8, 22, ['#f6c445', '#fff', '#7be3a3']);
       shakeIt(3); updHud();
+    }
+  }
+  if (bag && !bag.open) {
+    bag.t++;
+    if (overlap(P, bag)) {
+      bag.open = true; SFX.meow(); addCandle(5);
+      toast('🐱 <b>MEOW!</b> A cat was hiding in a shopping bag! <b>+5 coins</b>', 2600);
+      pop(bag.x, bag.y - 10, 'MEOW! +5', 50, '#f6c445'); sparks(bag.x + 8, bag.y + 8, 18, ['#f6c445', '#fff', '#7be3a3']);
     }
   }
   for (const p of pops) { p.t--; p.y -= 0.55; }
@@ -2169,7 +2324,7 @@ function updatePets() {
           tgt = list.filter((b) => taken.indexOf(b) < 0)[0] || null;
           if (tgt) tgt.isBoss = true;
         } else {
-          const list = foes.filter((f) => f.alive && Math.abs(f.x - P.x) < 130 && f.x > camX - 20 && f.x < camX + W + 20 && f.def.beh !== 'flyer');
+          const list = foes.filter((f) => f.alive && !f.hidden && !f.def.tough && Math.abs(f.x - P.x) < 130 && f.x > camX - 20 && f.x < camX + W + 20 && f.def.beh !== 'flyer');
           tgt = list.filter((f) => taken.indexOf(f) < 0)[0] || null;
         }
         if (tgt) { d.dash = tgt; SFX.woof(); }
@@ -2180,14 +2335,14 @@ function updatePets() {
 }
 
 function callDad(mode) {
-  if (worldOf(L.i) > 1 && mode !== 'heal') return;
+  if (worldOf(L.i) === 2 && mode !== 'heal') return;   /* World 2 is Dad's own world: only Mom's care package */
   const inBoss = boss === 'fight';
   if (mode === 'heal') {
     if (inBoss ? dadUsedBoss : dadUsedStage) return;
     if (inBoss) dadUsedBoss = true; else dadUsedStage = true;
   }
   if (dad) return;
-  dad = { x: Math.max(camX - 20, P.x - W * 0.5), y: (GROUND - 2) * T, w: 12, h: 18, state: 'in', t: 0, mode: mode, vac: 0, vacTarget: null, face: 1, mom: worldOf(L.i) > 1 };
+  dad = { x: Math.max(camX - 20, P.x - W * 0.5), y: (GROUND - 2) * T, w: 12, h: 18, state: 'in', t: 0, mode: mode, vac: 0, vacTarget: null, face: 1, mom: worldOf(L.i) > 1 && mode === 'heal' };
   SFX.dad();
   if (mode !== 'party') toast(dad.mom ? '<b>MOM</b> drove out with a care package! 💛' : (mode === 'heal' ? '<b>DAD ROBIN</b> is back from the oilfield!' : '<b>DAD ROBIN</b> rolled in with the hydro vac! 💨'), 1700);
 }
@@ -2212,7 +2367,7 @@ function updateVac() {
   } else {
     let n = 0;
     foes.forEach((f) => {
-      if (!f.alive || f.x < camX - 10 || f.x > camX + W + 10) return;
+      if (!f.alive || f.def.tough || f.x < camX - 10 || f.x > camX + W + 10) return;
       f.x += clamp(nozzle - f.x, -3, 3); f.vx = 0;
       if (Math.abs(f.x - nozzle) < 10) { killFoe(f, 'SLURP!'); n++; }
     });
@@ -2231,7 +2386,8 @@ function updateDad() {
       if (dad.mode === 'heal') {
         const back = boss === 'fight' ? (L.bossR || bossRules(L.i)).heal : 99;   /* a tough boss fight: fewer hearts back */
         P.hp = Math.min(P.max, P.hp + back); P.inv = 120; updHud(); SFX.heart();
-        if (back >= P.max) toast('<b>ROBIN:</b> ' + pick(['Just got back from camp, bud! Eat this burger 🍔', 'Nobody beats up the birthday boy! 🍔', "Dad's home from the oilfield! Hearts refilled! 🍔"]), 2400);
+        if (back >= P.max) toast(dad.mom ? '<b>MOM:</b> ' + pick(['Care package! Eat this burger, sweetie 🍔', 'Nobody messes with MY boy! 🍔', 'Mom to the rescue! Hearts refilled! 🍔'])
+          : '<b>ROBIN:</b> ' + pick(['Just got back from camp, bud! Eat this burger 🍔', 'Nobody beats up the birthday boy! 🍔', "Dad's home from the oilfield! Hearts refilled! 🍔"]), 2400);
         else toast((dad.mom ? '<b>MOM:</b> ' : '<b>ROBIN:</b> ') + 'A little something to keep you going! 🍔 +' + back + ' ❤', 2400);
         pop(P.x, P.y - 14, back >= 3 ? '+❤ +❤ +❤' : (back === 2 ? '+❤ +❤' : '+❤'), 50, '#ff6fae');
         sparks(P.x + 5, P.y, 16, ['#ff6fae', '#fff']);
@@ -2265,7 +2421,7 @@ function broSlam() {
     const R = L.bossR || bossRules(L.i);   /* early on the slam knocks a hit off; later it only stuns, for less time */
     bosses.forEach((b) => { if (!b.out) { if (R.shadHits) { b.inv = 0; damage(b, 1, 'SHAD SLAM!'); } else pop(b.x - 6, b.y - 14, 'SHAD SLAM! 💫', 34, '#f6c445'); if (!b.out) b.stun = R.shadStun; } });
   } else {
-    foes.forEach((f) => { if (f.alive && f.x > camX - 10 && f.x < camX + W + 10) killFoe(f, 'SLAM!'); });
+    foes.forEach((f) => { if (f.alive && !f.def.tough && f.x > camX - 10 && f.x < camX + W + 10) killFoe(f, 'SLAM!'); });
   }
   shots = [];
   P.hat = true; updHud(); SFX.power();
@@ -2300,6 +2456,7 @@ function killFoe(f, txt) {
   pop(f.x + 2, f.y - 6, (txt || 'BONK') + (mult > 1 ? ' x' + mult : ''), 30, mult > 2 ? '#ff6fae' : '#f6c445');
   sparks(f.x + 6, f.y + 6, 10, ['#f6c445', '#fff', '#ff8a3d']);
   dust(f.x + 6, f.y + 12, 4);
+  if (f.loot) { const n = f.loot; f.loot = 0; addCandle(n); pop(f.x, f.y - 16, '+1 coin back!', 34, '#f6c445'); }   /* a magpie drops what it grabbed */
   if (f.def.split && !f.mini) {
     foes.push(makeFoe({ type: f.type, x: f.x, y: f.y + 4, vx: -1.4, mini: true }));
     foes.push(makeFoe({ type: f.type, x: f.x + 6, y: f.y + 4, vx: 1.4, mini: true }));
@@ -2313,9 +2470,14 @@ function updateFoes() {
     if (f.hurtT > 0) f.hurtT--;
     const beh = f.def.beh;
     if (beh === 'flyer') {
-      f.x += f.vx;
+      if (f.flee) {   /* a magpie getting away (with a coin, if it got one) */
+        f.x += (f.vx || -0.75) * 1.6; f.y -= 1.1;
+        if (f.y < -30) { f.alive = false; f.dead = 20; continue; }
+      } else {
+        f.x += f.vx;
       if (Math.abs(f.x - f.originX) > 78) f.vx = -f.vx;
       f.y = f.baseY + Math.sin(f.t / 22) * 13;
+      }
     } else if (beh === 'thrower') {
       const dx = P.x - f.x;
       f.face = sign(dx);
@@ -2329,7 +2491,13 @@ function updateFoes() {
         }
       }
     } else {
-      if (beh === 'hopper' && f.onGround && f.t % 95 === 0) f.vy = -4.9;
+      if (beh === 'peeker') {   /* a pothole gremlin: in its hole for a while, then up */
+        const was = f.hidden; f.hidden = (f.t % 150) < 70; f.vx = 0;
+        if (f.hidden) f.upT = 0; else { f.upT = (f.upT || 0) + 1; if (was) dust(f.x + 6, f.y + f.h, 3); }
+      }
+      if (beh === 'hopper' && f.onGround && f.t % 95 === 0) { f.vy = -4.9; if (f.def.seek) f.vx = (P.x < f.x ? -1 : 1) * Math.abs(f.vx || 0.6); }
+      if (f.def.tough && f.cool > 0) f.cool--;
+      if (f.def.kind === 'zamboni' && f.t % 6 === 0) part(f.x + (f.vx > 0 ? 0 : f.w), f.y + f.h - 1, { vx: 0, vy: 0, life: 40, size: 2, color: 'rgba(232,246,255,.85)', g: 0 });
       if (beh === 'charger') {
         const dx = P.x - f.x;
         if (f.charge > 0) {
@@ -2358,14 +2526,28 @@ function updateFoes() {
       if (f.vx !== 0) f.face = sign(f.vx);
     }
     if (f.y > H + 30) { f.alive = false; f.dead = 20; continue; }
-    if (P.dead || paused || !overlap(P, f)) continue;
-    if (P.rush > 0) { killFoe(f, 'POW'); SFX.stomp(); continue; }
+    if (P.dead || paused || f.hidden || !overlap(P, f)) continue;
+    if (P.rush > 0) { if (!f.def.tough) { killFoe(f, 'POW'); SFX.stomp(); } continue; }
     const stomp = (P.vy > 0.4 || (P.vy >= 0 && P.prevBottom <= f.y + 6)) && (P.y + P.h) - f.y < 14;
+    if (f.def.tough) {   /* a mall walker: stomping just bounces you; walking into one moves you out of the way */
+      if (stomp) { P.vy = -7.4; P.y = f.y - P.h + 1; P.squash = 4; SFX.jump(); if (!f.cool) { pop(f.x, f.y - 8, 'BOING!', 26, '#f6c445'); f.cool = 30; } }
+      else if (!f.cool) {
+        P.vx = P.x + P.w / 2 < f.x + f.w / 2 ? -3.4 : 3.4; P.vy = Math.min(P.vy, -2.6); f.cool = 40;
+        toast('<b>MALL WALKER:</b> ' + pick(['Coming through, dear!', 'Beep beep! Mall walker!', 'Ten thousand steps, young man!', 'Excuse me, sweetie!']), 1300);
+      }
+      continue;
+    }
     if (stomp) {
       killFoe(f);
       P.vy = (input.jump || padIn.jump) ? -7.8 - (hasPet('dog2') ? 0.5 : 0) : -6.0 - (hasPet('dog2') ? 0.3 : 0);
       P.squash = 4; P.y = f.y - P.h + 1;
       SFX.stomp(); shakeIt(1.5);
+    } else if (f.def.thief) {   /* a magpie grabs a coin and flies off with it: stomp it to get the coin back */
+      if (!f.flee) {
+        f.flee = true; SFX.pew();
+        if (got > 0) { got--; f.loot = 1; updHud(); pop(f.x, f.y - 8, '-1 coin!', 30, '#ff6b6b'); toast('A <b>magpie</b> grabbed a coin! Stomp it to get it back!', 1600); }
+        else pop(f.x, f.y - 8, 'SQUAWK!', 26, '#f4f1e8');
+      }
     } else {
       hurt(f.x);
     }
@@ -2400,7 +2582,7 @@ function updateShots() {
     b.x += b.vx; b.life--;
     if (Math.random() < 0.6) part(b.x + 3, b.y + 3, { vx: -b.vx * 0.2, vy: rand(-0.6, 0.6), life: 14, size: 2, color: pick(['#ff6fae', '#f6c445', '#fff']), glow: true, g: 0 });
     if (solid(Math.floor((b.x + 3) / T), Math.floor((b.y + 3) / T))) b.life = 0;
-    for (const f of foes) if (b.life > 0 && f.alive && overlap(b, f)) { killFoe(f, 'POP!'); b.life = 0; }
+    for (const f of foes) if (b.life > 0 && f.alive && !f.hidden && !f.def.tough && overlap(b, f)) { killFoe(f, 'POP!'); b.life = 0; }
     if (b.life > 0) for (const bs of bosses) {
       if (!bs.out && overlap(b, bs)) { damage(bs, 0.34); sparks(b.x, b.y, 6, ['#ff6fae', '#fff']); b.life = 0; break; }
     }
@@ -2419,10 +2601,11 @@ function updateShots() {
    BOSSES
    ============================================================ */
 const BOSS_NAMES = { mom: 'MOM', chenoa: 'CHENOA', mech: 'MEGA-MECH', neighbour: 'NEIGHBOUR', bully: 'BIG KID',
-  moose: 'BULL MOOSE', foreman: 'SAFETY FOREMAN', pumpjack: 'PUMPJACK PETE', dadboss: 'HYDRO VAC DAD' };
+  moose: 'BULL MOOSE', foreman: 'SAFETY FOREMAN', pumpjack: 'PUMPJACK PETE', dadboss: 'HYDRO VAC DAD',
+  lifeguard: 'LIFEGUARD', conductor: 'COASTER CONDUCTOR', supchenoa: '🍽️ CHENOA', shadboss: '👷 SHAD' };
 function bossName(b) { return BOSS_NAMES[b.kind] || 'BOSS'; }
 function makeBoss(kind, x, hp, prop) {
-  const sizes = { mom: [14, 22], chenoa: [12, CH_H], mech: [28, 34], neighbour: [14, 22], bully: [14, 22], moose: [36, 32], foreman: [14, 22], pumpjack: [28, 34], dadboss: [14, 22] };
+  const sizes = { mom: [14, 22], chenoa: [12, CH_H], mech: [28, 34], neighbour: [14, 22], bully: [14, 22], moose: [36, 32], foreman: [14, 22], pumpjack: [28, 34], dadboss: [14, 22], lifeguard: [14, 22], conductor: [24, 26], supchenoa: [12, CH_H], shadboss: [14, 22] };
   const s = sizes[kind] || [12, 18];
   return {
     kind: kind, x: x, homeX: x, y: GROUND * T - s[1], w: s[0], h: s[1], vx: 0, vy: 0,
@@ -2464,9 +2647,9 @@ async function startBoss() {
   Music.play(LV[i].final || LV[i].final2 ? 'final' : 'boss');
   dadSpecialDone = false;
   const R = L.bossR = bossRules(i), hp = L.helped ? Math.max(2, Math.round(d.hp * 0.7)) : d.hp + R.extraHp;
-  dadSpecialPlan = worldOf(i) === 1 && (d.kind === 'final' || Math.random() < R.dadVac);
-  const kind = (d.kind === 'team' || d.kind === 'final') ? 'mom' : d.kind;
-  bosses = [makeBoss(kind, (ax + (kind === 'mech' || kind === 'pumpjack' || kind === 'moose' ? 12 : 13)) * T, hp, d.prop)];
+  dadSpecialPlan = worldOf(i) !== 2 && (d.kind === 'final' || Math.random() < R.dadVac);   /* not in Dad's own world */
+  const kind = (d.kind === 'team' || d.kind === 'final') ? 'mom' : (d.kind === 'siblings' ? 'shadboss' : d.kind);
+  bosses = [makeBoss(kind, (ax + (kind === 'mech' || kind === 'pumpjack' || kind === 'moose' || kind === 'conductor' ? 12 : 13)) * T, hp, d.prop)];
   await say('<b>BOSS:</b> ' + d.title.toUpperCase() + '!', d.face || 'm', 'a');
   await story(LV[i].bossIntro, d.face || 'm', 'a');
   if (d.kind === 'team') {
@@ -2485,6 +2668,10 @@ async function startBoss() {
       await say("<b>CHENOA:</b> TEAM KINAN! Let's get her! 💚 (Sorry, Mom. He's my little brother.)", 'c', 'h');
       await say('Chenoa will throw paint at Mom. You still have to stomp her!', 'k');
     }
+  } else if (d.kind === 'siblings') {   /* World 3's finale: Shad and Chenoa, a tag team */
+    const ch = makeBoss('supchenoa', (ax + 22) * T, Math.max(2, hp - 2)); ch.far = true;
+    bosses.push(ch); updateBossHud();
+    await say('Stomp <b>both</b> of them to win: <b>' + hp + '</b> stomps for Shad and <b>' + ch.max + '</b> for Chenoa. Go go go!', 'k');
   } else if (d.kind === 'final') {
     allies.push(chenoaAlly());
     P.power = 'popper'; SFX.power();
@@ -2521,13 +2708,13 @@ function damage(b, n, why) {
     return;
   }
   if (n >= 1) {
-    const lines = (b.kind === 'chenoa' && LV[L.i].boss.kind !== 'chenoa') ? ['Hey! Not the sweater!', 'Ugh, my crocs!'] : LV[L.i].taunts;
+    const lines = (b.kind === 'chenoa' && LV[L.i].boss.kind !== 'chenoa') ? ['Hey! Not the sweater!', 'Ugh, my crocs!'] : ((LV[L.i].tauntsBy && LV[L.i].tauntsBy[b.kind]) || LV[L.i].taunts);
     /* Party Popper hits take 0.34, so hp can be fractional: round down to a whole line number */
     toast('<b>' + bossName(b) + ':</b> ' + lines[(Math.floor(b.max - b.hp - 1 + 1e-6) + lines.length * 9) % lines.length], 1700);
   }
   const main = bosses[0];
   if (!dadSpecialDone && dadSpecialPlan && main && main.hp <= main.max / 2 && !main.out && !dad) { dadSpecialDone = true; callDad('special'); }
-  if (!broBoss && main && main.hp <= main.max * 0.75 && !main.out && !bro && boss === 'fight') { broBoss = true; callBro(); }
+  if (!broBoss && worldOf(L.i) !== 3 && main && main.hp <= main.max * 0.75 && !main.out && !bro && boss === 'fight') { broBoss = true; callBro(); }   /* in World 3 Shad is a rival */
   if (b.hp <= b.max / 2) b.anger = 1;
 }
 /* Kinan lost a boss fight: count it, and after 3 in a row offer a helping hand (Shad, 2026-10-20) */
@@ -2540,13 +2727,13 @@ async function bossLost() {
   if (!(await askHelp())) return;
   L.helped = true; L.bossR = bossRules(i);
   bosses[0].max = Math.max(2, Math.round(LV[i].boss.hp * 0.7));   /* fewer stomps than even the original */
-  dadSpecialPlan = worldOf(i) === 1;   /* Dad's hydro vac joins in this time */
+  dadSpecialPlan = worldOf(i) !== 2;   /* Dad's hydro vac joins in this time (not in his own world) */
   toast('<b>Helping hand!</b> Only ' + bosses[0].max + ' stomps this time, and help is on the way. You got this! 💪', 3200);
 }
 function askHelp() {
   return new Promise((resolve) => {
     const box = $('#helpAsk'); if (!box) { resolve(false); return; }
-    $('#helpAskWho').textContent = worldOf(L.i) === 1 ? 'Dad and Shad jump in to help' : 'Shad jumps in and Mom sends a care package';
+    $('#helpAskWho').textContent = ({ 1: 'Dad and Shad jump in to help', 2: 'Shad jumps in and Mom sends a care package', 3: "Dad's hydro vac jumps in and Mom sends a care package" })[worldOf(L.i)] || 'The family jumps in to help';
     box.hidden = false; SFX.click();
     const done = (yes) => { box.hidden = true; SFX.click(); resolve(yes); };
     $('#helpYes').onclick = () => done(true);
@@ -2564,6 +2751,7 @@ async function bossDefeated() {
   const i = L.i;
   if (LV[i].final) return ending();
   if (LV[i].final2) return ending2();
+  if (LV[i].final3) return ending3();
   await story(LV[i].win, LV[i].boss.face || 'm', 'h');
   firstClear = !progress.beaten.includes(i);   /* first time through: this world is now a Family Smash arena too */
   if (firstClear) progress.beaten.push(i);
@@ -2771,15 +2959,115 @@ function bossAI(b) {
       foes.push(makeFoe({ type: 'mud', x: b.x + b.w + 2, y: b.y + 8, vx: 1 }));
       toast('<b>DAD:</b> Oops. That is a LOT of mud. My bad!', 1700);
     }
+  } else if (b.kind === 'lifeguard') {
+    /* the Wave Pool Lifeguard: her whistle blows you back and sends a wave along the floor, then she is out of breath */
+    if (b.state === 'walk') {
+      if (b.vx === 0) b.vx = dx < 0 ? -0.8 : 0.8;
+      if (--b.t <= 0) {
+        b.state = 'whistle'; b.t = 76; b.vx = 0;
+        toast('<b>LIFEGUARD:</b> ' + pick(['TWEEEEET! No running!', 'TWEEET! Walk, please!', 'TWEEEET! Out of the pool!']), 1400);
+        AudioSys.tone(2300, 0.45, { type: 'square', vol: 0.05, slide: 2600 });
+      }
+    } else if (b.state === 'whistle') {
+      b.vx = 0;
+      if (Math.abs(dx) < 200 && Math.abs(P.y - b.y) < 50) P.vx = clamp(P.vx + sign(dx) * 0.17, -3, 3);
+      if (frame % 6 === 0) part(b.x + (dx < 0 ? -6 : b.w + 4), b.y + 6, { vx: sign(dx) * 3, vy: rand(-0.4, 0.4), life: 16, size: 2, color: 'rgba(210,240,255,.8)' });
+      if (b.t === 64 || (b.anger && b.t === 30)) {
+        shots.push({ x: b.x + (dx < 0 ? -12 : b.w), y: GROUND * T - 8, w: 12, h: 8, vx: sign(dx) * 2.3, vy: 0, g: 0, life: 150, kind: 'wave', color: 'rgba(111,200,255,.9)' });
+        SFX.pew();
+      }
+      if (--b.t <= 0) { b.state = 'rest'; b.t = 84; }
+    } else {   /* out of breath: the time to stomp */
+      b.vx = 0;
+      if (--b.t <= 0) { b.state = 'walk'; b.t = 90; }
+    }
+  } else if (b.kind === 'conductor') {
+    /* the Coaster Conductor: rolls his coaster car about tossing tickets, then races it across the floor and stalls at the end */
+    if (b.state === 'walk') {
+      if (b.vx === 0) b.vx = dx < 0 ? -0.7 : 0.7;
+      if (b.t === 40 || (b.anger && b.t === 70)) { shots.push({ x: b.x + b.w / 2, y: b.y, w: 8, h: 6, vx: clamp(dx / 50, -2.6, 2.6) || sign(dx), vy: -4.4, g: 0.17, life: 220, kind: 'ticket' }); SFX.pew(); }
+      if (--b.t <= 0) {
+        b.state = 'windup'; b.t = 40; b.vx = 0; b.dir = sign(dx);
+        toast('<b>CONDUCTOR:</b> ' + pick(['ALL ABOARD!', 'CHOO CHOO! Coming through!', 'Next stop: YOU!']), 1300);
+        AudioSys.tone(330, 0.35, { type: 'square', vol: 0.08, slide: 440 });
+      }
+    } else if (b.state === 'windup') {
+      b.vx = 0;
+      if (b.t % 4 === 0) part(b.x + (b.dir > 0 ? 2 : b.w - 2), b.y + b.h - 2, { vx: -b.dir * rand(0.5, 1.6), vy: rand(-1, 0), life: 14, size: 2, color: '#f6c445' });
+      if (--b.t <= 0) b.state = 'charge';
+    } else if (b.state === 'charge') {
+      b.vx = b.dir * (3.9 + (b.anger ? 0.8 : 0));
+      if (frame % 3 === 0) part(b.x + (b.dir > 0 ? 0 : b.w), b.y + b.h - 1, { vx: -b.dir * rand(0.5, 1.5), vy: rand(-1.2, -0.2), life: 12, size: 1, color: '#fff3b0' });
+      if (b.x <= lo + 1 || b.x >= hi - 1) {
+        b.state = 'stall'; b.t = 140; b.vx = 0; SFX.thud(); shakeIt(5);
+        pop(b.x, b.y - 10, '💫 STALLED! STOMP NOW!', 46, '#f6c445');
+        sparks(b.x + b.w / 2, b.y + 4, 10, ['#f6c445', '#fff']);
+      }
+    } else if (b.state === 'stall') {
+      b.vx = 0;
+      if (frame % 9 === 0) part(b.x + b.w / 2, b.y + 4, { vx: rand(-0.3, 0.3), vy: -0.8, life: 26, size: 3, color: 'rgba(200,200,210,.6)', g: 0 });   /* steam */
+      if (--b.t <= 0) { b.state = 'walk'; b.t = 90; }
+    }
+  } else if (b.kind === 'supchenoa') {
+    /* Supervisor Chenoa: plates in an arc, then "TABLE FOR ONE!", a charge across the floor. Below half health she holds
+       up the menu like a shield: a stomp from the front bounces off, so get behind her (she turns round slowly). In the
+       World 3 finale she stays on the far side throwing plates until Shad is out; then she charges as well. */
+    const partnerOut = bosses.some((o) => o !== b && o.out), far = b.far && !partnerOut;
+    const sh = b.hp <= b.max / 2 && !far;
+    if (sh && !b.shield) toast('<b>CHENOA:</b> MENU SHIELD! Good luck stomping a supervisor!', 1800);
+    b.shield = sh;
+    if (b.state === 'charge' || b.state === 'windup') b.face = b.dir;
+    else if (b.shield) { if (b.turnT > 0) { b.turnT--; b.face = b.lockFace; } else { b.lockFace = b.face; b.turnT = 70; } }
+    const sp = 0.55 * anger * (partnerOut ? 1.35 : 1);
+    if (b.state === 'walk') {
+      const home = hi - 2 * T;
+      if (b.hold > 0) { b.hold--; b.vx = 0; }
+      else if (far) b.vx = Math.abs(home - b.x) > 6 ? sign(home - b.x) * sp : 0;
+      else b.vx = b.face * sp;
+      if (--b.t <= 0 && b.onGround) {
+        if (!far && b.next === 'charge') {
+          b.state = 'windup'; b.t = 34; b.vx = 0; b.dir = sign(dx); b.next = 'plates';
+          toast('<b>CHENOA:</b> TABLE FOR ONE!', 1200);
+        } else {
+          for (let k = -1; k <= 1; k++) shots.push({ x: b.x + 2, y: b.y, w: 8, h: 8, vx: (clamp(dx / 60, -2.6, 2.6) || sign(dx)) + k * 0.9, vy: -4.6, g: 0.18, life: 240, kind: 'plate' });
+          SFX.pew(); b.hold = 16; b.next = 'charge';
+          b.t = (far ? 84 : 72) - (partnerOut ? 18 : 0) + ri(0, 24);
+        }
+      }
+    } else if (b.state === 'windup') {
+      b.vx = 0;
+      if (--b.t <= 0) b.state = 'charge';
+    } else if (b.state === 'charge') {
+      b.vx = b.dir * (3.7 + (b.anger ? 0.6 : 0));
+      if (b.x <= lo + 1 || b.x >= hi - 1) { b.state = 'walk'; b.t = 70; b.hold = 44; b.vx = 0; SFX.thud(); shakeIt(4); pop(b.x, b.y - 10, 'OOF! 💫', 40, '#f6c445'); }
+    }
+  } else if (b.kind === 'shadboss') {
+    /* Big Bro Shad in the World 3 finale: jumps and slams the ground; the shockwave runs along the floor both ways */
+    const partnerOut = bosses.some((o) => o !== b && o.out);
+    const sp = 0.6 * anger * (partnerOut ? 1.35 : 1);
+    if (b.onGround && b.pound) {
+      b.pound = false; SFX.thud(); shakeIt(6);
+      shots.push({ x: b.x - 10, y: GROUND * T - 8, w: 12, h: 8, vx: -2.6, vy: 0, g: 0, life: 110, kind: 'wave' });
+      shots.push({ x: b.x + b.w - 2, y: GROUND * T - 8, w: 12, h: 8, vx: 2.6, vy: 0, g: 0, life: 110, kind: 'wave' });
+      sparks(b.x + b.w / 2, GROUND * T, 12, ['#f6c445', '#ff8a3d', '#fff']);
+      if (Math.random() < 0.4) toast('<b>SHAD:</b> ' + pick(['CONSTRUCTION SLAM!', 'Measure twice, SLAM once!', 'Rebar day!']), 1200);
+      b.vx = 0; b.hold = 40;
+    }
+    if (b.hold > 0) { b.hold--; b.vx = 0; }
+    else if (b.onGround) b.vx = dx < 0 ? -sp : sp;
+    if (--b.t <= 0 && b.onGround && b.hold === 0) {
+      b.vy = -7.2; b.vx = clamp(dx / 40, -2, 2); b.pound = true;
+      b.t = (partnerOut ? 72 : 100) + ri(0, 30);
+    }
   }
   moveX(b);
-  const charging = (b.kind === 'bully' || b.kind === 'moose') && b.state === 'charge';
+  const charging = (b.kind === 'bully' || b.kind === 'moose' || b.kind === 'conductor' || b.kind === 'supchenoa') && b.state === 'charge';
   if (b.x <= lo) { b.x = lo; if (!charging) b.vx = Math.abs(b.vx); }
   if (b.x >= hi) { b.x = hi; if (!charging) b.vx = -Math.abs(b.vx); }
   moveY(b);
 }
 
-const bossPad = (b) => (b.kind === 'mom' || b.kind === 'dadboss') ? (LV[L.i].final ? 10 : 7) : (['neighbour', 'bully', 'foreman', 'moose'].indexOf(b.kind) >= 0 ? 4 : 0);
+const bossPad = (b) => (b.kind === 'mom' || b.kind === 'dadboss') ? (LV[L.i].final ? 10 : 7) : (['neighbour', 'bully', 'foreman', 'moose', 'lifeguard', 'shadboss'].indexOf(b.kind) >= 0 ? 4 : 0);
 function bossTouch(b) {
   const pad = bossPad(b);
   return P.x < b.x + b.w && P.x + P.w > b.x && P.y < b.y + b.h && P.y + P.h > b.y - pad;
@@ -2787,7 +3075,7 @@ function bossTouch(b) {
 function bossContact(b) {
   if (b.out || !bossTouch(b)) return;
   const pad = bossPad(b);
-  const reach = b.kind === 'mech' || b.kind === 'pumpjack' ? 16 : 14;
+  const reach = b.kind === 'mech' || b.kind === 'pumpjack' || b.kind === 'conductor' ? 16 : 14;
   const fromAbove = P.vy > 0.1 && (P.y + P.h) - (b.y - pad) < reach;
   if (fromAbove) {
     if (b.inv > 0) { P.vy = -4.6; return; }
@@ -2801,6 +3089,16 @@ function bossContact(b) {
       toast('<b>BIG KID:</b> Ha! Too slow! (Wait till he\'s dizzy!)', 1500);
       return;
     }
+    if (b.kind === 'conductor' && b.state !== 'stall') {
+      P.vy = -6.2; b.inv = 24;
+      toast('Too fast! (Wait till the coaster car stalls!)', 1500);
+      return;
+    }
+    if (b.kind === 'supchenoa' && b.shield && b.state !== 'charge' && ((P.x + P.w / 2) - (b.x + b.w / 2) < 0 ? -1 : 1) === b.face) {
+      P.vy = -6.4; b.inv = 20; SFX.thud();
+      toast('<b>CHENOA:</b> MENU SHIELD! (Get behind her!)', 1500);
+      return;
+    }
     P.vy = (input.jump || padIn.jump) ? -8.4 : -6.5;
     P.squash = 5; P.y = b.y - P.h - pad;
     addScore(100);
@@ -2808,7 +3106,7 @@ function bossContact(b) {
     return;
   }
   if (P.rush > 0) { if (b.inv === 0) damage(b, 0.34); P.vx = sign(P.x - b.x) * 3.2; return; }
-  if (b.inv === 0 && b.stun === 0 && !((b.kind === 'bully' || b.kind === 'moose') && b.state === 'dizzy')) hurt(b.x);
+  if (b.inv === 0 && b.stun === 0 && !((b.kind === 'bully' || b.kind === 'moose') && b.state === 'dizzy') && !(b.kind === 'conductor' && b.state === 'stall') && !(b.kind === 'lifeguard' && b.state === 'rest')) hurt(b.x);
 }
 
 function updateAllies() {
@@ -2943,7 +3241,7 @@ function glowDisc(x, y, r, color, alpha) {
 }
 function drawBackdrop(th, i) {
   const p1 = Math.round(camX * 0.12), p2 = Math.round(camX * 0.3), p3 = Math.round(camX * 0.55);
-  const dark = th.bg === 'castle' || th.bg === 'cake' || th.bg === 'room' || th.bg === 'night' || th.bg === 'storm';
+  const dark = th.bg === 'castle' || th.bg === 'cake' || th.bg === 'room' || th.bg === 'night' || th.bg === 'storm' || th.bg === 'whyte' || th.bg === 'bridge';
   if (th.bg === 'room') {
     ctx.globalAlpha = 0.5; ctx.fillStyle = th.far;
     for (let k = -1; k < 12; k++) { const x = k * 44 - (p2 % 44); ctx.fillRect(x, 0, 16, GROUND * T); }
@@ -3267,7 +3565,7 @@ function drawAtmosphere(th) {
       ctx.globalAlpha = 0.35 + a.z * 0.4;
       ctx.fillStyle = ['#ff9fc0', '#f6c445', '#fff'][i % 3];
       ctx.fillRect(Math.round(x), Math.round(y), 2, 2);
-    } else if (bg === 'night') {
+    } else if (bg === 'night' || bg === 'whyte' || bg === 'bridge') {
       ctx.globalAlpha = (0.3 + a.z * 0.6) * (0.65 + 0.35 * Math.sin(frame / 40 + a.p)); ctx.fillStyle = '#f4f8ff';
       ctx.fillRect(Math.round(a.x), Math.round(a.y * 0.55), 1, 1);
     } else if (bg === 'outdoor' || bg === 'school' || bg === 'lego') {
@@ -3444,6 +3742,22 @@ function drawProps(th) {
     }
     ctx.fillStyle = 'rgba(246,196,69,' + (0.25 + Math.sin(crate.t / 10) * 0.15) + ')';
     ctx.fillRect(sx - 3, sy - 2, 22, 22);
+  }
+  if (bag) {
+    const sx = Math.round(bag.x - camX), sy = Math.round(bag.y);
+    if (!bag.open) {   /* a paper shopping bag that wobbles, two cat ears poking out */
+      const wob = Math.round(Math.sin(bag.t / 9));
+      ctx.fillStyle = 'rgba(246,196,69,' + (0.2 + Math.sin(bag.t / 10) * 0.12) + ')'; ctx.fillRect(sx - 3, sy - 4, 22, 24);
+      ctx.fillStyle = 'rgba(0,0,0,.2)'; ctx.fillRect(sx + 1, sy + 15, 14, 2);
+      ctx.fillStyle = '#9a9aa6'; ctx.fillRect(sx + 4 + wob, sy, 2, 3); ctx.fillRect(sx + 10 + wob, sy, 2, 3);
+      ctx.fillStyle = '#d9b27a'; ctx.fillRect(sx + 1, sy + 3, 14, 13); ctx.fillStyle = '#c49a5e'; ctx.fillRect(sx + 1, sy + 3, 14, 2);
+      ctx.strokeStyle = '#8a6a3a'; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(sx + 8, sy + 4, 4, Math.PI, 0); ctx.stroke();
+      ctx.fillStyle = '#e8364b'; ctx.fillRect(sx + 5, sy + 8, 6, 3);
+    } else {   /* the empty bag, and the cat sitting by it */
+      const cat = progress.pets.ids.filter((id) => petDef(id).kind === 'cat')[0], img = cat ? PET_SPRITES[cat] : SP.cat;
+      ctx.fillStyle = '#d9b27a'; ctx.fillRect(sx + 9, sy + 9, 10, 7); ctx.fillStyle = '#e8364b'; ctx.fillRect(sx + 12, sy + 11, 4, 2);
+      ctx.drawImage(img, sx - 4, sy + 16 - img.height);
+    }
   }
   for (const c of candles) {
     if (c.got) continue;
@@ -3821,6 +4135,81 @@ function drawFoe(f) {
       ctx.fillStyle = '#3a3f47'; ctx.fillRect(x, y + h - 2, w, 2);
       eye(Math.floor(w / 2) - 2, Math.floor(h / 3), 1); eye(Math.floor(w / 2) + 1, Math.floor(h / 3), 1);
       break;
+    case 'pothole': {   /* a pothole gremlin: hides in its hole, pops up, ducks back down */
+      ctx.fillStyle = '#1b1220'; ctx.beginPath(); ctx.ellipse(x + w / 2, y + h - 1, w / 2 + 2, 2.5, 0, 0, 6.284); ctx.fill();
+      if (f.hidden) { ctx.fillStyle = '#f6c445'; ctx.fillRect(x + 3, y + h - 2, 2, 1); ctx.fillRect(x + w - 5, y + h - 2, 2, 1); break; }
+      const top = y + Math.round((1 - Math.min(1, (f.upT || 0) / 8)) * 8);
+      ctx.fillStyle = col; ctx.beginPath(); ctx.ellipse(x + w / 2, top + 7, w / 2 - 1, 6, 0, 0, 6.284); ctx.fill();
+      ctx.fillRect(x + 1, top, 2, 3); ctx.fillRect(x + w - 3, top, 2, 3);
+      ctx.fillStyle = '#f6c445'; ctx.fillRect(x + 3, top + 4, 2, 2); ctx.fillRect(x + w - 5, top + 4, 2, 2);
+      ctx.fillStyle = '#1b1220'; ctx.fillRect(x + 4, top + 5, 1, 1); ctx.fillRect(x + w - 4, top + 5, 1, 1);
+      ctx.fillStyle = '#f4f1e8'; ctx.fillRect(x + 4, top + 9, 1, 2); ctx.fillRect(x + w - 5, top + 9, 1, 2);
+      break; }
+    case 'magpie': {   /* black and white, a blue-black wing and a long tail; carries the coin it grabbed */
+      const flap = Math.floor(frame / 5) % 2;
+      ctx.fillStyle = '#1b1220'; ctx.beginPath(); ctx.ellipse(x + w / 2, y + h / 2 + 1, 5, 3.5, 0, 0, 6.284); ctx.fill();
+      ctx.beginPath(); ctx.arc(x + 3, y + h / 2 - 1, 2.6, 0, 6.284); ctx.fill();
+      ctx.fillRect(x + w - 3, y + h / 2, 6, 2);
+      ctx.fillStyle = '#f4f1e8'; ctx.fillRect(x + 5, y + h / 2 + 1, 4, 2);
+      ctx.fillStyle = '#3f63a8'; ctx.fillRect(x + 5, y + (flap ? 1 : h / 2 - 1), 6, flap ? 4 : 2);
+      ctx.fillStyle = '#f4f1e8'; ctx.fillRect(x + 6, y + (flap ? 2 : h / 2 - 1), 2, 1);
+      ctx.fillStyle = '#4a4f57'; ctx.fillRect(x - 1, y + h / 2 - 1, 2, 1);
+      eye(2, Math.floor(h / 2) - 2, 1);
+      if (f.loot) { const ci = coinImg(frame); ctx.drawImage(ci, x - 3 - Math.floor(ci.width / 2), y + h / 2); }
+      break; }
+    case 'mallwalker': {   /* a mall walker: tracksuit, headband, white sneakers, arms pumping (can't be stomped) */
+      const st = Math.floor(frame / 6) % 2;
+      ctx.fillStyle = '#f4f1e8'; ctx.fillRect(x + 4, y, 6, 2);
+      ctx.fillStyle = '#d9a27a'; ctx.fillRect(x + 4, y + 2, 6, 4);
+      ctx.fillStyle = '#e8364b'; ctx.fillRect(x + 4, y + 2, 6, 1);
+      ctx.fillStyle = col; ctx.fillRect(x + 3, y + 6, 8, 4);
+      ctx.fillRect(st ? x + 1 : x + 10, y + 6, 2, 3);
+      ctx.fillStyle = '#5a2a6a'; ctx.fillRect(x + 4, y + 10, 2, 2 + st); ctx.fillRect(x + 8, y + 10, 2, 3 - st);
+      ctx.fillStyle = '#ffffff'; ctx.fillRect(x + 3, y + h - 1, 3, 1); ctx.fillRect(x + 8, y + h - 1, 3, 1);
+      eye(5, 3, 1); eye(8, 3, 1);
+      break; }
+    case 'cart': {   /* a runaway shopping cart */
+      ctx.strokeStyle = '#c9c9cf'; ctx.lineWidth = 1; ctx.strokeRect(x + 1.5, y + 2.5, w - 3, 7);
+      ctx.fillStyle = 'rgba(201,201,207,.6)'; for (let k = 3; k < w - 2; k += 3) ctx.fillRect(x + k, y + 3, 1, 6);
+      ctx.fillStyle = '#9aa1ab'; ctx.fillRect(x + w - 2, y, 2, 4); ctx.fillRect(x + 2, y + 10, w - 4, 1);
+      ctx.fillStyle = '#e8364b'; ctx.fillRect(x + w - 3, y, 3, 1);
+      ctx.fillStyle = '#1b1220'; ctx.fillRect(x + 2, y + h - 2, 2, 2); ctx.fillRect(x + w - 4, y + h - 2, 2, 2);
+      eye(3, 4, 1); eye(6, 4, 1);
+      break; }
+    case 'zamboni': {   /* the rink's Zamboni-bot: shines the ice as it goes */
+      ctx.fillStyle = '#f4f1e8'; ctx.fillRect(x - 1, y + 3, w + 2, 8);
+      ctx.fillStyle = '#2f5fb3'; ctx.fillRect(x - 1, y + 7, w + 2, 2);
+      ctx.fillStyle = '#9fd3f5'; ctx.fillRect(x + 1, y, 5, 4);
+      ctx.fillStyle = '#c9c9cf'; ctx.fillRect(x + 7, y + 1, 5, 2);
+      ctx.fillStyle = '#1b1220'; ctx.fillRect(x, y + h - 2, 3, 2); ctx.fillRect(x + w - 3, y + h - 2, 3, 2);
+      ctx.fillStyle = Math.floor(frame / 10) % 2 ? '#e8364b' : '#ff9a9a'; ctx.fillRect(x + Math.floor(w / 2) - 1, y - 2, 2, 2);
+      eye(2, 5, 1); eye(5, 5, 1);
+      break; }
+    case 'wetsign': {   /* a hopping "wet floor" sign */
+      ctx.fillStyle = col; ctx.beginPath(); ctx.moveTo(x + w / 2, y); ctx.lineTo(x + w - 1, y + h); ctx.lineTo(x + 1, y + h); ctx.fill();
+      ctx.fillStyle = '#c99a1e'; ctx.fillRect(x + 2, y + h - 2, w - 4, 1);
+      ctx.fillStyle = '#1b1220'; ctx.fillRect(x + Math.floor(w / 2), y + 3, 1, 3); ctx.fillRect(x + Math.floor(w / 2), y + 7, 1, 1);
+      eye(Math.floor(w / 2) - 3, 8, 1); eye(Math.floor(w / 2) + 2, 8, 1);
+      break; }
+    case 'waiter':
+      ctx.drawImage(SP.waStand, x - 1, y - 5);
+      ctx.fillStyle = '#f4f1e8'; ctx.beginPath(); ctx.ellipse(x + 13, y + 3, 4, 1.5, 0, 0, 6.284); ctx.fill();
+      break;
+    case 'busker':
+      ctx.drawImage(SP.buStand, x - 1, y - 5);
+      ctx.fillStyle = '#a8692e'; ctx.beginPath(); ctx.ellipse(x + 8, y + 8, 4, 3, 0, 0, 6.284); ctx.fill(); ctx.fillRect(x + 10, y + 3, 6, 2);
+      ctx.fillStyle = '#3b2618'; ctx.fillRect(x + 7, y + 7, 2, 2);
+      break;
+    case 'biker': {   /* a kid on a bike, racing down the trail */
+      ctx.strokeStyle = '#1b1220'; ctx.lineWidth = 1.2;
+      ctx.beginPath(); ctx.arc(x + 2.5, y + h - 3, 3, 0, 6.284); ctx.stroke(); ctx.beginPath(); ctx.arc(x + w - 2.5, y + h - 3, 3, 0, 6.284); ctx.stroke();
+      ctx.strokeStyle = col; ctx.beginPath(); ctx.moveTo(x + 2.5, y + h - 3); ctx.lineTo(x + 6, y + 6); ctx.lineTo(x + w - 2.5, y + h - 3); ctx.moveTo(x + 6, y + 6); ctx.lineTo(x + 2, y + 4); ctx.stroke();
+      ctx.lineWidth = 1;
+      ctx.fillStyle = '#44c55a'; ctx.fillRect(x + 5, y + 2, 4, 4);
+      ctx.fillStyle = '#d9a27a'; ctx.fillRect(x + 4, y - 1, 3, 3);
+      ctx.fillStyle = '#e8364b'; ctx.fillRect(x + 3, y - 3, 5, 2);
+      eye(4, 0, 1);
+      break; }
     case 'neighbor':
       ctx.drawImage(SP.nStand, x - 1, y - 5);
       break;
@@ -3917,6 +4306,10 @@ function drawBoss(b) {
   else if (b.kind === 'foreman') drawForeman(b, sx, sy);
   else if (b.kind === 'pumpjack') drawPumpjack(b, sx, sy);
   else if (b.kind === 'dadboss') drawDadBoss(b, sx, sy);
+  else if (b.kind === 'lifeguard') drawLifeguard(b, sx, sy);
+  else if (b.kind === 'conductor') drawConductor(b, sx, sy);
+  else if (b.kind === 'supchenoa') drawSupChenoa(b, sx, sy);
+  else if (b.kind === 'shadboss') drawShadBoss(b, sx, sy);
   else if (b.kind === 'bully') {
     const walking = Math.abs(b.vx) > 0.2 && b.onGround;
     drawBig(walking && Math.floor(frame / 12) % 2 ? SP.bWalk : SP.bStand, sx + b.w / 2, sy + b.h, b.face, 1.45);
@@ -3948,7 +4341,7 @@ function drawShots() {
     const sx = Math.round(s.x - camX), sy = Math.round(s.y);
     if (sx < -30 || sx > W + 30) continue;
     if (s.kind === 'wave') {
-      ctx.fillStyle = 'rgba(246,196,69,.85)';
+      ctx.fillStyle = s.color || 'rgba(246,196,69,.85)';
       ctx.beginPath(); ctx.ellipse(sx + 6, sy + 6, 7, 5, 0, Math.PI, 0); ctx.fill();
       ctx.fillStyle = 'rgba(255,255,255,.55)';
       ctx.beginPath(); ctx.ellipse(sx + 6, sy + 5, 3, 2, 0, Math.PI, 0); ctx.fill();
@@ -3992,6 +4385,12 @@ function drawShots() {
       ctx.fillStyle = '#6fc8ff'; ctx.beginPath(); ctx.arc(sx + 3, sy + 4, 3, 0, 6.284); ctx.fill();
       ctx.beginPath(); ctx.moveTo(sx, sy + 3); ctx.lineTo(sx + 3, sy - 2); ctx.lineTo(sx + 6, sy + 3); ctx.fill();
       ctx.fillStyle = 'rgba(255,255,255,.8)'; ctx.fillRect(sx + 2, sy + 2, 1, 2);
+    } else if (s.kind === 'ticket') {
+      ctx.fillStyle = '#ffb02e'; ctx.fillRect(sx, sy, 8, 6); ctx.fillStyle = '#c96a1e'; ctx.fillRect(sx + 5, sy, 1, 6);
+      ctx.fillStyle = 'rgba(255,255,255,.6)'; ctx.fillRect(sx + 1, sy + 1, 3, 1);
+    } else if (s.kind === 'note') {
+      ctx.fillStyle = '#f6c445'; ctx.beginPath(); ctx.ellipse(sx + 3, sy + 6, 3, 2, -0.4, 0, 6.284); ctx.fill();
+      ctx.fillRect(sx + 5, sy - 1, 1.5, 7); ctx.fillRect(sx + 5, sy - 1, 4, 1.5);
     } else if (s.kind === 'burger') {
       ctx.font = '11px "Segoe UI Emoji",sans-serif'; ctx.textAlign = 'center';
       ctx.fillText('🍔', sx + 5, sy + 8);
@@ -4415,12 +4814,13 @@ function drawPuzzle() {
    ============================================================ */
 const WORLDS = [
   { n: 1, name: 'Kinan vs. Mom', where: 'the birthday, at home in Saskatoon', from: 0, to: 10 },
-  { n: 2, name: 'Kinan vs. Dad', where: "Dad's oilfield job site", from: 11, to: 20 }
+  { n: 2, name: 'Kinan vs. Dad', where: "Dad's oilfield job site", from: 11, to: 20 },
+  { n: 3, name: 'Kinan vs. Shad & Chenoa', where: 'a weekend in Edmonton', from: 21, to: 30 }
 ];
-for (let n = 3; n <= 11; n++) WORLDS.push({ n: n, name: 'World ' + n, where: 'being built', from: -1, to: -1, soon: true });
+for (let n = 4; n <= 11; n++) WORLDS.push({ n: n, name: 'World ' + n, where: 'being built', from: -1, to: -1, soon: true });
 const CODE_SALT = '38c60e5665866a0e';
 const CODE_HASH = {'2': '9ad410626f9342abc9682aec5aa5e01d6092ccb2d00b216ca8e8e56f191acbdb', '3': '2cc4446b83762f35763d948917db7518994a710291fd78f559ffb370bb1fdf09', '4': 'cd961045d7d2a30a4e590a3f2998e9b52f7931c3822b33e4d56567ef6e4a8fae', '5': '26bb21be1bec703f8ac1e2cd2b273bcadfa35c2aadbe708b84c32be340d10dba', '6': '8a20c57f7f6150912709d8a4d745f4330114d60a01deacc4268bf201f777f6f9', '7': '99f2c87e392edb24489bcecc48a065cf857a70f7a7412410f00c1f72b0babbb2', '8': '42650263170026ab707abd47791545eb75ab75d832f45d42a3542b10db757560', '9': '8ca4b0034588262258e6209e44e9f3e5a7d6ec5cc581c01eac7d04f42c5c8512', '10': 'e91ae5fd91428cd7c323dd3481612276a7a26113fc9b5e128dec8cbb8da042bf', '11': 'e69c5eeadaa728ec6e6c67b9ec066aac7babfc18030d0f6e7b05291d67e0d282'};
-const worldOf = (i) => (i > 10 ? 2 : 1);
+const worldOf = (i) => { let n = 1; for (const w of WORLDS) if (!w.soon && i >= w.from) n = w.n; return n; };
 const worldInfo = (i) => WORLDS[worldOf(i) - 1];
 function worldBeaten(n) { return n === 1 ? !!progress.won : (progress.wonWorlds || []).indexOf(n) >= 0; }
 function worldOpen(n) {
@@ -4530,7 +4930,7 @@ async function goalReached() {
   SFX.flag();
   sparks(P.x + 5, P.y, 16, ['#f6c445', '#fff', '#ff6fae']);
   const i = L.i;
-  await story(LV[i].win, 'd', 'h');
+  await story(LV[i].win, ({ shad: 's', chenoa: 'c' })[LV[i].goalRide] || 'd', 'h');
   firstClear = !progress.beaten.includes(i);
   if (firstClear) progress.beaten.push(i);
   progress.unlocked = Math.max(progress.unlocked, i + 2);
@@ -4546,11 +4946,64 @@ function drawGoal() {
   const gx = (L.arenaX + 6) * T - camX, gy = GROUND * T;
   if (gx < -200 || gx > W + 40) return;
   /* Dad's hydro vac truck, parked, and a checkered flag */
-  const rs = kartRideSprites('dad'), img = rs.frames[4], sc = 0.62;
+  const rs = kartRideSprites(LV[L.i].goalRide || 'dad'), img = rs.frames[4], sc = 0.62;
   ctx.drawImage(img, Math.round(gx + 40 - rs.ax * sc), Math.round(gy - rs.ay * sc + 2), Math.round(rs.cw * sc), Math.round(rs.ch * sc));
   ctx.fillStyle = '#d9d4e3'; ctx.fillRect(Math.round(gx), gy - 54, 2, 54);
   const wave = Math.round(Math.sin(frame / 9) * 2);
   for (let r = 0; r < 3; r++) for (let c = 0; c < 4; c++) { ctx.fillStyle = (r + c) % 2 ? '#1b1220' : '#ffffff'; ctx.fillRect(Math.round(gx) + 2 + c * 4, gy - 54 + r * 4 + (c % 2 ? wave : 0), 4, 4); }
+}
+/* the ride a goal stage ends at: Dad's truck in World 2; in World 3, Shad's car or Chenoa's bus */
+const GOAL_NAMES = { dad: "Dad's truck", shad: "Shad's car", chenoa: "Chenoa's bus" };
+const goalName = (i) => GOAL_NAMES[(LV[i] && LV[i].goalRide) || 'dad'];
+/* World 3's ending: Shad and Chenoa give up, laughing, and Kinan gets a postcard from Edmonton */
+function ending3() {
+  progress.wonWorlds = progress.wonWorlds || [];
+  if (progress.wonWorlds.indexOf(3) < 0) progress.wonWorlds.push(3);
+  const i = L.i, pct = totalCandles ? got / totalCandles : 1;
+  const st = 1 + (pct >= 0.7 ? 1 : 0) + (heartsLost === 0 ? 1 : 0);   /* stars the same way as any other stage */
+  if (progress.beaten.indexOf(i) < 0) progress.beaten.push(i);
+  progress.stars[i] = Math.max(st, progress.stars[i] || 0);
+  progress.bestScore[i] = Math.max(progress.bestScore[i] || 0, score);
+  progress.bestTime = progress.bestTime || {};
+  if (!progress.bestTime[i] || stageTime < progress.bestTime[i]) progress.bestTime[i] = stageTime;
+  progress.totalCandles = (progress.totalCandles || 0) + got;
+  progress.wallet = (progress.wallet || 0) + got;
+  delete progress.resume;
+  refreshWorlds();
+  save();
+  Music.play('title');
+  let stars = 0, gold = 0;
+  for (let k = WORLDS[2].from; k <= WORLDS[2].to; k++) { stars += progress.stars[k] || 0; gold += goldCount(k); }
+  const w4 = WORLDS[3];
+  showScreen(
+    '<p class="eyebrow">World 3 clear · Kinan vs. Shad &amp; Chenoa · a weekend in Edmonton</p>' +
+    '<h1 class="title"><span class="t2">Okay, okay.</span><span class="t1">He wins!</span></h1>' +
+    '<div class="cast"><figure class="hero">' + imgOf(SP.kJump, 5) + '<figcaption><b>Kinan</b><br>The winner</figcaption></figure>' +
+    '<figure>' + imgOf(SP.sStand, 4) + '<figcaption>Big Bro Shad</figcaption></figure>' +
+    '<figure>' + imgOf(SP.cStand, 3) + '<figcaption>Big Sis Chenoa</figcaption></figure></div>' +
+    '<p class="lede">You jumped the potholes, rode the bus, out-whistled the Wave Pool Lifeguard, slid across the ice rink, stalled the Coaster Conductor, survived Shad\'s job site and the dinner rush, ran the river valley and Whyte Ave, and beat <b>Shad AND Chenoa</b> on the High Level Bridge.</p>' +
+    '<p class="lede">They both fall over laughing. <b>SHAD:</b> Okay, okay. He wins. <b>CHENOA:</b> He wins. Best weekend ever, little bro.</p>' +
+    '<div class="postcard"><b>Greetings from Edmonton!</b><span>Shad: 1 · Chenoa: 1 · Kinan: WINNER 🏆</span></div>' +
+    '<p class="lede">Chenoa hands Kinan a bus transfer. On the back, in her handwriting: <b>CALGARY — 3 hours</b>. 🎟️</p>' +
+    '<p class="wrapnote"><i class="coin-ico"></i>Golden coins in World 3: <b>' + gold + '</b> / 30 · ⭐ ' + stars + ' / 30 stars</p>' +
+    '<p class="wrapnote">🎁 <b>World 4</b> ' + (w4 && !w4.soon ? '(Calgary) is next.' : 'is being built.') + ' Keep being awesome: a grown-up has the next reward code.</p>' +
+    '<ul class="credits">' +
+    '<li><b>Kinan</b> as The Hero (undefeated, mostly)</li>' +
+    '<li><b>Big Bro Shad</b> as himself (job sites, carpentry, the Construction Slam)</li>' +
+    '<li><b>Big Sis Chenoa</b> as Supervisor Chenoa (restaurant supervisor, 6\'3", ORDER UP!)</li>' +
+    '<li><b>The Wave Pool Lifeguard</b>, <b>the Coaster Conductor</b> and <b>the Mall Walkers</b> as themselves</li>' +
+    '<li><b>Mom</b> and <b>Dad</b> as the family group chat</li>' +
+    '</ul>' +
+    '<div class="btnrow"><button class="btn go" type="button" id="mapBtn">Stage map</button>' +
+    '<button class="btn" type="button" id="titleBtn">Title screen</button>' +
+    '<button class="btn ghost" type="button" id="againBtn">Play the bridge again</button></div>'
+  );
+  el.stageLbl.textContent = 'KINAN · LV 11';
+  $('#mapBtn').addEventListener('click', () => { SFX.click(); mapScreen(); });
+  $('#titleBtn').addEventListener('click', () => { SFX.click(); titleScreen(); });
+  $('#againBtn').addEventListener('click', () => { SFX.click(); playStage(WORLDS[2].to); });
+  SFX.win();
+  confetti();
 }
 function ending2() {
   progress.wonWorlds = progress.wonWorlds || [];
@@ -4579,7 +5032,7 @@ function ending2() {
     '<p class="lede"><b>DAD:</b> Okay, okay. You win, bud. You know what? I\'m proud of you. I miss you every single day I\'m out here. Let\'s go home.</p>' +
     '<p class="lede">Two hours later, the truck pulls into the driveway in Saskatoon. Mom left the porch light on. 💛</p>' +
     '<p class="wrapnote"><i class="coin-ico"></i>Golden coins in World 2: <b>' + gold + '</b> / 30 · ⭐ ' + stars + ' / 30 stars</p>' +
-    '<p class="wrapnote">🎁 <b>World 3</b> is being built. Keep being awesome: a grown-up has the next reward code.</p>' +
+    '<p class="wrapnote">🎁 <b>World 3</b> ' + (WORLDS[2].soon ? 'is being built.' : '(a weekend in Edmonton with Shad and Chenoa) is next.') + ' Keep being awesome: a grown-up has the next reward code.</p>' +
     '<ul class="credits">' +
     '<li><b>Kinan</b> as The Hero (hard hat on, mostly)</li>' +
     '<li><b>Dad Robin</b> as Hydro Vac Dad (hydro vac operator, out of town, misses home)</li>' +
@@ -4815,6 +5268,377 @@ function drawForeman(b, sx, sy) {
     ctx.font = '9px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('💦', Math.round(sx + b.w / 2 + 8), sy - 4);
   }
 }
+/* ---- World 3 backgrounds: Edmonton. The highway in, the bus route downtown, the Mega Mall (its waterpark, ice rink
+   and indoor rollercoaster), Shad's job site, Chenoa's restaurant, the river valley, Whyte Ave at night and the High
+   Level Bridge, lit up in colours ---- */
+const W3C = {};
+function w3Cache(key, w, h, paint) {
+  if (!W3C[key]) { const c = document.createElement('canvas'); c.width = w; c.height = h; paint(c.getContext('2d'), w, h); W3C[key] = c; }
+  return W3C[key];
+}
+/* downtown Edmonton's towers, drawn once per colour and size and kept (night: lit windows; s < 1: further away) */
+function edmSkyline(th, p, base, night, s) {
+  s = s || 1;
+  const pw = Math.round(340 * s);
+  const img = w3Cache('sky:' + th.far + (night ? ':n' : ':d') + ':' + s, pw, 100, (c, w, h) => {
+    const towers = [[4, 38, 16], [22, 56, 13], [37, 30, 18], [57, 80, 15], [74, 48, 20], [96, 64, 13], [111, 42, 17], [130, 26, 14], [150, 52, 12],
+      [164, 72, 16], [182, 36, 22], [206, 58, 14], [222, 44, 18], [244, 30, 16], [262, 62, 12], [276, 40, 20], [300, 50, 14], [316, 28, 18]];
+    towers.forEach(([x0, tall0, tw0], k) => {
+      const x = Math.round(x0 * s), tall = Math.round(tall0 * s), tw = Math.max(4, Math.round(tw0 * s));
+      c.fillStyle = th.far; c.fillRect(x, h - tall, tw, tall);
+      c.fillStyle = night ? 'rgba(0,0,0,.2)' : 'rgba(255,255,255,.12)'; c.fillRect(x + tw - 3, h - tall, 3, tall);   /* the shady side */
+      for (let y = h - tall + 4; y < h - 3; y += 5) for (let xx = x + 2; xx < x + tw - 4; xx += 3) {
+        if (night) { if (((xx * 7 + y * 3 + k) % 5) < 2) { c.fillStyle = (xx + y + k) % 3 ? 'rgba(255,220,130,.9)' : 'rgba(170,220,255,.75)'; c.fillRect(xx, y, 1, 2); } }
+        else if ((y + k) % 10 < 5) { c.fillStyle = 'rgba(255,255,255,.24)'; c.fillRect(xx, y, 2, 1); }
+      }
+      if (k === 3 || k === 9) { c.fillStyle = th.far; c.fillRect(x + 7, h - tall - 10, 1, 10); }   /* antennas */
+    });
+  });
+  for (let k = -1; k < Math.ceil(W / pw) + 2; k++) {
+    const x = k * pw - (p % pw);
+    if (x > W || x + pw < 0) continue;
+    ctx.drawImage(img, x, base - 100);
+  }
+}
+function w3Clouds(p, color) {
+  ctx.fillStyle = color;
+  for (let k = -1; k < 4; k++) {
+    const cx = k * 150 - (p % 150) + 70, cy = 26 + (k & 1) * 16;
+    ctx.beginPath(); ctx.ellipse(cx, cy, 26, 7, 0, 0, 6.284); ctx.ellipse(cx + 14, cy - 4, 14, 6, 0, 0, 6.284); ctx.ellipse(cx - 12, cy - 2, 10, 5, 0, 0, 6.284); ctx.fill();
+  }
+}
+function w3Lamp(x, top, glow) {   /* a street light */
+  ctx.fillStyle = '#4a4f57'; ctx.fillRect(x, top, 2, 176 - top); ctx.fillRect(x - 5, top, 8, 2);
+  if (glow) { glowDisc(x - 4, top + 3, 16, 'rgba(255,226,140,.75)', 0.75); ctx.fillStyle = 'rgba(255,226,140,.10)'; ctx.beginPath(); ctx.moveTo(x - 7, top + 3); ctx.lineTo(x - 1, top + 3); ctx.lineTo(x + 14, 176); ctx.lineTo(x - 22, 176); ctx.fill(); }
+  ctx.fillStyle = glow ? '#fff3b0' : '#c9c9cf'; ctx.fillRect(x - 6, top + 2, 4, 2);
+}
+const W3BG = {
+  edmroad(th, p1, p2, p3) {
+    const sx = 330 - (p1 % 700);
+    glowDisc(sx, 44, 36, 'rgba(255,246,200,.7)', 0.7);
+    ctx.fillStyle = '#fff7d0'; ctx.beginPath(); ctx.arc(sx, 44, 11, 0, 6.284); ctx.fill();
+    w3Clouds(p1, 'rgba(255,255,255,.8)');
+    edmSkyline(th, p1, 134, false);
+    ctx.fillStyle = th.mid; ctx.fillRect(0, 132, W, 60);
+    ctx.fillStyle = '#e8cc3a'; ctx.fillRect(0, 136, W, 7);   /* a canola field, bright yellow */
+    ctx.fillStyle = 'rgba(255,255,255,.14)'; for (let k = 0; k < 5; k++) ctx.fillRect(0, 148 + k * 5, W, 1);
+    ctx.strokeStyle = 'rgba(30,30,40,.5)'; ctx.lineWidth = 1;
+    for (let k = -1; k < 7; k++) {   /* power poles and their wires */
+      const x = k * 90 - (p2 % 90);
+      ctx.beginPath(); ctx.moveTo(x, 106); ctx.lineTo(x, 150); ctx.moveTo(x - 6, 110); ctx.lineTo(x + 6, 110); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(x, 110); ctx.quadraticCurveTo(x + 45, 120, x + 90, 110); ctx.stroke();
+    }
+    for (let k = -1; k < 2; k++) {   /* the big green sign */
+      const x = k * 520 - (p2 % 520) + 250;
+      ctx.fillStyle = '#5a5f6a'; ctx.fillRect(x + 9, 122, 3, 40); ctx.fillRect(x + 77, 122, 3, 40);
+      ctx.fillStyle = '#1f6b3f'; ctx.fillRect(x, 96, 89, 30);
+      ctx.strokeStyle = '#f4f1e8'; ctx.strokeRect(x + 2.5, 98.5, 84, 25);
+      ctx.fillStyle = '#f4f1e8'; ctx.textAlign = 'center'; ctx.font = 'bold 7px monospace'; ctx.fillText('WELCOME TO', x + 44.5, 108); ctx.font = 'bold 10px monospace'; ctx.fillText('EDMONTON', x + 44.5, 120);
+    }
+    ctx.fillStyle = '#b8bec8';   /* the guard rail */
+    for (let k = -1; k < 12; k++) { const x = k * 40 - (p3 % 40); ctx.fillRect(x, 163, 3, 13); }
+    ctx.fillRect(0, 163, W, 3); ctx.fillStyle = 'rgba(0,0,0,.2)'; ctx.fillRect(0, 166, W, 1);
+  },
+  busroute(th, p1, p2, p3) {
+    w3Clouds(p1, 'rgba(255,255,255,.7)');
+    edmSkyline(th, p1, 126, false);
+    edmSkyline({ far: '#77839a' }, p1 + 170, 140, false);
+    const cols = [['#8a5a4a', '#e8364b'], ['#5f7090', '#2f5fb3'], ['#9a7a4a', '#44c55a'], ['#7a6a8a', '#ffb02e']];
+    for (let k = -1; k < 5; k++) {   /* shops along the street, with striped awnings */
+      const x = k * 120 - (p2 % 120), c = cols[((k % 4) + 4) % 4];
+      ctx.fillStyle = c[0]; ctx.fillRect(x, 104, 106, 72);
+      ctx.fillStyle = 'rgba(255,255,255,.2)'; for (let w = 0; w < 4; w++) ctx.fillRect(x + 8 + w * 24, 112, 14, 12);
+      ctx.fillStyle = 'rgba(160,210,240,.5)'; ctx.fillRect(x + 8, 146, 58, 30); ctx.fillStyle = '#3a2a2a'; ctx.fillRect(x + 76, 146, 18, 30);
+      for (let s = 0; s < 8; s++) { ctx.fillStyle = s % 2 ? '#f4f1e8' : c[1]; ctx.fillRect(x + 4 + s * 12, 134, 12, 8); }
+    }
+    /* the city bus driving along the street behind */
+    const bx = ((frame * 0.9) % (W + 300)) - 150;
+    ctx.fillStyle = '#f3f3f0'; ctx.fillRect(bx, 150, 92, 24); ctx.fillStyle = '#2f5fb3'; ctx.fillRect(bx, 164, 92, 5);
+    ctx.fillStyle = '#1e2a40'; for (let w = 0; w < 6; w++) ctx.fillRect(bx + 6 + w * 14, 154, 10, 8);
+    ctx.fillStyle = '#ffb02e'; ctx.fillRect(bx + 84, 153, 6, 3);
+    ctx.fillStyle = '#222327'; ctx.beginPath(); ctx.arc(bx + 16, 175, 5, 0, 6.284); ctx.arc(bx + 74, 175, 5, 0, 6.284); ctx.fill();
+    for (let k = -1; k < 3; k++) {   /* bus stops */
+      const x = k * 260 - (p3 % 260) + 200;
+      ctx.fillStyle = '#4a4f57'; ctx.fillRect(x, 128, 2, 48); ctx.fillStyle = '#2f5fb3'; ctx.fillRect(x - 6, 124, 14, 10);
+      ctx.fillStyle = '#f4f1e8'; ctx.font = 'bold 6px monospace'; ctx.textAlign = 'center'; ctx.fillText('BUS', x + 1, 131);
+      ctx.fillStyle = 'rgba(180,220,240,.35)'; ctx.fillRect(x + 8, 146, 34, 30); ctx.fillStyle = '#4a4f57'; ctx.fillRect(x + 8, 144, 36, 3);
+    }
+  },
+  waterpark(th, p1, p2, p3) {
+    ctx.strokeStyle = 'rgba(255,255,255,.28)'; ctx.lineWidth = 2;   /* the glass roof */
+    for (let k = -1; k < 6; k++) { const x = k * 100 - (p1 % 100); ctx.beginPath(); ctx.arc(x + 50, 130, 96, Math.PI * 1.08, Math.PI * 1.92); ctx.stroke(); }
+    ctx.lineWidth = 1; ctx.fillStyle = 'rgba(255,255,255,.12)'; for (let k = -1; k < 10; k++) ctx.fillRect(k * 50 - (p1 % 50), 0, 2, 118);
+    for (let k = -1; k < 3; k++) {   /* the waterslides: big coloured tubes on towers */
+      const x = k * 260 - (p2 % 260) + 40;
+      ctx.fillStyle = '#c9c9cf'; ctx.fillRect(x - 4, 36, 8, 110); ctx.fillRect(x + 108, 26, 8, 120);
+      ctx.lineCap = 'round'; ctx.lineWidth = 9;
+      ctx.strokeStyle = '#ff8a3d'; ctx.beginPath(); ctx.moveTo(x, 40); ctx.bezierCurveTo(x + 90, 50, x - 40, 104, x + 64, 124); ctx.stroke();
+      ctx.strokeStyle = '#ffd24a'; ctx.beginPath(); ctx.moveTo(x + 112, 30); ctx.bezierCurveTo(x + 30, 70, x + 180, 92, x + 128, 132); ctx.stroke();
+      ctx.lineWidth = 2; ctx.strokeStyle = 'rgba(255,255,255,.45)'; ctx.beginPath(); ctx.moveTo(x, 37); ctx.bezierCurveTo(x + 90, 47, x - 40, 101, x + 64, 121); ctx.stroke();
+      ctx.lineCap = 'butt'; ctx.lineWidth = 1;
+    }
+    for (let k = -1; k < 5; k++) {   /* palm trees */
+      const x = k * 120 - (p2 % 120) + 90;
+      ctx.fillStyle = '#8a6a48'; ctx.fillRect(x, 98, 4, 50);
+      ctx.fillStyle = '#2f9a4a'; for (let a = 0; a < 6; a++) { ctx.beginPath(); ctx.ellipse(x + 2 + Math.cos(a * 1.05) * 10, 96 + Math.sin(a * 1.05) * 3, 12, 3.5, a * 1.05, 0, 6.284); ctx.fill(); }
+    }
+    /* the wave pool: the water rises and falls */
+    const lvl = 146 + Math.sin(frame / 40) * 5;
+    ctx.fillStyle = 'rgba(64,170,230,.9)'; ctx.beginPath(); ctx.moveTo(0, 190);
+    for (let x = 0; x <= W + 8; x += 8) ctx.lineTo(x, lvl + Math.sin((x + p3 + frame * 1.5) / 22) * 3);
+    ctx.lineTo(W, 190); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,.55)';
+    for (let x = 0; x < W; x += 26) { const wx = ((x - (p3 + frame) % 26) + W) % W; ctx.fillRect(wx, lvl - 1 + Math.sin((wx + p3 + frame * 1.5) / 22) * 3, 9, 1); }
+    for (let k = -1; k < 2; k++) {   /* the WAVE POOL sign */
+      const x = k * 430 - (p2 % 430) + 180;
+      ctx.fillStyle = '#ff6fae'; ctx.fillRect(x, 72, 70, 16); ctx.fillStyle = '#fff3b0'; ctx.font = 'bold 9px monospace'; ctx.textAlign = 'center'; ctx.fillText('WAVE POOL', x + 35, 84);
+    }
+  },
+  rink(th, p1, p2, p3) {
+    for (let k = -1; k < 9; k++) glowDisc(k * 60 - (p1 % 60) + 30, 14, 9, 'rgba(255,255,235,.8)', 0.55);   /* the mall's ceiling lights */
+    ctx.fillStyle = th.far; ctx.fillRect(0, 34, W, 74);   /* the upper floor: shop fronts */
+    const signs = ['#e8364b', '#44c55a', '#ffb02e', '#3fa9f5', '#ff6fae'];
+    for (let k = -1; k < 6; k++) {
+      const x = k * 96 - (p1 % 96);
+      ctx.fillStyle = 'rgba(255,255,255,.2)'; ctx.fillRect(x + 8, 58, 78, 40);
+      ctx.fillStyle = signs[((k % 5) + 5) % 5]; ctx.fillRect(x + 18, 44, 58, 9);
+      ctx.fillStyle = 'rgba(255,255,255,.75)'; ctx.fillRect(x + 24, 47, 46, 2);
+    }
+    ctx.fillStyle = '#c9c9cf'; ctx.fillRect(0, 104, W, 4); for (let k = -1; k < 24; k++) ctx.fillRect(k * 20 - (p1 % 20), 96, 2, 8);   /* the balcony rail */
+    ctx.fillStyle = 'rgba(200,232,255,.32)'; ctx.fillRect(0, 122, W, 20);   /* the glass above the boards */
+    ctx.fillStyle = '#9aa1ab'; for (let k = -1; k < 10; k++) ctx.fillRect(k * 48 - (p2 % 48), 120, 2, 22);
+    const sk = ['#2f5fb3', '#e8364b', '#44c55a', '#9b2d6b', '#ffb02e'];
+    for (let k = 0; k < 5; k++) {   /* skaters on the far side of the rink */
+      const x = ((frame * (0.5 + k * 0.13) + k * 97) % (W + 40)) - 20, lean = Math.floor(frame / 12 + k) % 2;
+      ctx.fillStyle = sk[k]; ctx.fillRect(x, 130, 5, 8); ctx.fillStyle = '#d9a27a'; ctx.fillRect(x + 1, 126, 3, 4);
+      ctx.fillStyle = '#1b1220'; ctx.fillRect(x - lean, 138, 3, 3); ctx.fillRect(x + 3 + lean, 138, 3, 3);
+    }
+    ctx.fillStyle = '#f4f1e8'; ctx.fillRect(0, 142, W, 14); ctx.fillStyle = '#e8364b'; ctx.fillRect(0, 152, W, 2);   /* the boards */
+    ctx.fillStyle = '#e8f6ff'; ctx.fillRect(0, 156, W, 20);   /* the ice */
+    ctx.fillStyle = 'rgba(160,200,240,.7)'; ctx.fillRect(0, 164, W, 1);
+    ctx.fillStyle = 'rgba(255,255,255,.9)'; for (let k = -1; k < 8; k++) ctx.fillRect(k * 64 - (p3 % 64), 160 + (k & 1) * 8, 22, 1);
+  },
+  coaster(th, p1, p2, p3) {
+    for (let k = 0; k < 26; k++) {   /* little lights in the dark ceiling */
+      const x = ((k * 37 - p1) % W + W) % W, y = 8 + (k * 23) % 54;
+      ctx.fillStyle = Math.floor(frame / 18 + k) % 3 ? 'rgba(255,240,180,.8)' : 'rgba(255,111,174,.9)'; ctx.fillRect(x, y, 1.5, 1.5);
+    }
+    for (let k = -1; k < 3; k++) {   /* the big looping track, a train racing round it */
+      const x = k * 300 - (p2 % 300) + 150;
+      ctx.fillStyle = th.far; for (const sx of [x - 120, x - 60, x, x + 70]) ctx.fillRect(sx - 2, 96, 4, 80);
+      ctx.strokeStyle = '#e8364b'; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.arc(x, 78, 44, 0, 6.284); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(x - 160, 140); ctx.bezierCurveTo(x - 120, 20, x - 70, 30, x - 40, 122); ctx.lineTo(x + 40, 122); ctx.bezierCurveTo(x + 80, 60, x + 120, 140, x + 150, 140); ctx.stroke();
+      ctx.lineWidth = 1; ctx.strokeStyle = 'rgba(255,200,210,.5)'; ctx.beginPath(); ctx.arc(x, 78, 40, 0, 6.284); ctx.stroke();
+      const a = frame / 26 + k * 2.1;
+      for (let c = 0; c < 3; c++) {
+        const cx = x + Math.cos(a - c * 0.22) * 44, cy = 78 + Math.sin(a - c * 0.22) * 44;
+        ctx.fillStyle = c ? '#f6c445' : '#3fa9f5'; ctx.fillRect(Math.round(cx) - 4, Math.round(cy) - 3, 8, 6);
+      }
+    }
+    for (let k = -1; k < 5; k++) {   /* the ride signs */
+      const x = k * 110 - (p3 % 110) + 30;
+      ctx.fillStyle = 'rgba(255,111,174,.85)'; ctx.fillRect(x, 140, 40, 10); ctx.fillStyle = '#fff3b0'; ctx.font = 'bold 6px monospace'; ctx.textAlign = 'center'; ctx.fillText('RIDES', x + 20, 147);
+      ctx.fillStyle = '#4a4f57'; ctx.fillRect(x + 18, 150, 3, 26);
+    }
+  },
+  jobsite(th, p1, p2, p3) {
+    w3Clouds(p1, 'rgba(255,255,255,.75)');
+    edmSkyline(th, p1, 132, false);
+    for (let k = -1; k < 2; k++) {   /* a tower crane, its hook swinging */
+      const x = k * 420 - (p1 % 420) + 280;
+      ctx.fillStyle = '#f2c230'; ctx.fillRect(x, 24, 6, 120); ctx.fillRect(x - 74, 22, 176, 4);
+      ctx.strokeStyle = '#c99a1e'; ctx.lineWidth = 1; ctx.beginPath();
+      for (let y = 30; y < 144; y += 8) { ctx.moveTo(x, y); ctx.lineTo(x + 6, y + 8); }
+      for (let jx = x - 70; jx < x + 100; jx += 10) { ctx.moveTo(jx, 22); ctx.lineTo(jx + 5, 26); }
+      ctx.moveTo(x + 3, 10); ctx.lineTo(x - 70, 22); ctx.moveTo(x + 3, 10); ctx.lineTo(x + 100, 22); ctx.stroke();
+      ctx.fillStyle = '#f2c230'; ctx.fillRect(x, 8, 6, 16);
+      ctx.fillStyle = '#6d7480'; ctx.fillRect(x - 80, 18, 16, 12);
+      const sw = Math.sin(frame / 50) * 6;
+      ctx.strokeStyle = '#3a3f47'; ctx.beginPath(); ctx.moveTo(x + 86, 26); ctx.lineTo(x + 86 + sw, 82); ctx.stroke();
+      ctx.fillStyle = '#d8342c'; ctx.fillRect(x + 83 + sw, 82, 7, 5); ctx.fillStyle = '#9aa1ab'; ctx.fillRect(x + 72 + sw, 87, 30, 4);   /* a bundle of rebar on the hook */
+    }
+    for (let k = -1; k < 3; k++) {   /* the building going up: concrete floors, columns and scaffolding */
+      const x = k * 250 - (p2 % 250) + 30;
+      ctx.fillStyle = '#b8b8c0'; for (let f = 0; f < 4; f++) ctx.fillRect(x, 82 + f * 22, 140, 4);
+      for (const cx of [x, x + 68, x + 136]) ctx.fillRect(cx, 82, 4, 94);
+      ctx.fillStyle = 'rgba(120,124,132,.35)'; ctx.fillRect(x + 4, 86, 64, 18); ctx.fillRect(x + 72, 108, 64, 18);
+      ctx.strokeStyle = '#ff8a3d'; ctx.lineWidth = 1; ctx.beginPath();
+      for (let sx = x + 144; sx <= x + 184; sx += 20) { ctx.moveTo(sx, 74); ctx.lineTo(sx, 176); }
+      for (let sy = 82; sy < 176; sy += 22) { ctx.moveTo(x + 144, sy); ctx.lineTo(x + 184, sy); ctx.moveTo(x + 144, sy); ctx.lineTo(x + 164, sy + 22); }
+      ctx.stroke();
+      ctx.strokeStyle = '#7a5a3a'; ctx.beginPath(); for (let r = 0; r < 12; r++) { ctx.moveTo(x + 6 + r * 11, 82); ctx.lineTo(x + 6 + r * 11, 72); } ctx.stroke();   /* rebar sticking up */
+    }
+    for (let k = -1; k < 3; k++) {   /* the fence and Shad's sign */
+      const x = k * 300 - (p3 % 300) + 60;
+      ctx.fillStyle = 'rgba(255,138,61,.5)'; ctx.fillRect(x - 60, 150, 300, 22);
+      ctx.fillStyle = '#ff8a3d'; for (let q = 0; q < 6; q++) ctx.fillRect(x - 60 + q * 50, 146, 3, 30);
+      ctx.fillStyle = '#f4f1e8'; ctx.fillRect(x + 40, 140, 96, 26); ctx.strokeStyle = '#d8342c'; ctx.lineWidth = 2; ctx.strokeRect(x + 41, 141, 94, 24); ctx.lineWidth = 1;
+      ctx.fillStyle = '#d8342c'; ctx.font = 'bold 8px monospace'; ctx.textAlign = 'center'; ctx.fillText('NO KIDS ALLOWED', x + 88, 151);
+      ctx.fillStyle = '#1b1220'; ctx.font = 'bold 6px monospace'; ctx.fillText('(except Kinan)', x + 88, 161);
+    }
+  },
+  restaurant(th, p1, p2, p3) {
+    ctx.fillStyle = 'rgba(255,214,170,.10)'; ctx.fillRect(0, 0, W, 92);
+    ctx.fillStyle = 'rgba(40,16,20,.35)'; ctx.fillRect(0, 118, W, 58);   /* the wood panels low on the wall */
+    ctx.fillStyle = 'rgba(255,220,170,.12)'; for (let k = -1; k < 24; k++) ctx.fillRect(k * 20 - (p2 % 20), 118, 1, 58);
+    for (let k = -1; k < 2; k++) {   /* the kitchen window: ORDER UP */
+      const x = k * 380 - (p1 % 380) + 150;
+      ctx.fillStyle = '#2a1414'; ctx.fillRect(x, 52, 132, 48); ctx.fillStyle = '#ffb46a'; ctx.fillRect(x + 4, 56, 124, 40);
+      ctx.fillStyle = '#c9c9cf'; ctx.fillRect(x - 4, 98, 140, 6);
+      for (let q = 0; q < 4; q++) { ctx.fillStyle = '#f4f1e8'; ctx.beginPath(); ctx.ellipse(x + 18 + q * 32, 96, 9, 3, 0, 0, 6.284); ctx.fill(); ctx.fillStyle = ['#e8364b', '#f6c445', '#44c55a', '#a8692e'][q]; ctx.fillRect(x + 14 + q * 32, 91, 8, 4); }
+      ctx.fillStyle = '#7a3f26'; ctx.fillRect(x + 12, 64, 18, 22); ctx.fillStyle = '#f4f1e8'; ctx.fillRect(x + 16, 60, 10, 6);   /* the cook, hat on */
+      ctx.fillStyle = '#e8364b'; ctx.fillRect(x + 36, 36, 60, 13); ctx.fillStyle = '#fff3b0'; ctx.font = 'bold 8px monospace'; ctx.textAlign = 'center'; ctx.fillText('ORDER UP!', x + 66, 46);
+      ctx.fillStyle = '#f6c445'; ctx.beginPath(); ctx.arc(x + 120, 96, 4, Math.PI, 0); ctx.fill();   /* the bell */
+    }
+    for (let k = -1; k < 8; k++) {   /* hanging lamps */
+      const x = k * 64 - (p2 % 64) + 20, sw = Math.sin(frame / 60 + k) * 1.5;
+      ctx.strokeStyle = 'rgba(30,20,20,.7)'; ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x + sw, 24); ctx.stroke();
+      ctx.fillStyle = '#2f5a3a'; ctx.beginPath(); ctx.moveTo(x + sw - 7, 30); ctx.lineTo(x + sw + 7, 30); ctx.lineTo(x + sw + 3, 24); ctx.lineTo(x + sw - 3, 24); ctx.fill();
+      glowDisc(x + sw, 32, 14, 'rgba(255,220,150,.7)', 0.6);
+    }
+    for (let k = -1; k < 5; k++) {   /* tables with checked cloths, plates and a candle */
+      const x = k * 110 - (p3 % 110) + 20;
+      ctx.fillStyle = '#f4f1e8'; ctx.fillRect(x, 142, 64, 12);
+      ctx.fillStyle = 'rgba(232,54,75,.75)'; for (let q = 0; q < 8; q += 2) ctx.fillRect(x + q * 8, 142, 8, 12);
+      ctx.fillStyle = '#4a2a1a'; ctx.fillRect(x + 6, 154, 3, 22); ctx.fillRect(x + 55, 154, 3, 22);
+      ctx.fillStyle = '#c9c9cf'; ctx.beginPath(); ctx.ellipse(x + 18, 141, 7, 2, 0, 0, 6.284); ctx.ellipse(x + 46, 141, 7, 2, 0, 0, 6.284); ctx.fill();
+      ctx.fillStyle = '#f4f1e8'; ctx.fillRect(x + 31, 134, 2, 7); ctx.fillStyle = '#ffb02e'; ctx.fillRect(x + 31, 131 - (Math.floor(frame / 9 + k) % 2), 2, 3);
+    }
+  },
+  valley(th, p1, p2, p3) {
+    const sx = 300 - (p1 % 700);
+    glowDisc(sx, 106, 60, 'rgba(255,170,90,.75)', 0.8);
+    ctx.fillStyle = '#ffd48a'; ctx.beginPath(); ctx.arc(sx, 108, 16, Math.PI, 0); ctx.fill();
+    edmSkyline({ far: '#b0848a' }, p1, 102, false, 0.55);   /* downtown, far off across the valley, in the sunset haze */
+    ctx.fillStyle = th.far;   /* the far side of the valley */
+    ctx.beginPath(); ctx.moveTo(-20, 130);
+    for (let x = -20; x <= W + 20; x += 10) ctx.lineTo(x, 104 + Math.sin((x + p1 * 1.6) / 46) * 6 + ((Math.floor((x + p1) / 10) * 37) % 7));
+    ctx.lineTo(W + 20, 130); ctx.fill();
+    ctx.fillStyle = 'rgba(110,160,210,.9)'; ctx.fillRect(0, 124, W, 10);   /* the North Saskatchewan River */
+    ctx.fillStyle = 'rgba(255,220,160,.7)'; for (let k = 0; k < 9; k++) ctx.fillRect(((k * 53 - p2 * 0.5 + frame * 0.3) % W + W) % W, 127 + (k % 3) * 2, 7, 1);
+    for (let k = -1; k < 2; k++) {   /* the funicular: a little car going up and down the bank */
+      const x = k * 460 - (p2 % 460) + 300, t = (Math.sin(frame / 120 + k) + 1) / 2;
+      ctx.strokeStyle = '#c9c9cf'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x, 172); ctx.lineTo(x + 84, 108); ctx.stroke(); ctx.lineWidth = 1;
+      const cx = x + 84 * t, cy = 172 - 64 * t;
+      ctx.fillStyle = '#e8364b'; ctx.fillRect(cx - 7, cy - 9, 14, 9); ctx.fillStyle = '#9fd3f5'; ctx.fillRect(cx - 5, cy - 7, 10, 4);
+    }
+    for (let r = 0; r < 2; r++) {   /* the trees, green and fall gold */
+      const sp = r ? 38 : 44, pp = r ? p3 : p2, base = r ? 168 : 146;
+      for (let k = -1; k < W / sp + 2; k++) {
+        const x = k * sp - (pp % sp), kk = k + Math.floor(pp / sp), gold = (kk * 7) % 3 === 0, tall = 20 + ((kk * 13) % 3) * 5;
+        ctx.fillStyle = '#5a3a22'; ctx.fillRect(x + 15, base - 6, 3, 14);
+        ctx.fillStyle = gold ? '#e0a82e' : (r ? '#2f6b3a' : '#3f7d3a'); ctx.beginPath(); ctx.ellipse(x + 16, base - tall / 2 - 4, 14, tall / 2, 0, 0, 6.284); ctx.fill();
+        ctx.fillStyle = gold ? 'rgba(255,220,120,.5)' : 'rgba(140,200,110,.35)'; ctx.beginPath(); ctx.ellipse(x + 12, base - tall / 2 - 8, 6, tall / 4, 0, 0, 6.284); ctx.fill();
+      }
+    }
+  },
+  whyte(th, p1, p2, p3) {
+    ctx.fillStyle = '#f4f1e8'; ctx.beginPath(); ctx.arc(360 - (p1 % 700), 34, 10, 0, 6.284); ctx.fill();
+    ctx.fillStyle = th.sky[0]; ctx.beginPath(); ctx.arc(355 - (p1 % 700), 31, 9, 0, 6.284); ctx.fill();
+    edmSkyline(th, p1, 112, true);
+    const bricks = ['#6a2f2a', '#5a3a4a', '#7a4a2a', '#5a2f3a'];
+    for (let k = -1; k < 5; k++) {   /* Old Strathcona: brick buildings, lit windows, glowing shop signs */
+      const x = k * 112 - (p2 % 112), kk = k + Math.floor(p2 / 112), tall = 72 + (((kk % 2) + 2) % 2) * 12;
+      ctx.fillStyle = bricks[((kk % 4) + 4) % 4]; ctx.fillRect(x, 176 - tall, 104, tall);
+      ctx.fillStyle = 'rgba(0,0,0,.25)'; ctx.fillRect(x, 176 - tall, 104, 4);
+      for (let wy = 176 - tall + 10; wy < 140; wy += 16) for (let wx = x + 8; wx < x + 96; wx += 18) { ctx.fillStyle = ((wx + wy + kk * 5) % 3) ? '#f6d77a' : '#2a2440'; ctx.fillRect(wx, wy, 9, 10); }
+      const sc = ['#ff6fae', '#6fc8ff', '#7be3a3', '#ffb02e'][((kk % 4) + 4) % 4];
+      glowDisc(x + 52, 152, 22, sc, 0.25); ctx.fillStyle = sc; ctx.fillRect(x + 24, 146, 56, 10);
+      ctx.fillStyle = 'rgba(255,240,200,.35)'; ctx.fillRect(x + 10, 160, 84, 16);
+    }
+    for (let k = -1; k < 5; k++) {   /* string lights over the street */
+      const x = k * 110 - (p2 % 110);
+      for (let q = 0; q <= 10; q++) {
+        const lx = x + q * 11, ly = 96 + Math.sin(q / 10 * Math.PI) * 14;
+        ctx.fillStyle = ['#ff6fae', '#f6c445', '#6fc8ff', '#7be3a3'][(q + Math.floor(frame / 20)) % 4]; ctx.fillRect(lx, ly, 2, 2);
+      }
+    }
+    /* the street festival parade: balloons drifting past */
+    const px = ((frame * 0.6) % (W + 200)) - 100;
+    [['#ff6fae', 0], ['#f6c445', 22], ['#6fc8ff', 44], ['#7be3a3', 66]].forEach(([c, o], q) => {
+      const by = 70 + Math.sin(frame / 30 + q) * 4;
+      ctx.strokeStyle = 'rgba(244,241,232,.6)'; ctx.beginPath(); ctx.moveTo(px + o, by + 9); ctx.lineTo(px + o + 2, by + 40); ctx.stroke();
+      ctx.fillStyle = c; ctx.beginPath(); ctx.ellipse(px + o, by, 7, 9, 0, 0, 6.284); ctx.fill();
+    });
+    for (let k = -1; k < 5; k++) w3Lamp(k * 120 - (p3 % 120) + 60, 112, true);
+  },
+  bridge(th, p1, p2, p3) {
+    ctx.fillStyle = '#f4f1e8'; ctx.beginPath(); ctx.arc(80 - (p1 % 700) + 400, 30, 10, 0, 6.284); ctx.fill();
+    edmSkyline(th, p1, 104, true);
+    ctx.fillStyle = '#0d1430'; ctx.fillRect(0, 104, W, 72);   /* the river, far below the deck */
+    const hue = (frame * 0.8) % 360;
+    for (let k = 0; k < 18; k++) {   /* the lights reflected in the water */
+      const rx = ((k * 29 - p2 * 0.6) % W + W) % W;
+      ctx.fillStyle = 'hsla(' + Math.round((hue + k * 20) % 360) + ',90%,65%,.35)'; ctx.fillRect(rx, 132 + (k % 4) * 9 + Math.sin(frame / 14 + k) * 1.5, 10, 1);
+    }
+    for (let k = -1; k < 6; k++) {   /* the High Level Bridge: a steel truss, lit in changing colours */
+      const x = k * 96 - (p2 % 96), kk = k + Math.floor(p2 / 96);
+      ctx.strokeStyle = '#3a4258'; ctx.lineWidth = 2; ctx.beginPath();
+      ctx.moveTo(x, 70); ctx.lineTo(x + 96, 70); ctx.moveTo(x, 118); ctx.lineTo(x + 96, 118);
+      ctx.moveTo(x, 70); ctx.lineTo(x, 118); ctx.moveTo(x + 48, 70); ctx.lineTo(x + 48, 118);
+      ctx.moveTo(x, 70); ctx.lineTo(x + 48, 118); ctx.moveTo(x + 48, 70); ctx.lineTo(x + 96, 118);
+      ctx.stroke(); ctx.lineWidth = 1;
+      ctx.fillStyle = '#2a3046'; ctx.fillRect(x + 40, 118, 16, 58);   /* a pier */
+      for (let q = 0; q < 8; q++) {
+        ctx.fillStyle = 'hsl(' + Math.round((hue + kk * 45 + q * 12) % 360) + ',90%,65%)';
+        ctx.fillRect(x + q * 12 + 2, 116, 3, 3); ctx.fillRect(x + q * 12 + 2, 68, 3, 3);
+      }
+    }
+    ctx.fillStyle = 'rgba(0,0,0,.35)'; ctx.fillRect(0, 150, W, 26);
+    ctx.fillStyle = '#6d7480'; for (let k = -1; k < 24; k++) ctx.fillRect(k * 20 - (p3 % 20), 156, 2, 20);   /* the railing by the deck */
+    ctx.fillRect(0, 154, W, 3);
+  }
+};
+Object.assign(W2BG, W3BG);   /* World 3's scenes join the same table the stages are drawn from */
+/* ---- World 3 bosses ---- */
+function drawLifeguard(b, sx, sy) {
+  const walking = Math.abs(b.vx) > 0.2 && b.onGround, cx = sx + b.w / 2;
+  drawBig(walking && Math.floor(frame / 12) % 2 ? SP.lgWalk : SP.lgStand, cx, sy + b.h, b.face, 1.45);
+  ctx.fillStyle = '#e8364b'; ctx.beginPath(); ctx.ellipse(Math.round(cx - b.face * 9), sy + 15, 5, 7, 0, 0, 6.284); ctx.fill();   /* her rescue float */
+  ctx.fillStyle = '#f4f1e8'; ctx.fillRect(Math.round(cx - b.face * 9) - 5, sy + 13, 10, 2);
+  if (b.state === 'whistle') {
+    const wx = Math.round(cx + b.face * 6), wy = sy + 7;
+    ctx.fillStyle = '#f6c445'; ctx.fillRect(wx - 2, wy, 5, 3);
+    ctx.strokeStyle = 'rgba(210,240,255,.75)'; ctx.lineWidth = 1;
+    for (let k = 1; k <= 3; k++) { ctx.beginPath(); ctx.arc(wx + b.face * 4, wy + 1, 3 + k * 4 + (frame % 12) / 3, b.face > 0 ? -0.7 : Math.PI - 0.7, b.face > 0 ? 0.7 : Math.PI + 0.7); ctx.stroke(); }
+  } else if (b.state === 'rest') { ctx.font = '9px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('💦', Math.round(cx + 8), sy - 4); }
+}
+function drawConductor(b, sx, sy) {
+  const cx = sx + b.w / 2, f = b.face < 0 ? -1 : 1, by = sy + b.h - 12;
+  drawBig(SP.cdStand, cx - f * 2, sy + b.h - 4, b.face, 1.05);   /* the conductor, sitting in his car */
+  ctx.fillStyle = '#e8364b'; ctx.fillRect(sx, by, b.w, 10);   /* the coaster car */
+  ctx.fillStyle = '#b71f33'; ctx.fillRect(sx, by + 7, b.w, 3);
+  ctx.fillStyle = '#f6c445'; ctx.fillRect(sx, by + 2, b.w, 2);
+  ctx.fillStyle = '#e8364b'; ctx.fillRect(f > 0 ? sx + b.w - 4 : sx, by - 5, 4, 6);   /* the nose */
+  ctx.fillStyle = '#f4f1e8'; ctx.fillRect(f > 0 ? sx + b.w - 3 : sx + 1, by - 4, 2, 2);
+  const spin = b.state === 'charge' ? Math.floor(frame / 2) % 2 : 0;
+  ctx.fillStyle = '#1b1220'; for (const wx of [sx + 3, sx + b.w - 8]) { ctx.fillRect(wx, by + 9, 5, 3); ctx.fillStyle = spin ? '#9aa1ab' : '#1b1220'; ctx.fillRect(wx + 2, by + 10, 1, 1); ctx.fillStyle = '#1b1220'; }
+  ctx.textAlign = 'center';
+  if (b.state === 'stall') { ctx.font = '10px sans-serif'; ctx.fillText('💫', Math.round(cx + Math.sin(frame / 30) * 3), sy - 6); }
+  else if (b.state === 'windup') { ctx.fillStyle = '#ff6b6b'; ctx.font = 'bold 11px monospace'; ctx.fillText('!', Math.round(cx), sy - 6); }
+}
+function drawSupChenoa(b, sx, sy) {
+  const walking = Math.abs(b.vx) > 0.2 && b.onGround, cx = sx + b.w / 2;
+  drawBig(walking && Math.floor(frame / 14) % 2 ? SP.cWalk : SP.cStand, cx, sy + b.h, b.face, 1);
+  ctx.fillStyle = '#f4f1e8'; ctx.fillRect(Math.round(cx) - 4, sy + 12, 8, 9);   /* her supervisor's apron */
+  ctx.fillStyle = '#ff6fae'; ctx.fillRect(Math.round(cx) - 2, sy + 16, 4, 2);
+  if (b.shield) {   /* the menu, held up like a shield */
+    const mx = Math.round(cx + b.face * 8) - (b.face > 0 ? 0 : 5);
+    ctx.fillStyle = '#7d1f33'; ctx.fillRect(mx, sy + 2, 5, 17); ctx.fillStyle = '#f6c445'; ctx.fillRect(mx + 1, sy + 4, 3, 1); ctx.fillRect(mx + 1, sy + 8, 3, 1); ctx.fillRect(mx + 1, sy + 12, 3, 1);
+  }
+  ctx.textAlign = 'center';
+  if (b.state === 'windup') { ctx.fillStyle = '#ff6b6b'; ctx.font = 'bold 11px monospace'; ctx.fillText('!', Math.round(cx), sy - 5); }
+}
+function drawShadBoss(b, sx, sy) {
+  const walking = Math.abs(b.vx) > 0.2 && b.onGround, cx = sx + b.w / 2;
+  const img = !b.onGround ? SP.sJump : (walking && Math.floor(frame / 12) % 2 ? SP.sWalk : SP.sStand);
+  drawBig(img, cx, sy + b.h, b.face, 1.45);
+  const top = Math.round(sy + b.h + 2 - img.height * 1.45);
+  ctx.fillStyle = '#f6c445'; ctx.beginPath(); ctx.arc(Math.round(cx), top + 5, 8, Math.PI, 0); ctx.fill(); ctx.fillRect(Math.round(cx) - 10, top + 4, 20, 2);   /* his hard hat */
+  ctx.fillStyle = '#c99a1e'; ctx.fillRect(Math.round(cx) - 1, top - 2, 2, 6);
+  if (b.pound && b.vy > 0) { ctx.strokeStyle = 'rgba(255,220,120,.7)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.ellipse(Math.round(cx), GROUND * T, 20, 5, 0, 0, 6.284); ctx.stroke(); ctx.lineWidth = 1; }
+}
 /* ============================================================
    PARTY SHOP — the candles Kinan collects are money here.
    Everything is a look (outfits, hats, trails, Smash costumes); nothing changes how the game plays.
@@ -4966,7 +5790,7 @@ function titleScreen() {
     (cont ? '<button class="btn ghost" id="newBtn" type="button">Start over</button>' : '') +
     (IS_STANDALONE ? '' : '<button class="btn ghost" id="installBtn2" type="button">📲 Install app</button>') +
     '</div>' +
-    '<p class="tiny">' + (totalStars() ? '<b>' + totalStars() + '</b> ⭐ collected so far. Can you get all ' + (worldOpen(2) ? 63 : 33) + '?' : 'No stars yet — go get some.') + '</p>'
+    '<p class="tiny">' + (totalStars() ? '<b>' + totalStars() + '</b> ⭐ collected so far. Can you get all ' + LV.filter((t, i) => worldOpen(worldOf(i))).length * 3 + '?' : 'No stars yet — go get some.') + '</p>'
   );
   $('#startBtn').addEventListener('click', () => {
     AudioSys.init(); SFX.click();
@@ -5073,7 +5897,7 @@ function mapScreen() {
     return '<li><button type="button" class="lvbtn" data-lv="' + i + '"' + (open ? '' : ' disabled') + '>' +
       '<span class="n">' + stageNum(i) + '</span>' +
       '<span><span class="t">' + (open ? th.place : 'Locked') + '</span>' +
-      '<span class="s">' + (open ? (th.boss ? 'Boss: ' + th.boss.title : 'Goal: Dad\'s truck') + (done && bt ? ' · best ' + fmtTime(bt) : '') : 'Beat stage ' + (stageNum(i) - 1) + ' first') + '</span></span>' +
+      '<span class="s">' + (open ? (th.boss ? 'Boss: ' + th.boss.title : 'Goal: ' + goalName(i)) + (done && bt ? ' · best ' + fmtTime(bt) : '') : 'Beat stage ' + (stageNum(i) - 1) + ' first') + '</span></span>' +
       '<span class="stars">' + starStr + (open ? '<span class="gold"><i class="coin-ico"></i>' + goldCount(i) + '/3</span>' : '') + '</span></button></li>';
   }).join('');
   const hats = HATS.filter((h) => !h.shop || ownsItem('hat:' + h.id)).map((h) => {
@@ -8924,13 +9748,13 @@ const BSONGS = [['stage', 'Party tune'], ['title', 'Calm tune'], ['boss', 'Boss 
 /* time of day: [id, name, sky (outdoor scenes), light over everything] */
 const BTIMES = [['own', "The scene's own"], ['dawn', 'Sunrise', ['#4a3a8a', '#ff9f6e'], 'rgba(255,150,110,.12)'], ['day', 'Daytime', ['#4fa8ff', '#cfeeff'], ''],
   ['sunset', 'Sunset', ['#3b2a6b', '#ff8a5c'], 'rgba(255,105,60,.16)'], ['night', 'Night', ['#070b24', '#1f2a5c'], 'rgba(18,22,80,.30)']];
-const BOUTSIDE = ['outdoor', 'school', 'prairie', 'camp', 'dig', 'oilfield', 'truckyard', 'night', 'storm'];
+const BOUTSIDE = ['outdoor', 'school', 'prairie', 'camp', 'dig', 'oilfield', 'truckyard', 'night', 'storm', 'edmroad', 'busroute', 'jobsite', 'valley', 'whyte', 'bridge'];
 let builder = null;   /* the level editor, while it is open */
 let bFolder = 'work';  /* which folder the Builder menu shows */
 let bSession = null;   /* the last editor: its undo steps, copied chunk, tool and zoom outlast a test play (not saved) */
 let bGoalTimer = 0;    /* the "You beat it!" screen, due 0.7 s after the flag */
 let bFree = { top: 0, bot: H };   /* the rows of the picture the toolbars don't cover (picture units, 0-240) */
-function themesOpen() { const out = []; for (let i = 0; i < LV.length; i++) if (i <= 10 || worldOpen(2)) out.push(i); return out; }
+function themesOpen() { const out = []; for (let i = 0; i < LV.length; i++) if (worldOpen(worldOf(i))) out.push(i); return out; }
 /* story stages to copy: only ones he has reached, so a copy can't spoil a later boss or the ending */
 function copyableStages() { return themesOpen().filter((i) => i < progress.unlocked); }
 /* ---- the saved form: the grid is stored as runs ("~" + tile + count in base 36, joined by "."), because a level is
@@ -9739,6 +10563,18 @@ const WM_PATHS = {
   2: [
     { at: [22, 208] }, { at: [64, 172] }, { at: [110, 202] }, { at: [154, 164] }, { at: [202, 198] },
     { at: [246, 158] }, { at: [292, 194] }, { at: [334, 146] }, { at: [374, 184] }, { at: [410, 128] }
+  ],
+  3: [
+    { at: [20, 225] },                                        /* the highway into Edmonton */
+    { at: [112, 225] },                                       /* Chenoa's bus stop */
+    { at: [68, 182] },                                        /* the Mega Mall's wave pool */
+    { at: [126, 194] },                                       /* the mall's ice rink */
+    { at: [160, 150] },                                       /* the rollercoaster on the roof */
+    { at: [210, 104], via: [[178, 125]] },                    /* over a footbridge to Shad's job site */
+    { at: [363, 106] },                                       /* Chenoa's restaurant, past downtown */
+    { at: [250, 142], via: [[322, 112], [296, 124]] },        /* down by the funicular, over the river, into the trees */
+    { at: [306, 212], via: [[250, 212]] },                    /* Whyte Ave */
+    { at: [404, 123], via: [[364, 200], [378, 150]] }         /* past Shad's house, up onto the High Level Bridge */
   ]
 };
 /* the road trip: the 11 cities on a map of Canada (Worlds 3-11 are planned, not built yet) */
@@ -9798,7 +10634,7 @@ function wmapPos(s) {
 /* the map's part of the stage map page: world buttons, the picture, and the controls under it */
 function wmapHTML(mw) {
   return '<div class="wmap" id="wmap">' +
-    '<div class="worldtabs">' + WORLDS.slice(0, 2).map((w) => '<button type="button" class="worldtab' + (w.n === mw ? ' on' : '') + '" data-world="' + w.n + '">' +
+    '<div class="worldtabs">' + WORLDS.filter((w) => !w.soon).map((w) => '<button type="button" class="worldtab' + (w.n === mw ? ' on' : '') + '" data-world="' + w.n + '">' +
       (worldOpen(w.n) ? '' : '🔒 ') + '<b>World ' + w.n + '</b> · ' + escAttr(w.name) + '</button>').join('') +
     '<button type="button" class="worldtab" id="wmCanada">🗺️ Canada trip</button><button type="button" class="worldtab" id="codeBtnM">🎁 Reward code</button></div>' +
     '<canvas id="wmCanvas" width="' + WM_W + '" height="' + WM_H + '" aria-label="World map: tap a stop to walk there"></canvas>' +
@@ -9875,9 +10711,10 @@ function wmapTap(e) {
     const c = WM_TRIP.filter((t) => Math.hypot(wmLon(t.lon) - x, wmLat(t.lat) - y) < 12).sort((a, b) => Math.hypot(wmLon(a.lon) - x, wmLat(a.lat) - y) - Math.hypot(wmLon(b.lon) - x, wmLat(b.lat) - y))[0];
     if (!c) return;
     SFX.click();
-    if (c.n <= 2 && worldOpen(c.n)) { progress.mapWorld = c.n; save(); mapScreen(); return; }
+    const built = !WORLDS[c.n - 1].soon;
+    if (built && worldOpen(c.n)) { progress.mapWorld = c.n; save(); mapScreen(); return; }
     M.note = '<b>World ' + c.n + ' · ' + escAttr(c.city) + '</b> · ' + escAttr(c.vs) + '<br>' +
-      (c.n <= 2 ? worldStatus(WORLDS[c.n - 1]) : '🛣️ Coming in a future update. Its reward code already works: the world opens as soon as it arrives.');
+      (built ? worldStatus(WORLDS[c.n - 1]) : '🛣️ Coming in a future update. Its reward code already works: the world opens as soon as it arrives.');
     wmapInfo();
     return;
   }
@@ -9900,7 +10737,7 @@ function wmapInfo() {
   $('#wmPrev').disabled = M.sel <= 0; $('#wmNext').disabled = M.sel >= M.openN - 1;
   if (!M.openN) { box.innerHTML = '<b>World ' + M.world + ' · ' + escAttr(M.w.name) + '</b><br>' + worldStatus(M.w); play.disabled = true; return; }
   const i = M.w.from + M.sel, th = LV[i], st = progress.stars[i] || 0, bt = progress.bestTime && progress.bestTime[i];
-  box.innerHTML = M.note || ('<b>Stage ' + (M.sel + 1) + ' · ' + escAttr(th.place) + '</b><br>' + (th.boss ? 'Boss: ' + escAttr(th.boss.title) : 'Goal: Dad\'s truck') +
+  box.innerHTML = M.note || ('<b>Stage ' + (M.sel + 1) + ' · ' + escAttr(th.place) + '</b><br>' + (th.boss ? 'Boss: ' + escAttr(th.boss.title) : 'Goal: ' + goalName(i)) +
     ' · ' + [0, 1, 2].map((k) => (k < st ? '★' : '☆')).join('') + ' · <i class="coin-ico"></i>' + goldCount(i) + '/3' +
     (progress.beaten.includes(i) && bt ? ' · best ' + fmtTime(bt) : ''));
   play.disabled = !!M.reveal;
@@ -10109,7 +10946,7 @@ function wmapDrawCanada() {
   x.setLineDash([]);
   x.font = 'bold 8px "Pixelify Sans",monospace'; x.textBaseline = 'middle';
   WM_TRIP.forEach((t) => {
-    const px = wmLon(t.lon), py = wmLat(t.lat), built = t.n <= 2, open = built && worldOpen(t.n), won = built && worldBeaten(t.n);
+    const px = wmLon(t.lon), py = wmLat(t.lat), built = !WORLDS[t.n - 1].soon, open = built && worldOpen(t.n), won = built && worldBeaten(t.n);
     x.fillStyle = won ? '#f6c445' : (open ? '#f4f1e8' : (built ? '#9a9aa6' : '#5e5e6a'));
     x.strokeStyle = '#1b1220'; x.lineWidth = 1.2; x.beginPath(); x.arc(px, py, 4.5, 0, 6.284); x.fill(); x.stroke();
     x.textAlign = 'center'; x.fillStyle = '#1b1220'; x.fillText(String(t.n), px, py + 0.5);
@@ -10125,8 +10962,117 @@ function wmapDrawCanada() {
   WM_TRIP.forEach((t) => { if (t.n <= WORLDS.length && !WORLDS[t.n - 1].soon && worldBeaten(t.n)) wmFlag(x, wmLon(t.lon) + 3, wmLat(t.lat) - 2, f + t.n * 9); });
   wmLabel(x, "KINAN'S BIG CANADA ROAD TRIP", 10, 12, 9, '#f6c445');
 }
+/* ---- the World 3 walk-around map: a mini Edmonton. The highway comes in at the bottom left, the Mega Mall is in
+   the southwest, the river valley winds through the middle, Shad's job site, downtown and Chenoa's restaurant are on
+   the north side, Whyte Ave on the south side, and the High Level Bridge crosses the river on the right. The day goes
+   by from left to right: morning at the highway, night on the bridge. ---- */
+const edmRiver = (rx) => 132 + Math.sin((rx + 60) / 64) * 9;   /* the middle of the river at map x */
+function wmapDrawEdmonton() {
+  const x = WM.x, f = WM.frame;
+  const sky = x.createLinearGradient(0, 0, WM_W, 0);
+  sky.addColorStop(0, '#8fd0f5'); sky.addColorStop(0.45, '#bfe4f5'); sky.addColorStop(0.62, '#ffb37a'); sky.addColorStop(0.8, '#5a3f7a'); sky.addColorStop(1, '#141a3a');
+  x.fillStyle = sky; x.fillRect(0, 0, WM_W, 72);
+  for (let k = 0; k < 12; k++) wmR(352 + (k * 23) % 78, 6 + (k * 17) % 40, 1, 1, Math.floor((f + k * 11) / 30) % 3 ? '#fff3b0' : '#8a8a98');   /* night stars */
+  x.fillStyle = 'rgba(255,255,255,.55)';
+  for (let k = 0; k < 3; k++) { const cx = 40 + k * 64 + Math.sin(f / 200 + k) * 6, cy = 18 + k * 9; x.beginPath(); x.ellipse(cx, cy, 18, 5, 0, 0, 6.284); x.ellipse(cx + 10, cy - 3, 10, 4, 0, 0, 6.284); x.fill(); }
+  x.fillStyle = '#fff3b0'; x.beginPath(); x.arc(410, 18, 7, 0, 6.284); x.fill(); x.fillStyle = '#141a3a'; x.beginPath(); x.arc(413, 16, 6, 0, 6.284); x.fill();   /* the moon */
+  /* the land, and evening falling on the east side */
+  wmR(0, 70, WM_W, 173, '#4f8a4a'); wmR(0, 70, WM_W, 2, '#6aa860');
+  const dusk = x.createLinearGradient(0, 0, WM_W, 0); dusk.addColorStop(0, 'rgba(10,10,40,0)'); dusk.addColorStop(0.6, 'rgba(10,10,40,.06)'); dusk.addColorStop(1, 'rgba(10,10,40,.42)');
+  x.fillStyle = dusk; x.fillRect(0, 70, WM_W, 173);
+  /* downtown, north of the river: glass towers, their windows lit as night comes */
+  [[236, 26, 14], [252, 44, 12], [266, 20, 16], [284, 52, 13], [299, 34, 15], [316, 46, 11]].forEach(([tx, tall, tw], k) => {
+    wmR(tx, 70 - tall, tw, tall + 24, k % 2 ? '#5f7090' : '#4a5a7a');
+    wmR(tx + tw - 3, 70 - tall, 3, tall + 24, 'rgba(0,0,0,.18)');
+    for (let wy = 74 - tall; wy < 92; wy += 5) for (let wx = tx + 2; wx < tx + tw - 4; wx += 4) wmR(wx, wy, 2, 2, ((wx * 7 + wy * 3 + k) % 5) < 2 ? '#f6d77a' : 'rgba(255,255,255,.18)');
+  });
+  /* Chenoa's place, downtown: an apartment tower with balconies, her window lit up pink */
+  for (let k = 0; k < 4; k++) wmR(266, 57 + k * 9, 16, 1.2, '#c9c9cf');
+  wmR(275, 60, 3, 3, '#ff6fae'); x.fillStyle = 'rgba(255,111,174,.35)'; x.beginPath(); x.arc(276.5, 61.5, 4, 0, 6.284); x.fill();
+  x.fillStyle = '#ff6fae'; x.beginPath(); x.arc(272.8, 45, 1.6, 0, 6.284); x.arc(276.2, 45, 1.6, 0, 6.284); x.fill(); x.beginPath(); x.moveTo(271.2, 45.6); x.lineTo(274.5, 49); x.lineTo(277.8, 45.6); x.fill();
+  wmLabel(x, "CHENOA'S PLACE", 274, 38, 6, '#fff3b0', 'center');
+  wmR(290, 8, 1.2, 10, '#c9c9cf'); wmR(289.4, 7, 2.4, 2, '#e8364b');   /* an antenna, blinking */
+  if (Math.floor(f / 30) % 2) wmR(289.4, 7, 2.4, 2, '#ff9a9a');
+  /* Shad's job site: a tower crane over a building going up, an orange fence */
+  wmR(190, 54, 3, 42, '#f2c230'); wmR(160, 52, 68, 2.5, '#f2c230'); wmR(155, 50, 8, 6, '#6d7480'); wmR(189, 46, 5, 8, '#f2c230');
+  x.strokeStyle = '#3a3f47'; x.lineWidth = 0.8; const sw = Math.sin(f / 40) * 2; x.beginPath(); x.moveTo(218, 54); x.lineTo(218 + sw, 72); x.stroke(); wmR(214 + sw, 72, 8, 2, '#9aa1ab');
+  for (let k = 0; k < 3; k++) wmR(198, 78 + k * 6, 28, 2, '#b8b8c0'); wmR(198, 78, 2, 18, '#b8b8c0'); wmR(212, 78, 2, 18, '#b8b8c0'); wmR(224, 78, 2, 18, '#b8b8c0');
+  wmR(170, 90, 26, 6, 'rgba(255,138,61,.8)'); for (let k = 0; k < 5; k++) wmR(171 + k * 6, 88, 1.2, 8, '#ff8a3d');
+  /* Chenoa's restaurant: a striped awning and a glowing sign */
+  wmR(340, 78, 46, 20, '#a8422e'); wmR(338, 74, 50, 5, '#6b2a20');
+  for (let k = 0; k < 5; k++) wmR(340 + k * 9.2, 79, 4.6, 4, k % 2 ? '#f4f1e8' : '#e8364b');
+  for (let k = 0; k < 3; k++) wmR(344 + k * 14, 86, 8, 8, '#ffd48a');
+  wmR(346, 64, 34, 9, '#2a1414'); x.font = 'bold 5px "Pixelify Sans",monospace'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillStyle = '#ff6fae'; x.fillText('RESTAURANT', 363, 68.8);
+  /* the river valley: the North Saskatchewan River, with trees in green and gold on both banks */
+  for (let rx = 0; rx <= WM_W; rx += 6) wmR(rx, edmRiver(rx) - 13, 7, 26, '#3f6f3a');
+  x.fillStyle = '#3a78b5'; x.beginPath(); x.moveTo(0, edmRiver(0) - 6);
+  for (let rx = 0; rx <= WM_W; rx += 6) x.lineTo(rx, edmRiver(rx) - 6);
+  for (let rx = WM_W; rx >= 0; rx -= 6) x.lineTo(rx, edmRiver(rx) + 6);
+  x.closePath(); x.fill();
+  x.strokeStyle = '#7ab8e8'; x.lineWidth = 1; x.beginPath(); for (let rx = 0; rx <= WM_W; rx += 6) { if (rx) x.lineTo(rx, edmRiver(rx) - 5.5); else x.moveTo(rx, edmRiver(rx) - 5.5); } x.stroke();
+  for (let k = 0; k < 10; k++) { const sx = (k * 47 + f * 0.4) % WM_W; wmR(sx, edmRiver(sx) - 1 + (k % 3) * 2, 6, 1, 'rgba(255,255,255,.55)'); }
+  for (let k = 0; k < 26; k++) {
+    const tx = 6 + k * 17, top = k % 2 === 0, ty = edmRiver(tx) + (top ? -12 : 12), gold = (k * 5) % 3 === 0;
+    if (tx > 366 && !top) continue;   /* the bridge's end is here */
+    x.fillStyle = gold ? '#e0a82e' : '#2f7a43'; x.beginPath(); x.arc(tx, ty, 5, 0, 6.284); x.fill();
+    x.fillStyle = gold ? '#f6c445' : '#3f9a55'; x.beginPath(); x.arc(tx - 1.5, ty - 1.5, 2.5, 0, 6.284); x.fill();
+  }
+  [[178, 0], [296, 1]].forEach(([fx]) => {   /* two footbridges, little arches over the water */
+    const fy = edmRiver(fx);
+    x.strokeStyle = '#d7c9a8'; x.lineWidth = 1.6; x.beginPath(); x.arc(fx, fy + 4, 11, Math.PI * 1.15, Math.PI * 1.85); x.stroke();
+    wmR(fx - 11, fy - 2, 22, 1.6, '#d7c9a8');
+  });
+  x.strokeStyle = '#c9c9cf'; x.lineWidth = 1.4; x.beginPath(); x.moveTo(322, 98); x.lineTo(332, edmRiver(332) - 8); x.stroke();   /* the funicular */
+  const ft = (Math.sin(f / 60) + 1) / 2; wmR(322 + 10 * ft - 3, 98 + (edmRiver(332) - 106) * ft - 3, 6, 4, '#e8364b');
+  /* the High Level Bridge: a long steel truss over the river, lit in changing colours */
+  const by = edmRiver(404) - 12;
+  x.strokeStyle = '#4a5268'; x.lineWidth = 1.4; x.beginPath();
+  x.moveTo(372, by); x.lineTo(432, by); x.moveTo(372, by - 9); x.lineTo(432, by - 9);
+  for (let k = 0; k < 5; k++) { const bx = 372 + k * 12; x.moveTo(bx, by - 9); x.lineTo(bx, by); x.moveTo(bx, by - 9); x.lineTo(bx + 12, by); }
+  x.stroke();
+  for (let k = 0; k < 3; k++) wmR(380 + k * 20, by, 4, edmRiver(380 + k * 20) + 6 - by, '#2a3046');
+  for (let k = 0; k < 10; k++) wmR(373 + k * 6, by - 1, 2, 2, 'hsl(' + Math.round((f * 2 + k * 30) % 360) + ',90%,65%)');
+  /* the Mega Mall: glass domes, the wave pool and its waterslide, the ice rink, the rollercoaster on the roof */
+  wmR(40, 164, 130, 48, '#c8bba0'); wmR(38, 160, 134, 6, '#8a7a6a');
+  [62, 106, 148].forEach((dx) => { x.fillStyle = 'rgba(160,220,250,.85)'; x.beginPath(); x.arc(dx, 161, 11, Math.PI, 0); x.fill(); x.strokeStyle = 'rgba(255,255,255,.6)'; x.lineWidth = 0.8; x.stroke(); });
+  wmR(48, 174, 40, 16, '#4fb0e0'); for (let k = 0; k < 4; k++) wmR(50 + k * 10, 176 + Math.round(Math.sin(f / 16 + k) * 1.5), 6, 1, '#d8f2ff');
+  x.strokeStyle = '#ff8a3d'; x.lineWidth = 2.4; x.lineCap = 'round'; x.beginPath(); x.moveTo(46, 146); x.bezierCurveTo(66, 154, 40, 166, 58, 176); x.stroke(); x.lineCap = 'butt';
+  wmR(44, 144, 3, 18, '#c9c9cf');
+  x.fillStyle = '#e8f6ff'; x.beginPath(); x.ellipse(126, 194, 18, 7, 0, 0, 6.284); x.fill(); x.strokeStyle = '#e8364b'; x.lineWidth = 1; x.stroke();
+  wmR(126, 187, 0.8, 14, 'rgba(232,54,75,.6)');
+  x.strokeStyle = '#e8364b'; x.lineWidth = 1.6; x.beginPath(); x.arc(160, 150, 8, 0, 6.284); x.moveTo(136, 160); x.quadraticCurveTo(146, 138, 154, 158); x.stroke();
+  const ca = f / 14; wmR(160 + Math.cos(ca) * 8 - 2, 150 + Math.sin(ca) * 8 - 1.5, 4, 3, '#f6c445');
+  x.font = 'bold 6px "Pixelify Sans",monospace'; x.fillStyle = '#5a2a1a'; x.fillText('MEGA MALL', 147, 207);
+  /* Whyte Ave: old brick buildings with lit windows, string lights and street lamps (night over here) */
+  [[262, 28, '#7a3a2a'], [292, 30, '#5a3a4a'], [324, 26, '#7a4a2a']].forEach(([wx, ww, c], k) => {
+    wmR(wx, 174, ww - 2, 32, c); wmR(wx, 172, ww - 2, 3, 'rgba(0,0,0,.3)');
+    for (let wy = 178; wy < 200; wy += 8) for (let wxx = wx + 3; wxx < wx + ww - 6; wxx += 6) wmR(wxx, wy, 3, 4, ((wxx + wy + k) % 3) ? '#f6d77a' : '#2a2440');
+  });
+  for (let k = 0; k < 11; k++) wmR(262 + k * 8, 167 + Math.sin(k / 10 * Math.PI) * 3, 1.6, 1.6, ['#ff6fae', '#f6c445', '#6fc8ff', '#7be3a3'][(k + Math.floor(f / 20)) % 4]);
+  /* Shad's house, in the south-east: a bungalow with the porch light on, his car in the driveway */
+  x.fillStyle = '#6b3f18'; x.beginPath(); x.moveTo(389, 201); x.lineTo(405, 189); x.lineTo(421, 201); x.closePath(); x.fill();
+  wmR(392, 201, 26, 15, '#e8dcc0'); wmR(392, 214, 26, 2, 'rgba(0,0,0,.2)'); wmR(412, 191, 3, 6, '#5a3a22');
+  wmR(395, 204, 6, 5, '#f6d77a'); wmR(410, 204, 6, 5, '#f6d77a'); wmR(403, 207, 4, 9, '#7a3f26');
+  x.fillStyle = 'rgba(255,240,170,.35)'; x.beginPath(); x.arc(408.5, 206, 4, 0, 6.284); x.fill(); wmR(408, 205.5, 1.2, 1.2, '#fff3b0');
+  wmR(418, 214, 14, 3, '#6d7480');
+  wmR(419, 208, 12, 6, '#b9bfc8'); wmR(421, 205, 8, 4, '#9aa1ab'); wmR(422, 206, 2.5, 2, '#2b3550'); wmR(425.5, 206, 2.5, 2, '#2b3550');
+  wmR(420, 214, 2.6, 2, '#1b1220'); wmR(427.4, 214, 2.6, 2, '#1b1220'); wmR(430, 209, 1.2, 1.5, '#fff3c4');
+  wmLabel(x, "SHAD'S HOUSE", 409, 182, 6, '#fff3b0', 'center');
+  [266, 318, 352].forEach((lx) => { wmR(lx, 198, 1.2, 14, '#9a9aa6'); x.fillStyle = 'rgba(255,240,170,.9)'; x.beginPath(); x.arc(lx + 0.6, 198, 1.6, 0, 6.284); x.fill(); });
+  /* the road along the bottom: the highway in with its big green sign, a bus stop, the city bus */
+  wmR(0, 218, WM_W, 14, '#4a4f57'); for (let k = 0; k < WM_W; k += 22) wmR(k + 4, 224, 10, 1.6, '#f6c445');
+  wmR(0, 232, WM_W, 11, '#3f7d4e');
+  wmR(8, 200, 2, 18, '#9aa1ab'); wmR(30, 200, 2, 18, '#9aa1ab'); wmR(2, 189, 36, 13, '#1f6b3f');
+  x.strokeStyle = '#f4f1e8'; x.lineWidth = 0.6; x.strokeRect(3.5, 190.5, 33, 10);
+  x.font = 'bold 4px "Pixelify Sans",monospace'; x.fillStyle = '#f4f1e8'; x.fillText('WELCOME TO', 20, 193.6); x.font = 'bold 5px "Pixelify Sans",monospace'; x.fillText('EDMONTON', 20, 198.4);
+  wmR(112, 204, 1.4, 14, '#4a4f57'); wmR(108, 200, 9, 5, '#2f5fb3');
+  const bx = 150 + ((f * 0.5) % 180);
+  wmR(bx, 213, 26, 9, '#f3f3f0'); wmR(bx, 218, 26, 2, '#2f5fb3'); for (let k = 0; k < 4; k++) wmR(bx + 2 + k * 6, 214.5, 4, 3, '#1e2a40');
+  wmR(bx + 3, 222, 4, 2, '#1b1220'); wmR(bx + 19, 222, 4, 2, '#1b1220');
+  wmLabel(x, 'EDMONTON', 78, 98, 8, '#fff3b0', 'center');
+}
 /* each world's own map scene */
-const WM_SCENES = { 1: wmapDrawSaskatoon, 2: wmapDrawOilfield };
+const WM_SCENES = { 1: wmapDrawSaskatoon, 2: wmapDrawOilfield, 3: wmapDrawEdmonton };
 /* the arrow keys and Enter work on the map too */
 function bindWorldMap() {
   document.addEventListener('keydown', (e) => {
