@@ -346,7 +346,7 @@ html.sideways .pad button.spec:not(:disabled){opacity:.92}
 .bcardbtns{display:flex;flex-wrap:wrap;gap:4px}
 .buildlist li{display:flex;flex-wrap:wrap;align-items:center;gap:6px}.buildlist .bname{background:#0b0d1e;border:1px solid var(--panel2);border-radius:6px;color:var(--text);font:inherit;padding:4px 6px;width:140px}
 .wmap{margin:4px 0 6px}
-.wmap canvas{display:block;width:100%;max-width:760px;margin:0 auto;aspect-ratio:432/243;image-rendering:pixelated;border:3px solid var(--panel2);border-radius:10px;background:#14162b;touch-action:manipulation;cursor:pointer}
+.wmap canvas{display:block;width:100%;max-width:760px;margin:0 auto;aspect-ratio:432/243;image-rendering:auto;border:3px solid var(--panel2);border-radius:10px;background:#14162b;touch-action:manipulation;cursor:pointer}
 .wmapbar{display:flex;gap:8px;align-items:center;justify-content:center;margin:8px auto 0;max-width:760px}
 .wmapbar .btn{min-width:48px}
 #wmInfo{flex:1;min-height:42px;text-align:center;font-size:13px;line-height:1.35;background:var(--panel);border:2px solid var(--panel2);border-radius:8px;padding:5px 8px}
@@ -9773,6 +9773,17 @@ const WM_CANADA = [
   [[-118, 69.8], [-105.5, 68.8], [-101.5, 69.9], [-105, 73], [-115, 73.2], [-119, 71.5]]
 ];
 let WM = null;   /* the map while its page is open */
+/* the map is laid out in WM_W x WM_H map units; its canvas gets as many real pixels as the screen shows (2-4 per unit),
+   so lines, curves and words are drawn sharp instead of stretched */
+function wmapScale(cv) {
+  const w = cv.getBoundingClientRect().width || WM_W, dpr = window.devicePixelRatio || 1;
+  return clamp(Math.ceil(w * dpr / WM_W), 2, 4);
+}
+function wmapFit(M) {
+  const S = wmapScale(M.cv);
+  if (S === M.S) return;
+  M.S = S; M.cv.width = WM_W * S; M.cv.height = WM_H * S;
+}
 function wmapPos(s) {
   const M = WM, P = M.pts, Ls = M.len;
   if (s <= 0 || P.length < 2) return P[0].slice();
@@ -9813,7 +9824,8 @@ function wmapStart(world) {
   const reveal = seen < openN && seen > 0;
   const start = reveal ? seen - 1 : sel;
   WM = { cv: cv, x: cv.getContext('2d'), world: world, w: w, stops: stops, pts: pts, len: len, stopS: at.map((j) => len[j]), openN: openN,
-    shownN: reveal ? seen : openN, reveal: reveal ? { t: 0 } : null, sel: reveal ? start : sel, s: 0, target: 0, walking: false, frame: 0, face: 1, canada: false, note: '' };
+    shownN: reveal ? seen : openN, reveal: reveal ? { t: 0 } : null, sel: reveal ? start : sel, s: 0, target: 0, walking: false, frame: 0, face: 1, canada: false, note: '', S: 0 };
+  wmapFit(WM);
   WM.s = WM.target = openN ? WM.stopS[start] : 0;
   if (!reveal && progress.mapSeen[world] !== openN) { progress.mapSeen[world] = openN; save(); }
   cv.addEventListener('pointerdown', wmapTap);
@@ -9828,6 +9840,7 @@ function wmapTick() {
   const M = WM;
   if (!M || !document.body.contains(M.cv)) { WM = null; return; }
   M.frame++;
+  if (M.frame % 30 === 0) wmapFit(M);   /* the phone turned, or the window changed size */
   if (M.reveal && ++M.reveal.t >= 70) {   /* the new path has been drawn in: walk to the new stop */
     M.reveal = null; M.shownN = M.openN; progress.mapSeen[M.world] = M.openN; save();
     SFX.power(); wmapSelect(M.openN - 1, true);
@@ -9897,36 +9910,44 @@ function wmR(x, y, w, h, c) { WM.x.fillStyle = c; WM.x.fillRect(Math.round(x), M
 function wmapDraw() {
   const M = WM, x = M.x;
   x.save();
-  x.imageSmoothingEnabled = false;
+  x.setTransform(M.S || 1, 0, 0, M.S || 1, 0, 0);   /* draw in map units, at the canvas's full sharpness */
+  x.imageSmoothingEnabled = false;   /* Kinan's sprite stays crisp pixel art */
   if (M.canada) { wmapDrawCanada(); x.restore(); return; }
-  if (M.world === 2) wmapDrawOilfield(); else wmapDrawSaskatoon();
-  /* the path: open part in gold dashes, the rest as faint dots */
+  (WM_SCENES[M.world] || wmapDrawSaskatoon)();
+  /* the path: a road with a dark edge; gold where Kinan has been, faint dots ahead */
   const shownS = M.reveal ? M.stopS[M.shownN - 1] + (M.stopS[M.openN - 1] - M.stopS[M.shownN - 1]) * Math.min(1, M.reveal.t / 60) : (M.openN ? M.stopS[M.openN - 1] : 0);
   const total = M.len[M.len.length - 1];
-  for (let s = 0; s <= total; s += 5) {
-    const p = wmapPos(s), open = M.openN && s <= shownS + 0.1;
-    x.fillStyle = open ? (Math.floor(s / 5) % 2 ? '#fff3b0' : '#f6c445') : 'rgba(255,255,255,.28)';
-    x.fillRect(Math.round(p[0]) - (open ? 1 : 0), Math.round(p[1]) - (open ? 1 : 0), open ? 3 : 2, open ? 3 : 2);
+  const trace = (s1) => { x.beginPath(); for (let s = 0, k = 0; s <= s1 + 1.9; s += 2, k++) { const q = wmapPos(Math.min(s, s1)); if (k) x.lineTo(q[0], q[1]); else x.moveTo(q[0], q[1]); } };
+  x.lineCap = 'round'; x.lineJoin = 'round';
+  trace(total); x.strokeStyle = 'rgba(12,13,28,.5)'; x.lineWidth = 6; x.stroke();
+  trace(total); x.strokeStyle = 'rgba(255,255,255,.32)'; x.lineWidth = 1.6; x.setLineDash([1.5, 4]); x.stroke(); x.setLineDash([]);
+  if (M.openN) {
+    trace(shownS); x.strokeStyle = '#8a6420'; x.lineWidth = 5; x.stroke();
+    trace(shownS); x.strokeStyle = '#f6c445'; x.lineWidth = 3.4; x.stroke();
+    trace(shownS); x.strokeStyle = '#fff3b0'; x.lineWidth = 1; x.setLineDash([3, 4]); x.lineDashOffset = -M.frame / 5; x.stroke(); x.setLineDash([]); x.lineDashOffset = 0;
   }
-  if (M.reveal) { const p = wmapPos(shownS); for (let k = 0; k < 4; k++) wmR(p[0] - 3 + Math.random() * 6, p[1] - 3 + Math.random() * 6, 1, 1, '#ffffff'); }
-  /* the stops */
-  x.font = 'bold 8px "Pixelify Sans",monospace'; x.textAlign = 'center'; x.textBaseline = 'middle';
+  if (M.reveal) { const q = wmapPos(shownS); for (let k = 0; k < 6; k++) wmR(q[0] - 4 + Math.random() * 8, q[1] - 4 + Math.random() * 8, 1, 1, '#ffffff'); }
+  /* the stops: a badge each; beaten ones get a little flag (like Mario), locked ones a padlock, bosses a crown */
+  x.textAlign = 'center'; x.textBaseline = 'middle';
   M.stops.forEach((st, k) => {
     const i = M.w.from + k, open = k < M.shownN, done = progress.beaten.includes(i), sel = k === M.sel && open;
-    const [sx, sy] = st.at;
-    x.fillStyle = 'rgba(0,0,0,.35)'; x.beginPath(); x.ellipse(sx, sy + 5, 7, 2.5, 0, 0, 6.284); x.fill();
-    x.fillStyle = !open ? '#4a4f57' : (done ? '#f6c445' : '#f4f1e8');
-    x.strokeStyle = sel ? '#ff6fae' : (open ? '#1b1220' : '#2a2c38'); x.lineWidth = sel ? 2 : 1.4;
-    x.beginPath(); x.arc(sx, sy, 6.5, 0, 6.284); x.fill(); x.stroke();
-    if (open && !done && Math.floor(M.frame / 20) % 2) { x.strokeStyle = 'rgba(255,255,255,.7)'; x.lineWidth = 1; x.beginPath(); x.arc(sx, sy, 9, 0, 6.284); x.stroke(); }
-    x.fillStyle = !open ? '#9a9aa6' : '#1b1220';
-    x.fillText(String(k + 1), sx, sy + 0.5);
-    if (LV[i].boss) { x.fillStyle = open ? '#e8364b' : '#6b6f7a'; x.fillRect(sx - 3, sy - 11, 6, 2); x.fillRect(sx - 3, sy - 13, 1, 2); x.fillRect(sx, sy - 14, 1, 3); x.fillRect(sx + 2, sy - 13, 1, 2); }   /* a little crown: a boss stage */
+    const [sx, sy] = st.at, r = 7.5;
+    x.fillStyle = 'rgba(0,0,0,.35)'; x.beginPath(); x.ellipse(sx, sy + 6.5, 8.5, 2.8, 0, 0, 6.284); x.fill();
+    if (open && !done) { const pr = 10 + (M.frame % 60) / 10; x.strokeStyle = 'rgba(255,255,255,' + (0.6 - (M.frame % 60) / 110) + ')'; x.lineWidth = 1.2; x.beginPath(); x.arc(sx, sy, pr, 0, 6.284); x.stroke(); }   /* the next one to play pulses */
+    x.fillStyle = !open ? '#5a5f6b' : (done ? '#f6c445' : '#f4f1e8');
+    x.beginPath(); x.arc(sx, sy, r, 0, 6.284); x.fill();
+    x.lineWidth = sel ? 2.6 : 1.6; x.strokeStyle = sel ? '#ff6fae' : '#1b1220'; x.stroke();
+    x.strokeStyle = 'rgba(255,255,255,' + (open ? 0.7 : 0.25) + ')'; x.lineWidth = 1; x.beginPath(); x.arc(sx, sy, r - 2.2, Math.PI * 1.1, Math.PI * 1.75); x.stroke();
+    if (open) { x.font = 'bold 9px "Pixelify Sans",monospace'; x.fillStyle = '#1b1220'; x.fillText(String(k + 1), sx, sy + 0.5); }
+    else wmPadlock(x, sx, sy);
+    if (LV[i].boss) wmCrown(x, sx, sy - r - 1, open);
+    if (done) wmFlag(x, sx + 8, sy - 3, M.frame + k * 7);
   });
   /* Kinan */
   if (M.openN) {
     const sp = kinanSprites(progress.outfit), img = M.walking && Math.floor(M.frame / 8) % 2 ? sp.kWalk : sp.kStand;
     const p = wmapPos(M.s), bob = M.walking ? 0 : Math.round(Math.sin(M.frame / 14));
+    x.fillStyle = 'rgba(0,0,0,.4)'; x.beginPath(); x.ellipse(p[0], p[1] - 4, 6, 2, 0, 0, 6.284); x.fill();
     x.save(); x.translate(Math.round(p[0]), Math.round(p[1]) - 4 + bob);
     if (M.face < 0) x.scale(-1, 1);
     x.drawImage(img, -Math.round(img.width / 2), -img.height);
@@ -9938,6 +9959,27 @@ function wmapDraw() {
     x.fillText(worldStatus(M.w), WM_W / 2, WM_H / 2);
   }
   x.restore();
+}
+/* a little red flag on a pole (it waves): a stage that has been beaten */
+function wmFlag(x, px, py, f) {
+  x.fillStyle = '#e8e0cc'; x.fillRect(px, py - 12, 1.2, 13);
+  const w = Math.sin(f / 9) * 1.2;
+  x.fillStyle = '#e8364b'; x.beginPath(); x.moveTo(px + 1.2, py - 12); x.quadraticCurveTo(px + 5, py - 11 + w, px + 9, py - 9.5); x.quadraticCurveTo(px + 5, py - 8 - w, px + 1.2, py - 7); x.closePath(); x.fill();
+  x.fillStyle = '#f6c445'; x.beginPath(); x.arc(px + 0.6, py - 12.5, 1.2, 0, 6.284); x.fill();
+}
+function wmPadlock(x, px, py) {
+  x.strokeStyle = '#c9c9d4'; x.lineWidth = 1.3; x.beginPath(); x.arc(px, py - 1.2, 2.4, Math.PI, 0); x.stroke();
+  x.fillStyle = '#c9c9d4'; x.fillRect(px - 3.4, py - 1.2, 6.8, 5); x.fillStyle = '#4a4f57'; x.fillRect(px - 0.6, py + 0.4, 1.2, 2);
+}
+function wmCrown(x, px, py, open) {
+  x.fillStyle = open ? '#e8364b' : '#727684'; x.strokeStyle = '#1b1220'; x.lineWidth = 0.8;
+  x.beginPath(); x.moveTo(px - 4.5, py); x.lineTo(px - 4.5, py - 4); x.lineTo(px - 2.2, py - 2); x.lineTo(px, py - 5); x.lineTo(px + 2.2, py - 2); x.lineTo(px + 4.5, py - 4); x.lineTo(px + 4.5, py); x.closePath(); x.fill(); x.stroke();
+  if (open) { x.fillStyle = '#f6c445'; x.fillRect(px - 0.6, py - 2.2, 1.2, 1.2); }
+}
+function wmLabel(x, text, tx, ty, size, color, align) {
+  x.font = 'bold ' + size + 'px "Pixelify Sans",monospace'; x.textAlign = align || 'left'; x.textBaseline = 'middle';
+  x.lineJoin = 'round'; x.lineWidth = 3; x.strokeStyle = 'rgba(12,13,28,.85)'; x.strokeText(text, tx, ty);
+  x.fillStyle = color || '#fff3b0'; x.fillText(text, tx, ty);
 }
 function wmapDrawSaskatoon() {
   const x = WM.x, f = WM.frame;
@@ -9986,7 +10028,23 @@ function wmapDrawSaskatoon() {
   /* the garage with Chenoa's art room */
   wmR(218, 130, 44, 52, '#c8bba0'); wmR(214, 126, 52, 6, '#6b3f18'); wmR(222, 136, 36, 40, '#f4f1e8');
   wmR(226, 144, 6, 10, '#ff4fa3'); wmR(234, 140, 6, 14, '#44c55a'); wmR(244, 146, 8, 8, '#3fa9f5');   /* paintings */
-  x.font = 'bold 7px "Pixelify Sans",monospace'; x.textAlign = 'left'; x.fillStyle = 'rgba(255,255,255,.75)'; x.fillText('SASKATOON', 328, 124);
+  /* the moon, drifting clouds, lit windows downtown, the river shining, trees on the bank, street lamps, the school clock */
+  x.fillStyle = '#fff3b0'; x.beginPath(); x.arc(232, 20, 8, 0, 6.284); x.fill();
+  x.fillStyle = '#2f2860'; x.beginPath(); x.arc(235.5, 18, 7, 0, 6.284); x.fill();
+  x.fillStyle = 'rgba(255,255,255,.10)';
+  for (let k = 0; k < 4; k++) { const cx = ((k * 120 + f * 0.08) % (WM_W + 80)) - 40, cy = 14 + k * 9; x.beginPath(); x.ellipse(cx, cy, 22, 5, 0, 0, 6.284); x.ellipse(cx + 12, cy - 3, 12, 4, 0, 0, 6.284); x.fill(); }
+  [[262, 18, 22], [292, 26, 30], [328, 14, 24], [404, 20, 18]].forEach(([bx, bw, bh], b) => {
+    for (let wy = 98 - bh + 4; wy < 96; wy += 5) for (let wx = bx + 3; wx < bx + bw - 2; wx += 5) if (((wx * 7 + wy * 3 + b) % 5) < 3) wmR(wx, wy, 2, 2, Math.floor((f / 50 + wx + wy) % 9) ? '#f6d77a' : '#8a7a5a');
+  });
+  for (let k = 0; k < 9; k++) { const sx = 248 + ((k * 47 + f * 0.4) % 184); wmR(sx, 108 + (k % 3) * 3, 6, 1, 'rgba(255,255,255,.55)'); }
+  [[300, 124], [314, 127]].forEach(([tx, ty]) => { wmR(tx - 1, ty, 2, 6, '#5a3a22'); x.fillStyle = '#2f7a43'; x.beginPath(); x.arc(tx, ty - 2, 6, 0, 6.284); x.fill(); x.fillStyle = '#3f9a55'; x.beginPath(); x.arc(tx - 2, ty - 4, 3.5, 0, 6.284); x.fill(); });
+  [296, 418].forEach((lx) => { wmR(lx, 196, 1.5, 14, '#9a9aa6'); wmR(lx - 2, 195, 5, 2, '#9a9aa6'); x.fillStyle = 'rgba(255,240,170,.85)'; x.beginPath(); x.arc(lx + 0.8, 197, 1.6, 0, 6.284); x.fill();
+    x.fillStyle = 'rgba(255,240,170,.12)'; x.beginPath(); x.moveTo(lx - 4, 210); x.lineTo(lx + 6, 210); x.lineTo(lx + 1, 198); x.closePath(); x.fill(); });
+  x.fillStyle = '#f4f1e8'; x.beginPath(); x.arc(361, 141, 4, 0, 6.284); x.fill(); x.strokeStyle = '#1b1220'; x.lineWidth = 0.8; x.stroke();
+  x.beginPath(); x.moveTo(361, 141); x.lineTo(361, 138.5); x.moveTo(361, 141); x.lineTo(363, 141.5); x.stroke();
+  wmR(176, 24, 8, 14, '#6b1a2c'); wmR(175, 22, 10, 3, '#4a1220');   /* the chimney */
+  for (let k = 0; k < 7; k++) wmR(10 + k * 30, 205, 2, 3, ['#ff6fae', '#f6c445', '#6fc8ff'][k % 3]);   /* flowers by the fence */
+  wmLabel(x, 'SASKATOON', 328, 124, 8, '#fff3b0');
 }
 function wmapDrawOilfield() {
   const x = WM.x, f = WM.frame;
@@ -10023,7 +10081,19 @@ function wmapDrawOilfield() {
   /* night shift lights and Dad's rig */
   for (let k = 0; k < 2; k++) { wmR(362 + k * 30, 140, 2, 34, '#9a9aa6'); x.fillStyle = 'rgba(255,240,170,' + (0.25 + 0.1 * Math.sin(f / 9 + k)) + ')'; x.beginPath(); x.moveTo(363 + k * 30, 140); x.lineTo(350 + k * 30, 190); x.lineTo(376 + k * 30, 190); x.closePath(); x.fill(); }
   wmR(388, 132, 30, 12, '#e8364b'); wmR(408, 128, 14, 8, '#e8364b'); wmR(410, 129, 8, 5, '#6fc8ff'); wmR(392, 144, 5, 4, '#1b1220'); wmR(412, 144, 5, 4, '#1b1220');
-  x.font = 'bold 7px "Pixelify Sans",monospace'; x.textAlign = 'left'; x.fillStyle = 'rgba(255,255,255,.75)'; x.fillText('NORTHERN ALBERTA', 150, 128);
+  /* morning clouds and birds, a drilling rig and a flare on the horizon, fence posts by the lease road */
+  x.fillStyle = 'rgba(255,255,255,.35)';
+  for (let k = 0; k < 3; k++) { const cx = 70 + k * 70 + Math.sin(f / 200 + k) * 6, cy = 26 + k * 10; x.beginPath(); x.ellipse(cx, cy, 18, 5, 0, 0, 6.284); x.ellipse(cx + 10, cy - 3, 10, 4, 0, 0, 6.284); x.fill(); }
+  x.strokeStyle = '#3a3f52'; x.lineWidth = 0.9;
+  for (let k = 0; k < 3; k++) { const bx = 110 + k * 16 + ((f * 0.3) % 60), by = 52 + k * 4; x.beginPath(); x.moveTo(bx - 3, by - 1.5); x.lineTo(bx, by); x.lineTo(bx + 3, by - 1.5); x.stroke(); }
+  x.strokeStyle = '#4a4f62'; x.lineWidth = 1; x.beginPath();   /* the drilling rig: a lattice tower */
+  x.moveTo(266, 140); x.lineTo(274, 92); x.lineTo(282, 140);
+  for (let k = 0; k < 5; k++) { const y0 = 140 - k * 10, y1 = y0 - 10, w0 = 8 - k * 1.6, w1 = w0 - 1.6; x.moveTo(274 - w0, y0); x.lineTo(274 + w1, y1); x.moveTo(274 + w0, y0); x.lineTo(274 - w1, y1); }
+  x.stroke(); wmR(271, 90, 6, 3, '#e8364b');
+  wmR(338, 104, 2, 36, '#6b6f7a');   /* the flare stack, flickering */
+  const fl = 4 + Math.sin(f / 4) * 1.5; x.fillStyle = '#ff8a3d'; x.beginPath(); x.ellipse(339, 102 - fl / 2, 2.6, fl, 0, 0, 6.284); x.fill(); x.fillStyle = '#fff3b0'; x.beginPath(); x.ellipse(339, 102.5 - fl / 3, 1.2, fl / 2, 0, 0, 6.284); x.fill();
+  for (let k = 0; k < 7; k++) { wmR(70 + k * 12, 226, 1.5, 7, '#7a5a3a'); } wmR(70, 228, 74, 1, '#9a7a5a');
+  wmLabel(x, 'NORTHERN ALBERTA', 150, 128, 8, '#fff3b0');
 }
 function wmapDrawCanada() {
   const x = WM.x, f = WM.frame;
@@ -10046,14 +10116,17 @@ function wmapDrawCanada() {
     const sd = t.side, tx2 = sd === 'l' || sd === 'tl' ? px - 7 : (sd === 'r' || sd === 'tr' ? px + 7 : px), ty2 = sd === 'b' ? py + 10 : (sd === 'tl' || sd === 'tr' ? py - 9 : py);
     x.textAlign = sd === 'l' || sd === 'tl' ? 'right' : (sd === 'r' || sd === 'tr' ? 'left' : 'center');
     const label = t.city;   /* locked cities show by their grey dot; the panel below says why */
-    x.lineWidth = 3; x.strokeStyle = 'rgba(12,14,30,.85)'; x.strokeText(label, tx2, ty2);   /* a dark outline so small names read */
+    x.lineJoin = 'round'; x.lineWidth = 3; x.strokeStyle = 'rgba(12,14,30,.85)'; x.strokeText(label, tx2, ty2);   /* a dark outline so small names read */
     x.fillStyle = open ? '#fff3b0' : 'rgba(255,255,255,.78)'; x.fillText(label, tx2, ty2);
   });
   /* Dad's truck where the trip is now */
   const cur = WM_TRIP[clamp(WM.world, 1, 11) - 1], tx = wmLon(cur.lon), ty = wmLat(cur.lat) - 12 + Math.round(Math.sin(f / 10));
   wmR(tx - 7, ty, 12, 5, '#e8364b'); wmR(tx + 2, ty - 3, 5, 4, '#e8364b'); wmR(tx + 3, ty - 2, 3, 2, '#6fc8ff'); wmR(tx - 5, ty + 5, 3, 2, '#1b1220'); wmR(tx + 2, ty + 5, 3, 2, '#1b1220');
-  x.textAlign = 'left'; x.font = 'bold 9px "Pixelify Sans",monospace'; x.fillStyle = '#f6c445'; x.fillText("KINAN'S BIG CANADA ROAD TRIP", 10, 12);
+  WM_TRIP.forEach((t) => { if (t.n <= WORLDS.length && !WORLDS[t.n - 1].soon && worldBeaten(t.n)) wmFlag(x, wmLon(t.lon) + 3, wmLat(t.lat) - 2, f + t.n * 9); });
+  wmLabel(x, "KINAN'S BIG CANADA ROAD TRIP", 10, 12, 9, '#f6c445');
 }
+/* each world's own map scene */
+const WM_SCENES = { 1: wmapDrawSaskatoon, 2: wmapDrawOilfield };
 /* the arrow keys and Enter work on the map too */
 function bindWorldMap() {
   document.addEventListener('keydown', (e) => {
