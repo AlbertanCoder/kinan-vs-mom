@@ -300,7 +300,10 @@ html.sideways .pad button.spec:not(:disabled){opacity:.92}
 .chatform{display:flex;gap:4px}.chatform input{flex:1;min-width:0;background:#0b0d1e;border:1px solid var(--panel2);border-radius:6px;color:var(--text);font:inherit;font-size:13px;padding:5px}
 .chatform button{background:var(--gold);color:var(--night);border:0;border-radius:6px;font:inherit;font-size:12px;font-weight:700;padding:5px 8px;cursor:pointer}
 .btools{position:absolute;left:0;right:0;top:0;bottom:0;z-index:6;display:flex;flex-direction:column;gap:3px;padding:4px;pointer-events:none}
-.btools .brow{display:flex;flex-wrap:wrap;gap:3px;align-items:center;pointer-events:auto}
+.btools .brow{display:flex;flex-wrap:wrap;gap:3px;align-items:center;pointer-events:none}
+.btools .brow > button,.btools .brow > select{pointer-events:auto}   /* the gaps between the buttons are the level: taps go through */
+.btools .bs{display:none}
+@media (max-height: 500px), (max-width: 500px) { .btools .bl{display:none} .btools .bs{display:inline;font-size:10px;margin-left:2px} .btools .btool{width:30px;height:30px;font-size:16px} }
 .btool{width:34px;height:34px;font-size:18px;border-radius:8px;background:rgba(20,22,43,.78);border:2px solid var(--panel2);color:var(--text);cursor:pointer;padding:0}.btool.on{border-color:var(--gold);background:rgba(246,196,69,.28)}
 .bopt{min-height:30px;padding:3px 8px;border-radius:7px;background:rgba(20,22,43,.82);border:2px solid var(--panel2);color:var(--text);font:inherit;font-size:12px;cursor:pointer}.bopt.on{border-color:var(--gold)}.bopt.go{background:var(--gold);color:var(--night);font-weight:700}
 .btools select{min-height:30px;border-radius:7px;background:rgba(20,22,43,.9);color:var(--text);border:2px solid var(--panel2);font:inherit;font-size:12px;max-width:150px}
@@ -488,7 +491,7 @@ function haptic(ms) { if (navigator.vibrate) { try { navigator.vibrate(ms); } ca
 const dist = (x1, y1, x2, y2) => Math.hypot(x1 - x2, y1 - y2);
 const store = {
   get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
-  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* private mode */ } }
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e) { return false; } }   /* false: private mode, or the device is out of room */
 };
 const reduced = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
 
@@ -1175,6 +1178,7 @@ function build(i) {
   while (h < GROUND) { h++; flat(2); }
   while (h > GROUND) { h--; flat(2); }
   flat(6);
+  col(x, GROUND);   /* the runway goes right up to the arena: no one-square hole in front of it */
   const arenaX = x + 1;
   for (let k = 0; k < arenaW + 3; k++) col(arenaX + k, GROUND);
   for (let y = 0; y < GROUND; y++) set(arenaX + arenaW, y, 5);
@@ -1230,7 +1234,13 @@ function loadProgress() {
   return out;
 }
 let progress = loadProgress();
-const save = () => store.set(SAVE_KEY, progress);
+let saveWarnAt = 0;
+/* a save that doesn't fit (the device is out of room) says so, at most every 30 s, instead of failing quietly */
+const save = () => {
+  if (store.set(SAVE_KEY, progress)) return true;
+  if (Date.now() - saveWarnAt > 30000) { saveWarnAt = Date.now(); toast('This device is out of room, so the game could not save! Delete a homemade level or two to make room.', 4200); }
+  return false;
+};
 
 let L = null, P = null;
 let foes = [], shots = [], blasts = [], allyShots = [], bosses = [], allies = [], items = [];
@@ -2712,9 +2722,9 @@ function updateCamera() {
   if (boss !== 'off' && L.arenaX < L.w) lo = L.arenaX * T;
   target = clamp(target, lo, hi);
   camX = clamp(Math.round(target), lo, hi);
-  /* a tall homemade level: follow Kinan up and down (a boss fight happens on the bottom screen) */
+  /* a tall homemade level: follow Kinan up and down, in a boss fight too */
   if (L.up) {
-    const ty = boss === 'intro' || boss === 'fight' ? 0 : clamp(P.y + P.h / 2 - H * 0.55, -L.up * T, 0);
+    const ty = clamp(P.y + P.h / 2 - H * 0.55, -L.up * T, 0);
     camY += (ty - camY) * 0.2;
     if (Math.abs(ty - camY) < 0.5) camY = ty;
   } else camY = 0;
@@ -2754,9 +2764,10 @@ function update() {
   updateShots();
   updatePets();
   if (L.custom && boss === 'off' && L.goalBox && overlap(P, L.goalBox)) { customGoal(); return; }   /* your own level: touch the flag */
-  if (boss === 'off' && P.x > (L.arenaX + 3) * T) { startBoss(); return; }
+  if (boss === 'off' && P.x > (L.arenaX + 3) * T && (!L.up || P.y > (GROUND - 7) * T)) { startBoss(); return; }   /* a tall level of his own: from down at the arena, not from a walkway up high */
   if (boss === 'fight') {
     for (const b of bosses) if (!b.out) { bossAI(b); bossContact(b); }
+    if (L.custom) bossFell();
     updateAllies();
   } else if (boss === 'done') {
     updateAllies();
@@ -8010,31 +8021,31 @@ function kartRestart() {
    BUILDER MODE — Kinan builds his own levels from the game's own blocks, gift blocks, trampolines, shelves, coins
    and enemies, then plays them. Piece 2 of Shad's Builder plan (answers 7, 9 and 20-24, 2026-10-20): long and tall
    levels (up to 4 story stages long, 3 screens tall), paint / fill / copy / undo / zoom out, play from the spot you
-   are looking at with an "I can't get hurt" switch, start from a copy of any story stage, up to 50 levels in
-   folders with little pictures, a mix-and-match look, a guided first build and a ❓ for every tool.
+   are looking at with an "I can't get hurt" switch, start from a copy of a story stage he has reached, up to 50
+   levels in folders with little pictures, a mix-and-match look, a guided first build and a ❓ for every tool.
    Tall levels grow upward: the bottom screen keeps the story's rows 0-14 and the extra screens are rows -1 to -30,
    so the stage code (the ground, bosses, falling off the bottom) works the same. Coins in your own levels do not
    go to the Party Shop.
    ============================================================ */
 const BTOOLS = [
-  { id: 'ground', icon: '🟫', name: 'Ground', tile: 1, help: 'The ground you walk on. Tap to put one down, or drag your finger to paint lots at once.' },
-  { id: 'brick', icon: '🧱', name: 'Bricks', tile: 2, help: 'Solid blocks. Stand on them or bump them with your head. Drag to paint a wall, a bridge or a tower.' },
-  { id: 'gift', icon: '🎁', name: 'Gift block', tile: 3, help: 'Bump it from below and something pops out. Tap a gift block again to change what is inside: a coin, a Party Popper, cake or a heart.' },
-  { id: 'shelf', icon: '➖', name: 'Shelf', tile: 7, help: 'You can jump up through a shelf from below and land on top. Great for climbing up high.' },
-  { id: 'spring', icon: '🔵', name: 'Trampoline', tile: 6, help: 'Land on it and BOING: you fly up high!' },
+  { id: 'ground', icon: '🟫', name: 'Ground', tile: 1, what: 'ground', help: 'The ground you walk on. Tap to put one down, or drag your finger to paint lots at once.' },
+  { id: 'brick', icon: '🧱', name: 'Bricks', tile: 2, what: 'bricks', help: 'Solid blocks. Stand on them or bump them with your head. Drag to paint a wall, a bridge or a tower.' },
+  { id: 'gift', icon: '🎁', name: 'Gift block', tile: 3, what: 'gift blocks', help: 'Bump it from below and something pops out. Tap a gift block again to change what is inside: a coin, a Party Popper, cake or a heart.' },
+  { id: 'shelf', icon: '➖', name: 'Shelf', tile: 7, what: 'a shelf', help: 'You can jump up through a shelf from below and land on top. Great for climbing up high.' },
+  { id: 'spring', icon: '🔵', name: 'Trampoline', tile: 6, what: 'a trampoline', help: 'Land on it and BOING: you fly up high!' },
   { id: 'candle', icon: '<i class="coin-ico lg"></i>', name: 'Coin', help: 'Tap or drag to put coins anywhere in the air. Can you grab them all?' },
-  { id: 'foe', icon: '👾', name: 'Enemy', help: 'Pick an enemy in the row under the tools, then tap where it should stand. Flying ones float a little higher. Up to 40.' },
-  { id: 'start', icon: '🧒', name: 'Start', help: 'Tap where Kinan starts the level.' },
+  { id: 'foe', icon: '👾', name: 'Enemy', help: 'Pick an enemy in the row under the tools, then tap where it should go. Tap a block and it stands on top. Flying ones float a little higher. Up to 40.' },
+  { id: 'start', icon: '🧒', name: 'Start', help: 'Tap where Kinan starts the level. Tap a block and he starts on top of it.' },
   { id: 'goal', icon: '🚩', name: 'Finish flag', help: 'Tap where the level ends. Touch the flag to win!' },
   { id: 'erase', icon: '🧽', name: 'Eraser', help: 'Tap or drag to wipe away blocks, coins and enemies. Tap a boss sign or a checkpoint flag to take it away. Oops? ↩ brings it back.' },
   { id: 'fill', icon: '🪣', name: 'Fill', help: 'Pick a block in the row under the tools, then tap inside a space that is closed in all around to fill it at once. Tap a block to change every block joined to it.' },
-  { id: 'copy', icon: '✂️', name: 'Copy and paste', help: 'Drag a box around part of your level to copy it. Then tap anywhere to paste it, as many times as you like.' },
-  { id: 'move', icon: '✋', name: 'Scroll', help: 'Drag the level to look around: left and right, and up and down on a tall level. The arrow buttons scroll too.' }
+  { id: 'copy', icon: '✂️', name: 'Copy and paste', help: 'Drag a box around part of your level to copy it (up to 40 squares across). Then tap anywhere to paste it, as many times as you like.' },
+  { id: 'move', icon: '✋', name: 'Scroll', help: 'Drag the level to look around. The ◀ ▶ ▲ ▼ buttons scroll too, so you can bring any part out from under the buttons.' }
 ];
 /* the buttons along the bottom get a ❓ page too */
 const BHELP_MORE = [
-  { icon: '↩', name: 'Undo and redo', help: '↩ takes back the last thing you did. ↪ puts it back again.' },
-  { icon: '🔍', name: 'Zoom', help: 'See more of your level at once. Tap 🔍 again to zoom out more, and once more to come back. When the whole level is showing, tap a spot to jump there.' },
+  { icon: '↩', name: 'Undo and redo', help: '↩ takes back the last thing you did. ↪ puts it back again. They still work after you try your level.' },
+  { icon: '🔍', name: 'Zoom', help: 'See more of your level at once: each tap on 🔍 zooms out more. On a long level the last step is a map of the whole level: tap a spot on it to jump there. One more tap comes back.' },
   { icon: '🎨', name: 'Look', help: 'Mix and match: the background, the ground, the song and the time of day.' },
   { icon: '📏', name: 'Size', help: 'Make your level longer or shorter, and up to 3 screens tall.' },
   { icon: '🛡', name: "Can't get hurt", help: 'Turn it on to try out your level without losing any hearts.' },
@@ -8055,7 +8066,12 @@ const BTIMES = [['own', "The scene's own"], ['dawn', 'Sunrise', ['#4a3a8a', '#ff
 const BOUTSIDE = ['outdoor', 'school', 'prairie', 'camp', 'dig', 'oilfield', 'truckyard', 'night', 'storm'];
 let builder = null;   /* the level editor, while it is open */
 let bFolder = 'work';  /* which folder the Builder menu shows */
+let bSession = null;   /* the last editor: its undo steps, copied chunk, tool and zoom outlast a test play (not saved) */
+let bGoalTimer = 0;    /* the "You beat it!" screen, due 0.7 s after the flag */
+let bFree = { top: 0, bot: H };   /* the rows of the picture the toolbars don't cover (picture units, 0-240) */
 function themesOpen() { const out = []; for (let i = 0; i < LV.length; i++) if (i <= 10 || worldOpen(2)) out.push(i); return out; }
+/* story stages to copy: only ones he has reached, so a copy can't spoil a later boss or the ending */
+function copyableStages() { return themesOpen().filter((i) => i < progress.unlocked); }
 /* ---- the saved form: the grid is stored as runs ("~" + tile + count in base 36, joined by "."), because a level is
    mostly sky and ground; levels saved before 2026-10-21 are one digit per cell, one screen tall ---- */
 function gridPack(g) {
@@ -8110,7 +8126,9 @@ function customTheme(b) {
   const th = Object.assign({}, LV[bg], { ground: LV[gs].ground, top: LV[gs].top, brick: LV[gs].brick, tileBg: LV[gs].bg, bgI: bg, skyKey: bg });
   const tm = BTIMES.filter((x) => x[0] === lk.time)[0];
   if (tm && tm[2]) {
-    th.tod = tm[0] === 'day' ? 'morning' : tm[0]; th.tint = tm[3]; th.skyKey = bg + '-' + tm[0];
+    /* a bedroom window only knows sunrise, morning and night: a sunset there looks like the sunrise */
+    th.tod = tm[0] === 'day' ? 'morning' : (tm[0] === 'sunset' && th.bg === 'room' ? 'dawn' : tm[0]);
+    th.tint = tm[3]; th.skyKey = bg + '-' + tm[0];
     if (BOUTSIDE.indexOf(th.bg) >= 0) th.sky = tm[2];
   }
   return th;
@@ -8121,12 +8139,14 @@ function newBuild(size) {
   return { name: bFreeName('My level', true), theme: 0, w: w, h: ROWS, g: gridPack(g), candles: [], foes: [], gifts: {}, start: [2, GROUND - 1], goal: [w - 4, GROUND - 1],
     folder: 'work', look: { bg: 0, ground: 0, song: 'stage', time: 'own' } };
 }
-/* a copy of a story stage to change: blocks, gifts, coins, enemies, the checkpoint and the boss (answer 22) */
+/* a copy of a story stage to change: blocks, gifts, coins, enemies, the checkpoint and the boss (answer 22). The
+   story's ground past the arena's far wall can never be reached or seen, so the copy stops there. */
 function copyStage(i) {
-  const S = build(i), d = LV[i].boss;
-  const b = { name: bFreeName(LV[i].place, false), theme: i, w: S.w, h: ROWS, g: gridPack(S.g), gifts: Object.assign({}, S.gifts),
-    candles: S.candles.map((c) => [c.tx, c.ty]),
-    foes: S.foes.map((f) => [f.tx, FOE[f.type].beh === 'flyer' ? f.ty + 2 : f.ty, f.type]),   /* flyers are kept 2 rows under where they fly, like the ones you place */
+  const S = build(i), d = LV[i].boss, w = Math.min(S.w, S.arenaX + 31), g = new Uint8Array(w * ROWS), gifts = {};
+  for (let y = 0; y < ROWS; y++) for (let x = 0; x < w; x++) { g[y * w + x] = S.g[y * S.w + x]; if (S.gifts[y * S.w + x]) gifts[y * w + x] = S.gifts[y * S.w + x]; }
+  const b = { name: bFreeName(LV[i].place, false), theme: i, w: w, h: ROWS, g: gridPack(g), gifts: gifts,
+    candles: S.candles.filter((c) => c.tx < w).map((c) => [c.tx, c.ty]),
+    foes: S.foes.filter((f) => f.tx < w).map((f) => [f.tx, FOE[f.type].beh === 'flyer' ? f.ty + 2 : f.ty, f.type]),   /* flyers are kept 2 rows under where they fly, like the ones you place */
     start: [2, GROUND - 1], goal: null, folder: 'work', from: i,
     look: { bg: i, ground: i, song: LV[i].final || LV[i].final2 ? 'final' : 'stage', time: 'own' } };
   if (S.checkpoint) b.checkpoint = [S.checkpoint.tx, S.checkpoint.ty];
@@ -8151,9 +8171,11 @@ function buildCustom(b, from) {
     custom: true, src: b, startT: from || b.start, th: customTheme(b), song: song
   };
 }
-/* opts: { from: [tx, ty] to start somewhere else, safe: can't get hurt, editor: started from the editor (🔨 goes back) } */
+/* opts: { from: [tx, ty] to start somewhere else, safe: can't get hurt, editor: started from the editor (🔨 goes back),
+   note: a line to add to the start message } */
 function playCustom(b, opts) {
   opts = opts || {};
+  clearTimeout(bGoalTimer);
   AudioSys.init();
   builder = null;
   $('#btools').hidden = true; el.stage.classList.remove('buildmode'); bPanelClose();
@@ -8161,16 +8183,21 @@ function playCustom(b, opts) {
   const C = buildCustom(b, opts.from);
   C.noHurt = !!opts.safe; C.opts = opts;
   startStage(C.i, true, C);
+  /* ▶ Here from past a checkpoint: it counts as passed, quietly, and a fall brings him back to where he started */
+  if (opts.from && L.checkpoint && opts.from[0] * T >= L.checkpoint.x) cpHit = true;
   running = true; run(); draw();
   paused = false; last = 0; acc = 0;
-  toast('<b>' + escAttr(b.name) + '</b> · ' + (C.hasBoss && !b.goal ? 'beat the boss!' : 'get to the 🚩!') + (C.noHurt ? ' · 🛡 you can\'t get hurt' : '') + (opts.note ? '<br>' + opts.note : ''), opts.note ? 3400 : 2000);
+  const aim = C.hasBoss ? (b.goal ? 'beat the boss, or get to the 🚩!' : 'beat the boss!') : 'get to the 🚩!';
+  toast('<b>' + escAttr(b.name) + '</b> · ' + aim + (C.noHurt ? ' · 🛡 you can\'t get hurt' : '') + (opts.note ? '<br>' + opts.note : ''), opts.note ? 3400 : 2000);
 }
 /* reaching the flag (or beating a copied stage's boss) in your own level */
 function customGoal() {
   boss = 'done'; paused = true;
+  $('#bBackBtn').hidden = true;   /* the level is over: 🔨 would only be undone by the "You beat it!" screen */
   SFX.win(); sparks(P.x + 5, P.y, 16, ['#f6c445', '#fff', '#ff6fae']);
   const b = L.src, t = stageTime, c = got, all = totalCandles, opts = L.opts || {}, view = { cam: camX, camY: camY };
-  setTimeout(() => {
+  clearTimeout(bGoalTimer);
+  bGoalTimer = setTimeout(() => {
     showScreen(
       '<p class="eyebrow">Builder mode · your own level</p>' +
       '<h1 class="title"><span class="t1">You beat it!</span><span class="t2">' + escAttr(b.name) + '</span></h1>' +
@@ -8225,7 +8252,7 @@ function builderMenu() {
   $('#btools').hidden = true; bPanelClose();
   Music.play('title');
   el.stageLbl.textContent = 'BUILDER MODE';
-  const all = progress.builds || [], list = all.filter((b) => (b.folder || 'work') === bFolder), full = all.length >= BMAXN;
+  const all = progress.builds || [], list = all.filter((b) => (b.folder || 'work') === bFolder), full = all.length >= BMAXN, practice = all.filter((b) => b.practice)[0];
   showScreen(
     '<p class="eyebrow">Builder mode · make your own levels</p>' +
     '<h1 class="title"><span class="t1">Builder</span><span class="t2">Build it. Play it. Make it harder.</span></h1>' +
@@ -8236,14 +8263,14 @@ function builderMenu() {
         '<input class="bname" data-k="' + k + '" maxlength="24" value="' + escAttr(b.name) + '" aria-label="Level name">' +
         '<span class="tiny">' + escAttr(LV[b.theme].place) + ' · ' + bSizeName(b) + '</span>' +
         '<span class="bcardbtns"><button class="btn small go" type="button" data-play="' + k + '">▶ Play</button> <button class="btn small" type="button" data-edit="' + k + '">🔨 Build</button> ' +
-        '<button class="btn small" type="button" data-move="' + k + '">' + (bFolder === 'done' ? '↩ Working on it' : '✅ Finished') + '</button> <button class="btn small ghost" type="button" data-del="' + k + '">Delete</button></span></li>';
+        '<button class="btn small" type="button" data-move="' + k + '">' + (bFolder === 'done' ? '↩ Move to Working on it' : '✅ Move to Finished') + '</button> <button class="btn small ghost" type="button" data-del="' + k + '">Delete</button></span></li>';
     }).join('') + '</ul>'
-      : '<p class="tiny">' + (bFolder === 'done' ? 'No finished levels yet. When a level is ready, press ✅ Finished on it.' : (all.length ? 'Nothing in here right now.' : 'No levels yet. Make your first one!')) + '</p>') +
+      : '<p class="tiny">' + (bFolder === 'done' ? 'No finished levels yet. When a level is ready, press ✅ Move to Finished on it.' : (all.length ? 'Nothing in here right now.' : 'No levels yet. Make your first one!')) + '</p>') +
     (full ? '<p class="tiny">' + BMAXN + ' levels is the most: delete one to make another.</p>'
       : '<p class="tiny"><b>New level:</b> ' + BSIZE_NAMES.map((s) => '<button class="btn small' + (s[0] === 'medium' ? ' go' : '') + '" type="button" data-new="' + s[0] + '">' + s[1] + '</button>').join(' ') + '</p>' +
-        '<p class="tiny"><b>Or copy a story stage:</b> <select id="bCopyPick" aria-label="Story stage to copy">' + themesOpen().map((i) => '<option value="' + i + '">' + escAttr(stageName(i) + ' · ' + LV[i].place) + '</option>').join('') +
+        '<p class="tiny"><b>Or copy a story stage you have reached:</b> <select id="bCopyPick" aria-label="Story stage to copy">' + copyableStages().map((i) => '<option value="' + i + '">' + escAttr(stageName(i) + ' · ' + LV[i].place) + '</option>').join('') +
         '</select> <button class="btn small" type="button" id="bCopyGo">Copy it</button></p>') +
-    '<p class="tiny">' + all.length + ' of ' + BMAXN + ' levels' + (full ? '' : ' · <button class="btn small ghost" type="button" id="bTourGo">🎓 Show me how</button>') + '</p>' +
+    '<p class="tiny">' + all.length + ' of ' + BMAXN + ' levels' + (full && !practice ? '' : ' · <button class="btn small ghost" type="button" id="bTourGo">🎓 Show me how</button>') + '</p>' +
     '<div class="btnrow"><button class="btn ghost" id="bBack" type="button">Title screen</button></div>'
   );
   $$('canvas[data-thumb]', el.screen).forEach((c) => bThumb(c, all[Number(c.dataset.thumb)]));
@@ -8253,10 +8280,15 @@ function builderMenu() {
   if (cg) cg.addEventListener('click', () => {
     AudioSys.init(); SFX.click();
     const b = copyStage(Number($('#bCopyPick').value)); saveBuild(b); bFolder = 'work'; editBuild(b);
-    toast('A copy of <b>' + escAttr(LV[b.from].place) + '</b>: enemies, boss and all. Change anything you like!', 2800);
+    toast('A copy of <b>' + escAttr(LV[b.from].place) + '</b>: ' + (b.boss != null ? 'enemies, boss and all' : 'enemies, coins and all') + '. Change anything you like!', 2800);
   });
   const tg = $('#bTourGo');
-  if (tg) tg.addEventListener('click', () => { AudioSys.init(); SFX.click(); progress.bTour = 0; const b = newBuild('short'); saveBuild(b); bFolder = 'work'; editBuild(b); });
+  if (tg) tg.addEventListener('click', () => {   /* the guide runs in one practice level, used again each time */
+    AudioSys.init(); SFX.click(); progress.bTour = 0;
+    let b = practice;
+    if (!b) { b = newBuild('short'); b.name = bFreeName('Practice level', false); b.practice = true; saveBuild(b); }
+    bFolder = b.folder || 'work'; editBuild(b);
+  });
   $$('[data-play]', el.screen).forEach((x) => x.addEventListener('click', () => { SFX.click(); playCustom(all[Number(x.dataset.play)]); }));
   $$('[data-edit]', el.screen).forEach((x) => x.addEventListener('click', () => { SFX.click(); editBuild(all[Number(x.dataset.edit)]); }));
   $$('[data-move]', el.screen).forEach((x) => x.addEventListener('click', () => {
@@ -8272,9 +8304,18 @@ function builderMenu() {
   $$('.bname', el.screen).forEach((inp) => inp.addEventListener('change', () => { const b = all[Number(inp.dataset.k)]; if (b) { b.name = inp.value.trim().slice(0, 24) || b.name; save(); } }));
   $('#bBack').addEventListener('click', () => { SFX.click(); titleScreen(); });
 }
+/* a boss that walks into a hole dug in a copied stage's arena is out (the story's own arenas can't be dug) */
+function bossFell() {
+  let fell = false;
+  for (const b of bosses) if (!b.out && b.y > H + 30) { b.hp = 0; b.out = true; fell = true; toast('<b>' + bossName(b) + '</b> fell in your hole! 🕳️', 2000); }
+  if (!fell) return;
+  updateBossHud();
+  if (bosses.every((o) => o.out)) bossDefeated();
+}
 /* ---- the editor ---- */
 function editBuild(b, view) {
   AudioSys.init();
+  clearTimeout(bGoalTimer);
   if (kart) endKart();
   /* coming back from a test play: drop anything the stage left open */
   stopTyping(false);
@@ -8284,18 +8325,21 @@ function editBuild(b, view) {
   showGame(true);
   el.pad.hidden = true; $('#bBackBtn').hidden = true;
   const g = gridUnpack(b.g, b.w * bRows(b)) || new Uint8Array(b.w * bRows(b));
-  builder = { b: b, g: g, tool: 'ground', block: 'ground', foe: (LV[b.theme].foes || ['sock'])[0], cam: 0, camY: 0, zoom: 1, zoomFit: false,
-    down: false, last: '', changed: false, pushed: false, undo: [], redo: [], sel: null, clip: null, hover: null, tour: null };
+  const keep = bSession && bSession.b === b ? bSession : null, foes0 = LV[b.theme].foes || ['sock'];
+  builder = { b: b, g: g, tool: keep ? keep.tool : 'ground', block: keep ? keep.block : 'ground', foe: keep && foes0.indexOf(keep.foe) >= 0 ? keep.foe : foes0[0],
+    cam: 0, camY: 0, zoom: keep ? keep.zoom : 1, map: false, mapM: null, down: false, last: '', lastT: null, changed: false, pushed: false,
+    undo: keep ? keep.undo : [], redo: keep ? keep.redo : [], sel: null, clip: keep ? keep.clip : null, hover: null, tour: null };
+  bSession = builder;
   bSyncL();
   P = null; foes = []; candles = []; items = []; bosses = []; shots = []; pets = { cats: [], dogs: [] }; dad = null; bro = null; crate = null; pieces = []; puzzle = null;
   boss = 'off'; camX = 0; camY = 0; paused = false;
   el.stageLbl.textContent = 'BUILDER · ' + b.name.toUpperCase();
   el.hearts.innerHTML = ''; el.cnt.hidden = true; el.scoreEl.hidden = true; el.petStat.hidden = true; el.pauseBtn.hidden = true;
-  if (view) { builder.cam = view.cam; builder.camY = view.camY; }
-  bClampCam();
   el.stage.classList.add('buildmode');
   if (!progress.bTour) builder.tour = { step: 0, n: 0 };
-  builderToolbar();
+  builderToolbar();   /* also measures what the toolbars cover */
+  if (view) { builder.cam = view.cam; builder.camY = view.camY; } else builder.camY = 1e9;   /* new to it: the ground in full view, above the bottom buttons */
+  bClampCam();
   Music.play('title');
   running = true; run(); draw();
   if (!builder.tour) toast('Pick a tool at the top, then tap or drag on the level. <b>▶ Play</b> to try it!', 2600);
@@ -8304,23 +8348,92 @@ function editBuild(b, view) {
 function bSyncL() {
   const B = builder, b = B.b;
   L = { i: b.theme, g: B.g, w: b.w, up: bUp(b), foes: [], candles: [], gifts: {}, checkpoint: null, petSpot: null, arenaX: b.w, arenaW: 1, len: b.w, builder: true, th: customTheme(b) };
+  B.mapM = null;
 }
+/* what the toolbars cover, in picture units: offsetTop and offsetHeight are layout sizes, so this is the same when
+   the stage is drawn turned on an upright phone */
+function bMeasureFree() {
+  const bt = $('#btools'), ch = cv.offsetHeight || 1, u = H / ch, y0 = cv.offsetTop, base = bt.offsetTop;
+  let top = 0, bot = H;
+  $$('.brow', bt).forEach((r) => {
+    const a = (base + r.offsetTop - y0) * u, z = (base + r.offsetTop + r.offsetHeight - y0) * u;
+    if (r.classList.contains('bbot')) bot = Math.min(bot, a); else top = Math.max(top, z);
+  });
+  bFree = { top: clamp(Math.round(top), 0, H * 0.45), bot: clamp(Math.round(bot), H * 0.55, H) };
+}
+/* any row of the level can be scrolled clear of the toolbars; a level smaller than the free space sits in its middle */
 function bClampCam() {
-  const B = builder, vw = W / B.zoom, vh = H / B.zoom, hi = ROWS * T - vh;
+  const B = builder, z = B.zoom, vw = W / z, up = bUp(B.b);
   B.cam = clamp(B.cam, 0, Math.max(0, B.b.w * T - vw));
-  B.camY = clamp(B.camY, Math.min(-bUp(B.b) * T, hi), hi);   /* a level shorter than the view sits at the bottom */
+  const lo = -up * T - bFree.top / z, hi = ROWS * T - bFree.bot / z;
+  B.camY = lo <= hi ? clamp(B.camY, lo, hi) : (lo + hi) / 2;
 }
-function bZoomLevels() { const fit = W / (builder.b.w * T); return fit < 0.25 ? [1, 0.5, 0.25, fit] : [1, 0.5, 0.25]; }
-function bZoomName() { const z = builder.zoom; return z === 1 ? '' : z === 0.5 ? '½' : z === 0.25 ? '¼' : 'all'; }
+function bNeedsMap() { const b = builder.b; return b.w * T * 0.25 > W || bRows(b) * T * 0.25 > bFree.bot - bFree.top; }
+function bZoomName() { const B = builder; return B.map ? 'all' : (B.zoom === 1 ? '' : B.zoom === 0.5 ? '½' : '¼'); }
 function bZoomTo(nz, at) {
   const B = builder, z = B.zoom;
   const cx = at ? at.tx * T + T / 2 : B.cam + W / z / 2, cy = at ? at.ty * T + T / 2 : B.camY + H / z / 2;
-  B.zoom = nz; B.zoomFit = nz < 0.25;
+  B.map = false; B.zoom = nz;
   B.cam = cx - W / nz / 2; B.camY = cy - H / nz / 2;
-  bClampCam(); builderToolbar();
-  if (B.zoomFit) toast('The whole level! Tap a spot to jump there.', 1800);
+  builderToolbar(); bClampCam();
 }
-function bZoom() { const zs = bZoomLevels(), k = zs.indexOf(builder.zoom); SFX.click(); bZoomTo(zs[(k + 1) % zs.length]); }
+/* 🔍: 1 -> ½ -> ¼ -> (a long or tall level) the whole-level map -> 1 */
+function bZoom() {
+  const B = builder;
+  SFX.click();
+  if (B.map) { bZoomTo(1); return; }
+  if (B.zoom === 1) bZoomTo(0.5);
+  else if (B.zoom === 0.5) bZoomTo(0.25);
+  else if (bNeedsMap()) { B.map = true; B.mapM = null; builderToolbar(); toast('Your whole level! Tap a spot to jump there.', 2200); }
+  else bZoomTo(1);
+}
+/* the whole-level map: the level cut into strips, like lines of a book, as big as the free space allows */
+function bMapLayout() {
+  const b = builder.b, rows = bRows(b), fh = bFree.bot - bFree.top - 8, gap = 5;
+  let best = null;
+  for (let n = 1; n <= 16; n++) {
+    const cols = Math.ceil(b.w / n), s = Math.min(W / (cols * T), (fh - gap * (n - 1)) / (n * rows * T));
+    if (s > 0 && (!best || s > best.s)) best = { n: n, cols: cols, s: s };
+  }
+  best.stripH = rows * T * best.s; best.gap = gap;
+  best.y0 = bFree.top + 4 + Math.max(0, (fh - best.n * best.stripH - gap * (best.n - 1)) / 2);
+  return best;
+}
+function bMapDraw() {   /* drawn once into its own picture, and again only after a change */
+  const B = builder, b = B.b, rows = bRows(b), up = rows - ROWS, M = bMapLayout(), th = L.th, s = M.s * T;
+  const c = document.createElement('canvas'); c.width = W; c.height = H;
+  const x = c.getContext('2d'), col = { 1: th.ground, 2: th.brick, 3: '#d92b45', 4: '#4a4038', 5: '#242642', 6: '#3fa9f5', 7: '#a9743f' };
+  const at = (tx) => { const k = Math.floor(tx / M.cols); return { x: (tx - k * M.cols) * s, y: M.y0 + k * (M.stripH + M.gap) }; };
+  for (let k = 0; k < M.n && k * M.cols < b.w; k++) {
+    const x0 = k * M.cols, x1 = Math.min(b.w, x0 + M.cols), oy = M.y0 + k * (M.stripH + M.gap);
+    const sky = x.createLinearGradient(0, oy, 0, oy + M.stripH);
+    sky.addColorStop(0, th.sky[0]); sky.addColorStop(1, th.sky[1]);
+    x.fillStyle = sky; x.fillRect(0, oy, (x1 - x0) * s, M.stripH);
+    for (let r = 0; r < rows; r++) for (let tx = x0; tx < x1; tx++) {
+      const t = B.g[r * b.w + tx];
+      if (!t) continue;
+      x.fillStyle = t === 1 && (r === 0 || !B.g[(r - 1) * b.w + tx]) ? th.top : (col[t] || '#888');
+      x.fillRect((tx - x0) * s, oy + r * s, Math.ceil(s), Math.ceil(s));
+    }
+    x.strokeStyle = 'rgba(255,255,255,.5)'; x.lineWidth = 1; x.strokeRect(0.5, oy - 0.5, (x1 - x0) * s - 1, M.stripH + 1);
+  }
+  const dot = (tx, ty, color, big) => { const p = at(tx), d = Math.max(big ? 3 : 2, s * (big ? 1.6 : 0.8)); x.fillStyle = color; x.fillRect(p.x + (s - d) / 2, p.y + (ty + up) * s + (s - d) / 2, d, d); };
+  b.candles.forEach((cn) => dot(cn[0], cn[1], '#f6c445'));
+  b.foes.forEach((f) => dot(f[0], f[1], '#b04de0', true));
+  if (b.boss != null) dot(b.bossAt + 13, GROUND - 2, '#ff2d55', true);
+  if (b.goal) dot(b.goal[0], b.goal[1], '#ff3b5c', true);
+  dot(b.start[0], b.start[1], '#7fd6ff', true);
+  M.cv = c;
+  return M;
+}
+function bMapTile(lx, ly) {
+  const M = builder.mapM, b = builder.b;
+  if (!M) return null;
+  const k = Math.floor((ly - M.y0) / (M.stripH + M.gap)), ry = ly - M.y0 - k * (M.stripH + M.gap), s = M.s * T;
+  const tx = k * M.cols + Math.floor(lx / s);
+  if (k < 0 || k >= M.n || ry < 0 || ry > M.stripH || tx < 0 || tx >= b.w) return null;
+  return { tx: tx, ty: Math.floor(ry / s) - bUp(b) };
+}
 /* ---- undo / redo: a copy of the level before each change (the last 60) ---- */
 function bSnap() {
   const B = builder, b = B.b;
@@ -8338,33 +8451,35 @@ function bRestore(s) {
 }
 function bUndo() { const B = builder; if (!B || !B.undo.length) return; B.redo.push(bSnap()); bRestore(B.undo.pop()); SFX.pop(); }
 function bRedo() { const B = builder; if (!B || !B.redo.length) return; B.undo.push(bSnap()); bRestore(B.redo.pop()); SFX.click(); }
-/* ---- the toolbar: tools along the top, what the tool can do under them, and the big buttons along the bottom ---- */
+/* ---- the toolbar: tools along the top, what the tool can do under them, and the big buttons along the bottom.
+   On a small screen the bottom buttons show only their pictures (.bl words hidden, .bs short words shown). ---- */
 function builderToolbar() {
   const B = builder, bt = $('#btools');
   if (!B) return;
   bt.hidden = false;
-  const tool = BTOOLS.filter((t) => t.id === B.tool)[0], tall = bRows(B.b) > ROWS;
+  const tool = BTOOLS.filter((t) => t.id === B.tool)[0];
   let opts = '';
   if (B.tool === 'foe') opts = (LV[B.b.theme].foes || []).map((f) => '<button type="button" class="bopt' + (B.foe === f ? ' on' : '') + '" data-foe="' + f + '">' + f + '</button>').join('');
   else if (B.tool === 'gift') opts = '<span class="bhint">tap a gift block again to change what is inside: <i class="coin-ico"></i>🎉 🍰 ❤</span>';
   else if (B.tool === 'fill') opts = '<span class="bhint">fill with:</span>' + BBLOCKS.map((id) => { const t = BTOOLS.filter((x) => x.id === id)[0]; return '<button type="button" class="bopt' + (B.block === id ? ' on' : '') + '" data-block="' + id + '" aria-label="' + t.name + '">' + t.icon + '</button>'; }).join('');
-  else if (B.tool === 'copy') opts = B.clip ? '<span class="bhint">📋 tap where it goes</span><button type="button" class="bopt" id="bClipNew">✂️ Copy something else</button>' : '<span class="bhint">drag a box around what you want to copy</span>';
+  else if (B.tool === 'copy') opts = B.clip ? '<span class="bhint">📋 tap where it goes</span><button type="button" class="bopt" id="bClipNew">✂️<span class="bl"> Copy something else</span></button>' : '<span class="bhint">drag a box around what you want to copy</span>';
   bt.innerHTML =
     '<div class="brow">' + BTOOLS.map((t) => '<button type="button" class="btool' + (B.tool === t.id ? ' on' : '') + '" data-tool="' + t.id + '" title="' + t.name + '" aria-label="' + t.name + '">' + t.icon + '</button>').join('') + '</div>' +
-    '<div class="brow"><span class="bhint">' + tool.icon + ' ' + tool.name + '</span><button type="button" class="bopt" id="bHelpBtn" aria-label="How does this tool work?">❓</button>' + opts +
+    '<div class="brow"><span class="bhint">' + tool.icon + '<span class="bl"> ' + tool.name + '</span></span><button type="button" class="bopt" id="bHelpBtn" aria-label="How does this tool work?">❓</button>' + opts +
     '<span class="bgap"></span><button type="button" class="bopt" id="bLeft" aria-label="Scroll left">◀</button><button type="button" class="bopt" id="bRight" aria-label="Scroll right">▶</button>' +
-    (tall ? '<button type="button" class="bopt" id="bUp" aria-label="Scroll up">▲</button><button type="button" class="bopt" id="bDown" aria-label="Scroll down">▼</button>' : '') + '</div>' +
+    '<button type="button" class="bopt" id="bUp" aria-label="Scroll up">▲</button><button type="button" class="bopt" id="bDown" aria-label="Scroll down">▼</button></div>' +
     (B.tour ? '<div class="brow"><span class="btour" id="bTourMsg">🎓 ' + BTOUR[B.tour.step].say + '</span><button type="button" class="bopt" id="bTourSkip">Skip</button></div>' : '') +
     '<div class="brow bbot">' +
     '<button type="button" class="bopt" id="bUndo" aria-label="Undo"' + (B.undo.length ? '' : ' disabled') + '>↩</button><button type="button" class="bopt" id="bRedo" aria-label="Redo"' + (B.redo.length ? '' : ' disabled') + '>↪</button>' +
-    '<button type="button" class="bopt" id="bZoom" aria-label="Zoom out">🔍' + bZoomName() + '</button><button type="button" class="bopt" id="bLook">🎨 Look</button><button type="button" class="bopt" id="bSize">📏 Size</button>' +
-    '<button type="button" class="bopt' + (progress.bSafe ? ' on' : '') + '" id="bSafe" aria-pressed="' + !!progress.bSafe + '">🛡 ' + (progress.bSafe ? 'Can\'t get hurt: ON' : 'Can\'t get hurt: off') + '</button>' +
-    '<span class="bgap"></span><button type="button" class="bopt" id="bHere">▶ Here</button><button type="button" class="bopt go" id="bPlay">▶ Play</button><button type="button" class="bopt" id="bDone">💾 Done</button></div>';
+    '<button type="button" class="bopt" id="bZoom" aria-label="Zoom out">🔍' + bZoomName() + '</button>' +
+    '<button type="button" class="bopt" id="bLook" aria-label="Look">🎨<span class="bl"> Look</span></button><button type="button" class="bopt" id="bSize" aria-label="Size">📏<span class="bl"> Size</span></button>' +
+    '<button type="button" class="bopt' + (progress.bSafe ? ' on' : '') + '" id="bSafe" aria-pressed="' + !!progress.bSafe + '" aria-label="Can\'t get hurt">🛡<span class="bl"> ' + (progress.bSafe ? 'Can\'t get hurt: ON' : 'Can\'t get hurt: off') + '</span><span class="bs">' + (progress.bSafe ? 'ON' : 'off') + '</span></button>' +
+    '<span class="bgap"></span><button type="button" class="bopt" id="bHere" aria-label="Play from here">▶<span class="bl"> Here</span><span class="bs">📍</span></button><button type="button" class="bopt go" id="bPlay" aria-label="Play">▶<span class="bl"> Play</span></button><button type="button" class="bopt" id="bDone" aria-label="Done">💾<span class="bl"> Done</span></button></div>';
   $$('.btool', bt).forEach((x) => x.addEventListener('click', () => { SFX.click(); B.tool = x.dataset.tool; B.sel = null; builderToolbar(); bTourCheck(); }));
   $$('[data-foe]', bt).forEach((x) => x.addEventListener('click', () => { SFX.click(); B.foe = x.dataset.foe; builderToolbar(); }));
   $$('[data-block]', bt).forEach((x) => x.addEventListener('click', () => { SFX.click(); B.block = x.dataset.block; builderToolbar(); }));
   const on = (id, f) => { const n = $('#' + id, bt); if (n) n.addEventListener('click', f); };
-  const scroll = (dx, dy) => { B.cam += dx * T * 8 / B.zoom; B.camY += dy * T * 5 / B.zoom; bClampCam(); };
+  const scroll = (dx, dy) => { if (B.map) return; B.cam += dx * T * 8 / B.zoom; B.camY += dy * T * 4 / B.zoom; bClampCam(); };
   on('bClipNew', () => { SFX.click(); B.clip = null; builderToolbar(); });
   on('bHelpBtn', () => { SFX.click(); bHelp(BTOOLS.indexOf(tool)); });
   on('bLeft', () => scroll(-1, 0)); on('bRight', () => scroll(1, 0)); on('bUp', () => scroll(0, -1)); on('bDown', () => scroll(0, 1));
@@ -8377,8 +8492,9 @@ function builderToolbar() {
   on('bPlay', () => { SFX.click(); bPlayFrom(false); });
   on('bDone', () => { SFX.click(); builderCommit(); saveBuild(B.b); builderMenu(); });
   if (B.tour) { const s = BTOUR[B.tour.step]; const n = s.hl ? $(s.hl, bt) : null; if (n) n.classList.add('hl'); }
+  bMeasureFree(); B.mapM = null; bClampCam();
 }
-function builderCommit() { const B = builder; if (!B) return; B.b.g = gridPack(B.g); save(); }
+function builderCommit() { const B = builder; if (!B) return; B.b.g = gridPack(B.g); B.mapM = null; save(); }
 /* ▶ Play from the start, or ▶ Here: from the spot he's looking at (answer 21) */
 function bPlayFrom(here) {
   const B = builder; if (!B) return;
@@ -8390,15 +8506,17 @@ function bPlayFrom(here) {
   builderCommit(); saveBuild(b); bPanelClose();
   playCustom(b, { from: from, safe: !!progress.bSafe, editor: true, note: note });
 }
-/* somewhere to stand near the left of what's on screen: an empty spot with something under it */
+/* somewhere to stand near the left of what's on screen: an empty spot with something under it and no enemy right there */
 function bHereSpot() {
-  const B = builder, b = B.b, up = bUp(b), vw = W / B.zoom, vh = H / B.zoom, tx0 = Math.floor((B.cam + vw * 0.3) / T);
+  const B = builder, b = B.b, up = bUp(b), vw = W / B.zoom, tx0 = Math.floor((B.cam + vw * 0.3) / T);
+  const y0 = B.camY + bFree.top / B.zoom, y1 = B.camY + bFree.bot / B.zoom;   /* only what he can see between the toolbars */
   const at = (tx, ty) => (ty < -up || ty >= ROWS ? 0 : B.g[bIdx(b, tx, ty)]), hard = (t) => t >= 1 && t <= 6;
+  const foeNear = (tx, ty) => b.foes.some((f) => Math.abs(f[0] - tx) <= 2 && (Math.abs(f[1] - ty) <= 1 || Math.abs(f[1] - 2 - ty) <= 1));
   for (let d = 0; d < 14; d++) for (const tx of (d ? [tx0 + d, tx0 - d] : [tx0])) {
     if (tx < 0 || tx >= b.w) continue;
-    for (let ty = Math.max(1 - up, Math.floor(B.camY / T)); ty < Math.min(ROWS - 1, Math.floor((B.camY + vh) / T)); ty++) {
+    for (let ty = Math.max(1 - up, Math.floor(y0 / T)); ty < Math.min(ROWS - 1, Math.floor(y1 / T)); ty++) {
       const t = at(tx, ty), under = at(tx, ty + 1);
-      if (!hard(t) && t !== 7 && (hard(under) || under === 7) && !hard(at(tx, ty - 1))) return [tx, ty];
+      if (!hard(t) && t !== 7 && (hard(under) || under === 7) && !hard(at(tx, ty - 1)) && !foeNear(tx, ty)) return [tx, ty];
     }
   }
   return null;
@@ -8413,6 +8531,13 @@ function builderTile(e) {
 function builderApply(t, first) {
   const B = builder, b = B.b, w = b.w, up = bUp(b);
   if (t.tx < 0 || t.tx >= w || t.ty < 1 - up || t.ty >= ROWS) return;
+  /* an enemy, the start or the flag tapped onto a block stands on top of it */
+  if (first && ['foe', 'start', 'goal'].indexOf(B.tool) >= 0 && B.g[bIdx(b, t.tx, t.ty)]) {
+    let top = null;
+    for (let ty = t.ty - 1; ty >= Math.max(1 - up, t.ty - 5) && !top; ty--) if (!B.g[bIdx(b, t.tx, ty)]) top = { tx: t.tx, ty: ty };
+    if (!top) { toast('No room on top of that block!', 1200); return; }
+    t = top;
+  }
   const key = t.tx + ',' + t.ty, idx = bIdx(b, t.tx, t.ty), tool = BTOOLS.filter((x) => x.id === B.tool)[0];
   if (!first && key === B.last) return;
   B.last = key;
@@ -8426,7 +8551,7 @@ function builderApply(t, first) {
     } else if (B.g[idx] !== tool.tile) { B.g[idx] = tool.tile; clearThings(); if (tool.tile === 3) b.gifts[idx] = 'candle'; else delete b.gifts[idx]; SFX.stomp(); did = true; }
   } else if (B.tool === 'erase') {
     if (B.g[idx] || b.candles.some(at) || b.foes.some(at)) { B.g[idx] = 0; delete b.gifts[idx]; clearThings(); SFX.pop(); did = true; }
-    else if (first && b.boss != null && Math.abs(t.tx - (b.bossAt + 13)) <= 2 && t.ty >= GROUND - 4 && t.ty < GROUND) {
+    else if (first && b.boss != null && Math.abs(t.tx - (b.bossAt + 13)) <= 3 && t.ty >= GROUND - 6 && t.ty < GROUND) {
       delete b.boss; delete b.bossAt; SFX.pop(); did = true;
       if (!b.goal) { b.goal = [Math.min(w - 4, t.tx), GROUND - 1]; toast('Boss gone! A 🚩 finish flag is there now: move it anywhere.', 2400); }
     } else if (first && b.checkpoint && t.tx === b.checkpoint[0] && t.ty < b.checkpoint[1] && t.ty >= b.checkpoint[1] - 2) { delete b.checkpoint; SFX.pop(); did = true; }
@@ -8441,15 +8566,15 @@ function builderApply(t, first) {
 function bFill(t) {
   const B = builder, b = B.b, w = b.w, rows = bRows(b), up = rows - ROWS;
   if (t.tx < 0 || t.tx >= w || t.ty < 1 - up || t.ty >= ROWS) return;
-  const k0 = bIdx(b, t.tx, t.ty), from = B.g[k0], to = BTOOLS.filter((x) => x.id === B.block)[0].tile;
-  if (from === to) { toast('That is already ' + BTOOLS.filter((x) => x.id === B.block)[0].name.toLowerCase() + '!', 1200); return; }
+  const tl = BTOOLS.filter((x) => x.id === B.block)[0], k0 = bIdx(b, t.tx, t.ty), from = B.g[k0], to = tl.tile;
+  if (from === to) { toast('That\'s already ' + tl.what + '!', 1200); return; }
   const seen = new Uint8Array(w * rows), todo = [k0], cells = [];
   seen[k0] = 1;
   while (todo.length) {
     const k = todo.pop(), x = k % w, y = (k - x) / w;
     if (!from && y <= 1) { toast('That space isn\'t closed in: put blocks all around it first!', 2200); return; }   /* it reaches the open sky */
     cells.push(k);
-    if (cells.length > BFILLMAX) { toast('That space is too big to fill in one go: make it smaller first!', 2200); return; }
+    if (cells.length > BFILLMAX) { toast(from ? 'That\'s a lot of blocks joined together: too many to change in one go!' : 'That space is too big to fill in one go. Close in a smaller space first!', 2400); return; }
     const nb = [x > 0 ? k - 1 : -1, x < w - 1 ? k + 1 : -1, y > 1 ? k - w : -1, y < rows - 1 ? k + w : -1];
     for (const n of nb) if (n >= 0 && !seen[n] && B.g[n] === from) { seen[n] = 1; todo.push(n); }
   }
@@ -8471,11 +8596,11 @@ function bCopy(sel) {
   const clip = { w: cw, h: ch, cells: cells, gifts: gifts, candles: b.candles.filter(inside).map((c) => [c[0] - x0, c[1] - y0]), foes: b.foes.filter(inside).map((f) => [f[0] - x0, f[1] - y0, f[2]]) };
   if (!cells.some((v) => v) && !clip.candles.length && !clip.foes.length) { toast('Nothing in there to copy. Drag a box around some blocks!', 1800); return; }
   B.clip = clip; SFX.gift();
-  toast('Copied! Now tap where you want it.', 1600);
+  toast(x1 - x0 + 1 > 40 ? 'Copied the first 40 squares across (that\'s the most). Now tap where you want it.' : 'Copied! Now tap where you want it.', x1 - x0 + 1 > 40 ? 2600 : 1600);
 }
 function bPaste(t) {
   const B = builder, b = B.b, C = B.clip, up = bUp(b), inLevel = (tx, ty) => tx >= 0 && tx < b.w && ty >= 1 - up && ty < ROWS;
-  let n = 0;
+  let n = 0, capped = false;
   for (let y = 0; y < C.h; y++) for (let x = 0; x < C.w; x++) {
     const v = C.cells[y * C.w + x], tx = t.tx + x, ty = t.ty + y;
     if (!v || !inLevel(tx, ty)) continue;
@@ -8486,25 +8611,40 @@ function bPaste(t) {
   if (n) { const solidAt = (p) => B.g[bIdx(b, p[0], p[1])]; b.candles = b.candles.filter((c) => !solidAt(c)); b.foes = b.foes.filter((f) => !solidAt(f)); }
   const free = (tx, ty) => inLevel(tx, ty) && !B.g[bIdx(b, tx, ty)];
   C.candles.forEach((c) => { const tx = t.tx + c[0], ty = t.ty + c[1]; if (free(tx, ty) && !b.candles.some((q) => q[0] === tx && q[1] === ty)) { b.candles.push([tx, ty]); n++; } });
-  C.foes.forEach((f) => { const tx = t.tx + f[0], ty = t.ty + f[1]; if (free(tx, ty) && b.foes.length < 40 && !b.foes.some((q) => q[0] === tx && q[1] === ty)) { b.foes.push([tx, ty, f[2]]); n++; } });
+  C.foes.forEach((f) => {
+    const tx = t.tx + f[0], ty = t.ty + f[1];
+    if (!free(tx, ty) || b.foes.some((q) => q[0] === tx && q[1] === ty)) return;
+    if (b.foes.length >= 40) { capped = true; return; }
+    b.foes.push([tx, ty, f[2]]); n++;
+  });
+  if (capped) toast('40 enemies is the most! Some enemies were left out.', 1800);
   if (n) { B.changed = true; SFX.stomp(); }
 }
-/* ---- 📏 size: longer (the ground carries on) or shorter at the end, taller or less tall at the top ---- */
+/* ---- 📏 size: longer or shorter (at the end, or just before a copied stage's boss arena so the boss stays at the
+   end), taller or less tall at the top ---- */
 function bResize(dw, dh) {
   const B = builder, b = B.b, w0 = b.w, h0 = bRows(b), up0 = h0 - ROWS;
-  const w = clamp(w0 + dw, BMINW, BMAXW), h = clamp(h0 + dh * ROWS, ROWS, 45), up = h - ROWS;
+  const w = clamp(w0 + dw, BMINW, BMAXW), h = clamp(h0 + dh * ROWS, ROWS, 45), up = h - ROWS, d = w - w0;
   if (w === w0 && h === h0) return;
   bPush();
+  const at = b.boss != null ? b.bossAt - 2 : w0, cut = d > 0 ? at : at + d;   /* columns go in at "at", or the ones just before it come out */
   const g = new Uint8Array(w * h), gifts = {};
   for (let ty = -Math.min(up, up0); ty < ROWS; ty++) for (let tx = 0; tx < w; tx++) {
-    const k = (ty + up) * w + tx, ok = (ty + up0) * w0 + Math.min(tx, w0 - 1);
-    if (tx < w0) { g[k] = B.g[ok]; if (b.gifts[ok]) gifts[k] = b.gifts[ok]; } else g[k] = B.g[ok] === 1 ? 1 : 0;
+    const k = (ty + up) * w + tx, fresh = d > 0 && tx >= at && tx < at + d, sx = tx < cut ? tx : tx - d;
+    if (!fresh && sx >= 0 && sx < w0) { const ok = (ty + up0) * w0 + sx; g[k] = B.g[ok]; if (b.gifts[ok]) gifts[k] = b.gifts[ok]; }
+    else g[k] = B.g[(ty + up0) * w0 + clamp(at - 1, 0, w0 - 1)] === 1 ? 1 : 0;   /* new ground carries on from the column before */
   }
-  const inside = (p) => p[0] < w && p[1] >= 1 - up;
-  b.candles = b.candles.filter(inside); b.foes = b.foes.filter(inside);
-  if (!inside(b.start)) b.start = [2, GROUND - 1];
-  if (b.goal && (!inside(b.goal) || b.goal[0] === w0 - 4)) b.goal = [w - 4, inside(b.goal) ? b.goal[1] : GROUND - 1];   /* a flag at the very end stays at the end */
-  if (b.checkpoint && !inside(b.checkpoint)) delete b.checkpoint;
+  const mv = (x) => (x >= at ? x + d : (d < 0 && x >= cut ? null : x));   /* where a thing at column x ends up (null: cut off) */
+  const keep = (p) => { const x = mv(p[0]); return x == null || p[1] < 1 - up ? null : [x, p[1]].concat(p.slice(2)); };
+  b.candles = b.candles.map(keep).filter(Boolean); b.foes = b.foes.map(keep).filter(Boolean);
+  const endFlag = b.goal && b.goal[0] === w0 - 4 && b.boss == null;
+  b.start = keep(b.start) || [2, GROUND - 1];
+  if (b.goal) b.goal = endFlag ? [w - 4, b.goal[1]] : (keep(b.goal) || [Math.max(4, cut - 1), GROUND - 1]);   /* a flag at the very end stays at the end */
+  if (b.checkpoint) { const c = keep(b.checkpoint); if (c) b.checkpoint = c; else delete b.checkpoint; }
+  if (b.boss != null) b.bossAt += d;
+  /* the start and the flag never end up inside a block: up to the first empty square */
+  const lift = (p) => { if (!p) return p; let ty = p[1]; while (ty > 1 - up && g[(ty + up) * w + p[0]]) ty--; return [p[0], ty]; };
+  b.start = lift(b.start); if (b.goal) b.goal = lift(b.goal);
   B.g = g; b.w = w; b.h = h; b.gifts = gifts;
   bSyncL(); bClampCam(); builderCommit(); builderToolbar(); SFX.stomp();
 }
@@ -8512,11 +8652,11 @@ function bPanel(html) { const p = $('#bPanel'); p.innerHTML = html; p.hidden = f
 function bPanelClose() { const p = $('#bPanel'); if (p) { p.hidden = true; p.innerHTML = ''; } }
 function bSizePanel() {
   const B = builder, b = B.b, rows = bRows(b);
-  const shorter = b.w - BSTEP >= BMINW && (b.boss == null || b.bossAt + 31 <= b.w - BSTEP);   /* never cut through a boss's arena */
+  const shorter = b.w - BSTEP >= BMINW && (b.boss == null || b.bossAt - 2 - BSTEP >= 8);   /* never cut into a boss's arena or the start */
   const p = bPanel('<h3>📏 Size</h3><p class="tiny">Long: <b>' + b.w + ' blocks</b> (about ' + Math.max(1, Math.round(b.w * T / W)) + ' screens) · Tall: <b>' + (rows / ROWS) + (rows > ROWS ? ' screens' : ' screen') + '</b></p>' +
     '<div class="btnrow"><button class="bopt" type="button" id="bzShort"' + (shorter ? '' : ' disabled') + '>◀ Shorter</button><button class="bopt" type="button" id="bzLong"' + (b.w + BSTEP <= BMAXW ? '' : ' disabled') + '>Longer ▶</button></div>' +
     '<div class="btnrow"><button class="bopt" type="button" id="bzLow"' + (rows > ROWS ? '' : ' disabled') + '>▼ Less tall</button><button class="bopt" type="button" id="bzTall"' + (rows < 45 ? '' : ' disabled') + '>Taller ▲</button></div>' +
-    '<p class="tiny">Up to ' + BMAXW + ' blocks long (4 story stages) and 3 screens tall. Made it too small? ↩ brings it all back.</p><button class="bopt go" type="button" id="bzOk">Done</button>');
+    '<p class="tiny">Up to ' + BMAXW + ' blocks long (4 story stages) and 3 screens tall.' + (b.boss != null ? ' A copied stage grows and shrinks just before the boss, so the boss stays at the end.' : '') + ' Made it too small? ↩ brings it all back.</p><button class="bopt go" type="button" id="bzOk">Done</button>');
   const again = (dw, dh) => () => { bResize(dw, dh); bSizePanel(); };
   $('#bzShort', p).addEventListener('click', again(-BSTEP, 0)); $('#bzLong', p).addEventListener('click', again(BSTEP, 0));
   $('#bzLow', p).addEventListener('click', again(0, -1)); $('#bzTall', p).addEventListener('click', again(0, 1));
@@ -8551,7 +8691,7 @@ const BTOUR = [
   { say: 'Let\'s build! Tap <b>🧱 Bricks</b> at the top.', hl: '[data-tool="brick"]', done: (B) => B.tool === 'brick' },
   { say: '<b>Drag your finger</b> across the sky to paint a row of bricks.', base: () => bCount(2), done: (B, s) => bCount(2) >= s.n + 3 },
   { say: 'Tap the <b>coin</b> button, then tap above your bricks.', hl: '[data-tool="candle"]', base: (B) => B.b.candles.length, done: (B, s) => B.b.candles.length > s.n },
-  { say: 'Tap <b>👾 Enemy</b>, then tap on the ground to put one there.', hl: '[data-tool="foe"]', base: (B) => B.b.foes.length, done: (B, s) => B.b.foes.length > s.n },
+  { say: 'Tap <b>👾 Enemy</b>, then tap the ground to put one on it.', hl: '[data-tool="foe"]', base: (B) => B.b.foes.length, done: (B, s) => B.b.foes.length > s.n },
   { say: 'Oops? <b>↩</b> takes it back. Now press <b>▶ Play</b> to try your level!', hl: '#bPlay', done: () => false }
 ];
 function bCount(v) { let n = 0; for (const x of builder.g) if (x === v) n++; return n; }
@@ -8571,8 +8711,8 @@ function bindBuilder() {
     e.preventDefault();
     try { cv.setPointerCapture(e.pointerId); } catch (er) { /* ignore */ }
     const t = builderTile(e);
-    B.down = true; B.last = ''; B.grabX = t.lx; B.grabY = t.ly; B.grabCam = B.cam; B.grabCamY = B.camY; B.changed = false; B.pushed = false; B.hover = t;
-    if (B.zoomFit) { B.down = false; SFX.click(); bZoomTo(1, t); return; }   /* the whole-level view: tap = go there */
+    B.down = true; B.last = ''; B.lastT = { tx: t.tx, ty: t.ty }; B.grabX = t.lx; B.grabY = t.ly; B.grabCam = B.cam; B.grabCamY = B.camY; B.changed = false; B.pushed = false; B.hover = t;
+    if (B.map) { B.down = false; const m = bMapTile(t.lx, t.ly); if (m) { SFX.click(); bZoomTo(1, m); } return; }   /* the whole-level map: tap = go there */
     if (B.tool === 'move') return;
     if (B.tool === 'copy' && !B.clip) { B.sel = { x0: t.tx, y0: t.ty, x1: t.tx, y1: t.ty }; return; }
     bPush(); B.pushed = true;
@@ -8589,7 +8729,13 @@ function bindBuilder() {
     e.preventDefault();
     if (B.tool === 'move') { B.cam = B.grabCam - (t.lx - B.grabX) / B.zoom; B.camY = B.grabCamY - (t.ly - B.grabY) / B.zoom; bClampCam(); }
     else if (B.tool === 'copy' && B.sel) { B.sel.x1 = t.tx; B.sel.y1 = t.ty; }
-    else if (BDRAG.indexOf(B.tool) >= 0) builderApply(t, false);
+    else if (BDRAG.indexOf(B.tool) >= 0) {
+      /* a quick swipe skips squares between two finger updates (more so zoomed out): paint every square on the way */
+      const a = B.lastT || t, n = Math.max(Math.abs(t.tx - a.tx), Math.abs(t.ty - a.ty));
+      for (let k = 1; k <= n; k++) builderApply({ tx: Math.round(a.tx + (t.tx - a.tx) * k / n), ty: Math.round(a.ty + (t.ty - a.ty) * k / n) }, false);
+      if (!n) builderApply(t, false);
+      B.lastT = { tx: t.tx, ty: t.ty };
+    }
   });
   const up = () => {
     const B = builder;
@@ -8608,7 +8754,7 @@ function bindBuilder() {
     if (k === 'z' && !e.shiftKey) { e.preventDefault(); bUndo(); } else if (k === 'y' || (k === 'z' && e.shiftKey)) { e.preventDefault(); bRedo(); }
   });
   $('#bBackBtn').addEventListener('click', () => {   /* 🔨 one tap from a test play back to building, right where you were */
-    if (!L || !L.custom) return;
+    if (!L || !L.custom || boss === 'done') return;
     SFX.click();
     editBuild(L.src, { cam: camX, camY: camY });
   });
@@ -8616,6 +8762,7 @@ function bindBuilder() {
 function updateBuilder() {
   const B = builder, sp = 6 / B.zoom;
   frame++;
+  if (B.map) return;
   if (input.left || padIn.left) B.cam -= sp;
   if (input.right || padIn.right) B.cam += sp;
   if (input.jump) B.camY -= sp;
@@ -8627,6 +8774,13 @@ function drawBuilder() {
   const B = builder, b = B.b, th = L.th, z = B.zoom, up = bUp(b);
   camX = B.cam; camY = B.camY;
   drawSky(th.skyKey, th);
+  if (B.map) {   /* the whole-level map */
+    if (!B.mapM) B.mapM = bMapDraw();
+    ctx.fillStyle = 'rgba(8,8,20,.55)'; ctx.fillRect(0, 0, W, H);
+    ctx.drawImage(B.mapM.cv, 0, 0);
+    drawVignette();
+    return;
+  }
   if (z === 1) {   /* the far scenery sinks as you look up a tall level (hidden when zoomed out) */
     const sink = Math.round(-camY * 0.4);
     if (sink) { ctx.save(); ctx.translate(0, sink); }
@@ -8657,22 +8811,28 @@ function drawBuilder() {
     ctx.fillStyle = '#c9c9cf'; ctx.fillRect(sx, sy, 1, 17);
     ctx.fillStyle = '#e8364b'; ctx.beginPath(); ctx.moveTo(sx + 1, sy + 1); ctx.lineTo(sx + 12, sy + 3); ctx.lineTo(sx + 1, sy + 8); ctx.fill();
   }
-  if (b.boss != null) {
+  if (b.boss != null) {   /* the arena, tinted, and a sign with the boss's whole name (two lines when it's long) */
     const ax = b.bossAt * T - camX, d = LV[b.boss].boss;
     ctx.fillStyle = 'rgba(255,60,100,.13)'; ctx.fillRect(ax, 0, 28 * T, GROUND * T);
-    const bx = (b.bossAt + 13) * T - camX + 8, by = (GROUND - 3) * T;
-    ctx.fillStyle = 'rgba(17,19,43,.88)'; ctx.fillRect(bx - 46, by - 22, 92, 30);
-    ctx.strokeStyle = '#ff6fae'; ctx.lineWidth = 1; ctx.strokeRect(bx - 46 + 0.5, by - 22 + 0.5, 91, 29);
-    ctx.font = '12px "Segoe UI Emoji",sans-serif'; ctx.fillText('👑 ' + (d.prop || ''), bx, by - 9);
-    ctx.font = 'bold 7px "Pixelify Sans",monospace'; ctx.fillStyle = '#ffd6e6'; ctx.fillText(('BOSS: ' + d.title).toUpperCase().slice(0, 26), bx, by + 3);
+    ctx.font = 'bold 7px "Pixelify Sans",monospace';
+    const lines = [''];
+    ('BOSS: ' + d.title).toUpperCase().split(' ').forEach((wd) => { const l = lines[lines.length - 1], t2 = l ? l + ' ' + wd : wd; if (l && ctx.measureText(t2).width > 104) lines.push(wd); else lines[lines.length - 1] = t2; });
+    const bw = Math.max.apply(null, lines.map((l) => ctx.measureText(l).width)) + 14, bh = 17 + lines.length * 9;
+    const bx = (b.bossAt + 13) * T - camX + 8, by = (GROUND - 1) * T - bh - 6;
+    ctx.fillStyle = 'rgba(17,19,43,.9)'; ctx.fillRect(Math.round(bx - bw / 2), by, Math.round(bw), bh);
+    ctx.strokeStyle = '#ff6fae'; ctx.lineWidth = 1; ctx.strokeRect(Math.round(bx - bw / 2) + 0.5, by + 0.5, Math.round(bw) - 1, bh - 1);
+    ctx.font = '11px "Segoe UI Emoji",sans-serif'; ctx.fillStyle = '#fff'; ctx.fillText('👑 ' + (d.prop || ''), bx, by + 12);
+    ctx.font = 'bold 7px "Pixelify Sans",monospace'; ctx.fillStyle = '#ffd6e6';
+    lines.forEach((l, k) => ctx.fillText(l, bx, by + 22 + k * 9));
   }
   ctx.drawImage(SP.kStand, b.start[0] * T - camX, b.start[1] * T);
   if (b.goal) ctx.drawImage(SP.flag, b.goal[0] * T - camX, (b.goal[1] + 1) * T - SP.flag.height);
-  /* outside the level: the space past the end and above the top is shaded */
+  /* outside the level: the space past the end, above the top and below the bottom is shaded */
   ctx.fillStyle = 'rgba(8,8,20,.55)';
   const endX = b.w * T - camX;
   if (endX < viewW) ctx.fillRect(endX, camY, viewW - endX, viewH);
   if (camY < -up * T) ctx.fillRect(0, camY, viewW, -up * T - camY);
+  if (camY + viewH > ROWS * T) ctx.fillRect(0, ROWS * T, viewW, camY + viewH - ROWS * T);
   ctx.restore();
   viewW = W; viewH = H;
   drawDaylight(th);
