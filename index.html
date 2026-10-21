@@ -56,9 +56,8 @@ button{font:inherit;color:inherit;touch-action:manipulation}
 .hearts .hp.off{color:#3d4170}
 .stat{font-variant-numeric:tabular-nums;background:#11132b;border:2px solid var(--panel2);border-radius:5px;padding:2px 7px;font-size:14px;white-space:nowrap}
 .stat b{color:var(--gold);font-weight:700}
-.candle-ico{display:inline-block;position:relative;width:7px;height:11px;margin-right:4px;vertical-align:-1px;background:linear-gradient(#fffdf4,#eadfc6);border-radius:1px;box-shadow:inset -2px 0 0 #cfc2a6,0 0 0 1px rgba(0,0,0,.25)}
-.candle-ico::after{content:"";position:absolute;left:0;bottom:2px;width:100%;height:2px;background:#e8364b;opacity:.85}
-.candle-ico::before{content:"";position:absolute;left:1px;top:-6px;width:5px;height:6px;border-radius:50% 50% 45% 45%;background:radial-gradient(circle at 50% 78%,#fffbe0 0%,#ffd35a 42%,#ff8a3d 68%,rgba(255,138,61,0) 72%)}
+.coin-ico{display:inline-block;width:10px;height:10px;margin-right:4px;vertical-align:-1px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff3c4 0 15%,#f6c445 28% 60%,#c9922f 64%);box-shadow:inset 0 0 0 1px #8a6420}
+.coin-ico.lg{width:18px;height:18px;margin:0;vertical-align:middle}
 .stage.bossmode .toast{top:52px}
 .stage.smashmode .toast{top:calc(12.5% + 4px)}   /* under the fighters' bar (30 of the picture's 240 rows) in Family Smash */
 .iconbtn{width:34px;height:30px;display:grid;place-items:center;background:#11132b;border:2px solid var(--panel2);border-radius:5px;cursor:pointer;font-size:14px;padding:0}
@@ -362,7 +361,7 @@ html.sideways .pad button.spec:not(:disabled){opacity:.92}
       <span class="hearts" id="hearts" aria-label="Hearts"><span class="hp">♥</span><span class="hp">♥</span><span class="hp">♥</span></span>
     </div>
     <div class="hud-r">
-      <span class="stat" id="cnt" title="Candles"><i class="candle-ico"></i><b>0</b></span>
+      <span class="stat" id="cnt" title="Coins"><i class="coin-ico"></i><b>0</b></span>
       <span class="stat" id="petStat" title="Pets" hidden></span>
       <span class="stat" id="scoreEl" title="Score">★ <b>0</b></span>
       <button class="iconbtn" id="pauseBtn" type="button" aria-label="Pause" hidden>⏸</button>
@@ -669,6 +668,13 @@ const CAT = ['..k......k..', '.kak....kak.', '.kaak..kaak.', '.kaaaaaaaaa.', '.k
 const DOG = ['..........kk..', '.........knnk.', 'k........knnnk', '.k......knnnnk', '..knnnnnnnnnnk', '..knnnnnnnnnnk',
   '..knWnnnnnnnnk', '..knnnnnnnnnnk', '..kn.n....n.nk', '..kk.k....k.kk'];
 const CANDLE = ['..o..', '.oyo.', '..y..', '.ccc.', '.cPc.', '.ccc.', '.cPc.', '.ccc.'];
+/* a gold coin in four steps of a spin: face on, turning, edge on, thin edge */
+const COIN = [
+  ['..ttt..', '.tyyyt.', 'tyYyyyt', 'tYytyyt', 'tYytyyt', 'tyytyyt', '.tyyyt.', '..ttt..'],
+  ['.ttt.', 'tyyyt', 'tYyyt', 'tYtyt', 'tYtyt', 'tytyt', 'tyyyt', '.ttt.'],
+  ['.t.', 'tyt', 'tYt', 'tYt', 'tYt', 'tyt', 'tyt', '.t.'],
+  ['t', 'y', 'Y', 'y', 'y', 'y', 'y', 't']
+];
 const FLAG = ['y.......', 'yRRRR...', 'yRRRRRR.', 'yRRRR...'].concat(Array(12).fill('y.......'));
 const legs = (body, l, pant) => body.concat(l.map((r) => r.replace(/j/g, pant)));
 const recolor = (rows, map) => rows.map((r) => r.replace(/./g, (ch) => (map[ch] || ch)));
@@ -740,7 +746,10 @@ const SP = {
   cat: bakeOutlined(CAT, { a: PAL.a, A: PAL.A }), dog: bakeOutlined(DOG, { n: PAL.n, L: PAL.L }), candle: bake(CANDLE), flag: bake(FLAG)
 };
 const CH_H = SP.cStand.height;
-SP.goldCandle = bake(recolor(CANDLE, { c: 'y', P: 't' }));
+SP.coin = COIN.map((f) => bake(f));
+SP.goldCoin = COIN.map((f) => bake(recolor(f, { t: 'n', Y: 'w' })));   /* the secret golden coins: deeper rim, white shine */
+const COIN_SPIN = [0, 1, 2, 3, 2, 1];
+const coinImg = (t, gold) => (gold ? SP.goldCoin : SP.coin)[COIN_SPIN[Math.floor(Math.abs(t) / 7) % 6]];
 SP.sStand = bake(legs(SHAD, LEGS.stand, 'n'));
 SP.sWalk = bake(legs(SHAD, LEGS.walk, 'n'));
 SP.sJump = bake(legs(SHAD, LEGS.jump, 'n'));
@@ -750,7 +759,7 @@ SP.mechStand = bake(MECH);
 const PET_DEFS = [
   { id: 'cat1', kind: 'cat', label: 'Cat 1', perk: 'Double jump', color: '#d98a3d', shade: '#a85f22' },
   { id: 'dog1', kind: 'dog', label: 'Dog 1', perk: 'Dash attack', color: '#a8692e', shade: '#6b3f18' },
-  { id: 'cat2', kind: 'cat', label: 'Cat 2', perk: 'Candle magnet', color: '#9a9aa6', shade: '#5e5e6a' },
+  { id: 'cat2', kind: 'cat', label: 'Cat 2', perk: 'Coin magnet', color: '#9a9aa6', shade: '#5e5e6a' },
   { id: 'dog2', kind: 'dog', label: 'Dog 2', perk: 'Power stomp', color: '#4a4a58', shade: '#26262f' },
   { id: 'cat3', kind: 'cat', label: 'Cat 3', perk: 'Extra heart', color: '#f0e2c8', shade: '#c4ad84' },
   { id: 'cat4', kind: 'cat', label: 'Cat 4', perk: 'Faster POW', color: '#6b6f7a', shade: '#3b3f4a' }
@@ -776,7 +785,7 @@ const LV = [
   {
     place: "Kinan's Bedroom", bg: 'room', sky: ['#241b4d', '#5b4a93'], far: '#2f2657', mid: '#3d3168',
     ground: '#6d4a30', top: '#a8794f', brick: '#8a5a8a', accent: '#f6c445', foes: ['sock', 'lego', 'teddy'],
-    intro: ["It's <b>Kinan's 11th birthday</b>! He wakes up... and the house has gone WILD.", '<b>KINAN:</b> My socks are WALKING. My Lego is ANGRY. And why are there candles everywhere?!', 'Every candle you grab is one more for the cake. One of your <b>four cats</b> is hiding in a box: find her for a <b>double jump</b>!'],
+    intro: ["It's <b>Kinan's 11th birthday</b>! He wakes up... and the house has gone WILD.", '<b>KINAN:</b> My socks are WALKING. My Lego is ANGRY. And why are there COINS everywhere?!', 'Every coin you grab goes in your piggy bank: spend them in the <b>Party Shop</b>! One of your <b>four cats</b> is hiding in a box: find her for a <b>double jump</b>!'],
     boss: { kind: 'mom', title: 'Mom, the Room Inspector', prop: '🧺', hp: 3, face: 'm' },
     bossIntro: ['<b>MOM (DEBBIE):</b> Good morning, birthday boy! ...Going somewhere?', "<b>MOM:</b> I'm home ALL DAY, so I see EVERYTHING. And I see a SOCK on the ceiling.", "<b>MOM:</b> Nobody leaves this room until it's clean. CLEAN. YOUR. ROOM."],
     taunts: ['Ow! But the room is STILL messy!', 'Okay! Just put the socks away!', 'I fold the laundry, I run the house!'],
@@ -796,7 +805,7 @@ const LV = [
   {
     place: 'The Kitchen', bg: 'kitchen', sky: ['#ff9f5a', '#ffe2ad'], far: '#e8a86a', mid: '#f0b878',
     ground: '#9b6a43', top: '#e8c07a', brick: '#c0703a', accent: '#44c55a', foes: ['egg', 'toast', 'roomba'],
-    intro: ['The kitchen smells like pancakes. The eggs look ANGRY. The toast is hopping.', 'See the blue <b>trampolines</b>? Land on them to fly!', 'Another cat is hiding by the counter. She can smell candles from a mile away.'],
+    intro: ['The kitchen smells like pancakes. The eggs look ANGRY. The toast is hopping.', 'See the blue <b>trampolines</b>? Land on them to fly!', 'Another cat is hiding by the counter. She can hear coins jingle from a mile away.'],
     boss: { kind: 'mom', title: 'Mom, the Breakfast Boss', prop: '🥞', hp: 4, face: 'm' },
     bossIntro: ['<b>MOM:</b> Nobody leaves this kitchen without breakfast! Sit. Eat. SLOWLY.', '<b>MOM:</b> Most important meal of the DAY. Chew every bite forty times. We have all morning.'],
     taunts: ['At least eat the crusts!', 'Syrup is NOT a drink!', 'Chew! SLOWER!'],
@@ -860,7 +869,7 @@ const LV = [
     bossIntro: ['<b>MOM:</b> Three more bites. THEN you can have dessert.', '<b>MOM:</b> Dessert is... later. MUCH later. Chew slowly.'],
     taunts: ['Here comes the airplane!', "There's spinach in EVERYTHING!", 'Elbows OFF the table!'],
     win: ["<b>MOM:</b> Two bites counts. Since it's your birthday.", '<b>MOM:</b> ...Was that a truck in the driveway? Nope. Nothing. Eat your carrots.'],
-    meanwhile: 'The cake needs candles. Someone counts the ones Kinan has found so far: {candles}.'
+    meanwhile: 'Someone counts Kinan\'s coins so far: {coins}. That\'s a LOT of party money.'
   },
   {
     place: 'Bedtime Castle', bg: 'castle', sky: ['#0b0d2a', '#2b2f74'], far: '#2a3270', mid: '#3a4288',
@@ -1358,7 +1367,7 @@ function sparks(x, y, n, colors) {
     part(x, y, { vx: Math.cos(a) * s, vy: Math.sin(a) * s - 0.6, g: 0.16, life: ri(16, 34), size: ri(1, 3), color: pick(colors || ['#f6c445', '#fff', '#ff6fae']), glow: true });
   }
 }
-function pop(x, y, txt, t, color) { pops.push({ x, y, t: t || 34, max: t || 34, txt, color: color || '#f6c445' }); }
+function pop(x, y, txt, t, color, coin) { pops.push({ x, y, t: t || 34, max: t || 34, txt, color: color || '#f6c445', coin: !!coin }); }
 /* screen shake is OFF for good: on a phone even a small shake moves the whole picture 4-18 px and players
    found it violent (gift-block bumps, getting hurt). The function stays so every call site keeps working. */
 function shakeIt(n) { shake = 0; }
@@ -1403,8 +1412,8 @@ function updHud() {
   if (!P) return;
   const hp = Math.max(0, P.hp), max = Math.max(1, P.max);
   setHearts(hp, max);
-  el.cnt.innerHTML = '<i class="candle-ico"></i><b>' + got + '</b>';
-  el.cnt.title = got + ' of ' + totalCandles + ' candles';
+  el.cnt.innerHTML = '<i class="coin-ico"></i><b>' + got + '</b>';
+  el.cnt.title = got + ' of ' + totalCandles + ' coins';
   el.scoreEl.innerHTML = '★ <b>' + score.toLocaleString() + '</b>';
   el.pow.disabled = !(P.power === 'popper');
   el.pow.textContent = P.power === 'popper' ? 'POW' : (P.rush > 0 ? 'RUSH' : 'POW');
@@ -1858,7 +1867,7 @@ function addCandle(n) {
     SFX.heart();
     pop(P.x, P.y - 16, 'EXTRA HEART!', 50, '#ff6fae');
     sparks(P.x + 5, P.y, 14, ['#ff6fae', '#fff', '#f6c445']);
-    toast('<b>' + (nextHeartAt - 25) + ' candles!</b> Extra heart ❤', 1500);
+    toast('<b>' + (nextHeartAt - 25) + ' coins!</b> Extra heart ❤', 1500);
   }
   updHud();
 }
@@ -1866,7 +1875,7 @@ function hitGift(tx, ty) {
   L.g[ty * L.w + tx] = 4;
   const kind = L.gifts[ty * L.w + tx] || 'candle';
   sparks(tx * T + 8, ty * T + 8, 10, ['#f6c445', '#fff', '#ff6fae']);
-  if (kind === 'candle') { addCandle(1); SFX.gift(); pop(tx * T + 4, ty * T - 8, '+1 🕯', 30); }
+  if (kind === 'candle') { addCandle(1); SFX.gift(); pop(tx * T + 2, ty * T - 8, '+1', 30, null, true); }
   else { items.push({ x: tx * T + 2, y: ty * T - 14, w: 12, h: 12, kind: kind, rise: 12, got: false }); SFX.gift(); }
   shakeIt(1.5);
 }
@@ -1890,7 +1899,7 @@ function trailPart(kind, x, y) {
 function updateWorld() {
   for (const pc of pieces) {
     if (hasGold(L.i, pc.j)) continue;
-    if (!progress.puzzleHint && pc.x > camX + 20 && pc.x < camX + W - 20) { progress.puzzleHint = true; save(); toast('🧩 A <b>puzzle piece</b>! Jump into it for a golden candle.', 2600); }
+    if (!progress.puzzleHint && pc.x > camX + 20 && pc.x < camX + W - 20) { progress.puzzleHint = true; save(); toast('🧩 A <b>puzzle piece</b>! Jump into it for a golden coin.', 2600); }
     if (pieceCool[pc.j] > 0) { if (Math.abs(P.x - pc.x) > 48) pieceCool[pc.j]--; continue; }
     if (boss === 'off' && !P.dead && overlap(P, pc)) { enterPuzzle(pc); return; }
   }
@@ -3222,7 +3231,7 @@ function drawProps(th) {
     if (sx < -12 || sx > W + 12) continue;
     const bob = Math.round(Math.sin((frame + c.x) / 14));
     glowDisc(sx + 3, Math.round(c.y + 3 + bob), 9, 'rgba(255,190,80,.55)', 0.55);
-    ctx.drawImage(SP.candle, sx, Math.round(c.y + bob));
+    const ci = coinImg(frame + c.x); ctx.drawImage(ci, Math.round(sx + 2.5 - ci.width / 2), Math.round(c.y + bob));
   }
   for (const it of items) {
     const sx = Math.round(it.x - camX), sy = Math.round(it.y);
@@ -3817,6 +3826,7 @@ function drawParticles() {
     ctx.fillText(p.txt, sx + 6, sy + 1);
     ctx.fillStyle = p.color || '#f6c445';
     ctx.fillText(p.txt, sx + 5, sy);
+    if (p.coin) { const ci = coinImg(frame); ctx.drawImage(ci, Math.round(sx + 13 - ci.width / 2), sy - 7); }
     ctx.globalAlpha = 1;
   }
   for (const r of rings) {
@@ -3958,7 +3968,7 @@ const PUZZLE_KINDS = ['switches', 'lights', 'climb'];
 const PUZZLE_HELP = {
   switches: '🧩 <b>Puzzle room!</b> Step on the coloured switches in the order of the dots on the sign.',
   lights: '🧩 <b>Puzzle room!</b> Light all the lamps. Each button flips its lamp and the ones next to it.',
-  climb: '🧩 <b>Puzzle room!</b> Climb the shelves to the golden candle at the top.'
+  climb: '🧩 <b>Puzzle room!</b> Climb the shelves to the golden coin at the top.'
 };
 const SWITCH_COLORS = ['#e8364b', '#44c55a', '#3fa9f5', '#f6c445'];
 const goldCount = (i) => { const m = (progress.gold && progress.gold[i]) || 0; return (m & 1) + ((m >> 1) & 1) + ((m >> 2) & 1); };
@@ -4052,7 +4062,7 @@ function solvePuzzle(pz) {
   pz.solved = true;
   pz.gold = { x: 13 * T + 3, y: GROUND * T - 52, w: 10, h: 14, got: false };   /* floats above the middle: a small jump to grab it */
   SFX.power();
-  toast('<b>Solved!</b> Grab the golden candle! 🕯', 2000);
+  toast('<b>Solved!</b> Grab the golden coin! <i class="coin-ico"></i>', 2000);
 }
 function puzzlePress(pz, k) {
   if (pz.kind === 'switches') {
@@ -4080,7 +4090,7 @@ function collectGold(pz) {
   save();
   SFX.heart();
   sparks(pz.gold.x + 5, pz.gold.y + 6, 24, ['#f6c445', '#fff3b0', '#ffffff']);
-  toast('🕯 <b>Golden candle!</b> ' + goldCount(pz.stage) + ' of 3 here · +25 for the Party Shop', 2400);
+  toast('<i class="coin-ico"></i><b>Golden coin!</b> ' + goldCount(pz.stage) + ' of 3 here · +25 coins for the Party Shop', 2400);
   pz.exitT = 70;
 }
 function updatePuzzle() {
@@ -4109,10 +4119,10 @@ function drawPiece(x, y, t) {
   ctx.fillStyle = '#fff3b0'; ctx.fillRect(X + 2, Y + 5, 3, 2); ctx.fillRect(X + 6, Y + 2, 1, 1);
   if (Math.floor(t / 20) % 3 === 0) { ctx.fillStyle = '#ffffff'; ctx.fillRect(X + 11, Y + 1, 1, 3); ctx.fillRect(X + 10, Y + 2, 3, 1); }
 }
-function drawGoldCandle(g) {
-  const bob = Math.round(Math.sin(frame / 10) * 2);
+function drawGoldCoin(g) {
+  const bob = Math.round(Math.sin(frame / 10) * 2), ci = coinImg(frame, true);
   glowDisc(g.x + 5, g.y + 6 + bob, 16, 'rgba(255,215,90,.7)', 0.8);
-  ctx.save(); ctx.translate(g.x - 2, g.y - 2 + bob); ctx.scale(2, 2); ctx.drawImage(SP.goldCandle, 0, 0); ctx.restore();
+  ctx.save(); ctx.translate(Math.round(g.x + 5 - ci.width), g.y - 2 + bob); ctx.scale(2, 2); ctx.drawImage(ci, 0, 0); ctx.restore();
 }
 function drawPuzzle() {
   const pz = puzzle, th = LV[pz.stage];
@@ -4160,7 +4170,7 @@ function drawPuzzle() {
       ctx.fillStyle = 'rgba(255,255,255,.4)'; ctx.fillRect(e.x + 3, GROUND * T - 9, 10, 1);
     }
   });
-  if (pz.gold && !pz.gold.got) drawGoldCandle(pz.gold);
+  if (pz.gold && !pz.gold.got) drawGoldCoin(pz.gold);
   drawPlayer();
   drawDaylight(th);
   drawParticles();
@@ -4312,7 +4322,7 @@ function ending2() {
     '<p class="lede">You outran the gophers, survived camp breakfast, out-stubborned a moose, passed the safety briefing, made Pumpjack Pete smile, waited out a prairie storm (mostly) and beat <b>Hydro Vac Dad</b> at his own rig.</p>' +
     '<p class="lede"><b>DAD:</b> Okay, okay. You win, bud. You know what? I\'m proud of you. I miss you every single day I\'m out here. Let\'s go home.</p>' +
     '<p class="lede">Two hours later, the truck pulls into the driveway in Saskatoon. Mom left the porch light on. 💛</p>' +
-    '<p class="wrapnote">🕯 Golden candles in World 2: <b>' + gold + '</b> / 30 · ⭐ ' + stars + ' / 30 stars</p>' +
+    '<p class="wrapnote"><i class="coin-ico"></i>Golden coins in World 2: <b>' + gold + '</b> / 30 · ⭐ ' + stars + ' / 30 stars</p>' +
     '<p class="wrapnote">🎁 <b>World 3</b> is being built. Keep being awesome: a grown-up has the next reward code.</p>' +
     '<ul class="credits">' +
     '<li><b>Kinan</b> as The Hero (hard hat on, mostly)</li>' +
@@ -4638,13 +4648,13 @@ function shopScreen(from) {
   const cats = [['outfit', "Kinan's outfits"], ['hat', 'Hats'], ['trail', 'Sparkle trails (when he runs and jumps)'], ['costume', 'Family Smash costumes']];
   const card = (it) => {
     const own = ownsItem(it.id), on = own && isEquipped(it);
-    const label = on ? 'Wearing ✓' : (own ? 'Tap to wear' : (shopConfirm === it.id ? 'Tap again: buy for ' + it.price + ' 🕯' : it.price + ' 🕯'));
+    const label = on ? 'Wearing ✓' : (own ? 'Tap to wear' : (shopConfirm === it.id ? 'Tap again: buy for ' + it.price + ' <i class="coin-ico"></i>' : it.price + ' <i class="coin-ico"></i>'));
     return '<button type="button" class="shopcard' + (on ? ' on' : '') + (own ? ' own' : '') + '" data-item="' + it.id + '">' + shopPreview(it) + '<b>' + it.name + '</b><small>' + label + '</small></button>';
   };
   showScreen(
-    '<p class="eyebrow">Party Shop · the candles you collect are money here</p>' +
+    '<p class="eyebrow">Party Shop · spend the coins you collect</p>' +
     '<h1 class="title"><span class="t2">Party Shop</span></h1>' +
-    '<p class="wallet">🕯 <b id="walletN">' + (progress.wallet || 0) + '</b> candles to spend</p>' +
+    '<p class="wallet"><i class="coin-ico"></i><b id="walletN">' + (progress.wallet || 0) + '</b> coins to spend</p>' +
     '<p class="tiny" id="shopMsg">' + shopMsg + '</p>' +
     cats.map((c) => '<p class="eyebrow">' + c[1] + '</p><div class="shopgrid">' + SHOP.filter((it) => it.cat === c[0]).map(card).join('') + '</div>').join('') +
     '<div class="btnrow"><button class="btn go" id="shopBack" type="button">' + (from === 'map' ? 'Back to the map' : 'Back') + '</button></div>' +
@@ -4659,7 +4669,7 @@ function shopTap(id, from) {
   if (!it) return;
   const y = window.scrollY;
   if (ownsItem(id)) { equip(it, !isEquipped(it)); shopConfirm = null; save(); SFX.save(); }
-  else if ((progress.wallet || 0) < it.price) { shopConfirm = null; SFX.click(); shopMsg = 'Need <b>' + (it.price - (progress.wallet || 0)) + '</b> more candles for the ' + it.name + '.'; }
+  else if ((progress.wallet || 0) < it.price) { shopConfirm = null; SFX.click(); shopMsg = 'Need <b>' + (it.price - (progress.wallet || 0)) + '</b> more coins for the ' + it.name + '.'; }
   else if (shopConfirm !== id) { shopConfirm = id; SFX.click(); }
   else { progress.wallet -= it.price; progress.owned.push(id); shopConfirm = null; equip(it, true); save(); SFX.power(); shopMsg = '🛍️ <b>' + it.name + '</b> is yours!'; }
   shopScreen(from);
@@ -4672,13 +4682,13 @@ function titleScreen() {
   Music.play('title');
   el.stageLbl.textContent = 'KINAN vs. MOM · BIRTHDAY REMASTER';
   setHearts(maxHearts(), maxHearts());
-  el.cnt.innerHTML = '<i class="candle-ico"></i><b>0</b>';
+  el.cnt.innerHTML = '<i class="coin-ico"></i><b>0</b>';
   el.scoreEl.innerHTML = '★ <b>0</b>';
   renderPetStat();
   const rs = progress.resume && LV[progress.resume.i] ? progress.resume : null;
   const cont = !!rs || progress.beaten.length > 0 || progress.unlocked > 1;
   const next = nextStage();
-  const storySub = rs ? 'Continue · ' + stageName(rs.i) + ' · ' + LV[rs.i].place + (rs.atBoss ? ' · at the boss' : (rs.cpHit ? ' · past the checkpoint' : '')) + ' · ' + rs.got + ' candles'
+  const storySub = rs ? 'Continue · ' + stageName(rs.i) + ' · ' + LV[rs.i].place + (rs.atBoss ? ' · at the boss' : (rs.cpHit ? ' · past the checkpoint' : '')) + ' · ' + rs.got + ' coins'
     : (cont ? 'Continue · ' + stageName(next) + ' · ' + LV[next].place + ' · ' + progress.beaten.filter((b) => worldOf(b) === worldOf(next)).length + ' of ' + (worldInfo(next).to - worldInfo(next).from + 1) + ' cleared' : '11 stages · 1 birthday · 4 cats · 2 dogs');
   /* the front door: pick a game. The story text and the moves live under "How to play". */
   showScreen(
@@ -4733,14 +4743,14 @@ function howToScreen() {
     '<ul class="howto">' +
     '<li><span class="ico">👟</span><span><b>Jump on enemies</b> to bonk them. Chain bonks without landing for a <b>combo multiplier</b>.</span></li>' +
     '<li><span class="ico">🦘</span><span><b>Tap jump</b> for a quick hop, <b>hold</b> for a big jump. Land on shelves, gift blocks, and enemies.</span></li>' +
-    '<li><span class="ico">🎁</span><span>Hit <b>gift blocks</b> from below for candles and powers: 🎉 <b>Party Popper</b>, 🍰 <b>Sugar Rush</b>, ❤ extra hearts.</span></li>' +
-    '<li><span class="ico">🐱</span><span>Rescue all <b>4 cats and 2 dogs</b> hiding in boxes. Each one adds a power: double jump, candle magnet, extra heart, dash attack and more.</span></li>' +
+    '<li><span class="ico">🎁</span><span>Hit <b>gift blocks</b> from below for coins and powers: 🎉 <b>Party Popper</b>, 🍰 <b>Sugar Rush</b>, ❤ extra hearts.</span></li>' +
+    '<li><span class="ico">🐱</span><span>Rescue all <b>4 cats and 2 dogs</b> hiding in boxes. Each one adds a power: double jump, coin magnet, extra heart, dash attack and more.</span></li>' +
     '<li><span class="ico">⛑️</span><span><b>Shad</b> drops in at checkpoints and boss fights: his slam clears the screen and gives you a <b>hard hat</b> that blocks one hit.</span></li>' +
-    '<li><span class="ico">⭐</span><span>Earn up to <b>3 stars</b> per stage: clear it, grab 70% of the candles, and never lose a heart. Stars unlock <b>hats</b>.</span></li>' +
-    '<li><span class="ico">🍰</span><span>Every <b>25 candles</b> = an extra heart. Trampolines launch you sky-high. The game saves itself at every checkpoint and whenever you pause.</span></li>' +
-    '<li><span class="ico">🧩</span><span>Every stage hides <b>3 puzzle pieces</b> up in the air. Jump into one for a puzzle room with a <b>golden candle</b> (+25 for the Party Shop). There is always a door out.</span></li>' +
+    '<li><span class="ico">⭐</span><span>Earn up to <b>3 stars</b> per stage: clear it, grab 70% of the coins, and never lose a heart. Stars unlock <b>hats</b>.</span></li>' +
+    '<li><span class="ico">🍰</span><span>Every <b>25 coins</b> = an extra heart. Trampolines launch you sky-high. The game saves itself at every checkpoint and whenever you pause.</span></li>' +
+    '<li><span class="ico">🧩</span><span>Every stage hides <b>3 puzzle pieces</b> up in the air. Jump into one for a puzzle room with a <b>golden coin</b> (+25 coins). There is always a door out.</span></li>' +
     '<li><span class="ico">🥊</span><span><b>Family Smash:</b> pick a family member, jump on heads, press <b>POW</b> for their special move, knock everyone else off the cake. Grab the <b>birthday items</b> that float down (🍰 🎉 ❤ ⛑️ 🎈). Beat story stages to unlock more arenas.</span></li>' +
-    '<li><span class="ico">🧱</span><span><b>Builder:</b> make your own level with ground, bricks, gift blocks, shelves, trampolines, candles and enemies, put down a start and a 🚩, and play it. Up to 6 levels are kept on this device.</span></li>' +
+    '<li><span class="ico">🧱</span><span><b>Builder:</b> make your own level with ground, bricks, gift blocks, shelves, trampolines, coins and enemies, put down a start and a 🚩, and play it. Up to 6 levels are kept on this device.</span></li>' +
     '<li><span class="ico">🏎️</span><span><b>Family Kart:</b> race the family in their real rides. Steer with ◀ ▶; hold <b>HOP</b> while turning to drift, let go after the sparks for a boost; <b>ITEM</b> uses what a gift box gave you. Beat story stages to unlock more tracks.</span></li>' +
     '</ul>' +
     '<p class="tiny">Phone or tablet: turn it sideways; the buttons float over the picture. Keyboard: ← → move · SPACE jump · X pow · P pause. Gamepad works too.</p>' +
@@ -4807,7 +4817,7 @@ function mapScreen() {
       '<span class="n">' + stageNum(i) + '</span>' +
       '<span><span class="t">' + (open ? th.place : 'Locked') + '</span>' +
       '<span class="s">' + (open ? (th.boss ? 'Boss: ' + th.boss.title : 'Goal: Dad\'s truck') + (done && bt ? ' · best ' + fmtTime(bt) : '') : 'Beat stage ' + (stageNum(i) - 1) + ' first') + '</span></span>' +
-      '<span class="stars">' + starStr + (open ? '<span class="gold">🕯' + goldCount(i) + '/3</span>' : '') + '</span></button></li>';
+      '<span class="stars">' + starStr + (open ? '<span class="gold"><i class="coin-ico"></i>' + goldCount(i) + '/3</span>' : '') + '</span></button></li>';
   }).join('');
   const hats = HATS.filter((h) => !h.shop || ownsItem('hat:' + h.id)).map((h) => {
     const unlocked = h.shop ? true : stars >= h.need;
@@ -4837,7 +4847,7 @@ function mapScreen() {
     '<div class="btnrow"><button class="btn go" type="button" id="playNext">' + (progress.won ? 'Replay final stage' : 'Play next stage') + '</button>' +
     '<button class="btn" type="button" id="shopBtnM">🛍️ Party Shop</button>' +
     '<button class="btn" type="button" id="titleBtn">Title screen</button></div>' +
-    '<p class="wrapnote">Tip: 3 stars needs a clean run — clear the boss, collect 70% of candles and lose zero hearts.</p>'
+    '<p class="wrapnote">Tip: 3 stars needs a clean run — clear the boss, collect 70% of coins and lose zero hearts.</p>'
   );
   el.stageLbl.textContent = 'KINAN · LV 11';
   $$('.lvbtn', el.screen).forEach((b) => b.addEventListener('click', () => {
@@ -4913,15 +4923,15 @@ function resultsScreen(i) {
     '<h1 class="title"><span class="t1">' + (th.boss ? 'Boss down!' : 'Stage clear!') + '</span><span class="t2">' + (wi.to - i) + ' stage' + (wi.to - i === 1 ? '' : 's') + ' to go</span></h1>' +
     starHTML(st, true) +
     '<dl class="bigstats">' +
-    '<div><dt>Candles</dt><dd><b>' + got + '</b> / ' + totalCandles + '</dd></div>' +
+    '<div><dt>Coins</dt><dd><b>' + got + '</b> / ' + totalCandles + '</dd></div>' +
     '<div><dt>Time</dt><dd>' + fmtTime(stageTime) + '</dd></div>' +
     '<div><dt>Score</dt><dd>' + score.toLocaleString() + (newBest ? ' <b>★</b>' : '') + '</dd></div>' +
     '<div><dt>Best combo</dt><dd>' + (bestCombo > 1 ? 'x' + bestCombo : '—') + '</dd></div>' +
     '</dl>' +
-    (st < 3 ? '<p class="wrapnote">' + (pct < 0.7 ? 'Grab 70% of the candles' : '') + (pct < 0.7 && heartsLost > 0 ? ' and ' : '') + (heartsLost > 0 ? 'never lose a heart' : '') + ' for 3 stars.</p>' : '<p class="wrapnote">Perfect run. Kinan is unstoppable. ⭐⭐⭐</p>') +
-    '<p class="wrapnote" id="walletNote">🛍️ +' + got + ' candles for the Party Shop · you have <b>' + (progress.wallet || 0) + '</b></p>' +
-    '<p class="wrapnote" id="goldNote">' + (goldCount(i) === 3 ? '🕯 All 3 golden candles found here!' : '🕯 Golden candles here: <b>' + goldCount(i) + '</b> / 3 · jump into the 🧩 puzzle pieces to find them') + '</p>' +
-    (th.meanwhile ? '<p class="lede meanwhile"><b>Meanwhile…</b> ' + th.meanwhile.replace('{candles}', String(progress.totalCandles || 0)) + '</p>' : '') +
+    (st < 3 ? '<p class="wrapnote">' + (pct < 0.7 ? 'Grab 70% of the coins' : '') + (pct < 0.7 && heartsLost > 0 ? ' and ' : '') + (heartsLost > 0 ? 'never lose a heart' : '') + ' for 3 stars.</p>' : '<p class="wrapnote">Perfect run. Kinan is unstoppable. ⭐⭐⭐</p>') +
+    '<p class="wrapnote" id="walletNote">🛍️ +' + got + ' coins for the Party Shop · you have <b>' + (progress.wallet || 0) + '</b></p>' +
+    '<p class="wrapnote" id="goldNote">' + (goldCount(i) === 3 ? '<i class="coin-ico"></i>All 3 golden coins found here!' : '<i class="coin-ico"></i>Golden coins here: <b>' + goldCount(i) + '</b> / 3 · jump into the 🧩 puzzle pieces to find them') + '</p>' +
+    (th.meanwhile ? '<p class="lede meanwhile"><b>Meanwhile…</b> ' + th.meanwhile.replace('{coins}', String(progress.totalCandles || 0)) + '</p>' : '') +
     (firstClear && i > 0 && i <= 10 ? '<p class="wrapnote" id="arenaNote">🥊 New Family Smash arena unlocked: <b>' + ARENAS[i].name + '</b></p>' : '') +
     (firstClear && i > 0 && KART_TRACKS.some((t) => t.stage === i) ? '<p class="wrapnote" id="trackNote">🏎️ New Family Kart track unlocked: <b>' + KART_TRACKS.filter((t) => t.stage === i)[0].name + '</b></p>' : '') +
     '<div class="btnrow"><button class="btn go" type="button" id="nextBtn">' + (i < wi.to ? 'NEXT STAGE ▶' : 'FINISH') + '</button>' +
@@ -4969,8 +4979,8 @@ function ending() {
     '<p class="lede"><b>MOM:</b> Okay... you win, my boy. You beat ALL of us. But there\'s one move nobody can dodge... the <b>BIRTHDAY HUG!</b></p>' +
     '<p class="lede"><b>Four cats. Two dogs. One very good family.</b> From Saskatoon, Saskatchewan — with love. 💛</p>' +
     '<p class="wrapnote">🥊 All 11 <b>Family Smash</b> arenas are unlocked, Birthday Cake Volcano included.</p>' +
-    '<p class="wrapnote">🕯 Golden candles found: <b>' + goldTotal() + '</b> / 33' + (goldTotal() < 33 ? ' · the 🧩 puzzle pieces are still out there' : ' · every single one!') + '</p>' +
-    '<div class="heroline"><span class="pill">⭐ ' + stars + ' / 33 stars</span><span class="pill"><i class="candle-ico"></i> ' + (progress.totalCandles || 0) + ' candles collected</span><span class="pill">🎂 11 years old</span><span class="pill">🐱 ' + progress.pets.ids.filter((id) => petDef(id).kind === 'cat').length + ' · 🐶 ' + progress.pets.ids.filter((id) => petDef(id).kind === 'dog').length + '</span></div>' +
+    '<p class="wrapnote"><i class="coin-ico"></i>Golden coins found: <b>' + goldTotal() + '</b> / 33' + (goldTotal() < 33 ? ' · the 🧩 puzzle pieces are still out there' : ' · every single one!') + '</p>' +
+    '<div class="heroline"><span class="pill">⭐ ' + stars + ' / 33 stars</span><span class="pill"><i class="coin-ico"></i> ' + (progress.totalCandles || 0) + ' coins collected</span><span class="pill">🎂 11 years old</span><span class="pill">🐱 ' + progress.pets.ids.filter((id) => petDef(id).kind === 'cat').length + ' · 🐶 ' + progress.pets.ids.filter((id) => petDef(id).kind === 'dog').length + '</span></div>' +
     '<p class="wrapnote" id="w2Note">' + (worldOpen(2) ? '🛢️ <b>World 2: Kinan vs. Dad</b> is open! Find it on the stage map.' : '🔒 <b>World 2: Kinan vs. Dad</b> is waiting at Dad\'s oilfield job site. Ask a grown-up for a reward code!') + '</p>' +
     '<div class="divider"></div>' +
     '<ul class="credits">' +
@@ -4985,10 +4995,10 @@ function ending() {
     '<button class="btn" type="button" id="codeBtnE">🎁 Reward code</button>' +
     '<button class="btn" type="button" id="titleBtn">Title screen</button>' +
     '<button class="btn ghost" type="button" id="againBtn">Play final again</button></div>' +
-    '<p class="tiny">Made with love, pixels and far too many candles. 💛</p>'
+    '<p class="tiny">Made with love, pixels and far too many coins. 💛</p>'
   );
   el.stageLbl.textContent = 'KINAN · LV 11';
-  el.cnt.innerHTML = '<i class="candle-ico"></i><b>' + (progress.totalCandles || 0) + '</b>';
+  el.cnt.innerHTML = '<i class="coin-ico"></i><b>' + (progress.totalCandles || 0) + '</b>';
   $('#mapBtn').addEventListener('click', () => { SFX.click(); mapScreen(); });
   $('#titleBtn').addEventListener('click', () => { SFX.click(); titleScreen(); });
   $('#againBtn').addEventListener('click', () => { SFX.click(); playStage(10); });
@@ -5825,15 +5835,23 @@ function smashResults() {
   const S = smash;
   if (!S) return;
   const win = S.winner >= 0 ? S.fighters[S.winner] : null;
-  const rows = S.fighters.slice().sort((a, b) => (b.stocks - a.stocks) || (a.dmg - b.dmg)).map((f) =>
+  const order = S.fighters.slice().sort((a, b) => (b.stocks - a.stocks) || (a.dmg - b.dmg));
+  const rows = order.map((f) =>
     '<li><b style="color:' + SMASH_CHARS[f.who].color + '">' + escAttr(f.name) + '</b> · ' + (f.out ? 'out' : f.stocks + ' ❤') + ' · ' + f.kos + ' KO' + (f.kos === 1 ? '' : 's') + ' · fell ' + f.falls + 'x</li>').join('');
   const online = S.online;
+  /* coins for the fight, like a Kart race: 5 for playing, 3 per knockout and a bonus for your place (this device's own player) */
+  const mine = S.fighters.find((f) => (online ? f.slot === online.me : !f.cpu));
+  const place = mine ? order.indexOf(mine) : -1, kos = mine ? mine.kos || 0 : 0, bonus = [15, 10, 6, 3, 1][place] || 0;
+  const earned = mine ? 5 + 3 * kos + bonus : 0;
+  if (earned) { progress.wallet = (progress.wallet || 0) + earned; save(); }
   endSmash();
   Music.play('title');
   showScreen(
     '<p class="eyebrow">Family Smash · fight over</p>' +
     '<h1 class="title"><span class="t1">' + (win ? escAttr(win.name) + ' wins!' : 'Draw!') + '</span><span class="t2">' + (win ? imgOf(fighterImage(Object.assign({}, win, { vx: 0, onGround: true, anim: 0 })), 4) : '') + '</span></h1>' +
     '<ul class="credits">' + rows + '</ul>' +
+    (mine ? '<p class="wrapnote" id="smEarned"><i class="coin-ico"></i>+' + earned + ' coins for the Party Shop (5 for playing' + (kos ? ' + ' + 3 * kos + ' for ' + kos + ' knockout' + (kos === 1 ? '' : 's') : '') +
+      ' + ' + bonus + ' for ' + (place === 0 ? 'winning' : ['', '2nd', '3rd', '4th', '5th'][place] + ' place') + ')</p>' : '') +
     '<div class="btnrow">' +
     (!online || online.role === 'host' ? '<button class="btn go" id="smAgain" type="button">Rematch</button>' : '<p class="tiny">Waiting for the host to start the next fight…</p>') +
     (online ? '<button class="btn" id="smLobby" type="button">Back to the room</button>' : '<button class="btn" id="smPick" type="button">Change fighters</button>') +
@@ -6711,9 +6729,9 @@ function kartCard(who) { return kartRideSprites(who).frames[6]; }
 /* ---- the race ---- */
 let kart = null, lastKart = null;
 const KIT = ['cake', 'cake3', 'balloon', 'banana', 'frosting', 'popper', 'star', 'candles'];
-const KIT_ICON = { cake: '🍰', cake3: '🍰', balloon: '🎈', banana: '🍌', frosting: '🧁', popper: '🎉', star: '⭐', candles: '🕯' };
-const KIT_HOW = { cake: 'tap ITEM for a speed boost', cake3: 'three speed boosts', balloon: 'throw it ahead', banana: 'drop it behind you: they slip', frosting: 'a sticky puddle behind you', popper: 'it chases the one ahead', star: 'super fast, nothing stops you', candles: '+3 candles' };
-const KIT_NAME = { cake3: 'Triple Sugar Rush', banana: 'Banana peel', cake: 'Sugar Rush', balloon: 'Water balloon', frosting: 'Frosting splat', popper: 'Party popper', star: 'Birthday star', candles: '3 candles' };
+const KIT_ICON = { cake: '🍰', cake3: '🍰', balloon: '🎈', banana: '🍌', frosting: '🧁', popper: '🎉', star: '⭐', candles: '💰' };
+const KIT_HOW = { cake: 'tap ITEM for a speed boost', cake3: 'three speed boosts', balloon: 'throw it ahead', banana: 'drop it behind you: they slip', frosting: 'a sticky puddle behind you', popper: 'it chases the one ahead', star: 'super fast, nothing stops you', candles: '+3 coins' };
+const KIT_NAME = { cake3: 'Triple Sugar Rush', banana: 'Banana peel', cake: 'Sugar Rush', balloon: 'Water balloon', frosting: 'Frosting splat', popper: 'Party popper', star: 'Birthday star', candles: '3 coins' };
 /* better items the further back you are */
 const KIT_ODDS = [
   { banana: 30, frosting: 20, balloon: 25, candles: 20, cake: 5 },
@@ -7315,7 +7333,7 @@ function drawKartScene() {
       ctx.fillStyle = 'rgba(0,0,0,.22)'; ctx.beginPath(); ctx.ellipse(p.x, p.y + 6 * p.s, 7 * p.s, 2.4 * p.s, 0, 0, 6.284); ctx.fill();
       ctx.drawImage(img, Math.round(p.x - 21 * sc), Math.round(p.y - 42 * sc), Math.round(42 * sc), Math.round(42 * sc));
     } else if (it.t === 'cand') {
-      const sc = p.s * 1.4, img = SP.candle;
+      const sc = p.s * 1.4, img = coinImg(K.t + o.x);
       if (sc > 0.35) ctx.drawImage(img, Math.round(p.x - img.width * sc / 2), Math.round(p.y - img.height * sc), Math.round(img.width * sc), Math.round(img.height * sc));
     } else if (it.t === 'hz' && o.kind === 'banana') {
       const sz = Math.max(1, p.s);
@@ -7377,7 +7395,7 @@ function drawKartItemIcon(it, x, y) {
   else if (it === 'cake3') { for (let k = -1; k <= 1; k++) { ctx.save(); ctx.translate(x - 8 + k * 7, y - 6 + Math.abs(k) * 3); ctx.scale(1.3, 1.3); drawPickup('cake', 0, 0, 0); ctx.restore(); } }
   else if (it === 'frosting') { ctx.fillStyle = '#ff9cc6'; ctx.beginPath(); ctx.ellipse(x, y + 4, 11, 6, 0, 0, 6.284); ctx.fill(); ctx.fillStyle = '#ffd0e2'; ctx.beginPath(); ctx.ellipse(x - 3, y + 1, 5, 3, 0, 0, 6.284); ctx.fill(); ctx.fillStyle = '#e8364b'; ctx.beginPath(); ctx.arc(x + 2, y - 3, 3, 0, 6.284); ctx.fill(); }
   else if (it === 'star') { ctx.fillStyle = '#f6c445'; ctx.beginPath(); for (let k = 0; k < 10; k++) { const r = k % 2 ? 5 : 12, a = -Math.PI / 2 + k * Math.PI / 5; ctx.lineTo(x + Math.cos(a) * r, y + Math.sin(a) * r); } ctx.closePath(); ctx.fill(); ctx.fillStyle = '#fff3b0'; ctx.fillRect(x - 3, y - 4, 2, 4); }
-  else if (it === 'candles') { for (let k = -1; k <= 1; k++) ctx.drawImage(SP.candle, Math.round(x + k * 8 - SP.candle.width), Math.round(y - SP.candle.height), SP.candle.width * 2, SP.candle.height * 2); }
+  else if (it === 'candles') { const ci = SP.coin[0]; for (let k = -1; k <= 1; k++) ctx.drawImage(ci, Math.round(x + k * 8 - ci.width), Math.round(y - ci.height), ci.width * 2, ci.height * 2); }
 }
 function drawKartHud() {
   const K = kart, me = kartMe();
@@ -7385,7 +7403,7 @@ function drawKartHud() {
   /* lap and time, top left */
   kText('LAP ' + me.lap + '/' + K.laps, 8, 18, 14, '#f4f1e8');
   kText(kTime(me.done ? me.finishT : K.raceT), 8, 32, 10, '#c9c4bb');
-  ctx.drawImage(SP.candle, 8, 38, SP.candle.width * 1.5, SP.candle.height * 1.5);
+  ctx.drawImage(SP.coin[0], 7, 38, SP.coin[0].width * 1.5, SP.coin[0].height * 1.5);
   kText('x' + me.candles, 22, 50, 11, '#f6c445');
   /* the special meter: candles fill it; full = your special is ready */
   const full = me.meter >= 100;
@@ -7468,13 +7486,13 @@ function kartMenu() {
     '<p class="eyebrow">Family Kart · race the whole family</p>' +
     '<h1 class="title"><span class="t1">Family Kart</span><span class="t2">Five drivers. Five very different rides.</span></h1>' +
     '<div class="kartrow">' + KART_ORDER.map((w) => imgOf(kartCard(w), 1)).join('') + '</div>' +
-    '<p class="lede">Kinan\'s <b>red go-kart</b>, Shad\'s <b>2019 Chevy Trax Premier</b>, Chenoa\'s <b>ETS bus</b>, Mom\'s <b>washer-dryer-dishwasher</b> and Dad\'s <b>hydro vac truck</b>. Three laps, gift boxes full of birthday items, and candles to collect for the Party Shop.</p>' +
+    '<p class="lede">Kinan\'s <b>red go-kart</b>, Shad\'s <b>2019 Chevy Trax Premier</b>, Chenoa\'s <b>ETS bus</b>, Mom\'s <b>washer-dryer-dishwasher</b> and Dad\'s <b>hydro vac truck</b>. Three laps, gift boxes full of birthday items, and coins to collect for the Party Shop.</p>' +
     '<div class="btnrow">' +
     '<button class="btn go" id="kRace" type="button">🏁 Race the computer</button>' +
     '<button class="btn" id="kOnline" type="button">🌐 Race online · up to 5 players</button>' +
     '<button class="btn ghost" id="kBack" type="button">Title screen</button>' +
     '</div>' +
-    '<p class="tiny">Steer with the <b>wheel</b> (slide your thumb left or right) or ◀ ▶. Tap <b>HOP</b> to hop; hold it while you turn to <b>drift</b>, and let go after the sparks for a boost. <b>ITEM</b> uses what you got from a gift box: 🍰 Sugar Rush, 🍌 banana peel, 🎈 water balloon, 🧁 sticky frosting, 🎉 party popper (it chases the one ahead), ⭐ birthday star. Candles fill your <b>★ SPECIAL</b>: Kinan\'s turbo, Shad\'s slam, Chenoa\'s plates, Mom\'s laundry lob, Dad\'s hydro vac.</p>'
+    '<p class="tiny">Steer with the <b>wheel</b> (slide your thumb left or right) or ◀ ▶. Tap <b>HOP</b> to hop; hold it while you turn to <b>drift</b>, and let go after the sparks for a boost. <b>ITEM</b> uses what you got from a gift box: 🍰 Sugar Rush, 🍌 banana peel, 🎈 water balloon, 🧁 sticky frosting, 🎉 party popper (it chases the one ahead), ⭐ birthday star. Coins fill your <b>★ SPECIAL</b>: Kinan\'s turbo, Shad\'s slam, Chenoa\'s plates, Mom\'s laundry lob, Dad\'s hydro vac.</p>'
   );
   $('#kRace').addEventListener('click', () => { AudioSys.init(); SFX.click(); kartPickScreen(); });
   $('#kOnline').addEventListener('click', () => { AudioSys.init(); SFX.click(); kartOnlineScreen(); });
@@ -7537,7 +7555,7 @@ function kartResults(given) {
     '<p class="eyebrow">Family Kart · ' + escAttr(KART_TRACKS[ti].name) + '</p>' +
     '<h1 class="title"><span class="t1">' + (place === 1 ? 'You won!' : (['', '1st', '2nd', '3rd', '4th', '5th'][place] + ' place')) + '</span><span class="t2">' + imgOf(kartCard(who), 1) + '</span></h1>' +
     '<ul class="credits">' + rows.map((r, i) => '<li>' + medal[i] + ' <b style="color:' + KART_DRIVERS[r.k.who].color + '">' + escAttr(r.k.name) + '</b> · ' + KART_DRIVERS[r.k.who].ride + ' · ' + (r.done ? kTime(r.t) : 'still driving') + '</li>').join('') + '</ul>' +
-    '<p class="wrapnote" id="kEarned">🕯 +' + earned + ' candles for the Party Shop (' + me.got + ' picked up + ' + bonus + ' for ' + (place === 1 ? 'winning' : 'finishing ' + ['', '1st', '2nd', '3rd', '4th', '5th'][place]) + ')</p>' +
+    '<p class="wrapnote" id="kEarned"><i class="coin-ico"></i>+' + earned + ' coins for the Party Shop (' + me.got + ' picked up + ' + bonus + ' for ' + (place === 1 ? 'winning' : 'finishing ' + ['', '1st', '2nd', '3rd', '4th', '5th'][place]) + ')</p>' +
     '<div class="btnrow">' +
     (!online || online.role === 'host' ? '<button class="btn go" id="kAgain" type="button">Race again</button>' : '<p class="tiny">Waiting for the host to start the next race…</p>') +
     (!online && trackUnlocked(ti + 1) ? '<button class="btn" id="kNext" type="button">Next track</button>' : '') +
@@ -7782,12 +7800,12 @@ function kartRestart() {
 const BTOOLS = [
   { id: 'ground', icon: '🟫', name: 'Ground', tile: 1 }, { id: 'brick', icon: '🧱', name: 'Bricks', tile: 2 },
   { id: 'gift', icon: '🎁', name: 'Gift block', tile: 3 }, { id: 'shelf', icon: '➖', name: 'Shelf', tile: 7 },
-  { id: 'spring', icon: '🔵', name: 'Trampoline', tile: 6 }, { id: 'candle', icon: '🕯', name: 'Candle' },
+  { id: 'spring', icon: '🔵', name: 'Trampoline', tile: 6 }, { id: 'candle', icon: '<i class="coin-ico lg"></i>', name: 'Coin' },
   { id: 'foe', icon: '👾', name: 'Enemy' }, { id: 'start', icon: '🧒', name: 'Start' }, { id: 'goal', icon: '🚩', name: 'Finish flag' },
   { id: 'erase', icon: '🧽', name: 'Eraser' }, { id: 'move', icon: '✋', name: 'Scroll' }
 ];
 const GIFT_KINDS = ['candle', 'popper', 'cake', 'heart'];
-const GIFT_ICON = { candle: '🕯', popper: '🎉', cake: '🍰', heart: '❤' };
+const GIFT_ICON = { candle: '💰', popper: '🎉', cake: '🍰', heart: '❤' };
 const BSIZES = { short: 60, medium: 100, long: 150 };
 let builder = null;   /* the level editor, while it is open */
 function themesOpen() { const out = []; for (let i = 0; i < LV.length; i++) if (i <= 10 || worldOpen(2)) out.push(i); return out; }
@@ -7831,7 +7849,7 @@ function customGoal() {
     showScreen(
       '<p class="eyebrow">Builder mode · your own level</p>' +
       '<h1 class="title"><span class="t1">You beat it!</span><span class="t2">' + escAttr(b.name) + '</span></h1>' +
-      '<dl class="bigstats"><div><dt>Time</dt><dd>' + fmtTime(t) + '</dd></div><div><dt>Candles</dt><dd><b>' + c + '</b> / ' + all + '</dd></div></dl>' +
+      '<dl class="bigstats"><div><dt>Time</dt><dd>' + fmtTime(t) + '</dd></div><div><dt>Coins</dt><dd><b>' + c + '</b> / ' + all + '</dd></div></dl>' +
       '<div class="btnrow"><button class="btn go" id="bAgain" type="button">Play it again</button><button class="btn" id="bEdit" type="button">Keep building</button><button class="btn ghost" id="bMenu" type="button">My levels</button></div>'
     );
     confetti();
@@ -7857,7 +7875,7 @@ function builderMenu() {
   showScreen(
     '<p class="eyebrow">Builder mode · make your own level</p>' +
     '<h1 class="title"><span class="t1">Builder</span><span class="t2">Build it. Play it. Make it harder.</span></h1>' +
-    '<p class="lede">Use the game\'s own blocks: ground, bricks, gift blocks, shelves, trampolines, candles and enemies. Put down a start and a finish flag, pick the look of any world you have reached, then press <b>▶ Play</b>.</p>' +
+    '<p class="lede">Use the game\'s own blocks: ground, bricks, gift blocks, shelves, trampolines, coins and enemies. Put down a start and a finish flag, pick the look of any world you have reached, then press <b>▶ Play</b>.</p>' +
     (list.length ? '<ul class="credits buildlist">' + list.map((b, k) => '<li><input class="bname" data-k="' + k + '" maxlength="24" value="' + escAttr(b.name) + '" aria-label="Level name"> · ' + escAttr(LV[b.theme] ? LV[b.theme].place : '') + ' · ' + (b.w === 60 ? 'short' : b.w === 150 ? 'long' : 'medium') +
       ' <button class="btn small go" type="button" data-play="' + k + '">▶ Play</button> <button class="btn small" type="button" data-edit="' + k + '">Build</button> <button class="btn small ghost" type="button" data-del="' + k + '">Delete</button></li>').join('') + '</ul>'
       : '<p class="tiny">No levels yet. Make your first one!</p>') +
@@ -7902,7 +7920,7 @@ function builderToolbar() {
     '<div class="brow">' + BTOOLS.map((t) => '<button type="button" class="btool' + (B.tool === t.id ? ' on' : '') + '" data-tool="' + t.id + '" title="' + t.name + '" aria-label="' + t.name + '">' + t.icon + '</button>').join('') + '</div>' +
     '<div class="brow">' +
     (B.tool === 'foe' ? (LV[B.b.theme].foes || []).map((f) => '<button type="button" class="bopt' + (B.foe === f ? ' on' : '') + '" data-foe="' + f + '">' + f + '</button>').join('') : '') +
-    (B.tool === 'gift' ? '<span class="bhint">tap a gift block again to change what is inside: 🕯 🎉 🍰 ❤</span>' : '') +
+    (B.tool === 'gift' ? '<span class="bhint">tap a gift block again to change what is inside: <i class="coin-ico"></i>🎉 🍰 ❤</span>' : '') +
     '<select id="bTheme" aria-label="Look">' + th.map((i) => '<option value="' + i + '"' + (i === B.b.theme ? ' selected' : '') + '>' + escAttr(LV[i].place) + '</option>').join('') + '</select>' +
     '<button type="button" class="bopt" id="bLeft" aria-label="Scroll left">◀</button><button type="button" class="bopt" id="bRight" aria-label="Scroll right">▶</button>' +
     '<button type="button" class="bopt go" id="bPlay">▶ Play</button><button type="button" class="bopt" id="bDone">💾 Done</button></div>';
@@ -7974,8 +7992,8 @@ function drawBuilder() {
   drawTiles(th);
   /* gift contents, candles, enemies, start and finish */
   ctx.font = '8px "Segoe UI Emoji",sans-serif'; ctx.textAlign = 'center';
-  for (const k in b.gifts) { const tx = k % b.w, ty = Math.floor(k / b.w); if (B.g[k] === 3) ctx.fillText(GIFT_ICON[b.gifts[k]] || '🕯', tx * T + 8 - camX, ty * T - 2); }
-  for (const c of b.candles) ctx.drawImage(SP.candle, c[0] * T + 5 - camX, c[1] * T + 4);
+  for (const k in b.gifts) { const tx = k % b.w, ty = Math.floor(k / b.w); if (B.g[k] !== 3) continue; if ((b.gifts[k] || 'candle') === 'candle') ctx.drawImage(SP.coin[0], tx * T + 5 - camX, ty * T - 9); else ctx.fillText(GIFT_ICON[b.gifts[k]], tx * T + 8 - camX, ty * T - 2); }
+  for (const c of b.candles) ctx.drawImage(SP.coin[0], c[0] * T + 4 - camX, c[1] * T + 4);
   for (const f of b.foes) {
     const key = f[2];
     if (!bFoeCache[key]) bFoeCache[key] = makeFoe({ type: FOE[key] ? key : 'sock', tx: 0, ty: 0 });
