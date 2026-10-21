@@ -6795,6 +6795,7 @@ async function netJoin(code, role, mode) {
     NET.status = 'error'; NET.error = 'This browser can\'t play online. Open the game link in Safari (iPhone or iPad) or Chrome (Android or a computer).';
     refreshLobby(); return;
   }
+  if (navigator.onLine === false) { NET.status = 'error'; NET.error = netErrorText(new Error('offline')); refreshLobby(); return; }   /* no internet at all right now */
   refreshLobby();
   const lib = await netLib();
   NET.selfId = lib.selfId;
