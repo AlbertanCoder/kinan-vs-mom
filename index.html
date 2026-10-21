@@ -267,7 +267,7 @@ html.sideways .pad button.jump{font-size:14px;width:clamp(66px,10.5vmin,96px);he
 html.sideways .pad button.pow{font-size:12px}
 html.sideways .pad button.pow:not(:disabled){opacity:.85}
 html.sideways .pad.smashpad .dpad{display:grid;grid-template-columns:auto auto auto;grid-template-rows:auto auto;gap:6px;align-items:center}
-html.sideways .pad.smashpad .dpad [data-k="up"],html.sideways .pad.smashpad .dpad [data-k="down"]{width:clamp(40px,6.4vmin,58px);height:clamp(40px,6.4vmin,58px);font-size:16px}
+html.sideways .pad.smashpad .dpad [data-k="up"],html.sideways .pad.smashpad .dpad [data-k="down"]{width:clamp(44px,6.4vmin,58px);height:clamp(44px,6.4vmin,58px);font-size:16px}
 html.sideways .pad.smashpad .acts{display:grid;grid-template-columns:auto auto;gap:6px;align-items:end;justify-items:end}
 html.sideways .pad.smashpad .acts button{width:clamp(48px,8vmin,72px);height:clamp(48px,8vmin,72px);font-size:19px}
 html.sideways .pad.smashpad .acts button.jump{width:clamp(56px,9vmin,84px);height:clamp(56px,9vmin,84px);font-size:13px}
@@ -444,6 +444,7 @@ html.sideways .pad button.spec:not(:disabled){opacity:.92}
           <button class="btn" id="fxBtn" type="button">Effects: FULL</button>
           <button class="btn" id="installBtnP" type="button">📲 Install app</button>
         </div>
+        <p class="tiny" id="pauseNote" hidden></p>
         <p class="tiny">Esc / P resumes · M mutes</p>
       </div>
     </div>
@@ -1649,6 +1650,14 @@ function setPaused(on, showMenu) {
   el.pause.hidden = !(on && showMenu !== false);
   if (on) { input.left = input.right = input.jump = false; }
   if (on && running) autoSave();   /* pause, app switch or screen off: the spot is kept */
+  /* online: say what a pause does here, and a joined player lets go of every button at once (the host would keep them held) */
+  const pn = document.getElementById('pauseNote'), onl = (smash && smash.online) || (kart && kart.online);
+  if (pn) {
+    pn.hidden = !(on && onl);
+    if (on && onl) pn.textContent = kart ? 'Online: the race keeps going for everyone else while you\'re paused.'
+      : (onl.role === 'client' ? 'Online: the fight keeps going for everyone else while you\'re paused.' : 'Online: everyone else waits while you\'re paused.');
+  }
+  if (on && smash && onl && onl.role === 'client' && NET.send) { NET.lastIn = ''; NET.send.input({ l: false, r: false, j: false, u: false, d: false, a: false, sh: false, jp: NET.jp, fp: NET.fp, ap: NET.ap || 0 }); }
 }
 function togglePause() {
   if (builder) return;   /* nothing to pause while building */
@@ -4935,7 +4944,7 @@ function howToScreen() {
     '<li><span class="ico">⭐</span><span>Earn up to <b>3 stars</b> per stage: clear it, grab 70% of the coins, and never lose a heart. Stars unlock <b>hats</b>.</span></li>' +
     '<li><span class="ico">🍰</span><span>Every <b>25 coins</b> = an extra heart. Trampolines launch you sky-high. The game saves itself at every checkpoint and whenever you pause.</span></li>' +
     '<li><span class="ico">🧩</span><span>Every stage hides <b>3 puzzle pieces</b> up in the air. Jump into one for a puzzle room with a <b>golden coin</b> (+25 coins). There is always a door out.</span></li>' +
-    '<li><span class="ico">🥊</span><span><b>Family Smash:</b> pick a family member, jump on heads, press <b>POW</b> for their special move, knock everyone else off the cake. Grab the <b>birthday items</b> that float down (🍰 🎉 ❤ ⛑️ 🎈). Beat story stages to unlock more arenas.</span></li>' +
+    '<li><span class="ico">🥊</span><span><b>Family Smash:</b> pick a family member and knock everyone else off the stage. <b>👊</b> (Z) attacks: tap for quick hits, hold for a big one. <b>✨</b> (X) is a special move (hold ▲ or ▼ for two more), and a full meter makes it a SUPER. <b>🛡</b> (C) blocks. Grab the <b>birthday items</b> that float down (🍰 🎉 ❤ ⛑️ 🎈 ⭐ 🍭). Beat story stages to unlock more arenas, sinking stages too.</span></li>' +
     '<li><span class="ico">🧱</span><span><b>Builder:</b> make your own levels with ground, bricks, gift blocks, shelves, trampolines, coins and enemies (or start from a copy of a story stage), put down a start and a 🚩, and play them. Make them long and up to 3 screens tall. Up to 50 levels are kept on this device.</span></li>' +
     '<li><span class="ico">🏎️</span><span><b>Family Kart:</b> race the family in their real rides. Steer with ◀ ▶; hold <b>HOP</b> while turning to drift, let go after the sparks for a boost; <b>ITEM</b> uses what a gift box gave you. Beat story stages to unlock more tracks.</span></li>' +
     '</ul>' +
@@ -5119,7 +5128,8 @@ function resultsScreen(i) {
     '<p class="wrapnote" id="walletNote">🛍️ +' + got + ' coins for the Party Shop · you have <b>' + (progress.wallet || 0) + '</b></p>' +
     '<p class="wrapnote" id="goldNote">' + (goldCount(i) === 3 ? '<i class="coin-ico"></i>All 3 golden coins found here!' : '<i class="coin-ico"></i>Golden coins here: <b>' + goldCount(i) + '</b> / 3 · jump into the 🧩 puzzle pieces to find them') + '</p>' +
     (th.meanwhile ? '<p class="lede meanwhile"><b>Meanwhile…</b> ' + th.meanwhile.replace('{coins}', String(progress.totalCandles || 0)) + '</p>' : '') +
-    (firstClear && i > 0 && i <= 10 ? '<p class="wrapnote" id="arenaNote">🥊 New Family Smash arena unlocked: <b>' + ARENAS[i].name + '</b></p>' : '') +
+    ((na) => (na.length ? '<p class="wrapnote" id="arenaNote">🥊 New Family Smash arena' + (na.length > 1 ? 's' : '') + ' unlocked: <b>' + na.join('</b> and <b>') + '</b></p>' : ''))(
+      firstClear && i > 0 ? ARENAS.filter((a, k) => (a.unlock != null ? a.unlock : k) === i).map((a) => (a.sink ? '🌊 ' : '') + a.name) : []) +
     (firstClear && i > 0 && KART_TRACKS.some((t) => t.stage === i) ? '<p class="wrapnote" id="trackNote">🏎️ New Family Kart track unlocked: <b>' + KART_TRACKS.filter((t) => t.stage === i)[0].name + '</b></p>' : '') +
     '<div class="btnrow"><button class="btn go" type="button" id="nextBtn">' + (i < wi.to ? 'NEXT STAGE ▶' : 'FINISH') + '</button>' +
     '<button class="btn" type="button" id="replayBtn">Replay</button>' +
@@ -5165,7 +5175,7 @@ function ending() {
     '<p class="lede">Dad hid the hydro vac truck around the corner, Chenoa iced the cake behind a locked door, Shad built the stage, the Neighbour "borrowed" the chairs, the Big Kid brought his friends, and the Mega-Mech carried the cake in. Level 11 looks good on you.</p>' +
     '<p class="lede"><b>MOM:</b> Okay... you win, my boy. You beat ALL of us. But there\'s one move nobody can dodge... the <b>BIRTHDAY HUG!</b></p>' +
     '<p class="lede"><b>Four cats. Two dogs. One very good family.</b> From Saskatoon, Saskatchewan — with love. 💛</p>' +
-    '<p class="wrapnote">🥊 All 11 <b>Family Smash</b> arenas are unlocked, Birthday Cake Volcano included.</p>' +
+    '<p class="wrapnote">🥊 All the World 1 <b>Family Smash</b> arenas are unlocked, Birthday Cake Volcano and three sinking stages included.</p>' +
     '<p class="wrapnote"><i class="coin-ico"></i>Golden coins found: <b>' + goldTotal() + '</b> / 33' + (goldTotal() < 33 ? ' · the 🧩 puzzle pieces are still out there' : ' · every single one!') + '</p>' +
     '<div class="heroline"><span class="pill">⭐ ' + stars + ' / 33 stars</span><span class="pill"><i class="coin-ico"></i> ' + (progress.totalCandles || 0) + ' coins collected</span><span class="pill">🎂 11 years old</span><span class="pill">🐱 ' + progress.pets.ids.filter((id) => petDef(id).kind === 'cat').length + ' · 🐶 ' + progress.pets.ids.filter((id) => petDef(id).kind === 'dog').length + '</span></div>' +
     '<p class="wrapnote" id="w2Note">' + (worldOpen(2) ? '🛢️ <b>World 2: Kinan vs. Dad</b> is open! Find it on the stage map.' : '🔒 <b>World 2: Kinan vs. Dad</b> is waiting at Dad\'s oilfield job site. Ask a grown-up for a reward code!') + '</p>' +
@@ -5305,15 +5315,15 @@ document.addEventListener('visibilitychange', () => {
    Hard; four sinking stages; and a camera that comes in close so everyone is bigger.
    ============================================================ */
 const SMASH_CHARS = {
-  kinan: { name: 'Kinan', w: 10, h: 16, sprite: 'k', color: '#ff6b7a', spd: 1.1, jump: 1.06, power: 0.8, weight: 1.22, reach: 0.9, quick: -1, stars: [5, 2, 2, 2],
+  kinan: { name: 'Kinan', w: 10, h: 16, sprite: 'k', color: '#ff6b7a', spd: 1.12, jump: 1.06, power: 0.82, weight: 1.05, reach: 0.9, quick: -1, stars: [5, 2, 2, 2],
     special: 'Party Popper', pow: 'POP', sp: { side: 'Party Popper', up: 'Balloon Lift', down: 'Lego Trap' }, superName: 'Birthday Blast' },
   shad: { name: 'Shad', w: 10, h: 16, sprite: 's', color: '#ff8a3d', spd: 0.96, jump: 1.0, power: 1.15, weight: 1.0, reach: 1.0, quick: 0, stars: [3, 4, 3, 3],
     special: 'Plank Swing', pow: 'SWING', sp: { side: 'Plank Swing', up: 'Hammer Rocket', down: 'Construction Slam' }, superName: 'Wrecking Ball' },
-  chenoa: { name: 'Chenoa', w: 12, h: 26, sprite: 'c', color: '#5be37a', spd: 0.96, jump: 1.04, power: 1.0, weight: 1.0, reach: 1.4, quick: 1, stars: [3, 3, 3, 5],
+  chenoa: { name: 'Chenoa', w: 12, h: 26, sprite: 'c', color: '#5be37a', spd: 0.96, jump: 1.04, power: 1.05, weight: 1.0, reach: 1.4, quick: 1, stars: [3, 3, 3, 5],
     special: 'Order Up! (plates)', pow: 'PLATES', sp: { side: 'Order Up!', up: 'Tray Spin', down: 'Wet Floor' }, superName: 'Dinner Rush' },
   mom: { name: 'Mom', w: 10, h: 16, sprite: 'm', color: '#f39ac0', spd: 1.03, jump: 1.02, power: 1.0, weight: 1.0, reach: 1.0, quick: 0, stars: [4, 3, 3, 3],
     special: 'Laundry Lob', pow: 'LOB', sp: { side: 'Laundry Lob', up: 'Mop Vault', down: 'Sock Pile' }, superName: 'Spring Cleaning' },
-  dad: { name: 'Dad', w: 10, h: 16, sprite: 'd', color: '#6fc8ff', spd: 0.86, jump: 0.95, power: 1.3, weight: 0.78, reach: 1.0, quick: 2, stars: [2, 5, 5, 3],
+  dad: { name: 'Dad', w: 10, h: 16, sprite: 'd', color: '#6fc8ff', spd: 0.86, jump: 0.95, power: 1.2, weight: 0.88, reach: 1.0, quick: 2, stars: [2, 5, 5, 3],
     special: 'Hydro Vac', pow: 'VAC', sp: { side: 'Hydro Vac', up: 'Water Jet', down: 'Mud Stomp' }, superName: 'Vac Truck' }
 };
 const SMASH_ORDER = ['kinan', 'shad', 'chenoa', 'mom', 'dad'];
@@ -5419,10 +5429,20 @@ function makeFighter(who, slot, opts) {
     input: { left: false, right: false, up: false, down: false, jump: false, jumpBuf: 0, fireBuf: 0, atk: false, atkBuf: 0, shield: false }, cpu: false, peer: null, netJp: 0, netFp: 0, netAp: 0
   }, opts || {});
 }
+/* coming back in on a sinking stage: the nearest column to your own spot with a platform under you, above the danger */
+function sinkSpawnX(home, y0) {
+  const k = L.sink, r0 = Math.floor((y0 + 26) / T) + 1, r1 = Math.floor(k.y / T) - 2;
+  for (let d = 0; d < 14; d++) for (const tx of (d ? [home - d, home + d] : [home])) {
+    if (tx < ARENA_PAD + 2 || tx > ARENA_PAD + 24) continue;
+    for (let ty = r0; ty <= r1; ty++) if (tileAt(tx, ty) === 7 || solid(tx, ty)) return tx;
+  }
+  return home;
+}
 function placeFighter(f, fromTop) {
   const S = smash, sink = L.sink, tx = ARENA_PAD + SMASH_SPOTS[f.slot % SMASH_SPOTS.length];
   f.x = tx * T + 3;
-  if (sink) f.y = fromTop && S && S.cam ? S.cam.top + 12 : groundYAt(tx, f.h, (GROUND - 1) * T);   /* a sinking stage: start on the floor; back in from the top of the view */
+  if (sink && fromTop && S && S.cam) { f.y = S.cam.top + 12; f.x = sinkSpawnX(tx, f.y) * T + 3; }   /* a sinking stage: back in from the top of the view, over a platform above the danger */
+  else if (sink) f.y = groundYAt(tx, f.h, (GROUND - 1) * T);   /* a sinking stage: start on the floor */
   else f.y = fromTop ? (GROUND - 10) * T : groundYAt(tx, f.h);
   f.vx = 0; f.vy = 0; f.stun = 0; f.act = null; f.move = null; f.charge = 0; f.hold = 0; f.guard = false; f.roll = 0; f.onGround = !fromTop;
 }
@@ -5501,7 +5521,11 @@ function updateSmash() {
   if (hitStop > 0) { hitStop--; updateFx(); smashCamera(); return; }
   if (paused) { updateFx(); return; }
   S.t++;
-  if (S.online) S.fighters.forEach((f) => { if (f.away && Date.now() - f.away > NET_AWAY_MS) smashDropOut(f); });
+  if (S.online) S.fighters.forEach((f) => {
+    if (f.away && Date.now() - f.away > NET_AWAY_MS) smashDropOut(f);
+    /* a joined player's buttons stopped coming (their game is paused or in the background): let go of what they held */
+    if (f.netAt && Date.now() - f.netAt > 900) Object.assign(f.input, { left: false, right: false, up: false, down: false, jump: false, atk: false, shield: false });
+  });
   if (S.state === 'countdown') {
     S.count--;
     if (S.count === 90 || S.count === 30) SFX.click();
@@ -5529,7 +5553,7 @@ function updateFighter(f) {
   const c = SMASH_CHARS[f.who], inp = f.input, S = smash;
   if (f.out) return;
   if (f.away) { f.vx = 0; f.vy = 0; f.inv = Math.max(f.inv, 2); return; }   /* reconnecting: frozen and can't be hit */
-  if (f.ko > 0) { f.ko--; if (f.ko === 0) { placeFighter(f, true); f.inv = 150; f.dmg = 0; } return; }
+  if (f.ko > 0) { f.ko--; if (f.ko === 0) { placeFighter(f, true); f.inv = 150; f.dmg = 0; f.airJumps = 1; f.upUsed = false; f.cds.up = 0; } return; }   /* back in with the double jump and the up special ready */
   const wasGround = f.onGround;
   for (const k in f.cds) if (f.cds[k] > 0) f.cds[k]--;
   f.cool = Math.max(f.cds.side, f.cds.up, f.cds.down);
@@ -5602,9 +5626,9 @@ function updateFighter(f) {
   if (f.act) updateAct(f);
   /* blast zones: off the sides, too high, or into the danger below (fixed to the arena, not the moving camera) */
   const cx = f.x + f.w / 2, centre = AX() + W / 2, sink = L.sink;
-  const top = sink ? -(L.up | 0) * T - 80 : -70, bottom = sink ? (sink.kind === 'lego' ? S.cam.top + H / S.cam.z + 24 : sink.y + 4) : H + 24;
-  /* in frosting, the river or mud you're out once half of you is under */
-  if ((sink ? (sink.kind === 'lego' ? f.y > bottom : f.y + f.h / 2 > sink.y) : f.y > bottom) || f.y + f.h < top || Math.abs(cx - centre) > W / 2 + 60) smashKO(f);
+  const top = sink ? -(L.up | 0) * T - 80 : -70, bottom = sink ? (sink.kind === 'lego' ? sink.y + 3 * T : sink.y + 4) : H + 24;   /* the Lego tower: below where the bricks fell away */
+  /* in frosting, the river or mud you're out once half of you is under; once someone has won, nobody else can fall out */
+  if (S.state !== 'over' && ((sink ? (sink.kind === 'lego' ? f.y > bottom : f.y + f.h / 2 > sink.y) : f.y > bottom) || f.y + f.h < top || Math.abs(cx - centre) > W / 2 + 60)) smashKO(f);
 }
 function chooseAttack(f) {
   const inp = f.input, dir = inp.left && !inp.right ? -1 : (inp.right && !inp.left ? 1 : 0);
@@ -5792,10 +5816,18 @@ function updateSuperFx() {
         e.hit.push(o.slot); smashHit(o, owner, dmg, typeof kx === 'function' ? kx(o) : kx, ky, txt, { unblockable: true });
       }
     };
-    if (e.kind === 'chenoa' && e.t % 9 === 0 && e.t < 100) S.shots.push({ kind: 'plate', owner: e.owner, x: AX() + 20 + ((e.t * 37) % (W - 40)), y: (S.cam ? S.cam.top : 0) - 10, w: 8, h: 8, vx: 0, vy: 2.5, g: 0.12, life: 160, dmg: 9, kx: 2.2, ky: -3.4, unb: true });
-    else if (e.kind === 'shad') {   /* swings down from one side and up the other */
-      const p = e.t / e.life, top = S.cam ? S.cam.top : 0;
-      e.x = (e.dir > 0 ? AX() - 20 : AX() + W + 20) + e.dir * p * (W + 40); e.y = top + 40 + Math.sin(p * Math.PI) * 120;
+    if (e.kind === 'chenoa' && e.t % 9 === 0 && e.t < 100) {   /* every other plate falls right over a rival (where they're heading), the rest anywhere; one plate each */
+      const foes = S.fighters.filter((o) => rivals(owner, o) && !o.out && o.ko === 0 && o.x > -999 && e.hit.indexOf(o.slot) < 0), n = e.t / 9;
+      const aim = n % 2 && foes.length ? foes[(n >> 1) % foes.length] : null;
+      const px = aim ? aim.x + aim.w / 2 - 4 + aim.vx * 14 + rand(-6, 6) : AX() + 20 + Math.random() * (W - 40);
+      S.shots.push({ kind: 'plate', owner: e.owner, grp: e.hit, x: px, y: (S.cam ? S.cam.top : 0) - 10, w: 8, h: 8, vx: 0, vy: 2.5, g: 0.12, life: 160, dmg: 9, kx: 2.2, ky: -3.4, unb: true });
+    }
+    else if (e.kind === 'shad') {   /* swings down from one side, low along the floor (or the shelf Shad stands on), and up the other */
+      const p = e.t / e.life;
+      if (e.low == null) e.low = owner ? owner.y + owner.h : GROUND * T;
+      e.x = (e.dir > 0 ? AX() - 20 : AX() + W + 20) + e.dir * p * (W + 40);
+      const gy = groundYAt(Math.floor(clamp(e.x, AX(), AX() + W - 1) / T), 0, e.low - 30, true);
+      e.y = Math.min(gy, e.low + 48) - 14 - 90 * Math.max(0, 1 - Math.sin(p * Math.PI) * 2.4);
       hit({ x: e.x - 16, y: e.y - 16, w: 32, h: 32 }, 22, e.dir * 6.2, -6.0, 'WRECKING BALL!');
     } else if (e.kind === 'mom') {
       e.x += e.dir * 2.6;
@@ -5848,13 +5880,23 @@ function sinkClearTo(row) {
 function smashCamera(snap) {
   const S = smash, C = S.cam, fs = S.fighters.filter((f) => !f.out && f.ko === 0 && f.x > -999);
   let left, top, z;
-  if (L.sink) {   /* everyone and the danger in view: it zooms out (down to 0.62) when they spread up the tower */
-    let hi = L.sink.y - 120; fs.forEach((f) => { hi = Math.min(hi, f.y); });
-    const span = L.sink.y + 40 - hi + 50;
-    z = clamp(H / span, 0.62, 1);
+  if (L.sink) {   /* everyone and the danger in view: it zooms out (down to 0.62) when they spread up the tower. When
+                     they're too far apart even for that, the danger goes out of view first, then whoever is furthest
+                     from this screen's own fighter (an arrow at the edge shows where they are) */
+    const k = L.sink, maxVH = H / 0.62;
+    let hi = k.y - 120, lo = k.y + 40;
+    if (fs.length) { hi = Infinity; lo = -Infinity; fs.forEach((f) => { hi = Math.min(hi, f.y - 60); lo = Math.max(lo, f.y + f.h + 20); }); }   /* room above for the name bar */
+    lo = Math.max(lo, Math.min(k.y + 40, hi + maxVH));
+    hi = Math.min(hi, lo - 160);
+    z = clamp(H / (lo - hi), 0.62, 1);
     const vw = W / z, vh = H / z;
     left = AX() + W / 2 - vw / 2;
-    top = clamp(L.sink.y + 40 - vh, -(L.up | 0) * T - 30, H - vh);
+    top = lo - vh;
+    if (lo - hi > vh + 1) {
+      top = hi;
+      [myFighter(), S.local2 ? S.fighters[1] : null].forEach((f) => { if (f && !f.out && f.ko === 0 && f.x > -999) top = Math.max(top, f.y + f.h + 40 - vh); });
+    }
+    top = clamp(top, -(L.up | 0) * T - 30, H - vh);
   } else {
     let x0 = AX() + W / 2 - 60, x1 = AX() + W / 2 + 60, y0 = GROUND * T - 60, y1 = GROUND * T;
     if (fs.length) { x0 = Infinity; x1 = -Infinity; y0 = Infinity; y1 = -Infinity; fs.forEach((f) => { x0 = Math.min(x0, f.x); x1 = Math.max(x1, f.x + f.w); y0 = Math.min(y0, f.y); y1 = Math.max(y1, f.y + f.h); }); }
@@ -5925,7 +5967,8 @@ function updateSmashShots() {
     if ((s.kind === 'pop' || s.kind === 'bigpop') && Math.random() < 0.6) part(s.x + 3, s.y + 3, { vx: -s.vx * 0.2, vy: rand(-0.6, 0.6), life: 14, size: 2, color: pick(['#ff6fae', '#f6c445', '#fff']), glow: true, g: 0 });
     const owner = S.fighters[s.owner];
     for (const o of S.fighters) {
-      if (s.life <= 0 || !rivals(owner, o) || o.out || o.ko > 0 || o.inv > 0 || !overlap(s, o)) continue;
+      if (s.life <= 0 || !rivals(owner, o) || o.out || o.ko > 0 || o.inv > 0 || !overlap(s, o) || (s.grp && s.grp.indexOf(o.slot) >= 0)) continue;
+      if (s.grp) s.grp.push(o.slot);   /* a Super's plates: one hit each */
       smashHit(o, owner, s.dmg, (s.vx < 0 ? -1 : 1) * s.kx, s.ky, s.kind === 'pop' || s.kind === 'bigpop' ? 'POP!' : (s.kind === 'plate' ? 'CLANG!' : 'OOF'), s.unb ? { unblockable: true } : null);
       s.life = 0;
     }
@@ -5939,6 +5982,7 @@ function smashKO(f) {
   f.stocks--; f.falls++;
   const by = f.hitBy != null && frame - f.lastHit < 240 ? smash.fighters[f.hitBy] : null;
   if (by && by !== f) by.kos++;
+  f.hitBy = null; f.lastHit = -1;   /* that hit is used up: falling off by yourself later is nobody's knockout */
   SFX.lose(); shakeIt(6); flashScreen();
   const C = smash.cam;
   sparks(clamp(f.x + f.w / 2, C.left + 4, C.left + W / C.z - 4), clamp(f.y, C.top + 4, C.top + H / C.z - 4), 24, ['#fff', '#f6c445', '#ff6fae']);
@@ -5946,7 +5990,7 @@ function smashKO(f) {
   toast('<b>' + escAttr(f.name) + '</b> ' + where + '! ' + (f.stocks > 0 ? f.stocks + ' ❤ left' : 'Out of hearts!'), 1500);
   f.x = -9999; f.vx = 0; f.vy = 0; f.stun = 0; f.act = null; f.move = null; f.charge = 0; f.guard = false;
   f.rush = 0; f.shield = 0; f.float = 0; f.ammo = 0; f.lolly = 0; f.slip = 0;   /* falling off loses your items */
-  if (f.stocks <= 0) { f.out = true; f.ko = 0; } else f.ko = 75;
+  if (f.stocks <= 0) { f.out = true; f.ko = 0; f.outAt = smash.t; } else f.ko = 75;
   smashEvent('ko', { s: f.slot, by: by ? by.slot : -1, stocks: f.stocks, name: f.name, where: where });
 }
 /* over when one fighter is left (or, with teams, one team) */
@@ -6081,7 +6125,8 @@ function cpuThink(f) {
   const threat = S.fighters.some((o) => rivals(f, o) && !o.out && o.ko === 0 && (o.move || (o.act && o.act.kind !== 'rise')) && Math.abs(o.x - f.x) < 34 && Math.abs(o.y - f.y) < 24)
     || S.shots.some((s) => rivals(S.fighters[s.owner], f) && Math.abs(s.x - f.x) < 46 && Math.abs(s.y - f.y) < 26 && Math.sign(f.x - s.x) === Math.sign(s.vx || 1));
   if (f.cpuT % lv.think === 0) {
-    A.dir = adx > 20 ? Math.sign(dx) : (Math.random() < 0.3 ? -Math.sign(dx || 1) : 0);
+    /* right above a rival who is down on the floor: keep walking, to reach the shelf's edge and drop down to them */
+    A.dir = adx > 20 ? Math.sign(dx) : (dy > 40 && f.onGround && !sink && f.y + f.h < (GROUND - 2) * T ? (A.dir || Math.sign(AX() + W / 2 - (f.x + f.w / 2)) || 1) : (Math.random() < 0.3 ? -Math.sign(dx || 1) : 0));
     if (threat && f.onGround && Math.random() < lv.block) { A.guardT = 14; A.plan = ''; }   /* block, and hold it a moment (Hard blocks far more) */
     A.plan = A.guardT > 0 ? '' : A.plan;
     A.plan = '';
@@ -6131,9 +6176,19 @@ function cpuThink(f) {
       A.plan = '';
     }
   }
-  /* don't walk off an edge (unless it's a short drop onto something, a jump-through platform counts) */
-  const ahead = Math.floor((f.x + f.w / 2 + dir * 12) / T), below = Math.floor((f.y + f.h + 2) / T), land = (ty) => solid(ahead, ty) || tileAt(ahead, ty) === 7;
-  if (f.onGround && dir && !land(below) && !land(below + 1) && !land(below + 2) && !land(below + 3) && !(sink && A.climb)) { dir = -dir; A.dir = dir; }
+  /* don't walk off an edge unless it's a short drop onto something (a jump-through platform counts), or a longer drop
+     down to the floor when the rival is down there; either way with room to land, not just the floor's last block */
+  const ahead = Math.floor((f.x + f.w / 2 + dir * 12) / T), below = Math.floor((f.y + f.h + 2) / T), landX = (x, ty) => solid(x, ty) || tileAt(x, ty) === 7;
+  let drop = -1; for (let ty = below; ty <= Math.min(GROUND, below + (dy > 24 && !sink ? 99 : 3)); ty++) if (landX(ahead, ty)) { drop = ty; break; }
+  const safe = drop === below || (drop > below && (landX(ahead + dir, drop) || landX(ahead + dir, drop - 1) || landX(ahead + dir, drop + 1)));
+  if (f.onGround && dir && !safe && !(sink && A.climb)) {
+    /* the rival is that way and there's something to land on within a jump (a shelf, a tower top, the next ledge):
+       jump the gap (the second jump on the way if needed) */
+    const cxT = Math.floor((f.x + f.w / 2) / T);
+    const reach = () => { for (let d = 2; d <= 6; d++) for (let ty = below - 2; ty <= below + 3; ty++) { const x = cxT + dir * d; if ((solid(x, ty) || tileAt(x, ty) === 7) && !solid(x, ty - 1)) return true; } return false; };
+    if (!sink && Math.sign(dx) === dir && dy < 56 && reach()) { inp.jumpBuf = 8; A.hop = 16; A.leap = 50; }
+    else { dir = -dir; A.dir = dir; }
+  }
   /* knocked off: head back, jump, and use the up special when it'll get you there */
   if (offStage && Math.random() < lv.recover + 0.4) {
     dir = f.x + f.w / 2 < AX() + W / 2 ? 1 : -1;
@@ -6141,10 +6196,25 @@ function cpuThink(f) {
     else if (!f.onGround && f.airJumps === 0 && !f.upUsed && f.cds.up === 0 && f.y > (GROUND - 3) * T) { inp.up = true; inp.fireBuf = 10; }
   } else if (f.stun > 0 && !f.onGround) dir = f.x + f.w / 2 < AX() + W / 2 ? 1 : -1;
   inp.left = dir < 0; inp.right = dir > 0;
-  if (!offStage && (dy < -24 || (adx < 40 && Math.random() < 0.02)) && f.cpuT % 7 === 0 && f.onGround) { inp.jumpBuf = 8; inp.jump = true; }
+  if (!offStage && (dy < -24 || (adx < 40 && Math.random() < 0.02)) && f.cpuT % 7 === 0 && f.onGround) { inp.jumpBuf = 8; inp.jump = true; if (dy < -24) A.hop = 16; }   /* up to a rival: a full-height jump */
+  if (!offStage && !f.onGround && f.vy > -0.5 && f.vy < 1.5 && f.airJumps > 0 && dy < -30 && adx < 60 && !(sink && A.climb)) { inp.jumpBuf = 8; A.hop = 12; }   /* still below them at the top of the jump: jump again */
   if (A.guardT > 0) A.guardT--;
   inp.shield = A.guardT > 0 && !offStage;
   if (inp.shield) { inp.left = inp.right = false; }
+  /* a wall or a brick step in the way: hop it (holding jump for the full height, and the second jump at the top of
+     the first when it's taller); pushing on something and getting nowhere for a moment: jump anyway */
+  const fwd = inp.left ? -1 : (inp.right ? 1 : 0);
+  if (fwd && !offStage && f.stun === 0) {
+    const wx = Math.floor((fwd > 0 ? f.x + f.w + 2 : f.x - 3) / T), fr = Math.floor((f.y + f.h - 2) / T);
+    let wall = false; for (let ry = Math.floor((f.y + 2) / T); ry <= fr; ry++) if (solid(wx, ry)) wall = true;
+    if (wall && f.onGround) { inp.jumpBuf = 8; A.hop = 16; }
+    else if (wall && f.vy > -0.6 && f.airJumps > 0 && !(sink && A.climb)) { inp.jumpBuf = 8; A.hop = 12; }
+    A.stuck = f.onGround && !f.move && !f.act && A.lastX != null && Math.abs(f.x - A.lastX) < 0.25 ? (A.stuck || 0) + 1 : 0;
+    if (A.stuck > 20) { inp.jumpBuf = 8; A.hop = 16; A.stuck = 0; }
+  } else A.stuck = 0;
+  A.lastX = f.x;
+  if (A.hop > 0) { A.hop--; inp.jump = true; }
+  if (A.leap > 0) { A.leap--; if (!f.onGround && f.vy > 0.5 && f.airJumps > 0) { inp.jumpBuf = 8; A.hop = 12; A.leap = 0; } }
   /* carry out the plan */
   inp.atk = false;
   const facing = Math.sign(dx) === f.face || adx < 10;
@@ -6425,6 +6495,25 @@ function drawDaylight(th) {
   const c = th.tint != null ? th.tint : GRADE[th.tod];   /* a homemade level's time of day brings its own light */
   if (c) { ctx.fillStyle = c; ctx.fillRect(-8, -8, W + 16, H + 16); }
 }
+/* someone out of the picture (knocked high, or far up a sinking tower): a little arrow in their colour at the edge,
+   with their first letter */
+function drawOffscreen() {
+  const S = smash, C = S.cam, z = C.z;
+  for (const f of S.fighters) {
+    if (f.out || f.ko > 0 || f.x < -999) continue;
+    const sx = (f.x + f.w / 2 - C.left) * z, sy = (f.y + f.h / 2 - C.top) * z;
+    if (sx >= 0 && sx <= W && sy >= 31 && sy <= H) continue;
+    const ax = clamp(sx, 10, W - 10), ay = clamp(sy, 42, H - 10), ang = Math.atan2(sy - ay, sx - ax);
+    ctx.save(); ctx.translate(ax, ay); ctx.rotate(ang);
+    ctx.beginPath(); ctx.moveTo(8, 0); ctx.lineTo(-5, -6); ctx.lineTo(-5, 6); ctx.closePath();
+    ctx.lineWidth = 2; ctx.strokeStyle = '#1b1220'; ctx.stroke();
+    ctx.fillStyle = f.team ? TEAM_COLORS[f.team] : SMASH_CHARS[f.who].color; ctx.fill();
+    ctx.restore();
+    const lx = clamp(ax - Math.cos(ang) * 14, 8, W - 8), ly = clamp(ay - Math.sin(ang) * 14 + 3, 40, H - 3);
+    ctx.font = 'bold 9px "Pixelify Sans",monospace'; ctx.textAlign = 'center';
+    ctx.fillStyle = '#1b1220'; ctx.fillText(f.name.charAt(0), lx + 1, ly + 1); ctx.fillStyle = '#fff'; ctx.fillText(f.name.charAt(0), lx, ly);
+  }
+}
 function drawSmash() {
   const S = smash, th = LV[L.i], C = S.cam, z = C.z;
   const shx = shake > 0.2 ? Math.round(rand(-shake, shake)) : 0;
@@ -6459,6 +6548,12 @@ function drawSmash() {
   ctx.restore();
   drawVignette(true);
   drawSmashBar();
+  drawOffscreen();
+  if (S.online && S.online.role === 'client' && S.state !== 'over' && S.lastSnap && frame - S.lastSnap > 45 && !NET.reconnect) {   /* the host's game is paused or in the background */
+    const host = S.fighters[0], msg = 'Waiting for ' + (host ? host.name : 'the host') + '\'s game…';
+    ctx.fillStyle = 'rgba(10,11,24,.82)'; ctx.fillRect(W / 2 - 112, 64, 224, 26);
+    ctx.font = 'bold 11px "Pixelify Sans",monospace'; ctx.textAlign = 'center'; ctx.fillStyle = '#f6c445'; ctx.fillText(msg, W / 2, 81);
+  }
   if (S.state === 'countdown') {
     const n = Math.ceil(S.count / 50), label = n > 0 ? String(n) : 'FIGHT!';
     ctx.font = 'bold 30px "Pixelify Sans",monospace'; ctx.textAlign = 'center';
@@ -6605,7 +6700,8 @@ function smashResults() {
   const S = smash;
   if (!S) return;
   const win = S.winner >= 0 ? S.fighters[S.winner] : null;
-  const order = S.fighters.slice().sort((a, b) => (b.stocks - a.stocks) || (a.dmg - b.dmg));
+  /* hearts left first; of those who are out, whoever lasted longer comes higher */
+  const order = S.fighters.slice().sort((a, b) => (b.stocks - a.stocks) || (a.out && b.out ? (b.outAt || 0) - (a.outAt || 0) : a.dmg - b.dmg));
   const rows = order.map((f) =>
     '<li><b style="color:' + (f.team ? TEAM_COLORS[f.team] : SMASH_CHARS[f.who].color) + '">' + escAttr(f.name) + '</b>' + (f.team ? ' · ' + TEAM_NAMES[f.team] : '') + ' · ' + (f.out ? 'out' : f.stocks + ' ❤') + ' · ' + f.kos + ' KO' + (f.kos === 1 ? '' : 's') + ' · fell ' + f.falls + 'x</li>').join('');
   const online = S.online;
@@ -6652,6 +6748,20 @@ async function netLib() {
     try { NET.lib = await import(u); return NET.lib; } catch (e) { err = e; }
   }
   throw err || new Error('network library not available');
+}
+/* what to tell people when a room can't open: no internet (the online helper can't even be fetched), or anything else */
+function netErrorText(e) {
+  const m = String(e && e.message ? e.message : e || '');
+  if (!navigator.onLine || /fetch|import|module|network library/i.test(m)) return 'Can\'t reach the internet, so online play can\'t start. Check the Wi-Fi or mobile data, then try again.';
+  return 'Could not connect to the room. Check the internet, then try again.';
+}
+/* a room that couldn't open: why, with Try again and Back (instead of a room code that can't work) */
+function lobbyErrorHTML(box, title, retry, back) {
+  box.innerHTML = '<p class="eyebrow">' + title + ' · online</p><h1 class="title"><span class="t2">The room didn\'t open</span></h1>' +
+    '<p class="lede" style="color:#ff6b6b">' + escAttr(NET.error) + '</p>' +
+    '<div class="btnrow"><button class="btn go" id="netRetry" type="button">Try again</button><button class="btn ghost" id="netBack" type="button">Back</button></div>';
+  $('#netRetry', box).addEventListener('click', () => { SFX.click(); retry(); });
+  $('#netBack', box).addEventListener('click', () => { SFX.click(); back(); });
 }
 /* Open Relay's free TURN (metered.ca, static-auth): a fallback path when two home networks cannot connect directly */
 async function turnServers() {
@@ -6717,6 +6827,12 @@ async function netJoin(code, role, mode) {
   }, 400));
   hello.on((d, id) => {
     if (d && d.bye) { NET.bye[id] = true; return; }   /* they are leaving on purpose: don't hold their place */
+    if (d && d.full) {   /* the host says the room is full */
+      if (NET.role === 'client') { const c = NET.code, r = NET.role; netLeave(true); NET.code = c; NET.role = r; NET.status = 'error'; NET.error = 'That room is full: 5 players are in it already.'; refreshLobby(); }
+      return;
+    }
+    /* the room already has 5 (with the host): tell a sixth phone, and don't count them in */
+    if (NET.role === 'host' && d.role === 'client' && !(NET.peers[id] && NET.peers[id].who) && netPeerList().filter((p) => p !== id && NET.peers[p].who).length >= SMASH_MAX - 1) { hello.send({ full: true }, id); delete NET.peers[id]; refreshLobby(); return; }
     NET.peers[id] = Object.assign(NET.peers[id] || { at: Date.now() }, { who: d.who, role: d.role, look: d.look || null }); refreshLobby();
     /* back in the room after a dropped connection, but the game we were in has ended: wait in the room */
     if (NET.reconnect && d.role === 'host') { const R = NET.reconnect; setTimeout(() => { if (NET.reconnect === R) netRejoinedRoom(); }, 2500); }
@@ -6777,6 +6893,7 @@ function netClientStart(d) {
 function netApplyInput(d, id) {
   const f = smash.fighters.filter((o) => o.peer === id)[0];
   if (!f || f.input === input) return;
+  f.netAt = Date.now();
   f.input.left = !!d.l; f.input.right = !!d.r; f.input.jump = !!d.j;
   f.input.up = !!d.u; f.input.down = !!d.d; f.input.atk = !!d.a; f.input.shield = !!d.sh;
   if (d.jp !== f.netJp) { f.netJp = d.jp; f.input.jumpBuf = 8; }
@@ -6802,7 +6919,7 @@ function smashPeerLeft(id) {
 }
 /* a dropped player's place is given up: they are out of this fight */
 function smashDropOut(f) {
-  f.away = 0; f.out = true; f.stocks = 0; f.x = -9999;
+  f.away = 0; f.out = true; f.stocks = 0; f.x = -9999; f.outAt = smash.t;
   toast('<b>' + escAttr(f.name) + '</b> left the fight.', 2000); smashEvent('left', { s: f.slot }); checkSmashOver();
 }
 /* a dropped player is back: send them the fight so their screen joins in again */
@@ -6849,7 +6966,7 @@ function smashSnapshot() {
   return {
     t: S.t, st: S.state, c: S.count, w: S.winner,
     fs: S.fighters.map((o) => [Math.round(o.x * 10) / 10, Math.round(o.y * 10) / 10, Math.round(o.vx * 100) / 100, Math.round(o.vy * 100) / 100, o.face, o.dmg, o.stocks, o.inv, o.stun, o.ko, o.out ? 1 : 0, o.onGround ? 1 : 0, Math.round(o.anim * 10) / 10, o.cool, o.act ? o.act.kind : '', o.kos, o.falls, o.rush, o.shield, o.float, o.ammo, o.away ? 1 : 0,
-      o.team, Math.round(o.meter), o.guard ? 1 : 0, Math.round(o.gHP), o.move ? o.move.id : '', o.move ? o.move.t : 0, o.charge, o.cds.side, o.cds.up, o.cds.down, o.lolly, o.slip, o.roll, o.upUsed ? 1 : 0, o.act && o.act.t != null ? o.act.t : 0]),
+      o.team, Math.round(o.meter), o.guard ? 1 : 0, Math.round(o.gHP), o.move ? o.move.id : '', o.move ? o.move.t : 0, o.charge, o.cds.side, o.cds.up, o.cds.down, o.lolly, o.slip, o.roll, o.upUsed ? 1 : 0, o.act && o.act.t != null ? o.act.t : 0, o.outAt || 0]),
     sh: S.shots.map((s) => [s.kind, Math.round(s.x), Math.round(s.y), s.vx, s.vy, s.owner, s.prop || '']),
     dr: S.drops.map((d) => [d.kind, Math.round(d.x), Math.round(d.y), d.life, d.landed ? 1 : 0]),
     tr: S.traps.map((t) => [t.kind, Math.round(t.x), Math.round(t.y), t.w, t.life, t.owner]),
@@ -6870,6 +6987,7 @@ function smashApplySnapshot(d) {
     o.move = a[26] ? { id: a[26], t: a[27] || 0, hit: [], p: 1 } : null; o.charge = a[28] || 0;
     o.cds = { side: a[29] || 0, up: a[30] || 0, down: a[31] || 0 }; o.lolly = a[32] || 0; o.slip = a[33] || 0; o.roll = a[34] || 0; o.upUsed = !!a[35];
     if (o.act && a[36]) o.act.t = a[36];
+    o.outAt = a[37] || 0;
   });
   S.traps = (d.tr || []).map((a) => ({ kind: a[0], x: a[1], y: a[2], w: a[3], h: 6, life: a[4], owner: a[5] }));
   S.fx = (d.fx || []).map((a) => ({ kind: a[0], x: a[1], y: a[2], t: a[3], life: a[4], dir: a[5], hit: [] }));
@@ -6959,7 +7077,7 @@ function smashLobbyScreen(code, role) {
   Music.play('title');
   endSmash();
   if (code && (code !== NET.code || !NET.room)) {
-    netJoin(code, role).catch((e) => { NET.status = 'error'; NET.error = 'Could not connect: ' + (e && e.message ? e.message : e) + '. Is the internet on?'; refreshLobby(); });
+    netJoin(code, role).catch((e) => { NET.status = 'error'; NET.error = netErrorText(e); refreshLobby(); });
   }
   showScreen('<div id="lobby"></div>');
   refreshLobby();
@@ -6968,6 +7086,7 @@ function refreshLobby() {
   if (NET.mode === 'kart') { refreshKartLobby(); return; }
   const box = $('#lobby');
   if (!box) return;
+  if (NET.status === 'error') { const code = NET.code, role = NET.role; lobbyErrorHTML(box, 'Family Smash', () => smashLobbyScreen(code, role), () => { netLeave(); smashMenu(); }); return; }
   const link = location.origin + location.pathname + '?smash=' + (NET.code || '');
   const peers = netPeerList();
   const rows = ['<li><b style="color:' + SMASH_CHARS[NET.myWho].color + '">' + SMASH_CHARS[NET.myWho].name + '</b> · you' + (NET.role === 'host' ? ' · host' : '') + '</li>'].concat(peers.map((id) => {
@@ -8513,7 +8632,7 @@ function kartApplyState(d) {
   for (const a of d.ks) {
     const k = K.karts[a[0]];
     if (!k || !k.remote) continue;
-    k.net = { x: a[1], y: a[2], a: a[3] };
+    k.net = { x: a[1], y: a[2], a: a[3] }; k.netRaw = { x: a[1], y: a[2], a: a[3] }; k.netAt = Date.now();
     k.v = a[4]; k.z = a[5]; k.spinA = a[6]; k.prog = a[7]; k.lap = a[13] || k.lap;
     if (a[8] && !k.done) { k.done = true; k.finishT = a[9]; }
     k.starT = a[10] ? Math.max(k.starT, 2) : 0; k.boostT = a[11] ? Math.max(k.boostT, 2) : 0; k.slide = a[12];
@@ -8522,6 +8641,8 @@ function kartApplyState(d) {
 }
 /* another phone's kart: keep it moving between messages, ease it onto where it really is */
 function kartRemoteStep(k) {
+  /* no news from that phone for a moment (paused, or in the background): stop guessing ahead, ease back to where it last said it was */
+  if (k.netAt && Date.now() - k.netAt > 400 && k.netRaw) { k.net = Object.assign({}, k.netRaw); k.v = 0; }
   const ma = k.a - k.slide;
   k.x += Math.cos(ma) * k.v; k.y += Math.sin(ma) * k.v;
   if (k.net) {
@@ -8611,7 +8732,7 @@ function kartLobbyScreen(code, role) {
   Music.play('title');
   if (kart) endKart();
   if (code && (code !== NET.code || !NET.room || NET.mode !== 'kart')) {
-    netJoin(code, role, 'kart').catch((e) => { NET.status = 'error'; NET.error = 'Could not connect: ' + (e && e.message ? e.message : e) + '. Is the internet on?'; refreshLobby(); });
+    netJoin(code, role, 'kart').catch((e) => { NET.status = 'error'; NET.error = netErrorText(e); refreshLobby(); });
   }
   showScreen('<div id="lobby"></div>');
   refreshLobby();
@@ -8619,6 +8740,7 @@ function kartLobbyScreen(code, role) {
 function refreshKartLobby() {
   const box = $('#lobby');
   if (!box) return;
+  if (NET.status === 'error') { const code = NET.code, role = NET.role; lobbyErrorHTML(box, 'Family Kart', () => kartLobbyScreen(code, role), () => { netLeave(); kartMenu(); }); return; }
   const link = location.origin + location.pathname + '?kart=' + (NET.code || '');
   const peers = netPeerList();
   const rows = ['<li><b style="color:' + KART_DRIVERS[NET.myWho].color + '">' + KART_DRIVERS[NET.myWho].name + '</b> · ' + KART_DRIVERS[NET.myWho].ride + ' · you' + (NET.role === 'host' ? ' · host' : '') + '</li>'].concat(peers.map((id) => {
