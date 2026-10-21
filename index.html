@@ -299,13 +299,28 @@ html.sideways .pad button.spec:not(:disabled){opacity:.92}
 .chatquick{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px}.chatquick button{background:var(--panel);border:1px solid var(--panel2);border-radius:6px;color:var(--text);font:inherit;font-size:12px;padding:4px 6px;cursor:pointer}
 .chatform{display:flex;gap:4px}.chatform input{flex:1;min-width:0;background:#0b0d1e;border:1px solid var(--panel2);border-radius:6px;color:var(--text);font:inherit;font-size:13px;padding:5px}
 .chatform button{background:var(--gold);color:var(--night);border:0;border-radius:6px;font:inherit;font-size:12px;font-weight:700;padding:5px 8px;cursor:pointer}
-.btools{position:absolute;left:0;right:0;top:0;z-index:6;display:flex;flex-direction:column;gap:3px;padding:4px;pointer-events:none}
+.btools{position:absolute;left:0;right:0;top:0;bottom:0;z-index:6;display:flex;flex-direction:column;gap:3px;padding:4px;pointer-events:none}
 .btools .brow{display:flex;flex-wrap:wrap;gap:3px;align-items:center;pointer-events:auto}
 .btool{width:34px;height:34px;font-size:18px;border-radius:8px;background:rgba(20,22,43,.78);border:2px solid var(--panel2);color:var(--text);cursor:pointer;padding:0}.btool.on{border-color:var(--gold);background:rgba(246,196,69,.28)}
 .bopt{min-height:30px;padding:3px 8px;border-radius:7px;background:rgba(20,22,43,.82);border:2px solid var(--panel2);color:var(--text);font:inherit;font-size:12px;cursor:pointer}.bopt.on{border-color:var(--gold)}.bopt.go{background:var(--gold);color:var(--night);font-weight:700}
 .btools select{min-height:30px;border-radius:7px;background:rgba(20,22,43,.9);color:var(--text);border:2px solid var(--panel2);font:inherit;font-size:12px;max-width:150px}
 .stage.buildmode .toast{top:calc(34% + 4px)}
 .bhint{font-size:11px;background:rgba(20,22,43,.78);padding:3px 6px;border-radius:6px}
+.btools .bbot{margin-top:auto}.btools .bgap{flex:1 1 0}
+.bopt[disabled]{opacity:.38;cursor:default}
+.btool.hl,.bopt.hl{animation:bpulse 1s ease-in-out infinite}@keyframes bpulse{50%{box-shadow:0 0 0 4px rgba(246,196,69,.85)}}
+.btour{font-size:12px;background:rgba(17,19,43,.94);border:2px solid var(--gold);border-radius:7px;padding:4px 8px;max-width:72%;line-height:1.3}
+.bback{position:absolute;left:6px;top:6px;z-index:7}
+.bpanel{position:absolute;right:6px;top:44px;z-index:8;width:min(300px,86%);max-height:calc(100% - 54px);overflow:auto;background:rgba(17,19,43,.96);border:2px solid var(--gold);border-radius:10px;padding:8px 10px;font-size:13px;display:flex;flex-direction:column;gap:6px;line-height:1.35}
+.bpanel[hidden]{display:none}.bpanel h3{margin:0;font-size:15px}.bpanel p{margin:0}.bpanel .btnrow{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:0}
+.bpanel .blook{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.bpanel select{min-height:30px;border-radius:7px;background:#0b0d1e;color:var(--text);border:2px solid var(--panel2);font:inherit;font-size:12px;max-width:170px}
+.bfolders{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}
+.buildgrid{list-style:none;padding:0;margin:8px 0;display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px}
+.bcard{background:var(--panel);border:2px solid var(--panel2);border-radius:10px;padding:8px;display:flex;flex-direction:column;gap:5px}
+.bcard canvas{width:100%;height:auto;aspect-ratio:3/1;image-rendering:pixelated;border-radius:6px;background:#14162b}
+.bcard .bname{background:#0b0d1e;border:1px solid var(--panel2);border-radius:6px;color:var(--text);font:inherit;font-size:14px;letter-spacing:0;text-align:left;padding:4px 6px;width:100%;box-sizing:border-box;margin:0}
+.bcardbtns{display:flex;flex-wrap:wrap;gap:4px}
 .buildlist li{display:flex;flex-wrap:wrap;align-items:center;gap:6px}.buildlist .bname{background:#0b0d1e;border:1px solid var(--panel2);border-radius:6px;color:var(--text);font:inherit;padding:4px 6px;width:140px}
 .wmap{margin:4px 0 6px}
 .wmap canvas{display:block;width:100%;max-width:760px;margin:0 auto;aspect-ratio:432/243;image-rendering:pixelated;border:3px solid var(--panel2);border-radius:10px;background:#14162b;touch-action:manipulation;cursor:pointer}
@@ -380,6 +395,8 @@ html.sideways .pad button.spec:not(:disabled){opacity:.92}
   <div class="stage" id="stage" hidden>
     <canvas id="cv" width="432" height="240" aria-label="Game screen"></canvas>
     <div class="btools" id="btools" hidden></div>
+    <button class="bopt bback" id="bBackBtn" type="button" hidden>🔨 Back to building</button>
+    <div class="bpanel" id="bPanel" hidden></div>
     <div class="bossbar" id="bossHud" hidden><span class="bname" id="bossName">MOM</span><div class="pips" id="bossPips"></div></div>
     <div class="combo" id="comboEl" hidden><span id="comboX">x2</span><small>COMBO</small></div>
     <div class="toast" id="toast" hidden></div>
@@ -1206,7 +1223,7 @@ function loadProgress() {
   out.smashItems = p.smashItems !== false;
   out.codes = Array.isArray(p.codes) ? p.codes.map(Number).filter((n) => n >= 2 && n <= 11) : [];
   out.wonWorlds = Array.isArray(p.wonWorlds) ? p.wonWorlds.map(Number).filter((n) => n >= 2 && n <= 11) : [];
-  out.builds = Array.isArray(p.builds) ? p.builds.filter((b) => b && typeof b.g === 'string' && b.w > 0 && b.g.length === b.w * ROWS && LV[b.theme]).slice(0, 6) : [];
+  out.builds = Array.isArray(p.builds) ? p.builds.filter(bNorm).slice(0, 50) : [];
   if (!out.mapSeen || typeof out.mapSeen !== 'object') out.mapSeen = {};
   out.bossLosses = {};
   if (p.bossLosses && typeof p.bossLosses === 'object') for (const k in p.bossLosses) { const n = Math.floor(Number(p.bossLosses[k])); if (LV[k] && n > 0 && n < 1000) out.bossLosses[k] = n; }
@@ -1219,7 +1236,7 @@ let L = null, P = null;
 let foes = [], shots = [], blasts = [], allyShots = [], bosses = [], allies = [], items = [];
 let candles = [], pops = [], parts = [], rings = [], trail = [];
 let pets = { cats: [], dogs: [] }, dad = null, bro = null, crate = null;
-let camX = 0, shake = 0, hitStop = 0, frame = 0, running = false, paused = false, pausedByUser = false;
+let camX = 0, camY = 0, viewW = W, viewH = H, shake = 0, hitStop = 0, frame = 0, running = false, paused = false, pausedByUser = false;
 let boss = 'off', got = 0, totalCandles = 0, nextHeartAt = 25;
 let score = 0, combo = 0, comboT = 0, bestCombo = 0, deaths = 0, heartsLost = 0, stageTime = 0;
 let spawn = { x: 0, y: 0 }, cpHit = false, dadUsedStage = false, dadUsedBoss = false;
@@ -1332,11 +1349,12 @@ function pollGamepad() {
 /* ============================================================
    PHYSICS + FX HELPERS
    ============================================================ */
-const tileAt = (tx, ty) => (tx < 0 || tx >= L.w || ty < 0 || ty >= ROWS) ? 0 : L.g[ty * L.w + tx];
+/* L.up: extra rows above the screen in a tall homemade level (0 everywhere else) */
+const tileAt = (tx, ty) => (tx < 0 || tx >= L.w || ty < -(L.up | 0) || ty >= ROWS) ? 0 : L.g[(ty + (L.up | 0)) * L.w + tx];
 const solid = (tx, ty) => {
   if (tx < 0 || tx >= L.w) return true;
-  if (ty < 0 || ty >= ROWS) return false;
-  const t = L.g[ty * L.w + tx];
+  if (ty < -(L.up | 0) || ty >= ROWS) return false;
+  const t = L.g[(ty + (L.up | 0)) * L.w + tx];
   return t >= 1 && t <= 6;
 };
 const overlap = (a, b) => a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
@@ -1597,7 +1615,7 @@ $('#restartBtn').addEventListener('click', () => {
   setPaused(false); SFX.click();
   if (smash) { smashRematch(); return; }
   if (kart) { kartRestart(); return; }
-  if (L && L.custom) { playCustom(L.src); return; }
+  if (L && L.custom) { playCustom(L.src, L.opts); return; }
   if (L) dropSave(L.i);
   startStage(L ? L.i : 0, true);
 });
@@ -1629,7 +1647,7 @@ function makeFoe(f) {
     face: -1, baseY: 0, originX: 0, cool: 0
   };
   if (f.vx != null) o.vx = f.vx;
-  if (def.beh === 'flyer') { o.baseY = clamp(o.y, 26, 150); o.y = o.baseY; o.originX = o.x; o.vx = -0.75; }
+  if (def.beh === 'flyer') { o.baseY = clamp(o.y, 26 - (L.up | 0) * T, 150); o.y = o.baseY; o.originX = o.x; o.vx = -0.75; }
   if (def.beh === 'thrower') { o.vx = 0; o.h = 17; o.y -= 4; o.w = 13; }
   if (f.type === 'bully') { o.h = 17; o.w = 11; o.y -= 4; }
   if (def.beh === 'charger') o.face = -1;
@@ -1675,11 +1693,13 @@ function startStage(i, silent, custom) {
   cratePet = nextPet;
   crate = nextPet && L.petSpot ? { x: L.petSpot.x, y: L.petSpot.y, w: 16, h: 16, pet: nextPet, open: false, t: 0 } : null;
   camX = 0; shake = 0; hitStop = 0;
+  camY = custom && custom.up ? clamp(Math.round(spawn.y - H * 0.55), -custom.up * T, 0) : 0;
+  const bb = $('#bBackBtn'); if (bb) bb.hidden = !(custom && custom.opts && custom.opts.editor);   /* 🔨 back to building, in a test play */
   el.stageLbl.textContent = custom ? 'BUILDER · ' + custom.src.name.toUpperCase() : stageLabel(i);
   $('#mapBtnP').textContent = custom ? 'My levels' : 'Stage map';
   el.pauseBtn.hidden = false;
   updHud();
-  Music.play(LV[i].final || LV[i].final2 ? 'final' : 'stage');
+  Music.play(custom && custom.song ? custom.song : (LV[i].final || LV[i].final2 ? 'final' : 'stage'));
   if (!silent) toast('<b>' + stageName(i).toUpperCase() + '</b> · ' + LV[i].place + ' · ' + LV[i].clock, 1700);
 }
 /* ============================================================
@@ -1810,8 +1830,7 @@ function updatePlayer() {
   }
 
   if (P.y > H + 10) {
-    P.hp = Math.max(0, P.hp - 1); heartsLost++;
-    SFX.hurt(); flashScreen();
+    if (!L.noHurt) { P.hp = Math.max(0, P.hp - 1); heartsLost++; SFX.hurt(); flashScreen(); }   /* the Builder's can't-get-hurt switch */
     if (P.hp <= 0) { P.dead = 1; P.vy = -5; return; }
     P.x = boss === 'fight' ? (L.arenaX + 2) * T : (cpHit ? spawn.x : lastSafe.x || spawn.x);
     P.y = boss === 'fight' ? (GROUND - 1) * T : (cpHit ? spawn.y : lastSafe.y || spawn.y);
@@ -1823,7 +1842,7 @@ function updatePlayer() {
 }
 
 function hurt(from) {
-  if (P.inv > 0 || P.dead || P.rush > 0 || paused) return;
+  if (P.inv > 0 || P.dead || P.rush > 0 || paused || L.noHurt) return;
   if (P.hat) {
     P.hat = false; P.inv = 90; P.vy = -3.2;
     SFX.stomp(); pop(P.x, P.y - 10, 'CLONK!', 26, '#f6c445'); updHud();
@@ -1893,8 +1912,9 @@ function addCandle(n) {
   updHud();
 }
 function hitGift(tx, ty) {
-  L.g[ty * L.w + tx] = 4;
-  const kind = L.gifts[ty * L.w + tx] || 'candle';
+  const gk = (ty + (L.up | 0)) * L.w + tx;
+  L.g[gk] = 4;
+  const kind = L.gifts[gk] || 'candle';
   sparks(tx * T + 8, ty * T + 8, 10, ['#f6c445', '#fff', '#ff6fae']);
   if (kind === 'candle') { addCandle(1); SFX.gift(); pop(tx * T + 2, ty * T - 8, '+1', 30, null, true); }
   else { items.push({ x: tx * T + 2, y: ty * T - 14, w: 12, h: 12, kind: kind, rise: 12, got: false }); SFX.gift(); }
@@ -2306,7 +2326,7 @@ function updateBossHud() {
   el.bossName.style.color = alive.some((b) => b.kind === 'final') ? '#ff6fae' : '';
 }
 async function startBoss() {
-  if (L.custom) { customGoal(); return; }   /* Kinan's own level: the flag is the end */
+  if (L.custom && !L.hasBoss) { customGoal(); return; }   /* Kinan's own level: the flag is the end (a copied stage keeps its boss) */
   if (!LV[L.i].boss) { goalReached(); return; }   /* no boss here: this stage ends at Dad's truck */
   boss = 'intro';
   paused = true;
@@ -2386,6 +2406,7 @@ function damage(b, n, why) {
 }
 /* Kinan lost a boss fight: count it, and after 3 in a row offer a helping hand (Shad, 2026-10-20) */
 async function bossLost() {
+  if (L.custom) return;   /* homemade levels have the can't-get-hurt switch instead */
   progress.bossLosses = progress.bossLosses || {};
   const i = L.i, n = (progress.bossLosses[i] || 0) + 1;
   progress.bossLosses[i] = n; save();
@@ -2408,6 +2429,7 @@ function askHelp() {
 }
 async function bossDefeated() {
   boss = 'done';
+  if (L.custom) { shots = []; blasts = []; allyShots = []; updateBossHud(); customGoal(); return; }   /* a copied stage's boss: no story progress */
   if (progress.bossLosses) delete progress.bossLosses[L.i];   /* beaten: the count starts again */
   paused = true;
   shots = []; blasts = []; allyShots = [];
@@ -2687,9 +2709,15 @@ function updateCamera() {
   const cxP = P.x + P.w / 2;
   let target = cxP - W * 0.42;
   let lo = 0, hi = Math.min(L.w * T - W, (L.arenaX + L.arenaW + 1) * T - W);
-  if (boss !== 'off') lo = L.arenaX * T;
+  if (boss !== 'off' && L.arenaX < L.w) lo = L.arenaX * T;
   target = clamp(target, lo, hi);
   camX = clamp(Math.round(target), lo, hi);
+  /* a tall homemade level: follow Kinan up and down (a boss fight happens on the bottom screen) */
+  if (L.up) {
+    const ty = boss === 'intro' || boss === 'fight' ? 0 : clamp(P.y + P.h / 2 - H * 0.55, -L.up * T, 0);
+    camY += (ty - camY) * 0.2;
+    if (Math.abs(ty - camY) < 0.5) camY = ty;
+  } else camY = 0;
 }
 function updateFx() {
   for (const p of parts) { p.x += p.vx; p.y += p.vy; p.vy += p.g; p.vx *= p.drag; p.life--; }
@@ -2725,6 +2753,7 @@ function update() {
   updateFoes();
   updateShots();
   updatePets();
+  if (L.custom && boss === 'off' && L.goalBox && overlap(P, L.goalBox)) { customGoal(); return; }   /* your own level: touch the flag */
   if (boss === 'off' && P.x > (L.arenaX + 3) * T) { startBoss(); return; }
   if (boss === 'fight') {
     for (const b of bosses) if (!b.out) { bossAI(b); bossContact(b); }
@@ -3140,16 +3169,17 @@ function drawAtmosphere(th) {
    RENDER — tiles + props
    ============================================================ */
 function drawTiles(th) {
-  const x0 = Math.floor(camX / T) - 1, x1 = Math.ceil((camX + W) / T) + 1;
-  for (let ty = 0; ty < ROWS; ty++) {
+  const x0 = Math.floor(camX / T) - 1, x1 = Math.ceil((camX + viewW) / T) + 1, up = L.up | 0, tb = th.tileBg || th.bg;
+  const y0 = up ? Math.max(-up, Math.floor(camY / T)) : 0, y1 = up ? Math.min(ROWS - 1, Math.floor((camY + viewH) / T)) : ROWS - 1;
+  for (let ty = y0; ty <= y1; ty++) {
     for (let tx = Math.max(0, x0); tx <= Math.min(L.w - 1, x1); tx++) {
-      const t = L.g[ty * L.w + tx];
+      const t = L.g[(ty + up) * L.w + tx];
       if (!t) continue;
       const sx = tx * T - Math.round(camX), sy = ty * T;
       const cap = !solid(tx, ty - 1);
       if (t === 1) {
         ctx.fillStyle = th.ground; ctx.fillRect(sx, sy, T, T);
-        if (th.bg === 'room' || th.bg === 'kitchen' || th.bg === 'dinner' || th.bg === 'studio' || th.bg === 'art') {
+        if (tb === 'room' || tb === 'kitchen' || tb === 'dinner' || tb === 'studio' || tb === 'art') {
           ctx.fillStyle = 'rgba(0,0,0,.10)'; ctx.fillRect(sx, sy + 10, T, 1); ctx.fillRect(sx, sy + 15, T, 1);
           ctx.fillStyle = 'rgba(255,255,255,.05)'; ctx.fillRect(sx, sy + 9, T, 1);
         } else {
@@ -3165,19 +3195,19 @@ function drawTiles(th) {
           ctx.fillStyle = th.top; ctx.fillRect(sx, sy, T, 6);
           ctx.fillStyle = 'rgba(255,255,255,.34)'; ctx.fillRect(sx, sy, T, 1);
           ctx.fillStyle = 'rgba(0,0,0,.17)'; ctx.fillRect(sx, sy + 6, T, 1);
-          if (th.bg === 'outdoor' || th.bg === 'school') {
+          if (tb === 'outdoor' || tb === 'school') {
             ctx.fillStyle = '#2f6b3a';
             for (let k = 0; k < 3; k++) {
               const gx = sx + 2 + ((tx * 7 + k * 5) % 12);
               ctx.fillRect(gx, sy - 2, 1, 3); ctx.fillRect(gx + 1, sy - 1, 1, 2);
             }
-          } else if (th.bg === 'castle') {
+          } else if (tb === 'castle') {
             ctx.fillStyle = '#eef4ff'; ctx.fillRect(sx, sy, T, 3);
             ctx.fillStyle = 'rgba(180,210,255,.55)'; ctx.fillRect(sx + 2, sy + 3, 3, 1); ctx.fillRect(sx + 10, sy + 3, 4, 1);
-          } else if (th.bg === 'cake') {
+          } else if (tb === 'cake') {
             ctx.fillStyle = '#ffeaf2'; ctx.fillRect(sx, sy, T, 3);
             ctx.fillStyle = '#ff9fc0'; ctx.fillRect(sx + 3, sy + 3, 2, 2); ctx.fillRect(sx + 10, sy + 3, 2, 1);
-          } else if (th.bg === 'lego') {
+          } else if (tb === 'lego') {
             ctx.fillStyle = th.top; ctx.fillRect(sx + 3, sy - 3, 4, 3); ctx.fillRect(sx + 9, sy - 3, 4, 3);
             ctx.fillStyle = 'rgba(255,255,255,.35)'; ctx.fillRect(sx + 4, sy - 3, 2, 1); ctx.fillRect(sx + 10, sy - 3, 2, 1);
           } else {
@@ -3194,7 +3224,7 @@ function drawTiles(th) {
         ctx.fillRect(sx, sy + 7, T, 1); ctx.fillRect(sx, sy + 15, T, 1);
         ctx.fillRect(sx + 7, sy, 1, 7); ctx.fillRect(sx + 3, sy + 8, 1, 7); ctx.fillRect(sx + 11, sy + 8, 1, 7);
         ctx.fillStyle = 'rgba(255,255,255,.10)'; ctx.fillRect(sx + 1, sy + 1, 5, 1);
-        if (th.bg === 'lego' && cap) {
+        if (tb === 'lego' && cap) {
           ctx.fillStyle = th.brick; ctx.fillRect(sx + 3, sy - 3, 4, 3); ctx.fillRect(sx + 9, sy - 3, 4, 3);
           ctx.fillStyle = 'rgba(255,255,255,.25)'; ctx.fillRect(sx + 4, sy - 3, 2, 1); ctx.fillRect(sx + 10, sy - 3, 2, 1);
         }
@@ -3244,7 +3274,7 @@ function drawTiles(th) {
   }
   const dg = ctx.createLinearGradient(0, GROUND * T, 0, H);
   dg.addColorStop(0, 'rgba(0,0,0,.02)'); dg.addColorStop(1, 'rgba(0,0,0,.45)');
-  ctx.fillStyle = dg; ctx.fillRect(0, GROUND * T, W, H - GROUND * T);
+  ctx.fillStyle = dg; ctx.fillRect(0, GROUND * T, viewW, H - GROUND * T);
 }
 function drawProps(th) {
   for (const pc of pieces) if (!hasGold(L.i, pc.j)) drawPiece(Math.round(pc.x - camX), pc.y, frame + pc.j * 30);
@@ -3906,14 +3936,17 @@ function draw() {
   if (smash) { drawSmash(); return; }
   if (puzzle) { drawPuzzle(); return; }
   if (!L || !P) return;
-  const th = LV[L.i];
+  const th = L.th || LV[L.i];   /* a homemade level mixes and matches its look */
+  const cy = Math.round(camY);   /* a tall homemade level: how far the camera has climbed (0 in every story stage) */
   const shx = shake > 0.2 ? Math.round(rand(-shake, shake)) : 0;
   const shy = shake > 0.2 ? Math.round(rand(-shake, shake)) : 0;
   ctx.save();
   ctx.translate(shx, shy);
-  drawSky(L.i, th);
-  drawBackdrop(th, L.i);
+  drawSky(L.th ? L.th.skyKey : L.i, th);
+  if (cy) { ctx.save(); ctx.translate(0, Math.round(-cy * 0.4)); }
+  drawBackdrop(th, L.th ? L.th.bgI : L.i);
   drawAtmosphere(th);
+  if (cy) ctx.restore();
   if (boss === 'fight' || boss === 'intro') {
     ctx.globalAlpha = 0.10; ctx.fillStyle = '#ffd6e6';
     ctx.beginPath(); ctx.moveTo(W * 0.16, 0); ctx.lineTo(W * 0.40, GROUND * T); ctx.lineTo(W * 0.04, GROUND * T); ctx.fill();
@@ -3923,6 +3956,7 @@ function draw() {
     bg.addColorStop(0, 'rgba(255,90,130,.15)'); bg.addColorStop(1, 'rgba(0,0,0,0)');
     ctx.fillStyle = bg; ctx.fillRect(0, 0, W, GROUND * T);
   }
+  if (cy) { ctx.save(); ctx.translate(0, -cy); }
   drawTiles(th);
   drawProps(th);
   drawGoal();
@@ -3932,8 +3966,11 @@ function draw() {
   drawPets();
   drawPlayer();
   drawShots();
+  if (cy) ctx.restore();
   drawDaylight(th);
+  if (cy) { ctx.save(); ctx.translate(0, -cy); }
   drawParticles();
+  if (cy) ctx.restore();
   ctx.restore();
   drawVignette();
 }
@@ -3971,6 +4008,7 @@ window.addEventListener('resize', setOrientationUI);
 function showScreen(html) {
   running = false;
   builder = null; $('#btools').hidden = true; el.stage.classList.remove('buildmode');
+  $('#bBackBtn').hidden = true; bPanelClose();
   el.dialog.hidden = true;
   el.toast.hidden = true;
   el.pause.hidden = true;
@@ -4359,6 +4397,10 @@ async function goalReached() {
   resultsScreen(i);
 }
 function drawGoal() {
+  if (L && L.custom) {   /* your own level: its finish flag */
+    if (L.src.goal) ctx.drawImage(SP.flag, L.src.goal[0] * T - Math.round(camX), (L.src.goal[1] + 1) * T - SP.flag.height);
+    return;
+  }
   if (!L || LV[L.i].boss || L.room) return;
   const gx = (L.arenaX + 6) * T - camX, gy = GROUND * T;
   if (gx < -200 || gx > W + 40) return;
@@ -4823,7 +4865,7 @@ function howToScreen() {
     '<li><span class="ico">🍰</span><span>Every <b>25 coins</b> = an extra heart. Trampolines launch you sky-high. The game saves itself at every checkpoint and whenever you pause.</span></li>' +
     '<li><span class="ico">🧩</span><span>Every stage hides <b>3 puzzle pieces</b> up in the air. Jump into one for a puzzle room with a <b>golden coin</b> (+25 coins). There is always a door out.</span></li>' +
     '<li><span class="ico">🥊</span><span><b>Family Smash:</b> pick a family member, jump on heads, press <b>POW</b> for their special move, knock everyone else off the cake. Grab the <b>birthday items</b> that float down (🍰 🎉 ❤ ⛑️ 🎈). Beat story stages to unlock more arenas.</span></li>' +
-    '<li><span class="ico">🧱</span><span><b>Builder:</b> make your own level with ground, bricks, gift blocks, shelves, trampolines, coins and enemies, put down a start and a 🚩, and play it. Up to 6 levels are kept on this device.</span></li>' +
+    '<li><span class="ico">🧱</span><span><b>Builder:</b> make your own levels with ground, bricks, gift blocks, shelves, trampolines, coins and enemies (or start from a copy of a story stage), put down a start and a 🚩, and play them. Make them long and up to 3 screens tall. Up to 50 levels are kept on this device.</span></li>' +
     '<li><span class="ico">🏎️</span><span><b>Family Kart:</b> race the family in their real rides. Steer with ◀ ▶; hold <b>HOP</b> while turning to drift, let go after the sparks for a boost; <b>ITEM</b> uses what a gift box gave you. Beat story stages to unlock more tracks.</span></li>' +
     '</ul>' +
     '<p class="tiny">Phone or tablet: turn it sideways; the buttons float over the picture. Keyboard: ← → move · SPACE jump · X pow · P pause. Gamepad works too.</p>' +
@@ -5767,7 +5809,7 @@ function drawSmashBar() {
   });
 }
 function drawDaylight(th) {
-  const c = GRADE[th.tod];
+  const c = th.tint != null ? th.tint : GRADE[th.tod];   /* a homemade level's time of day brings its own light */
   if (c) { ctx.fillStyle = c; ctx.fillRect(-8, -8, W + 16, H + 16); }
 }
 function drawSmash() {
@@ -7965,60 +8007,169 @@ function kartRestart() {
 }
 
 /* ============================================================
-   BUILDER MODE — Kinan builds his own level with the game's own
-   blocks, gifts, springs, shelves, candles and enemies, in the look
-   of any world he has reached, then plays it. Up to 6 saved levels
-   live on this device. (Candles in your own levels do not go to the
-   Party Shop.)
+   BUILDER MODE — Kinan builds his own levels from the game's own blocks, gift blocks, trampolines, shelves, coins
+   and enemies, then plays them. Piece 2 of Shad's Builder plan (answers 7, 9 and 20-24, 2026-10-20): long and tall
+   levels (up to 4 story stages long, 3 screens tall), paint / fill / copy / undo / zoom out, play from the spot you
+   are looking at with an "I can't get hurt" switch, start from a copy of any story stage, up to 50 levels in
+   folders with little pictures, a mix-and-match look, a guided first build and a ❓ for every tool.
+   Tall levels grow upward: the bottom screen keeps the story's rows 0-14 and the extra screens are rows -1 to -30,
+   so the stage code (the ground, bosses, falling off the bottom) works the same. Coins in your own levels do not
+   go to the Party Shop.
    ============================================================ */
 const BTOOLS = [
-  { id: 'ground', icon: '🟫', name: 'Ground', tile: 1 }, { id: 'brick', icon: '🧱', name: 'Bricks', tile: 2 },
-  { id: 'gift', icon: '🎁', name: 'Gift block', tile: 3 }, { id: 'shelf', icon: '➖', name: 'Shelf', tile: 7 },
-  { id: 'spring', icon: '🔵', name: 'Trampoline', tile: 6 }, { id: 'candle', icon: '<i class="coin-ico lg"></i>', name: 'Coin' },
-  { id: 'foe', icon: '👾', name: 'Enemy' }, { id: 'start', icon: '🧒', name: 'Start' }, { id: 'goal', icon: '🚩', name: 'Finish flag' },
-  { id: 'erase', icon: '🧽', name: 'Eraser' }, { id: 'move', icon: '✋', name: 'Scroll' }
+  { id: 'ground', icon: '🟫', name: 'Ground', tile: 1, help: 'The ground you walk on. Tap to put one down, or drag your finger to paint lots at once.' },
+  { id: 'brick', icon: '🧱', name: 'Bricks', tile: 2, help: 'Solid blocks. Stand on them or bump them with your head. Drag to paint a wall, a bridge or a tower.' },
+  { id: 'gift', icon: '🎁', name: 'Gift block', tile: 3, help: 'Bump it from below and something pops out. Tap a gift block again to change what is inside: a coin, a Party Popper, cake or a heart.' },
+  { id: 'shelf', icon: '➖', name: 'Shelf', tile: 7, help: 'You can jump up through a shelf from below and land on top. Great for climbing up high.' },
+  { id: 'spring', icon: '🔵', name: 'Trampoline', tile: 6, help: 'Land on it and BOING: you fly up high!' },
+  { id: 'candle', icon: '<i class="coin-ico lg"></i>', name: 'Coin', help: 'Tap or drag to put coins anywhere in the air. Can you grab them all?' },
+  { id: 'foe', icon: '👾', name: 'Enemy', help: 'Pick an enemy in the row under the tools, then tap where it should stand. Flying ones float a little higher. Up to 40.' },
+  { id: 'start', icon: '🧒', name: 'Start', help: 'Tap where Kinan starts the level.' },
+  { id: 'goal', icon: '🚩', name: 'Finish flag', help: 'Tap where the level ends. Touch the flag to win!' },
+  { id: 'erase', icon: '🧽', name: 'Eraser', help: 'Tap or drag to wipe away blocks, coins and enemies. Tap a boss sign or a checkpoint flag to take it away. Oops? ↩ brings it back.' },
+  { id: 'fill', icon: '🪣', name: 'Fill', help: 'Pick a block in the row under the tools, then tap inside a space that is closed in all around to fill it at once. Tap a block to change every block joined to it.' },
+  { id: 'copy', icon: '✂️', name: 'Copy and paste', help: 'Drag a box around part of your level to copy it. Then tap anywhere to paste it, as many times as you like.' },
+  { id: 'move', icon: '✋', name: 'Scroll', help: 'Drag the level to look around: left and right, and up and down on a tall level. The arrow buttons scroll too.' }
+];
+/* the buttons along the bottom get a ❓ page too */
+const BHELP_MORE = [
+  { icon: '↩', name: 'Undo and redo', help: '↩ takes back the last thing you did. ↪ puts it back again.' },
+  { icon: '🔍', name: 'Zoom', help: 'See more of your level at once. Tap 🔍 again to zoom out more, and once more to come back. When the whole level is showing, tap a spot to jump there.' },
+  { icon: '🎨', name: 'Look', help: 'Mix and match: the background, the ground, the song and the time of day.' },
+  { icon: '📏', name: 'Size', help: 'Make your level longer or shorter, and up to 3 screens tall.' },
+  { icon: '🛡', name: "Can't get hurt", help: 'Turn it on to try out your level without losing any hearts.' },
+  { icon: '▶', name: 'Play', help: '▶ Here starts right where you are looking. ▶ Play starts at the start. While you play, 🔨 takes you straight back to building.' }
 ];
 const GIFT_KINDS = ['candle', 'popper', 'cake', 'heart'];
 const GIFT_ICON = { candle: '💰', popper: '🎉', cake: '🍰', heart: '❤' };
-const BSIZES = { short: 60, medium: 100, long: 150 };
+const BSIZES = { short: 60, medium: 100, long: 150, xlong: 300 };
+const BSIZE_NAMES = [['short', 'Short'], ['medium', 'Medium'], ['long', 'Long'], ['xlong', 'Extra long']];
+const BMAXW = 1200, BMINW = 40, BSTEP = 25, BMAXN = 50, BFILLMAX = 900;   /* 1200 blocks = 4 story stages */
+const BDRAG = ['ground', 'brick', 'gift', 'shelf', 'spring', 'candle', 'erase'];   /* tools you can drag to paint with */
+const BBLOCKS = ['ground', 'brick', 'gift', 'shelf', 'spring'];
+const BFOLDERS = [['work', 'Working on it', '🔨'], ['done', 'Finished', '✅']];
+const BSONGS = [['stage', 'Party tune'], ['title', 'Calm tune'], ['boss', 'Boss tune'], ['race', 'Race tune'], ['final', 'Big finale']];
+/* time of day: [id, name, sky (outdoor scenes), light over everything] */
+const BTIMES = [['own', "The scene's own"], ['dawn', 'Sunrise', ['#4a3a8a', '#ff9f6e'], 'rgba(255,150,110,.12)'], ['day', 'Daytime', ['#4fa8ff', '#cfeeff'], ''],
+  ['sunset', 'Sunset', ['#3b2a6b', '#ff8a5c'], 'rgba(255,105,60,.16)'], ['night', 'Night', ['#070b24', '#1f2a5c'], 'rgba(18,22,80,.30)']];
+const BOUTSIDE = ['outdoor', 'school', 'prairie', 'camp', 'dig', 'oilfield', 'truckyard', 'night', 'storm'];
 let builder = null;   /* the level editor, while it is open */
+let bFolder = 'work';  /* which folder the Builder menu shows */
 function themesOpen() { const out = []; for (let i = 0; i < LV.length; i++) if (i <= 10 || worldOpen(2)) out.push(i); return out; }
-function newBuild(size) {
-  const w = BSIZES[size] || 100, g = new Array(w * ROWS).fill(0);
-  for (let x = 0; x < w; x++) for (let y = GROUND; y < ROWS; y++) g[y * w + x] = 1;
-  const n = (progress.builds || []).length + 1;
-  return { name: 'My level ' + n, theme: 0, w: w, g: g.join(''), candles: [], foes: [], gifts: {}, start: [2, GROUND - 1], goal: [w - 4, GROUND - 1] };
+/* ---- the saved form: the grid is stored as runs ("~" + tile + count in base 36, joined by "."), because a level is
+   mostly sky and ground; levels saved before 2026-10-21 are one digit per cell, one screen tall ---- */
+function gridPack(g) {
+  const out = [];
+  for (let k = 0; k < g.length;) { let n = 1; while (k + n < g.length && g[k + n] === g[k]) n++; out.push(g[k] + n.toString(36)); k += n; }
+  return '~' + out.join('.');
 }
-/* the saved form -> a level the stage code can play */
-function buildCustom(b) {
-  const w = b.w, g = new Uint8Array(w * ROWS);
-  for (let k = 0; k < w * ROWS; k++) g[k] = Number(b.g[k]) || 0;
+function gridUnpack(s, n) {
+  if (typeof s !== 'string') return null;
+  const g = new Uint8Array(n);
+  if (s.charAt(0) !== '~') { if (s.length !== n) return null; for (let k = 0; k < n; k++) g[k] = Number(s[k]) || 0; return g; }
+  let k = 0;
+  for (const run of s.slice(1).split('.')) {
+    const v = Number(run.charAt(0)), c = parseInt(run.slice(1), 36);
+    if (!(v >= 0 && v <= 9) || !(c > 0) || k + c > n) return null;
+    g.fill(v, k, k + c); k += c;
+  }
+  return k === n ? g : null;
+}
+/* a saved level is usable (and old ones get the new fields). loadProgress calls this, so it uses no constants from
+   further down the file: 1200 = the longest level, 45 = 3 screens of 15 rows. */
+function bNorm(b) {
+  if (!b || typeof b !== 'object' || !LV[b.theme] || !(b.w >= 20 && b.w <= 1200)) return false;
+  if (b.h !== 30 && b.h !== 45) b.h = ROWS;
+  if (!gridUnpack(b.g, b.w * b.h)) return false;
+  if (!Array.isArray(b.candles)) b.candles = [];
+  if (!Array.isArray(b.foes)) b.foes = [];
+  if (!b.gifts || typeof b.gifts !== 'object') b.gifts = {};
+  if (!Array.isArray(b.start)) b.start = [2, GROUND - 1];
+  if (b.goal != null && !Array.isArray(b.goal)) b.goal = null;
+  if (b.boss != null && !(LV[b.boss] && LV[b.boss].boss && b.bossAt > 0 && b.bossAt < b.w)) { delete b.boss; delete b.bossAt; }
+  if (!b.goal && b.boss == null) b.goal = [b.w - 4, GROUND - 1];
+  if (b.folder !== 'done') b.folder = 'work';
+  const lk = b.look && typeof b.look === 'object' ? b.look : {};
+  b.look = { bg: LV[lk.bg] ? lk.bg : b.theme, ground: LV[lk.ground] ? lk.ground : b.theme, song: typeof lk.song === 'string' ? lk.song : 'stage', time: typeof lk.time === 'string' ? lk.time : 'own' };
+  if (typeof b.name !== 'string') b.name = 'My level';
+  return true;
+}
+const bRows = (b) => (b.h === 30 || b.h === 45 ? b.h : ROWS);
+const bUp = (b) => bRows(b) - ROWS;
+const bIdx = (b, tx, ty) => (ty + bUp(b)) * b.w + tx;
+/* a free name: "My level 3", or a story stage's place ("Kinan's Bedroom", then "Kinan's Bedroom 2") */
+function bFreeName(base, numbered) {
+  const names = (progress.builds || []).map((b) => b.name);
+  let n = numbered ? names.length + 1 : 1, name = numbered ? base + ' ' + n : base.slice(0, 24);
+  while (names.indexOf(name) >= 0) name = base.slice(0, 21) + ' ' + (++n);
+  return name;
+}
+/* the look of a level: background, ground and time of day mixed and matched (answer 7) */
+function customTheme(b) {
+  const lk = b.look || {}, bg = LV[lk.bg] ? lk.bg : b.theme, gs = LV[lk.ground] ? lk.ground : bg;
+  const th = Object.assign({}, LV[bg], { ground: LV[gs].ground, top: LV[gs].top, brick: LV[gs].brick, tileBg: LV[gs].bg, bgI: bg, skyKey: bg });
+  const tm = BTIMES.filter((x) => x[0] === lk.time)[0];
+  if (tm && tm[2]) {
+    th.tod = tm[0] === 'day' ? 'morning' : tm[0]; th.tint = tm[3]; th.skyKey = bg + '-' + tm[0];
+    if (BOUTSIDE.indexOf(th.bg) >= 0) th.sky = tm[2];
+  }
+  return th;
+}
+function newBuild(size) {
+  const w = BSIZES[size] || 100, g = new Uint8Array(w * ROWS);
+  for (let x = 0; x < w; x++) for (let y = GROUND; y < ROWS; y++) g[y * w + x] = 1;
+  return { name: bFreeName('My level', true), theme: 0, w: w, h: ROWS, g: gridPack(g), candles: [], foes: [], gifts: {}, start: [2, GROUND - 1], goal: [w - 4, GROUND - 1],
+    folder: 'work', look: { bg: 0, ground: 0, song: 'stage', time: 'own' } };
+}
+/* a copy of a story stage to change: blocks, gifts, coins, enemies, the checkpoint and the boss (answer 22) */
+function copyStage(i) {
+  const S = build(i), d = LV[i].boss;
+  const b = { name: bFreeName(LV[i].place, false), theme: i, w: S.w, h: ROWS, g: gridPack(S.g), gifts: Object.assign({}, S.gifts),
+    candles: S.candles.map((c) => [c.tx, c.ty]),
+    foes: S.foes.map((f) => [f.tx, FOE[f.type].beh === 'flyer' ? f.ty + 2 : f.ty, f.type]),   /* flyers are kept 2 rows under where they fly, like the ones you place */
+    start: [2, GROUND - 1], goal: null, folder: 'work', from: i,
+    look: { bg: i, ground: i, song: LV[i].final || LV[i].final2 ? 'final' : 'stage', time: 'own' } };
+  if (S.checkpoint) b.checkpoint = [S.checkpoint.tx, S.checkpoint.ty];
+  if (d) { b.boss = i; b.bossAt = S.arenaX; } else b.goal = [S.arenaX + 6, GROUND - 1];   /* World 2's goal stages end at Dad's truck: a flag there */
+  return b;
+}
+/* the saved form -> a level the stage code can play; from = the spot to start at (play from here) */
+function buildCustom(b, from) {
+  const w = b.w, h = bRows(b), g = gridUnpack(b.g, w * h) || new Uint8Array(w * h);
   const gifts = {};
   for (const k in b.gifts) if (g[Number(k)] === 3) gifts[k] = b.gifts[k];
   for (let k = 0; k < g.length; k++) if (g[k] === 3 && !gifts[k]) gifts[k] = 'candle';
-  const goalX = clamp(b.goal[0], 4, w - 2);
+  const hasBoss = b.boss != null && !!(LV[b.boss] && LV[b.boss].boss);
+  const fh = SP.flag.height, song = b.look && BSONGS.some((s) => s[0] === b.look.song) ? b.look.song : 'stage';
   return {
-    i: b.theme, g: g, w: w, gifts: gifts, checkpoint: null, petSpot: null, len: w,
+    i: hasBoss ? b.boss : b.theme, g: g, w: w, up: h - ROWS, gifts: gifts, petSpot: null, len: w,
+    checkpoint: b.checkpoint ? { x: b.checkpoint[0] * T, tx: b.checkpoint[0], ty: b.checkpoint[1] } : null,
     foes: b.foes.map((f) => ({ tx: f[0], ty: FOE[f[2]] && FOE[f[2]].beh === 'flyer' ? f[1] - 2 : f[1], type: FOE[f[2]] ? f[2] : 'sock' })),
     candles: b.candles.map((c) => ({ tx: c[0], ty: c[1] })),
-    arenaX: goalX - 3, arenaW: Math.max(4, w - goalX + 2), custom: true, src: b, startT: b.start
+    arenaX: hasBoss ? b.bossAt : w + 8, arenaW: hasBoss ? 28 : 1, hasBoss: hasBoss,
+    goalBox: b.goal ? { x: b.goal[0] * T - 2, y: (b.goal[1] + 1) * T - fh, w: T + 4, h: fh } : null,
+    custom: true, src: b, startT: from || b.start, th: customTheme(b), song: song
   };
 }
-function playCustom(b) {
+/* opts: { from: [tx, ty] to start somewhere else, safe: can't get hurt, editor: started from the editor (🔨 goes back) } */
+function playCustom(b, opts) {
+  opts = opts || {};
   AudioSys.init();
   builder = null;
-  $('#btools').hidden = true; el.stage.classList.remove('buildmode');
+  $('#btools').hidden = true; el.stage.classList.remove('buildmode'); bPanelClose();
   showGame(true);
-  startStage(b.theme, true, buildCustom(b));
+  const C = buildCustom(b, opts.from);
+  C.noHurt = !!opts.safe; C.opts = opts;
+  startStage(C.i, true, C);
   running = true; run(); draw();
   paused = false; last = 0; acc = 0;
-  toast('<b>' + escAttr(b.name) + '</b> · get to the 🚩!', 1800);
+  toast('<b>' + escAttr(b.name) + '</b> · ' + (C.hasBoss && !b.goal ? 'beat the boss!' : 'get to the 🚩!') + (C.noHurt ? ' · 🛡 you can\'t get hurt' : '') + (opts.note ? '<br>' + opts.note : ''), opts.note ? 3400 : 2000);
 }
-/* reaching the flag in your own level */
+/* reaching the flag (or beating a copied stage's boss) in your own level */
 function customGoal() {
   boss = 'done'; paused = true;
   SFX.win(); sparks(P.x + 5, P.y, 16, ['#f6c445', '#fff', '#ff6fae']);
-  const b = L.src, t = stageTime, c = got, all = totalCandles;
+  const b = L.src, t = stageTime, c = got, all = totalCandles, opts = L.opts || {}, view = { cam: camX, camY: camY };
   setTimeout(() => {
     showScreen(
       '<p class="eyebrow">Builder mode · your own level</p>' +
@@ -8027,8 +8178,8 @@ function customGoal() {
       '<div class="btnrow"><button class="btn go" id="bAgain" type="button">Play it again</button><button class="btn" id="bEdit" type="button">Keep building</button><button class="btn ghost" id="bMenu" type="button">My levels</button></div>'
     );
     confetti();
-    $('#bAgain').addEventListener('click', () => { SFX.click(); playCustom(b); });
-    $('#bEdit').addEventListener('click', () => { SFX.click(); editBuild(b); });
+    $('#bAgain').addEventListener('click', () => { SFX.click(); playCustom(b, opts); });
+    $('#bEdit').addEventListener('click', () => { SFX.click(); editBuild(b, opts.editor ? view : null); });
     $('#bMenu').addEventListener('click', () => { SFX.click(); builderMenu(); });
   }, 700);
 }
@@ -8038,149 +8189,507 @@ function saveBuild(b) {
   if (k < 0) progress.builds.push(b);
   save();
 }
+/* a little picture of a level for the menu: the start of it, all the way up */
+function bThumb(c, b) {
+  const x = c.getContext('2d'), h = bRows(b), up = h - ROWS, g = gridUnpack(b.g, b.w * h), th = customTheme(b);
+  if (!g) return;
+  const s = Math.min(4, c.height / h), cols = Math.min(b.w, Math.ceil(c.width / s)), oy = c.height - h * s;
+  const sky = x.createLinearGradient(0, 0, 0, c.height);
+  sky.addColorStop(0, th.sky[0]); sky.addColorStop(1, th.sky[1]);
+  x.fillStyle = sky; x.fillRect(0, 0, c.width, c.height);
+  const col = { 1: th.ground, 2: th.brick, 3: '#d92b45', 4: '#4a4038', 5: '#242642', 6: '#3fa9f5', 7: '#a9743f' };
+  for (let r = 0; r < h; r++) for (let tx = 0; tx < cols; tx++) {
+    const t = g[r * b.w + tx];
+    if (!t) continue;
+    x.fillStyle = t === 1 && (r === 0 || !g[(r - 1) * b.w + tx]) ? th.top : (col[t] || '#888');
+    x.fillRect(tx * s, oy + r * s, Math.ceil(s), Math.ceil(s));
+  }
+  const dot = (tx, ty, color, big) => {
+    if (tx >= cols) return;
+    const d = big ? s * 1.6 : Math.max(1, s * 0.6);
+    x.fillStyle = color; x.fillRect(tx * s + (s - d) / 2, oy + (ty + up) * s + (s - d) / 2, d, d);
+  };
+  b.candles.forEach((cn) => dot(cn[0], cn[1], '#f6c445'));
+  b.foes.forEach((f) => dot(f[0], f[1], '#b04de0', true));
+  dot(b.start[0], b.start[1], '#7fd6ff', true);
+  if (b.goal) dot(b.goal[0], b.goal[1], '#ff3b5c', true);
+  if (b.boss != null) dot(b.bossAt + 13, GROUND - 2, '#ff2d55', true);
+}
+function bSizeName(b) {
+  return (b.w <= 60 ? 'Short' : b.w <= 100 ? 'Medium' : b.w <= 150 ? 'Long' : b.w <= 300 ? 'Extra long' : 'Giant') + (bRows(b) > ROWS ? ' · ' + bRows(b) / ROWS + ' screens tall' : '');
+}
 function builderMenu() {
   if (kart) endKart();
   if (smash) endSmash();
   builder = null;
-  $('#btools').hidden = true;
+  $('#btools').hidden = true; bPanelClose();
   Music.play('title');
   el.stageLbl.textContent = 'BUILDER MODE';
-  const list = progress.builds || [];
+  const all = progress.builds || [], list = all.filter((b) => (b.folder || 'work') === bFolder), full = all.length >= BMAXN;
   showScreen(
-    '<p class="eyebrow">Builder mode · make your own level</p>' +
+    '<p class="eyebrow">Builder mode · make your own levels</p>' +
     '<h1 class="title"><span class="t1">Builder</span><span class="t2">Build it. Play it. Make it harder.</span></h1>' +
-    '<p class="lede">Use the game\'s own blocks: ground, bricks, gift blocks, shelves, trampolines, coins and enemies. Put down a start and a finish flag, pick the look of any world you have reached, then press <b>▶ Play</b>.</p>' +
-    (list.length ? '<ul class="credits buildlist">' + list.map((b, k) => '<li><input class="bname" data-k="' + k + '" maxlength="24" value="' + escAttr(b.name) + '" aria-label="Level name"> · ' + escAttr(LV[b.theme] ? LV[b.theme].place : '') + ' · ' + (b.w === 60 ? 'short' : b.w === 150 ? 'long' : 'medium') +
-      ' <button class="btn small go" type="button" data-play="' + k + '">▶ Play</button> <button class="btn small" type="button" data-edit="' + k + '">Build</button> <button class="btn small ghost" type="button" data-del="' + k + '">Delete</button></li>').join('') + '</ul>'
-      : '<p class="tiny">No levels yet. Make your first one!</p>') +
-    (list.length < 6 ? '<p class="tiny"><b>New level:</b> <button class="btn small" type="button" data-new="short">Short</button> <button class="btn small go" type="button" data-new="medium">Medium</button> <button class="btn small" type="button" data-new="long">Long</button></p>' : '<p class="tiny">6 levels is the most: delete one to make another.</p>') +
+    '<div class="bfolders">' + BFOLDERS.map((f) => '<button class="btn small' + (bFolder === f[0] ? ' go' : '') + '" type="button" data-folder="' + f[0] + '">' + f[2] + ' ' + f[1] + ' (' + all.filter((b) => (b.folder || 'work') === f[0]).length + ')</button>').join(' ') + '</div>' +
+    (list.length ? '<ul class="buildgrid">' + list.map((b) => {
+      const k = all.indexOf(b);
+      return '<li class="bcard"><canvas width="180" height="60" data-thumb="' + k + '" aria-hidden="true"></canvas>' +
+        '<input class="bname" data-k="' + k + '" maxlength="24" value="' + escAttr(b.name) + '" aria-label="Level name">' +
+        '<span class="tiny">' + escAttr(LV[b.theme].place) + ' · ' + bSizeName(b) + '</span>' +
+        '<span class="bcardbtns"><button class="btn small go" type="button" data-play="' + k + '">▶ Play</button> <button class="btn small" type="button" data-edit="' + k + '">🔨 Build</button> ' +
+        '<button class="btn small" type="button" data-move="' + k + '">' + (bFolder === 'done' ? '↩ Working on it' : '✅ Finished') + '</button> <button class="btn small ghost" type="button" data-del="' + k + '">Delete</button></span></li>';
+    }).join('') + '</ul>'
+      : '<p class="tiny">' + (bFolder === 'done' ? 'No finished levels yet. When a level is ready, press ✅ Finished on it.' : (all.length ? 'Nothing in here right now.' : 'No levels yet. Make your first one!')) + '</p>') +
+    (full ? '<p class="tiny">' + BMAXN + ' levels is the most: delete one to make another.</p>'
+      : '<p class="tiny"><b>New level:</b> ' + BSIZE_NAMES.map((s) => '<button class="btn small' + (s[0] === 'medium' ? ' go' : '') + '" type="button" data-new="' + s[0] + '">' + s[1] + '</button>').join(' ') + '</p>' +
+        '<p class="tiny"><b>Or copy a story stage:</b> <select id="bCopyPick" aria-label="Story stage to copy">' + themesOpen().map((i) => '<option value="' + i + '">' + escAttr(stageName(i) + ' · ' + LV[i].place) + '</option>').join('') +
+        '</select> <button class="btn small" type="button" id="bCopyGo">Copy it</button></p>') +
+    '<p class="tiny">' + all.length + ' of ' + BMAXN + ' levels' + (full ? '' : ' · <button class="btn small ghost" type="button" id="bTourGo">🎓 Show me how</button>') + '</p>' +
     '<div class="btnrow"><button class="btn ghost" id="bBack" type="button">Title screen</button></div>'
   );
-  $$('[data-new]', el.screen).forEach((x) => x.addEventListener('click', () => { AudioSys.init(); SFX.click(); const b = newBuild(x.dataset.new); saveBuild(b); editBuild(b); }));
-  $$('[data-play]', el.screen).forEach((x) => x.addEventListener('click', () => { SFX.click(); playCustom(list[Number(x.dataset.play)]); }));
-  $$('[data-edit]', el.screen).forEach((x) => x.addEventListener('click', () => { SFX.click(); editBuild(list[Number(x.dataset.edit)]); }));
-  $$('[data-del]', el.screen).forEach((x) => x.addEventListener('click', () => {
-    if (!confirm('Delete "' + list[Number(x.dataset.del)].name + '"?')) return;
-    list.splice(Number(x.dataset.del), 1); save(); SFX.click(); builderMenu();
+  $$('canvas[data-thumb]', el.screen).forEach((c) => bThumb(c, all[Number(c.dataset.thumb)]));
+  $$('[data-folder]', el.screen).forEach((x) => x.addEventListener('click', () => { SFX.click(); bFolder = x.dataset.folder; builderMenu(); }));
+  $$('[data-new]', el.screen).forEach((x) => x.addEventListener('click', () => { AudioSys.init(); SFX.click(); const b = newBuild(x.dataset.new); saveBuild(b); bFolder = 'work'; editBuild(b); }));
+  const cg = $('#bCopyGo');
+  if (cg) cg.addEventListener('click', () => {
+    AudioSys.init(); SFX.click();
+    const b = copyStage(Number($('#bCopyPick').value)); saveBuild(b); bFolder = 'work'; editBuild(b);
+    toast('A copy of <b>' + escAttr(LV[b.from].place) + '</b>: enemies, boss and all. Change anything you like!', 2800);
+  });
+  const tg = $('#bTourGo');
+  if (tg) tg.addEventListener('click', () => { AudioSys.init(); SFX.click(); progress.bTour = 0; const b = newBuild('short'); saveBuild(b); bFolder = 'work'; editBuild(b); });
+  $$('[data-play]', el.screen).forEach((x) => x.addEventListener('click', () => { SFX.click(); playCustom(all[Number(x.dataset.play)]); }));
+  $$('[data-edit]', el.screen).forEach((x) => x.addEventListener('click', () => { SFX.click(); editBuild(all[Number(x.dataset.edit)]); }));
+  $$('[data-move]', el.screen).forEach((x) => x.addEventListener('click', () => {
+    const b = all[Number(x.dataset.move)]; if (!b) return;
+    b.folder = b.folder === 'done' ? 'work' : 'done'; save(); SFX.click();
+    toast('<b>' + escAttr(b.name) + '</b> moved to ' + (b.folder === 'done' ? '✅ Finished' : '🔨 Working on it'), 1600);
+    builderMenu();
   }));
-  $$('.bname', el.screen).forEach((inp) => inp.addEventListener('change', () => { const b = list[Number(inp.dataset.k)]; if (b) { b.name = inp.value.trim().slice(0, 24) || b.name; save(); } }));
+  $$('[data-del]', el.screen).forEach((x) => x.addEventListener('click', () => {
+    if (!confirm('Delete "' + all[Number(x.dataset.del)].name + '"?')) return;
+    all.splice(Number(x.dataset.del), 1); save(); SFX.click(); builderMenu();
+  }));
+  $$('.bname', el.screen).forEach((inp) => inp.addEventListener('change', () => { const b = all[Number(inp.dataset.k)]; if (b) { b.name = inp.value.trim().slice(0, 24) || b.name; save(); } }));
   $('#bBack').addEventListener('click', () => { SFX.click(); titleScreen(); });
 }
 /* ---- the editor ---- */
-function editBuild(b) {
+function editBuild(b, view) {
   AudioSys.init();
   if (kart) endKart();
+  /* coming back from a test play: drop anything the stage left open */
+  stopTyping(false);
+  if (advance) { advance = null; el.dialog.hidden = true; el.portrait.style.visibility = 'hidden'; Music.duck(false); }
+  el.bossHud.hidden = true; el.stage.classList.remove('bossmode'); el.pause.hidden = true; el.comboEl.hidden = true;
+  const ha = $('#helpAsk'); if (ha) ha.hidden = true;
   showGame(true);
-  el.pad.hidden = true;
-  const g = new Uint8Array(b.w * ROWS);
-  for (let k = 0; k < g.length; k++) g[k] = Number(b.g[k]) || 0;
-  builder = { b: b, g: g, tool: 'ground', foe: (LV[b.theme].foes || ['sock'])[0], cam: 0, down: false, last: '', dirty: false };
-  L = { i: b.theme, g: g, w: b.w, foes: [], candles: [], gifts: {}, checkpoint: null, petSpot: null, arenaX: b.w, arenaW: 1, len: b.w, builder: true };
+  el.pad.hidden = true; $('#bBackBtn').hidden = true;
+  const g = gridUnpack(b.g, b.w * bRows(b)) || new Uint8Array(b.w * bRows(b));
+  builder = { b: b, g: g, tool: 'ground', block: 'ground', foe: (LV[b.theme].foes || ['sock'])[0], cam: 0, camY: 0, zoom: 1, zoomFit: false,
+    down: false, last: '', changed: false, pushed: false, undo: [], redo: [], sel: null, clip: null, hover: null, tour: null };
+  bSyncL();
   P = null; foes = []; candles = []; items = []; bosses = []; shots = []; pets = { cats: [], dogs: [] }; dad = null; bro = null; crate = null; pieces = []; puzzle = null;
-  boss = 'off'; camX = 0; paused = false;
+  boss = 'off'; camX = 0; camY = 0; paused = false;
   el.stageLbl.textContent = 'BUILDER · ' + b.name.toUpperCase();
   el.hearts.innerHTML = ''; el.cnt.hidden = true; el.scoreEl.hidden = true; el.petStat.hidden = true; el.pauseBtn.hidden = true;
-  builderToolbar();
+  if (view) { builder.cam = view.cam; builder.camY = view.camY; }
+  bClampCam();
   el.stage.classList.add('buildmode');
+  if (!progress.bTour) builder.tour = { step: 0, n: 0 };
+  builderToolbar();
   Music.play('title');
   running = true; run(); draw();
-  toast('Pick a tool at the top, then tap or drag on the level. <b>▶ Play</b> to try it!', 2600);
+  if (!builder.tour) toast('Pick a tool at the top, then tap or drag on the level. <b>▶ Play</b> to try it!', 2600);
 }
+/* the editor's level: the stage drawing code reads L */
+function bSyncL() {
+  const B = builder, b = B.b;
+  L = { i: b.theme, g: B.g, w: b.w, up: bUp(b), foes: [], candles: [], gifts: {}, checkpoint: null, petSpot: null, arenaX: b.w, arenaW: 1, len: b.w, builder: true, th: customTheme(b) };
+}
+function bClampCam() {
+  const B = builder, vw = W / B.zoom, vh = H / B.zoom, hi = ROWS * T - vh;
+  B.cam = clamp(B.cam, 0, Math.max(0, B.b.w * T - vw));
+  B.camY = clamp(B.camY, Math.min(-bUp(B.b) * T, hi), hi);   /* a level shorter than the view sits at the bottom */
+}
+function bZoomLevels() { const fit = W / (builder.b.w * T); return fit < 0.25 ? [1, 0.5, 0.25, fit] : [1, 0.5, 0.25]; }
+function bZoomName() { const z = builder.zoom; return z === 1 ? '' : z === 0.5 ? '½' : z === 0.25 ? '¼' : 'all'; }
+function bZoomTo(nz, at) {
+  const B = builder, z = B.zoom;
+  const cx = at ? at.tx * T + T / 2 : B.cam + W / z / 2, cy = at ? at.ty * T + T / 2 : B.camY + H / z / 2;
+  B.zoom = nz; B.zoomFit = nz < 0.25;
+  B.cam = cx - W / nz / 2; B.camY = cy - H / nz / 2;
+  bClampCam(); builderToolbar();
+  if (B.zoomFit) toast('The whole level! Tap a spot to jump there.', 1800);
+}
+function bZoom() { const zs = bZoomLevels(), k = zs.indexOf(builder.zoom); SFX.click(); bZoomTo(zs[(k + 1) % zs.length]); }
+/* ---- undo / redo: a copy of the level before each change (the last 60) ---- */
+function bSnap() {
+  const B = builder, b = B.b;
+  return { g: B.g.slice(), w: b.w, h: bRows(b), candles: b.candles.map((c) => c.slice()), foes: b.foes.map((f) => f.slice()), gifts: Object.assign({}, b.gifts),
+    start: b.start.slice(), goal: b.goal ? b.goal.slice() : null, checkpoint: b.checkpoint ? b.checkpoint.slice() : null, boss: b.boss, bossAt: b.bossAt,
+    look: Object.assign({}, b.look), theme: b.theme };
+}
+function bPush() { const B = builder; B.undo.push(bSnap()); if (B.undo.length > 60) B.undo.shift(); B.redo = []; }
+function bRestore(s) {
+  const B = builder, b = B.b;
+  B.g = s.g; b.w = s.w; b.h = s.h; b.candles = s.candles; b.foes = s.foes; b.gifts = s.gifts; b.start = s.start; b.goal = s.goal; b.look = s.look; b.theme = s.theme;
+  if (s.checkpoint) b.checkpoint = s.checkpoint; else delete b.checkpoint;
+  if (s.boss != null) { b.boss = s.boss; b.bossAt = s.bossAt; } else { delete b.boss; delete b.bossAt; }
+  bSyncL(); bClampCam(); builderCommit(); builderToolbar(); bPanelClose();   /* a Look or Size panel would show the old choices */
+}
+function bUndo() { const B = builder; if (!B || !B.undo.length) return; B.redo.push(bSnap()); bRestore(B.undo.pop()); SFX.pop(); }
+function bRedo() { const B = builder; if (!B || !B.redo.length) return; B.undo.push(bSnap()); bRestore(B.redo.pop()); SFX.click(); }
+/* ---- the toolbar: tools along the top, what the tool can do under them, and the big buttons along the bottom ---- */
 function builderToolbar() {
   const B = builder, bt = $('#btools');
+  if (!B) return;
   bt.hidden = false;
-  const th = themesOpen();
+  const tool = BTOOLS.filter((t) => t.id === B.tool)[0], tall = bRows(B.b) > ROWS;
+  let opts = '';
+  if (B.tool === 'foe') opts = (LV[B.b.theme].foes || []).map((f) => '<button type="button" class="bopt' + (B.foe === f ? ' on' : '') + '" data-foe="' + f + '">' + f + '</button>').join('');
+  else if (B.tool === 'gift') opts = '<span class="bhint">tap a gift block again to change what is inside: <i class="coin-ico"></i>🎉 🍰 ❤</span>';
+  else if (B.tool === 'fill') opts = '<span class="bhint">fill with:</span>' + BBLOCKS.map((id) => { const t = BTOOLS.filter((x) => x.id === id)[0]; return '<button type="button" class="bopt' + (B.block === id ? ' on' : '') + '" data-block="' + id + '" aria-label="' + t.name + '">' + t.icon + '</button>'; }).join('');
+  else if (B.tool === 'copy') opts = B.clip ? '<span class="bhint">📋 tap where it goes</span><button type="button" class="bopt" id="bClipNew">✂️ Copy something else</button>' : '<span class="bhint">drag a box around what you want to copy</span>';
   bt.innerHTML =
     '<div class="brow">' + BTOOLS.map((t) => '<button type="button" class="btool' + (B.tool === t.id ? ' on' : '') + '" data-tool="' + t.id + '" title="' + t.name + '" aria-label="' + t.name + '">' + t.icon + '</button>').join('') + '</div>' +
-    '<div class="brow">' +
-    (B.tool === 'foe' ? (LV[B.b.theme].foes || []).map((f) => '<button type="button" class="bopt' + (B.foe === f ? ' on' : '') + '" data-foe="' + f + '">' + f + '</button>').join('') : '') +
-    (B.tool === 'gift' ? '<span class="bhint">tap a gift block again to change what is inside: <i class="coin-ico"></i>🎉 🍰 ❤</span>' : '') +
-    '<select id="bTheme" aria-label="Look">' + th.map((i) => '<option value="' + i + '"' + (i === B.b.theme ? ' selected' : '') + '>' + escAttr(LV[i].place) + '</option>').join('') + '</select>' +
-    '<button type="button" class="bopt" id="bLeft" aria-label="Scroll left">◀</button><button type="button" class="bopt" id="bRight" aria-label="Scroll right">▶</button>' +
-    '<button type="button" class="bopt go" id="bPlay">▶ Play</button><button type="button" class="bopt" id="bDone">💾 Done</button></div>';
-  $$('.btool', bt).forEach((x) => x.addEventListener('click', () => { SFX.click(); B.tool = x.dataset.tool; builderToolbar(); toast(BTOOLS.filter((t) => t.id === B.tool)[0].name, 900); }));
+    '<div class="brow"><span class="bhint">' + tool.icon + ' ' + tool.name + '</span><button type="button" class="bopt" id="bHelpBtn" aria-label="How does this tool work?">❓</button>' + opts +
+    '<span class="bgap"></span><button type="button" class="bopt" id="bLeft" aria-label="Scroll left">◀</button><button type="button" class="bopt" id="bRight" aria-label="Scroll right">▶</button>' +
+    (tall ? '<button type="button" class="bopt" id="bUp" aria-label="Scroll up">▲</button><button type="button" class="bopt" id="bDown" aria-label="Scroll down">▼</button>' : '') + '</div>' +
+    (B.tour ? '<div class="brow"><span class="btour" id="bTourMsg">🎓 ' + BTOUR[B.tour.step].say + '</span><button type="button" class="bopt" id="bTourSkip">Skip</button></div>' : '') +
+    '<div class="brow bbot">' +
+    '<button type="button" class="bopt" id="bUndo" aria-label="Undo"' + (B.undo.length ? '' : ' disabled') + '>↩</button><button type="button" class="bopt" id="bRedo" aria-label="Redo"' + (B.redo.length ? '' : ' disabled') + '>↪</button>' +
+    '<button type="button" class="bopt" id="bZoom" aria-label="Zoom out">🔍' + bZoomName() + '</button><button type="button" class="bopt" id="bLook">🎨 Look</button><button type="button" class="bopt" id="bSize">📏 Size</button>' +
+    '<button type="button" class="bopt' + (progress.bSafe ? ' on' : '') + '" id="bSafe" aria-pressed="' + !!progress.bSafe + '">🛡 ' + (progress.bSafe ? 'Can\'t get hurt: ON' : 'Can\'t get hurt: off') + '</button>' +
+    '<span class="bgap"></span><button type="button" class="bopt" id="bHere">▶ Here</button><button type="button" class="bopt go" id="bPlay">▶ Play</button><button type="button" class="bopt" id="bDone">💾 Done</button></div>';
+  $$('.btool', bt).forEach((x) => x.addEventListener('click', () => { SFX.click(); B.tool = x.dataset.tool; B.sel = null; builderToolbar(); bTourCheck(); }));
   $$('[data-foe]', bt).forEach((x) => x.addEventListener('click', () => { SFX.click(); B.foe = x.dataset.foe; builderToolbar(); }));
-  $('#bTheme').addEventListener('change', (e) => { B.b.theme = Number(e.target.value); L.i = B.b.theme; B.foe = (LV[B.b.theme].foes || ['sock'])[0]; builderCommit(); builderToolbar(); });
-  const scroll = (d) => { B.cam = clamp(B.cam + d * T * 8, 0, Math.max(0, B.b.w * T - W)); };
-  $('#bLeft').addEventListener('click', () => scroll(-1)); $('#bRight').addEventListener('click', () => scroll(1));
-  $('#bPlay').addEventListener('click', () => { SFX.click(); builderCommit(); saveBuild(B.b); playCustom(B.b); });
-  $('#bDone').addEventListener('click', () => { SFX.click(); builderCommit(); saveBuild(B.b); builderMenu(); });
+  $$('[data-block]', bt).forEach((x) => x.addEventListener('click', () => { SFX.click(); B.block = x.dataset.block; builderToolbar(); }));
+  const on = (id, f) => { const n = $('#' + id, bt); if (n) n.addEventListener('click', f); };
+  const scroll = (dx, dy) => { B.cam += dx * T * 8 / B.zoom; B.camY += dy * T * 5 / B.zoom; bClampCam(); };
+  on('bClipNew', () => { SFX.click(); B.clip = null; builderToolbar(); });
+  on('bHelpBtn', () => { SFX.click(); bHelp(BTOOLS.indexOf(tool)); });
+  on('bLeft', () => scroll(-1, 0)); on('bRight', () => scroll(1, 0)); on('bUp', () => scroll(0, -1)); on('bDown', () => scroll(0, 1));
+  on('bTourSkip', () => { SFX.click(); bTourEnd(); });
+  on('bUndo', bUndo); on('bRedo', bRedo); on('bZoom', bZoom);
+  on('bLook', () => { SFX.click(); bLookPanel(); });
+  on('bSize', () => { SFX.click(); bSizePanel(); });
+  on('bSafe', () => { SFX.click(); progress.bSafe = !progress.bSafe; save(); builderToolbar(); });
+  on('bHere', () => { SFX.click(); bPlayFrom(true); });
+  on('bPlay', () => { SFX.click(); bPlayFrom(false); });
+  on('bDone', () => { SFX.click(); builderCommit(); saveBuild(B.b); builderMenu(); });
+  if (B.tour) { const s = BTOUR[B.tour.step]; const n = s.hl ? $(s.hl, bt) : null; if (n) n.classList.add('hl'); }
 }
-function builderCommit() { const B = builder; if (!B) return; B.b.g = Array.from(B.g).join(''); save(); }
+function builderCommit() { const B = builder; if (!B) return; B.b.g = gridPack(B.g); save(); }
+/* ▶ Play from the start, or ▶ Here: from the spot he's looking at (answer 21) */
+function bPlayFrom(here) {
+  const B = builder; if (!B) return;
+  const b = B.b;
+  if (!b.goal && b.boss == null) { toast('Put down a 🚩 <b>finish flag</b> first!', 1800); return; }
+  let from = null, note = '';
+  if (here) { from = bHereSpot(); if (!from) note = 'Nowhere to stand on this screen, so you start at the start.'; }
+  if (B.tour) bTourEnd();
+  builderCommit(); saveBuild(b); bPanelClose();
+  playCustom(b, { from: from, safe: !!progress.bSafe, editor: true, note: note });
+}
+/* somewhere to stand near the left of what's on screen: an empty spot with something under it */
+function bHereSpot() {
+  const B = builder, b = B.b, up = bUp(b), vw = W / B.zoom, vh = H / B.zoom, tx0 = Math.floor((B.cam + vw * 0.3) / T);
+  const at = (tx, ty) => (ty < -up || ty >= ROWS ? 0 : B.g[bIdx(b, tx, ty)]), hard = (t) => t >= 1 && t <= 6;
+  for (let d = 0; d < 14; d++) for (const tx of (d ? [tx0 + d, tx0 - d] : [tx0])) {
+    if (tx < 0 || tx >= b.w) continue;
+    for (let ty = Math.max(1 - up, Math.floor(B.camY / T)); ty < Math.min(ROWS - 1, Math.floor((B.camY + vh) / T)); ty++) {
+      const t = at(tx, ty), under = at(tx, ty + 1);
+      if (!hard(t) && t !== 7 && (hard(under) || under === 7) && !hard(at(tx, ty - 1))) return [tx, ty];
+    }
+  }
+  return null;
+}
 /* where on the level a finger or mouse is (the race and builder are drawn turned on upright phones) */
 function builderTile(e) {
-  const r = cv.getBoundingClientRect(), rot = document.documentElement.classList.contains('rotated');
+  const r = cv.getBoundingClientRect(), rot = document.documentElement.classList.contains('rotated'), z = builder.zoom;
   const lx = rot ? (e.clientY - r.top) / r.height * W : (e.clientX - r.left) / r.width * W;
   const ly = rot ? (r.right - e.clientX) / r.width * H : (e.clientY - r.top) / r.height * H;
-  return { tx: Math.floor((lx + builder.cam) / T), ty: Math.floor(ly / T), lx: lx };
+  return { tx: Math.floor((lx / z + builder.cam) / T), ty: Math.floor((ly / z + builder.camY) / T), lx: lx, ly: ly };
 }
 function builderApply(t, first) {
-  const B = builder, b = B.b, w = b.w;
-  if (t.tx < 0 || t.tx >= w || t.ty < 1 || t.ty >= ROWS) return;
-  const key = t.tx + ',' + t.ty, idx = t.ty * w + t.tx, tool = BTOOLS.filter((x) => x.id === B.tool)[0];
+  const B = builder, b = B.b, w = b.w, up = bUp(b);
+  if (t.tx < 0 || t.tx >= w || t.ty < 1 - up || t.ty >= ROWS) return;
+  const key = t.tx + ',' + t.ty, idx = bIdx(b, t.tx, t.ty), tool = BTOOLS.filter((x) => x.id === B.tool)[0];
   if (!first && key === B.last) return;
   B.last = key;
-  const clearThings = () => { b.candles = b.candles.filter((c) => c[0] !== t.tx || c[1] !== t.ty); b.foes = b.foes.filter((f) => f[0] !== t.tx || f[1] !== t.ty); };
+  const at = (p) => !!p && p[0] === t.tx && p[1] === t.ty;
+  const clearThings = () => { b.candles = b.candles.filter((c) => !at(c)); b.foes = b.foes.filter((f) => !at(f)); };
+  let did = false;
   if (tool.tile) {
     if (tool.tile === 3 && B.g[idx] === 3 && first) {   /* tap a gift again: change what is inside */
       const cur = b.gifts[idx] || 'candle'; b.gifts[idx] = GIFT_KINDS[(GIFT_KINDS.indexOf(cur) + 1) % GIFT_KINDS.length];
-      toast('Inside: ' + GIFT_ICON[b.gifts[idx]], 700); SFX.gift();
-    } else if (B.g[idx] !== tool.tile) { B.g[idx] = tool.tile; clearThings(); if (tool.tile === 3) b.gifts[idx] = 'candle'; SFX.stomp(); }
-  } else if (B.tool === 'erase') { if (B.g[idx] || b.candles.some((c) => c[0] === t.tx && c[1] === t.ty) || b.foes.some((f) => f[0] === t.tx && f[1] === t.ty)) { B.g[idx] = 0; delete b.gifts[idx]; clearThings(); SFX.pop(); } }
-  else if (B.tool === 'candle') { if (!B.g[idx] && !b.candles.some((c) => c[0] === t.tx && c[1] === t.ty)) { b.candles.push([t.tx, t.ty]); SFX.candle(); } }
-  else if (B.tool === 'foe' && first) { if (!B.g[idx]) { clearThings(); if (b.foes.length < 40) { b.foes.push([t.tx, t.ty, B.foe]); SFX.click(); } else toast('40 enemies is the most!', 1200); } }
-  else if (B.tool === 'start' && first) { if (!B.g[idx]) { b.start = [t.tx, t.ty]; SFX.click(); } }
-  else if (B.tool === 'goal' && first) { if (!B.g[idx]) { b.goal = [t.tx, t.ty]; SFX.flag(); } }
-  B.dirty = true;
+      toast('Inside: ' + GIFT_ICON[b.gifts[idx]], 700); SFX.gift(); did = true;
+    } else if (B.g[idx] !== tool.tile) { B.g[idx] = tool.tile; clearThings(); if (tool.tile === 3) b.gifts[idx] = 'candle'; else delete b.gifts[idx]; SFX.stomp(); did = true; }
+  } else if (B.tool === 'erase') {
+    if (B.g[idx] || b.candles.some(at) || b.foes.some(at)) { B.g[idx] = 0; delete b.gifts[idx]; clearThings(); SFX.pop(); did = true; }
+    else if (first && b.boss != null && Math.abs(t.tx - (b.bossAt + 13)) <= 2 && t.ty >= GROUND - 4 && t.ty < GROUND) {
+      delete b.boss; delete b.bossAt; SFX.pop(); did = true;
+      if (!b.goal) { b.goal = [Math.min(w - 4, t.tx), GROUND - 1]; toast('Boss gone! A 🚩 finish flag is there now: move it anywhere.', 2400); }
+    } else if (first && b.checkpoint && t.tx === b.checkpoint[0] && t.ty < b.checkpoint[1] && t.ty >= b.checkpoint[1] - 2) { delete b.checkpoint; SFX.pop(); did = true; }
+  }
+  else if (B.tool === 'candle') { if (!B.g[idx] && !b.candles.some(at)) { b.candles.push([t.tx, t.ty]); SFX.candle(); did = true; } }
+  else if (B.tool === 'foe' && first) { if (!B.g[idx]) { if (b.foes.length < 40 || b.foes.some(at)) { clearThings(); b.foes.push([t.tx, t.ty, B.foe]); SFX.click(); did = true; } else toast('40 enemies is the most!', 1200); } }
+  else if (B.tool === 'start' && first) { if (!B.g[idx] && !at(b.start)) { b.start = [t.tx, t.ty]; SFX.click(); did = true; } }
+  else if (B.tool === 'goal' && first) { if (!B.g[idx] && !at(b.goal)) { b.goal = [t.tx, t.ty]; SFX.flag(); did = true; } }
+  if (did) B.changed = true;
 }
+/* 🪣 fill: a closed-in empty space, or every block joined to the one tapped */
+function bFill(t) {
+  const B = builder, b = B.b, w = b.w, rows = bRows(b), up = rows - ROWS;
+  if (t.tx < 0 || t.tx >= w || t.ty < 1 - up || t.ty >= ROWS) return;
+  const k0 = bIdx(b, t.tx, t.ty), from = B.g[k0], to = BTOOLS.filter((x) => x.id === B.block)[0].tile;
+  if (from === to) { toast('That is already ' + BTOOLS.filter((x) => x.id === B.block)[0].name.toLowerCase() + '!', 1200); return; }
+  const seen = new Uint8Array(w * rows), todo = [k0], cells = [];
+  seen[k0] = 1;
+  while (todo.length) {
+    const k = todo.pop(), x = k % w, y = (k - x) / w;
+    if (!from && y <= 1) { toast('That space isn\'t closed in: put blocks all around it first!', 2200); return; }   /* it reaches the open sky */
+    cells.push(k);
+    if (cells.length > BFILLMAX) { toast('That space is too big to fill in one go: make it smaller first!', 2200); return; }
+    const nb = [x > 0 ? k - 1 : -1, x < w - 1 ? k + 1 : -1, y > 1 ? k - w : -1, y < rows - 1 ? k + w : -1];
+    for (const n of nb) if (n >= 0 && !seen[n] && B.g[n] === from) { seen[n] = 1; todo.push(n); }
+  }
+  for (const k of cells) { B.g[k] = to; if (to === 3) b.gifts[k] = 'candle'; else delete b.gifts[k]; }
+  const filled = new Set(cells);
+  b.candles = b.candles.filter((c) => !filled.has(bIdx(b, c[0], c[1])));
+  b.foes = b.foes.filter((f) => !filled.has(bIdx(b, f[0], f[1])));
+  B.changed = true; SFX.stomp();
+  toast('Filled ' + cells.length + (cells.length === 1 ? ' block!' : ' blocks!'), 1000);
+}
+/* ✂️ copy the blocks, coins and enemies inside a box; 📋 paste them (empty squares in the copy don't wipe anything) */
+function bCopy(sel) {
+  const B = builder, b = B.b, up = bUp(b);
+  const x0 = clamp(Math.min(sel.x0, sel.x1), 0, b.w - 1), x1 = clamp(Math.max(sel.x0, sel.x1), 0, b.w - 1);
+  const y0 = clamp(Math.min(sel.y0, sel.y1), 1 - up, ROWS - 1), y1 = clamp(Math.max(sel.y0, sel.y1), 1 - up, ROWS - 1);
+  const cw = Math.min(40, x1 - x0 + 1), ch = Math.min(45, y1 - y0 + 1), cells = new Uint8Array(cw * ch), gifts = {};
+  for (let y = 0; y < ch; y++) for (let x = 0; x < cw; x++) { const k = bIdx(b, x0 + x, y0 + y); cells[y * cw + x] = B.g[k]; if (B.g[k] === 3) gifts[y * cw + x] = b.gifts[k] || 'candle'; }
+  const inside = (p) => p[0] >= x0 && p[0] < x0 + cw && p[1] >= y0 && p[1] < y0 + ch;
+  const clip = { w: cw, h: ch, cells: cells, gifts: gifts, candles: b.candles.filter(inside).map((c) => [c[0] - x0, c[1] - y0]), foes: b.foes.filter(inside).map((f) => [f[0] - x0, f[1] - y0, f[2]]) };
+  if (!cells.some((v) => v) && !clip.candles.length && !clip.foes.length) { toast('Nothing in there to copy. Drag a box around some blocks!', 1800); return; }
+  B.clip = clip; SFX.gift();
+  toast('Copied! Now tap where you want it.', 1600);
+}
+function bPaste(t) {
+  const B = builder, b = B.b, C = B.clip, up = bUp(b), inLevel = (tx, ty) => tx >= 0 && tx < b.w && ty >= 1 - up && ty < ROWS;
+  let n = 0;
+  for (let y = 0; y < C.h; y++) for (let x = 0; x < C.w; x++) {
+    const v = C.cells[y * C.w + x], tx = t.tx + x, ty = t.ty + y;
+    if (!v || !inLevel(tx, ty)) continue;
+    const k = bIdx(b, tx, ty);
+    B.g[k] = v; if (v === 3) b.gifts[k] = C.gifts[y * C.w + x] || 'candle'; else delete b.gifts[k];
+    n++;
+  }
+  if (n) { const solidAt = (p) => B.g[bIdx(b, p[0], p[1])]; b.candles = b.candles.filter((c) => !solidAt(c)); b.foes = b.foes.filter((f) => !solidAt(f)); }
+  const free = (tx, ty) => inLevel(tx, ty) && !B.g[bIdx(b, tx, ty)];
+  C.candles.forEach((c) => { const tx = t.tx + c[0], ty = t.ty + c[1]; if (free(tx, ty) && !b.candles.some((q) => q[0] === tx && q[1] === ty)) { b.candles.push([tx, ty]); n++; } });
+  C.foes.forEach((f) => { const tx = t.tx + f[0], ty = t.ty + f[1]; if (free(tx, ty) && b.foes.length < 40 && !b.foes.some((q) => q[0] === tx && q[1] === ty)) { b.foes.push([tx, ty, f[2]]); n++; } });
+  if (n) { B.changed = true; SFX.stomp(); }
+}
+/* ---- 📏 size: longer (the ground carries on) or shorter at the end, taller or less tall at the top ---- */
+function bResize(dw, dh) {
+  const B = builder, b = B.b, w0 = b.w, h0 = bRows(b), up0 = h0 - ROWS;
+  const w = clamp(w0 + dw, BMINW, BMAXW), h = clamp(h0 + dh * ROWS, ROWS, 45), up = h - ROWS;
+  if (w === w0 && h === h0) return;
+  bPush();
+  const g = new Uint8Array(w * h), gifts = {};
+  for (let ty = -Math.min(up, up0); ty < ROWS; ty++) for (let tx = 0; tx < w; tx++) {
+    const k = (ty + up) * w + tx, ok = (ty + up0) * w0 + Math.min(tx, w0 - 1);
+    if (tx < w0) { g[k] = B.g[ok]; if (b.gifts[ok]) gifts[k] = b.gifts[ok]; } else g[k] = B.g[ok] === 1 ? 1 : 0;
+  }
+  const inside = (p) => p[0] < w && p[1] >= 1 - up;
+  b.candles = b.candles.filter(inside); b.foes = b.foes.filter(inside);
+  if (!inside(b.start)) b.start = [2, GROUND - 1];
+  if (b.goal && (!inside(b.goal) || b.goal[0] === w0 - 4)) b.goal = [w - 4, inside(b.goal) ? b.goal[1] : GROUND - 1];   /* a flag at the very end stays at the end */
+  if (b.checkpoint && !inside(b.checkpoint)) delete b.checkpoint;
+  B.g = g; b.w = w; b.h = h; b.gifts = gifts;
+  bSyncL(); bClampCam(); builderCommit(); builderToolbar(); SFX.stomp();
+}
+function bPanel(html) { const p = $('#bPanel'); p.innerHTML = html; p.hidden = false; return p; }
+function bPanelClose() { const p = $('#bPanel'); if (p) { p.hidden = true; p.innerHTML = ''; } }
+function bSizePanel() {
+  const B = builder, b = B.b, rows = bRows(b);
+  const shorter = b.w - BSTEP >= BMINW && (b.boss == null || b.bossAt + 31 <= b.w - BSTEP);   /* never cut through a boss's arena */
+  const p = bPanel('<h3>📏 Size</h3><p class="tiny">Long: <b>' + b.w + ' blocks</b> (about ' + Math.max(1, Math.round(b.w * T / W)) + ' screens) · Tall: <b>' + (rows / ROWS) + (rows > ROWS ? ' screens' : ' screen') + '</b></p>' +
+    '<div class="btnrow"><button class="bopt" type="button" id="bzShort"' + (shorter ? '' : ' disabled') + '>◀ Shorter</button><button class="bopt" type="button" id="bzLong"' + (b.w + BSTEP <= BMAXW ? '' : ' disabled') + '>Longer ▶</button></div>' +
+    '<div class="btnrow"><button class="bopt" type="button" id="bzLow"' + (rows > ROWS ? '' : ' disabled') + '>▼ Less tall</button><button class="bopt" type="button" id="bzTall"' + (rows < 45 ? '' : ' disabled') + '>Taller ▲</button></div>' +
+    '<p class="tiny">Up to ' + BMAXW + ' blocks long (4 story stages) and 3 screens tall. Made it too small? ↩ brings it all back.</p><button class="bopt go" type="button" id="bzOk">Done</button>');
+  const again = (dw, dh) => () => { bResize(dw, dh); bSizePanel(); };
+  $('#bzShort', p).addEventListener('click', again(-BSTEP, 0)); $('#bzLong', p).addEventListener('click', again(BSTEP, 0));
+  $('#bzLow', p).addEventListener('click', again(0, -1)); $('#bzTall', p).addEventListener('click', again(0, 1));
+  $('#bzOk', p).addEventListener('click', () => { SFX.click(); bPanelClose(); });
+}
+/* ---- 🎨 look: background, ground, song and time of day, each on its own (answer 7) ---- */
+function bLookPanel() {
+  const B = builder, b = B.b, lk = b.look, scenes = themesOpen().map((i) => [i, LV[i].place]);
+  const sel = (id, label, opts, cur) => '<label class="blook">' + label + ' <select id="' + id + '">' + opts.map((o) => '<option value="' + o[0] + '"' + (String(o[0]) === String(cur) ? ' selected' : '') + '>' + escAttr(o[1]) + '</option>').join('') + '</select></label>';
+  const p = bPanel('<h3>🎨 Look</h3>' + sel('blBg', 'Background', scenes, lk.bg) + sel('blGround', 'Ground', scenes, lk.ground) + sel('blSong', 'Song', BSONGS, lk.song) + sel('blTime', 'Time of day', BTIMES, lk.time) +
+    '<button class="bopt go" type="button" id="blOk">Done</button>');
+  const set = (f) => (e) => { bPush(); f(e.target.value); bSyncL(); builderCommit(); builderToolbar(); };
+  $('#blBg', p).addEventListener('change', set((v) => { b.look.bg = b.theme = Number(v); B.foe = (LV[b.theme].foes || ['sock'])[0]; }));
+  $('#blGround', p).addEventListener('change', set((v) => { b.look.ground = Number(v); }));
+  $('#blSong', p).addEventListener('change', set((v) => { b.look.song = v; Music.play(v); }));
+  $('#blTime', p).addEventListener('change', set((v) => { b.look.time = v; }));
+  $('#blOk', p).addEventListener('click', () => { SFX.click(); bPanelClose(); });
+}
+/* ---- ❓ help: one page for every tool and button (answer 23) ---- */
+function bHelp(k) {
+  const all = BTOOLS.concat(BHELP_MORE), n = all.length;
+  k = ((k % n) + n) % n;
+  const t = all[k];
+  const p = bPanel('<h3>' + t.icon + ' ' + escAttr(t.name) + '</h3><p class="bhelptext">' + escAttr(t.help) + '</p>' +
+    '<div class="btnrow"><button class="bopt" type="button" id="bhPrev" aria-label="Previous page">◀</button><span class="tiny">' + (k + 1) + ' / ' + n + '</span><button class="bopt" type="button" id="bhNext" aria-label="Next page">▶</button><button class="bopt go" type="button" id="bhOk">Got it</button></div>');
+  $('#bhPrev', p).addEventListener('click', () => { SFX.click(); bHelp(k - 1); });
+  $('#bhNext', p).addEventListener('click', () => { SFX.click(); bHelp(k + 1); });
+  $('#bhOk', p).addEventListener('click', () => { SFX.click(); bPanelClose(); });
+}
+/* ---- 🎓 the guided first build (answer 23): five little steps, skippable, shown once ---- */
+const BTOUR = [
+  { say: 'Let\'s build! Tap <b>🧱 Bricks</b> at the top.', hl: '[data-tool="brick"]', done: (B) => B.tool === 'brick' },
+  { say: '<b>Drag your finger</b> across the sky to paint a row of bricks.', base: () => bCount(2), done: (B, s) => bCount(2) >= s.n + 3 },
+  { say: 'Tap the <b>coin</b> button, then tap above your bricks.', hl: '[data-tool="candle"]', base: (B) => B.b.candles.length, done: (B, s) => B.b.candles.length > s.n },
+  { say: 'Tap <b>👾 Enemy</b>, then tap on the ground to put one there.', hl: '[data-tool="foe"]', base: (B) => B.b.foes.length, done: (B, s) => B.b.foes.length > s.n },
+  { say: 'Oops? <b>↩</b> takes it back. Now press <b>▶ Play</b> to try your level!', hl: '#bPlay', done: () => false }
+];
+function bCount(v) { let n = 0; for (const x of builder.g) if (x === v) n++; return n; }
+function bTourCheck() {
+  const B = builder;
+  if (!B || !B.tour || !BTOUR[B.tour.step].done(B, B.tour)) return;
+  B.tour.step++;
+  const nx = BTOUR[B.tour.step];
+  B.tour.n = nx.base ? nx.base(B) : 0;
+  SFX.gift(); builderToolbar();
+}
+function bTourEnd() { const B = builder; if (B) B.tour = null; progress.bTour = 1; save(); if (B) builderToolbar(); }
 function bindBuilder() {
   cv.addEventListener('pointerdown', (e) => {
-    if (!builder) return;
+    const B = builder;
+    if (!B) return;
     e.preventDefault();
     try { cv.setPointerCapture(e.pointerId); } catch (er) { /* ignore */ }
     const t = builderTile(e);
-    builder.down = true; builder.last = ''; builder.grabX = t.lx; builder.grabCam = builder.cam;
-    if (builder.tool !== 'move') builderApply(t, true);
+    B.down = true; B.last = ''; B.grabX = t.lx; B.grabY = t.ly; B.grabCam = B.cam; B.grabCamY = B.camY; B.changed = false; B.pushed = false; B.hover = t;
+    if (B.zoomFit) { B.down = false; SFX.click(); bZoomTo(1, t); return; }   /* the whole-level view: tap = go there */
+    if (B.tool === 'move') return;
+    if (B.tool === 'copy' && !B.clip) { B.sel = { x0: t.tx, y0: t.ty, x1: t.tx, y1: t.ty }; return; }
+    bPush(); B.pushed = true;
+    if (B.tool === 'copy') bPaste(t);
+    else if (B.tool === 'fill') bFill(t);
+    else builderApply(t, true);
   });
   cv.addEventListener('pointermove', (e) => {
-    if (!builder || !builder.down) return;
-    e.preventDefault();
+    const B = builder;
+    if (!B) return;
     const t = builderTile(e);
-    if (builder.tool === 'move') builder.cam = clamp(builder.grabCam - (t.lx - builder.grabX), 0, Math.max(0, builder.b.w * T - W));
-    else if (['ground', 'brick', 'shelf', 'erase', 'candle'].indexOf(builder.tool) >= 0) builderApply(t, false);
+    B.hover = t;
+    if (!B.down) return;
+    e.preventDefault();
+    if (B.tool === 'move') { B.cam = B.grabCam - (t.lx - B.grabX) / B.zoom; B.camY = B.grabCamY - (t.ly - B.grabY) / B.zoom; bClampCam(); }
+    else if (B.tool === 'copy' && B.sel) { B.sel.x1 = t.tx; B.sel.y1 = t.ty; }
+    else if (BDRAG.indexOf(B.tool) >= 0) builderApply(t, false);
   });
-  const up = () => { if (builder && builder.down) { builder.down = false; builderCommit(); } };
+  const up = () => {
+    const B = builder;
+    if (!B || !B.down) return;
+    B.down = false;
+    if (B.tool === 'copy' && B.sel) { bCopy(B.sel); B.sel = null; builderToolbar(); return; }
+    if (B.pushed && !B.changed) B.undo.pop();   /* nothing changed: no undo step for it */
+    if (B.changed) { builderCommit(); builderToolbar(); }
+    bTourCheck();
+  };
   cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
+  cv.addEventListener('pointerleave', () => { if (builder && !builder.down) builder.hover = null; });
+  document.addEventListener('keydown', (e) => {
+    if (!builder || !(e.ctrlKey || e.metaKey) || e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+    const k = e.key.toLowerCase();
+    if (k === 'z' && !e.shiftKey) { e.preventDefault(); bUndo(); } else if (k === 'y' || (k === 'z' && e.shiftKey)) { e.preventDefault(); bRedo(); }
+  });
+  $('#bBackBtn').addEventListener('click', () => {   /* 🔨 one tap from a test play back to building, right where you were */
+    if (!L || !L.custom) return;
+    SFX.click();
+    editBuild(L.src, { cam: camX, camY: camY });
+  });
 }
 function updateBuilder() {
-  const B = builder;
+  const B = builder, sp = 6 / B.zoom;
   frame++;
-  if (input.left || padIn.left) B.cam = Math.max(0, B.cam - 6);
-  if (input.right || padIn.right) B.cam = Math.min(Math.max(0, B.b.w * T - W), B.cam + 6);
+  if (input.left || padIn.left) B.cam -= sp;
+  if (input.right || padIn.right) B.cam += sp;
+  if (input.jump) B.camY -= sp;
+  if (input.down) B.camY += sp;
+  bClampCam();
 }
 const bFoeCache = {};
 function drawBuilder() {
-  const B = builder, b = B.b, th = LV[b.theme];
-  camX = B.cam;
-  drawSky(b.theme, th); drawBackdrop(th, b.theme); drawAtmosphere(th);
+  const B = builder, b = B.b, th = L.th, z = B.zoom, up = bUp(b);
+  camX = B.cam; camY = B.camY;
+  drawSky(th.skyKey, th);
+  if (z === 1) {   /* the far scenery sinks as you look up a tall level (hidden when zoomed out) */
+    const sink = Math.round(-camY * 0.4);
+    if (sink) { ctx.save(); ctx.translate(0, sink); }
+    drawBackdrop(th, th.bgI); drawAtmosphere(th);
+    if (sink) ctx.restore();
+  }
+  ctx.save();
+  ctx.scale(z, z); ctx.translate(0, -Math.round(camY));
+  viewW = W / z; viewH = H / z;
   drawTiles(th);
-  /* gift contents, candles, enemies, start and finish */
+  /* gift contents, coins, enemies, the checkpoint, a copied stage's boss, start and finish */
   ctx.font = '8px "Segoe UI Emoji",sans-serif'; ctx.textAlign = 'center';
-  for (const k in b.gifts) { const tx = k % b.w, ty = Math.floor(k / b.w); if (B.g[k] !== 3) continue; if ((b.gifts[k] || 'candle') === 'candle') ctx.drawImage(SP.coin[0], tx * T + 5 - camX, ty * T - 9); else ctx.fillText(GIFT_ICON[b.gifts[k]], tx * T + 8 - camX, ty * T - 2); }
+  for (const k in b.gifts) {
+    if (B.g[k] !== 3) continue;
+    const tx = k % b.w, ty = Math.floor(k / b.w) - up;
+    if ((b.gifts[k] || 'candle') === 'candle') ctx.drawImage(SP.coin[0], tx * T + 5 - camX, ty * T - 9); else ctx.fillText(GIFT_ICON[b.gifts[k]], tx * T + 8 - camX, ty * T - 2);
+  }
   for (const c of b.candles) ctx.drawImage(SP.coin[0], c[0] * T + 4 - camX, c[1] * T + 4);
   for (const f of b.foes) {
     const key = f[2];
     if (!bFoeCache[key]) bFoeCache[key] = makeFoe({ type: FOE[key] ? key : 'sock', tx: 0, ty: 0 });
     const o = bFoeCache[key];
-    o.x = f[0] * T + 1; o.y = f[1] * T + 3; o.onGround = true; o.alive = true; o.face = -1;
+    o.x = f[0] * T + 1; o.y = f[1] * T + 3; o.baseY = o.y; o.onGround = true; o.alive = true; o.face = -1;
     drawFoe(o);
   }
+  if (b.checkpoint) {
+    const sx = b.checkpoint[0] * T - Math.round(camX) + 3, sy = (b.checkpoint[1] - 1) * T - 15;
+    ctx.fillStyle = '#c9c9cf'; ctx.fillRect(sx, sy, 1, 17);
+    ctx.fillStyle = '#e8364b'; ctx.beginPath(); ctx.moveTo(sx + 1, sy + 1); ctx.lineTo(sx + 12, sy + 3); ctx.lineTo(sx + 1, sy + 8); ctx.fill();
+  }
+  if (b.boss != null) {
+    const ax = b.bossAt * T - camX, d = LV[b.boss].boss;
+    ctx.fillStyle = 'rgba(255,60,100,.13)'; ctx.fillRect(ax, 0, 28 * T, GROUND * T);
+    const bx = (b.bossAt + 13) * T - camX + 8, by = (GROUND - 3) * T;
+    ctx.fillStyle = 'rgba(17,19,43,.88)'; ctx.fillRect(bx - 46, by - 22, 92, 30);
+    ctx.strokeStyle = '#ff6fae'; ctx.lineWidth = 1; ctx.strokeRect(bx - 46 + 0.5, by - 22 + 0.5, 91, 29);
+    ctx.font = '12px "Segoe UI Emoji",sans-serif'; ctx.fillText('👑 ' + (d.prop || ''), bx, by - 9);
+    ctx.font = 'bold 7px "Pixelify Sans",monospace'; ctx.fillStyle = '#ffd6e6'; ctx.fillText(('BOSS: ' + d.title).toUpperCase().slice(0, 26), bx, by + 3);
+  }
   ctx.drawImage(SP.kStand, b.start[0] * T - camX, b.start[1] * T);
-  ctx.drawImage(SP.flag, b.goal[0] * T - camX, (b.goal[1] + 1) * T - SP.flag.height);
-  /* a faint grid */
-  ctx.fillStyle = 'rgba(255,255,255,.08)';
-  for (let x = -(camX % T); x < W; x += T) ctx.fillRect(Math.round(x), 0, 1, H);
-  for (let y = 0; y < H; y += T) ctx.fillRect(0, y, W, 1);
+  if (b.goal) ctx.drawImage(SP.flag, b.goal[0] * T - camX, (b.goal[1] + 1) * T - SP.flag.height);
+  /* outside the level: the space past the end and above the top is shaded */
+  ctx.fillStyle = 'rgba(8,8,20,.55)';
+  const endX = b.w * T - camX;
+  if (endX < viewW) ctx.fillRect(endX, camY, viewW - endX, viewH);
+  if (camY < -up * T) ctx.fillRect(0, camY, viewW, -up * T - camY);
+  ctx.restore();
+  viewW = W; viewH = H;
+  drawDaylight(th);
+  /* a faint grid (screen space), the copy box and where a paste would land */
+  const sx = (tx) => Math.round((tx * T - camX) * z), sy = (ty) => Math.round((ty * T - camY) * z);
+  if (z >= 0.5) {
+    ctx.fillStyle = 'rgba(255,255,255,.08)';
+    for (let tx = Math.floor(camX / T); tx * T <= camX + W / z; tx++) ctx.fillRect(sx(tx), 0, 1, H);
+    for (let ty = Math.floor(camY / T); ty * T <= camY + H / z; ty++) ctx.fillRect(0, sy(ty), W, 1);
+  }
+  const box = (x0, y0, x1, y1, color, fill) => {
+    const ax = Math.min(x0, x1), ay = Math.min(y0, y1), bw = Math.abs(x1 - x0) + 1, bh = Math.abs(y1 - y0) + 1;
+    if (fill) { ctx.fillStyle = fill; ctx.fillRect(sx(ax), sy(ay), bw * T * z, bh * T * z); }
+    ctx.strokeStyle = color; ctx.lineWidth = 2; ctx.setLineDash([4, 3]); ctx.strokeRect(sx(ax) + 1, sy(ay) + 1, bw * T * z - 2, bh * T * z - 2); ctx.setLineDash([]);
+  };
+  if (B.sel) box(B.sel.x0, B.sel.y0, B.sel.x1, B.sel.y1, '#f6c445', 'rgba(246,196,69,.15)');
+  if (B.tool === 'copy' && B.clip && B.hover && !B.down) box(B.hover.tx, B.hover.ty, B.hover.tx + B.clip.w - 1, B.hover.ty + B.clip.h - 1, '#6fc8ff', 'rgba(111,200,255,.12)');
   drawVignette();
 }
 /* ============================================================
@@ -8720,12 +9229,17 @@ window.__k11 = {
   builder: {
     menu: () => builderMenu(),
     make: (size) => { const b = newBuild(size || 'short'); saveBuild(b); editBuild(b); return progress.builds.length - 1; },
-    edit: (k) => editBuild(progress.builds[k]), play: (k) => playCustom(progress.builds[k]),
+    copy: (i) => { const b = copyStage(i); saveBuild(b); editBuild(b); return progress.builds.length - 1; },
+    edit: (k) => editBuild(progress.builds[k]), play: (k, opts) => playCustom(progress.builds[k], opts),
     tool: (t) => { if (builder) { builder.tool = t; builderToolbar(); } return !!builder; },
-    state: () => (builder ? { tool: builder.tool, cam: builder.cam, w: builder.b.w, theme: builder.b.theme, start: builder.b.start, goal: builder.b.goal, candles: builder.b.candles.length, foes: builder.b.foes.length,
-      tiles: Array.from(builder.g).reduce((a, v) => (v ? a + 1 : a), 0), gifts: Object.assign({}, builder.b.gifts) } : null),
-    cell: (tx, ty) => (builder ? builder.g[ty * builder.b.w + tx] : null),
-    saved: () => (progress.builds || []).map((b) => ({ name: b.name, w: b.w, theme: b.theme, candles: b.candles.length, foes: b.foes.length }))
+    state: () => (builder ? { tool: builder.tool, cam: builder.cam, camY: builder.camY, zoom: builder.zoom, w: builder.b.w, h: bRows(builder.b), theme: builder.b.theme, look: Object.assign({}, builder.b.look),
+      start: builder.b.start, goal: builder.b.goal, candles: builder.b.candles.length, foes: builder.b.foes.length, boss: builder.b.boss == null ? null : builder.b.boss, bossAt: builder.b.bossAt,
+      checkpoint: builder.b.checkpoint || null, tiles: Array.from(builder.g).reduce((a, v) => (v ? a + 1 : a), 0), gifts: Object.assign({}, builder.b.gifts),
+      undo: builder.undo.length, redo: builder.redo.length, clip: builder.clip ? [builder.clip.w, builder.clip.h] : null, tour: builder.tour ? builder.tour.step : null } : null),
+    cell: (tx, ty) => (builder ? builder.g[bIdx(builder.b, tx, ty)] : null),
+    view: (cam, camY) => { if (builder) { builder.cam = cam; builder.camY = camY; bClampCam(); } return builder ? [builder.cam, builder.camY] : null; },
+    saved: () => (progress.builds || []).map((b) => ({ name: b.name, w: b.w, h: bRows(b), theme: b.theme, candles: b.candles.length, foes: b.foes.length, folder: b.folder,
+      look: b.look, boss: b.boss == null ? null : b.boss, goal: b.goal, bytes: JSON.stringify(b).length }))
   },
   wmap: { state: () => (WM ? { world: WM.world, sel: WM.sel, s: Math.round(WM.s), target: Math.round(WM.target), walking: WM.walking, reveal: !!WM.reveal,
       canada: WM.canada, openN: WM.openN, shownN: WM.shownN, stops: WM.stops.length, face: WM.face } : null),
