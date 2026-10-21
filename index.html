@@ -307,6 +307,12 @@ html.sideways .pad button.spec:not(:disabled){opacity:.92}
 .stage.buildmode .toast{top:calc(34% + 4px)}
 .bhint{font-size:11px;background:rgba(20,22,43,.78);padding:3px 6px;border-radius:6px}
 .buildlist li{display:flex;flex-wrap:wrap;align-items:center;gap:6px}.buildlist .bname{background:#0b0d1e;border:1px solid var(--panel2);border-radius:6px;color:var(--text);font:inherit;padding:4px 6px;width:140px}
+.wmap{margin:4px 0 6px}
+.wmap canvas{display:block;width:100%;max-width:760px;margin:0 auto;aspect-ratio:432/243;image-rendering:pixelated;border:3px solid var(--panel2);border-radius:10px;background:#14162b;touch-action:manipulation;cursor:pointer}
+.wmapbar{display:flex;gap:8px;align-items:center;justify-content:center;margin:8px auto 0;max-width:760px}
+.wmapbar .btn{min-width:48px}
+#wmInfo{flex:1;min-height:42px;text-align:center;font-size:13px;line-height:1.35;background:var(--panel);border:2px solid var(--panel2);border-radius:8px;padding:5px 8px}
+.stagelist{margin:8px 0}.stagelist summary{cursor:pointer;color:var(--dim);font-size:13px;padding:6px 0}
 /* Party Shop */
 .wallet{margin:0;font-size:18px}
 .wallet b{color:var(--gold)}
@@ -1201,6 +1207,7 @@ function loadProgress() {
   out.codes = Array.isArray(p.codes) ? p.codes.map(Number).filter((n) => n >= 2 && n <= 11) : [];
   out.wonWorlds = Array.isArray(p.wonWorlds) ? p.wonWorlds.map(Number).filter((n) => n >= 2 && n <= 11) : [];
   out.builds = Array.isArray(p.builds) ? p.builds.filter((b) => b && typeof b.g === 'string' && b.w > 0 && b.g.length === b.w * ROWS && LV[b.theme]).slice(0, 6) : [];
+  if (!out.mapSeen || typeof out.mapSeen !== 'object') out.mapSeen = {};
   out.bossLosses = {};
   if (p.bossLosses && typeof p.bossLosses === 'object') for (const k in p.bossLosses) { const n = Math.floor(Number(p.bossLosses[k])); if (LV[k] && n > 0 && n < 1000) out.bossLosses[k] = n; }
   return out;
@@ -4262,9 +4269,9 @@ function bossRules(i) {
   const t = L && L.helped ? 0 : bossTough(i);
   return {
     tough: t,
-    extraHp: Math.round(t * 0.75),             /* more stomps to win */
+    extraHp: Math.min(4, Math.round(t * 0.75)),   /* more stomps to win (never more than 4 extra) */
     pace: Math.min(0.5, t * 0.1),              /* attacks come round sooner, rests are shorter */
-    speed: 1 + t * 0.05,                       /* walks a little faster */
+    speed: 1 + Math.min(0.35, t * 0.05),       /* walks a little faster (never more than 35%) */
     shadHits: t < 1,                           /* early on Shad's slam knocks a hit off; later it only stuns */
     shadStun: Math.round(110 / (1 + t * 0.25)),
     dadVac: t < 1 ? 0.65 : 0.35,               /* World 1: how often Dad's hydro vac joins a boss fight */
@@ -4867,7 +4874,7 @@ function mapScreen() {
   const stars = totalStars();
   const want = progress.mapWorld || worldOf(nextStage());
   const mw = WORLDS[want - 1] && !WORLDS[want - 1].soon ? want : 1, wd = WORLDS[mw - 1];
-  const tabs = '<div class="worldtabs">' + WORLDS.slice(0, 3).map((w) => '<button type="button" class="worldtab' + (w.n === mw ? ' on' : '') + '" data-world="' + w.n + '"' + (w.soon ? ' disabled' : '') + '>' +
+  const tabsOld = '<div class="worldtabs">' + WORLDS.slice(0, 3).map((w) => '<button type="button" class="worldtab' + (w.n === mw ? ' on' : '') + '" data-world="' + w.n + '"' + (w.soon ? ' disabled' : '') + '>' +
     (worldOpen(w.n) ? '' : '🔒 ') + '<b>World ' + w.n + '</b> · ' + (w.soon ? 'coming soon' : escAttr(w.name)) + '</button>').join('') + '<button type="button" class="worldtab" id="codeBtnM">🎁 Reward code</button></div>';
   const lock = worldOpen(mw) ? '' : '<div class="lockcard"><p><b>🔒 World ' + mw + ': ' + escAttr(wd.name) + '</b> · ' + escAttr(wd.where) + ' · 10 new stages and a new boss</p><p class="tiny">' + worldStatus(wd) + '. A grown-up gives out reward codes when you have been awesome.</p></div>';
   const here = []; for (let i = wd.from; i <= wd.to; i++) here.push(i);
@@ -4902,8 +4909,8 @@ function mapScreen() {
   showScreen(
     '<p class="eyebrow">Stage map · World ' + mw + ' · ' + clearedHere + ' of ' + here.length + ' cleared · ' + starsHere + ' of ' + here.length * 3 + ' stars</p>' +
     '<h1 class="title"><span class="t2">Pick a stage, birthday boy</span></h1>' +
-    tabs + lock +
-    '<ul class="mapgrid">' + list + '</ul>' +
+    wmapHTML(mw) + lock +
+    '<details class="stagelist"><summary>Stage list</summary><ul class="mapgrid">' + list + '</ul></details>' +
     '<div class="divider"></div>' +
     '<p class="eyebrow">Hat locker · stars unlock hats</p>' +
     '<div class="hatrow">' + hats + '</div>' +
@@ -4944,6 +4951,7 @@ function mapScreen() {
   $('#shopBtnM').addEventListener('click', () => { SFX.click(); shopScreen('map'); });
   $$('.worldtab[data-world]', el.screen).forEach((b) => b.addEventListener('click', () => { if (b.disabled) return; SFX.click(); progress.mapWorld = Number(b.dataset.world); save(); mapScreen(); }));
   $('#codeBtnM').addEventListener('click', () => { SFX.click(); codeScreen('map'); });
+  wmapStart(mw);
 }
 
 async function playStage(i, opts) {
@@ -8175,6 +8183,357 @@ function drawBuilder() {
   for (let y = 0; y < H; y += T) ctx.fillRect(0, y, W, 1);
   drawVignette();
 }
+/* ============================================================
+   THE WALK-AROUND WORLD MAP (Shad's answers 40-42, 2026-10-20). Kinan walks along a path between a world's stops,
+   like on Mario's world map. World 1 is his home turf in mini Saskatoon (the house like a dollhouse, the front yard,
+   the school, the backyard party; the river, its bridges and the Bessborough behind), World 2 the northern Alberta
+   oilfield from dawn to the night shift. A Canada road-trip map links the worlds; Worlds 3-11 are planned in
+   Documents\Kinan vs Mom - Worlds 3-11 story plan.md.
+   ============================================================ */
+const WM_W = 432, WM_H = 243;
+/* each world's path: its stops in stage order; "via" points bend the path on the way to a stop */
+const WM_PATHS = {
+  1: [
+    { at: [92, 72] },                                         /* Kinan's Bedroom, upstairs */
+    { at: [92, 118] },                                        /* the Living Room */
+    { at: [150, 118] },                                       /* the Kitchen */
+    { at: [174, 160] },                                       /* Lego City, in the basement */
+    { at: [92, 160] },                                        /* the Bunny Photo Studio */
+    { at: [40, 204], via: [[40, 160]] },                      /* the front yard */
+    { at: [238, 152], via: [[238, 204]] },                    /* Chenoa's art room, in the garage */
+    { at: [362, 200], via: [[238, 216], [362, 216]] },        /* the school playground */
+    { at: [194, 118], via: [[362, 216], [276, 216], [276, 118]] },   /* the dinner table */
+    { at: [304, 34], via: [[194, 72], [258, 48]] },           /* Bedtime Castle, a dream in the sky */
+    { at: [26, 132], via: [[304, 12], [26, 12]] }             /* the Birthday Cake Volcano, in the backyard */
+  ],
+  2: [
+    { at: [22, 208] }, { at: [64, 172] }, { at: [110, 202] }, { at: [154, 164] }, { at: [202, 198] },
+    { at: [246, 158] }, { at: [292, 194] }, { at: [334, 146] }, { at: [374, 184] }, { at: [410, 128] }
+  ]
+};
+/* the road trip: the 11 cities on a map of Canada (Worlds 3-11 are planned, not built yet) */
+const WM_TRIP = [
+  { n: 1, city: 'Saskatoon', lon: -106.67, lat: 52.13, vs: 'Kinan vs. Mom', side: 'r' },
+  { n: 2, city: 'The oilfield', lon: -111.38, lat: 56.73, vs: 'Kinan vs. Dad', side: 'r' },
+  { n: 3, city: 'Edmonton', lon: -113.49, lat: 53.55, vs: 'Kinan vs. Shad & Chenoa', side: 'l' },
+  { n: 4, city: 'Calgary', lon: -114.07, lat: 51.05, vs: 'Kinan vs. the Stampede', side: 'l' },
+  { n: 5, city: 'Vancouver', lon: -123.12, lat: 49.28, vs: 'Kinan vs. the Rain', side: 'b' },
+  { n: 6, city: 'Regina', lon: -104.61, lat: 50.45, vs: 'Kinan vs. the Geese', side: 'b' },
+  { n: 7, city: 'Winnipeg', lon: -97.14, lat: 49.9, vs: 'Kinan vs. the Mint', side: 'r' },
+  { n: 8, city: 'Toronto', lon: -79.38, lat: 43.65, vs: 'Kinan vs. the Raccoons', side: 'l' },
+  { n: 9, city: 'Ottawa', lon: -75.7, lat: 45.42, vs: 'Kinan vs. the Beaver', side: 'tl' },
+  { n: 10, city: 'Montreal', lon: -73.57, lat: 45.5, vs: 'Kinan vs. the Chef', side: 'tr' },
+  { n: 11, city: 'Halifax', lon: -63.57, lat: 44.65, vs: 'Kinan vs. Everyone', side: 'r' }
+];
+const wmLon = (lon) => 12 + (lon + 141) * 4.6, wmLat = (lat) => 236 - (lat - 41.5) * 7.4;
+/* a simple outline of Canada (longitude, latitude): the mainland, Newfoundland, Vancouver Island and two big Arctic islands */
+const WM_CANADA = [
+  [[-141, 69.6], [-141, 60.3], [-137.5, 59], [-135, 59.6], [-133, 58.4], [-130, 55.9], [-130, 54.7], [-128, 52.5], [-127.5, 51], [-124.5, 49.6], [-123.1, 49],
+    [-110, 49], [-95.2, 49], [-95.2, 49.4], [-94.6, 48.7], [-89.6, 48], [-88, 48.8], [-84.8, 46.8], [-84.4, 46.5], [-82.4, 45.3], [-82.5, 43], [-83, 42], [-81, 42.6],
+    [-79, 42.9], [-79.2, 43.3], [-76.3, 44], [-75, 44.9], [-74.7, 45], [-71.5, 45], [-70.6, 45.5], [-70, 46.7], [-69.2, 47.4], [-67.8, 47.1], [-67.8, 45.7],
+    [-67.2, 45.2], [-66, 45.1], [-65.4, 43.6], [-63.6, 44.5], [-61, 45.2], [-60, 45.9], [-60.5, 47], [-61.5, 46.2], [-63.6, 46.2], [-64.5, 47.9], [-64.2, 48.6],
+    [-66.5, 50.2], [-62, 50.2], [-59, 50.8], [-57.1, 51.5], [-55.7, 52.1], [-56, 53.6], [-57.5, 54.6], [-60, 55.8], [-61.5, 56.8], [-62.5, 58], [-64.5, 60.3],
+    [-65.5, 59.8], [-67.6, 58.2], [-69.5, 58.8], [-69.6, 61], [-72, 61.9], [-77.5, 62.5], [-78.2, 60.8], [-77.3, 59.5], [-78.5, 58.6], [-76.8, 56], [-79, 54.6],
+    [-79.5, 52], [-80.5, 51.3], [-82.2, 52.9], [-82.3, 55.1], [-85, 55.3], [-87.8, 55.9], [-90.8, 57.1], [-92.4, 57.2], [-94.2, 58.8], [-94.7, 60.1], [-94.1, 61.4],
+    [-92.5, 62.4], [-90.7, 63.5], [-87, 64.2], [-85.9, 66.2], [-86.5, 67.4], [-89.5, 68.6], [-94.5, 68.8], [-96, 67.8], [-102, 67.8], [-107.9, 67.4], [-110, 68],
+    [-114, 68.3], [-117, 69], [-120.5, 69.5], [-124.4, 70], [-128, 70.2], [-130.5, 69.8], [-133.4, 69.4], [-135.6, 69.2], [-138, 69.3]],
+  [[-59.3, 47.6], [-56, 47.6], [-55.4, 46.9], [-53.6, 46.6], [-52.7, 47.6], [-53.5, 49.2], [-55.2, 49.6], [-55.5, 51.6], [-56.9, 50.5], [-58.4, 49.1]],
+  [[-128.4, 50.8], [-127.2, 50.1], [-125.5, 49], [-123.4, 48.4], [-124.2, 49.4], [-125.9, 50.3]],
+  [[-80, 63.5], [-78, 64.4], [-74, 64.8], [-70, 63], [-65, 62.5], [-63, 65.5], [-67, 68.3], [-71, 70.2], [-78, 70.5], [-85, 70.1], [-89, 69.5], [-86, 67.3], [-81.5, 64.5]],
+  [[-118, 69.8], [-105.5, 68.8], [-101.5, 69.9], [-105, 73], [-115, 73.2], [-119, 71.5]]
+];
+let WM = null;   /* the map while its page is open */
+function wmapPos(s) {
+  const M = WM, P = M.pts, Ls = M.len;
+  if (s <= 0 || P.length < 2) return P[0].slice();
+  for (let k = 1; k < P.length; k++) {
+    if (s <= Ls[k] || k === P.length - 1) {
+      const f = Ls[k] > Ls[k - 1] ? clamp((s - Ls[k - 1]) / (Ls[k] - Ls[k - 1]), 0, 1) : 1;
+      return [P[k - 1][0] + (P[k][0] - P[k - 1][0]) * f, P[k - 1][1] + (P[k][1] - P[k - 1][1]) * f];
+    }
+  }
+  return P[P.length - 1].slice();
+}
+/* the map's part of the stage map page: world buttons, the picture, and the controls under it */
+function wmapHTML(mw) {
+  return '<div class="wmap" id="wmap">' +
+    '<div class="worldtabs">' + WORLDS.slice(0, 2).map((w) => '<button type="button" class="worldtab' + (w.n === mw ? ' on' : '') + '" data-world="' + w.n + '">' +
+      (worldOpen(w.n) ? '' : '🔒 ') + '<b>World ' + w.n + '</b> · ' + escAttr(w.name) + '</button>').join('') +
+    '<button type="button" class="worldtab" id="wmCanada">🗺️ Canada trip</button><button type="button" class="worldtab" id="codeBtnM">🎁 Reward code</button></div>' +
+    '<canvas id="wmCanvas" width="' + WM_W + '" height="' + WM_H + '" aria-label="World map: tap a stop to walk there"></canvas>' +
+    '<div class="wmapbar"><button type="button" class="btn" id="wmPrev" aria-label="Previous stop">◀</button><div id="wmInfo" aria-live="polite"></div>' +
+    '<button type="button" class="btn" id="wmNext" aria-label="Next stop">▶</button></div>' +
+    '<div class="btnrow"><button class="btn go" type="button" id="wmPlay">▶ Play this stage</button></div></div>';
+}
+function wmapStart(world) {
+  const cv = $('#wmCanvas'); if (!cv) return;
+  const stops = WM_PATHS[world] || WM_PATHS[1], w = WORLDS[world - 1];
+  const pts = [], at = [];
+  stops.forEach((st) => { (st.via || []).forEach((v) => pts.push(v)); at.push(pts.length); pts.push(st.at); });
+  const len = [0];
+  for (let k = 1; k < pts.length; k++) len.push(len[k - 1] + Math.hypot(pts[k][0] - pts[k - 1][0], pts[k][1] - pts[k - 1][1]));
+  let openN = 0;
+  if (worldOpen(world)) for (let k = 0; k < stops.length; k++) if (stageOpen(w.from + k)) openN = k + 1;
+  progress.mapSeen = progress.mapSeen || {};
+  const seen = progress.mapSeen[world] != null ? Math.min(openN, progress.mapSeen[world]) : openN;
+  /* start on the stage to play next in this world, or the last open one */
+  const nx = nextStage();
+  let sel = nx >= w.from && nx <= w.to ? nx - w.from : openN - 1;
+  sel = clamp(sel, 0, Math.max(0, openN - 1));
+  const reveal = seen < openN && seen > 0;
+  const start = reveal ? seen - 1 : sel;
+  WM = { cv: cv, x: cv.getContext('2d'), world: world, w: w, stops: stops, pts: pts, len: len, stopS: at.map((j) => len[j]), openN: openN,
+    shownN: reveal ? seen : openN, reveal: reveal ? { t: 0 } : null, sel: reveal ? start : sel, s: 0, target: 0, walking: false, frame: 0, face: 1, canada: false, note: '' };
+  WM.s = WM.target = openN ? WM.stopS[start] : 0;
+  if (!reveal && progress.mapSeen[world] !== openN) { progress.mapSeen[world] = openN; save(); }
+  cv.addEventListener('pointerdown', wmapTap);
+  $('#wmPrev').addEventListener('click', () => wmapStep(-1));
+  $('#wmNext').addEventListener('click', () => wmapStep(1));
+  $('#wmPlay').addEventListener('click', wmapPlay);
+  $('#wmCanada').addEventListener('click', () => { SFX.click(); WM.canada = !WM.canada; WM.note = ''; wmapInfo(); });
+  wmapInfo();
+  requestAnimationFrame(wmapTick);
+}
+function wmapTick() {
+  const M = WM;
+  if (!M || !document.body.contains(M.cv)) { WM = null; return; }
+  M.frame++;
+  if (M.reveal && ++M.reveal.t >= 70) {   /* the new path has been drawn in: walk to the new stop */
+    M.reveal = null; M.shownN = M.openN; progress.mapSeen[M.world] = M.openN; save();
+    SFX.power(); wmapSelect(M.openN - 1, true);
+  }
+  const d = M.target - M.s;
+  if (Math.abs(d) > 0.9) {
+    const before = wmapPos(M.s)[0];
+    M.s += Math.sign(d) * Math.min(1.8, Math.abs(d)); M.walking = true;
+    const after = wmapPos(M.s)[0];
+    if (Math.abs(after - before) > 0.05) M.face = after > before ? 1 : -1;
+  } else { M.s = M.target; M.walking = false; }
+  wmapDraw();
+  requestAnimationFrame(wmapTick);
+}
+function wmapSelect(k, quiet) {
+  const M = WM; if (!M || k < 0 || k >= M.openN) return;
+  M.sel = k; M.target = M.stopS[k]; M.note = '';
+  if (!quiet) SFX.click();
+  wmapInfo();
+}
+function wmapStep(dir) { if (WM && !WM.reveal && !WM.canada) wmapSelect(clamp(WM.sel + dir, 0, WM.openN - 1)); }
+function wmapPlay() {
+  const M = WM; if (!M || M.reveal || M.canada || M.sel < 0 || M.sel >= M.openN) return;
+  AudioSys.init(); SFX.click();
+  playStage(M.w.from + M.sel);
+}
+function wmapTap(e) {
+  const M = WM; if (!M) return;
+  const r = M.cv.getBoundingClientRect();
+  const x = (e.clientX - r.left) * WM_W / r.width, y = (e.clientY - r.top) * WM_H / r.height;
+  if (M.canada) {
+    const c = WM_TRIP.filter((t) => Math.hypot(wmLon(t.lon) - x, wmLat(t.lat) - y) < 12).sort((a, b) => Math.hypot(wmLon(a.lon) - x, wmLat(a.lat) - y) - Math.hypot(wmLon(b.lon) - x, wmLat(b.lat) - y))[0];
+    if (!c) return;
+    SFX.click();
+    if (c.n <= 2 && worldOpen(c.n)) { progress.mapWorld = c.n; save(); mapScreen(); return; }
+    M.note = '<b>World ' + c.n + ' · ' + escAttr(c.city) + '</b> · ' + escAttr(c.vs) + '<br>' +
+      (c.n <= 2 ? worldStatus(WORLDS[c.n - 1]) : '🛣️ Coming in a future update. Its reward code already works: the world opens as soon as it arrives.');
+    wmapInfo();
+    return;
+  }
+  if (M.reveal) return;
+  let best = -1, bd = 16;
+  M.stops.forEach((st, k) => { const dd = Math.hypot(st.at[0] - x, st.at[1] - y); if (dd < bd) { bd = dd; best = k; } });
+  if (best < 0) return;
+  if (best < M.openN) wmapSelect(best);
+  else { SFX.click(); M.note = '🔒 <b>Stage ' + (best + 1) + '</b> · beat stage ' + best + ' first'; wmapInfo(); }
+}
+function wmapInfo() {
+  const M = WM, box = $('#wmInfo'), play = $('#wmPlay'), cb = $('#wmCanada');
+  if (!M || !box) return;
+  cb.textContent = M.canada ? '↩ Back to World ' + M.world : '🗺️ Canada trip';
+  if (M.canada) {
+    box.innerHTML = M.note || 'The road trip across Canada. Tap a city.';
+    play.disabled = true; $('#wmPrev').disabled = $('#wmNext').disabled = true;
+    return;
+  }
+  $('#wmPrev').disabled = M.sel <= 0; $('#wmNext').disabled = M.sel >= M.openN - 1;
+  if (!M.openN) { box.innerHTML = '<b>World ' + M.world + ' · ' + escAttr(M.w.name) + '</b><br>' + worldStatus(M.w); play.disabled = true; return; }
+  const i = M.w.from + M.sel, th = LV[i], st = progress.stars[i] || 0, bt = progress.bestTime && progress.bestTime[i];
+  box.innerHTML = M.note || ('<b>Stage ' + (M.sel + 1) + ' · ' + escAttr(th.place) + '</b><br>' + (th.boss ? 'Boss: ' + escAttr(th.boss.title) : 'Goal: Dad\'s truck') +
+    ' · ' + [0, 1, 2].map((k) => (k < st ? '★' : '☆')).join('') + ' · <i class="coin-ico"></i>' + goldCount(i) + '/3' +
+    (progress.beaten.includes(i) && bt ? ' · best ' + fmtTime(bt) : ''));
+  play.disabled = !!M.reveal;
+}
+/* ---- drawing ---- */
+function wmR(x, y, w, h, c) { WM.x.fillStyle = c; WM.x.fillRect(Math.round(x), Math.round(y), Math.round(w), Math.round(h)); }
+function wmapDraw() {
+  const M = WM, x = M.x;
+  x.save();
+  x.imageSmoothingEnabled = false;
+  if (M.canada) { wmapDrawCanada(); x.restore(); return; }
+  if (M.world === 2) wmapDrawOilfield(); else wmapDrawSaskatoon();
+  /* the path: open part in gold dashes, the rest as faint dots */
+  const shownS = M.reveal ? M.stopS[M.shownN - 1] + (M.stopS[M.openN - 1] - M.stopS[M.shownN - 1]) * Math.min(1, M.reveal.t / 60) : (M.openN ? M.stopS[M.openN - 1] : 0);
+  const total = M.len[M.len.length - 1];
+  for (let s = 0; s <= total; s += 5) {
+    const p = wmapPos(s), open = M.openN && s <= shownS + 0.1;
+    x.fillStyle = open ? (Math.floor(s / 5) % 2 ? '#fff3b0' : '#f6c445') : 'rgba(255,255,255,.28)';
+    x.fillRect(Math.round(p[0]) - (open ? 1 : 0), Math.round(p[1]) - (open ? 1 : 0), open ? 3 : 2, open ? 3 : 2);
+  }
+  if (M.reveal) { const p = wmapPos(shownS); for (let k = 0; k < 4; k++) wmR(p[0] - 3 + Math.random() * 6, p[1] - 3 + Math.random() * 6, 1, 1, '#ffffff'); }
+  /* the stops */
+  x.font = 'bold 8px "Pixelify Sans",monospace'; x.textAlign = 'center'; x.textBaseline = 'middle';
+  M.stops.forEach((st, k) => {
+    const i = M.w.from + k, open = k < M.shownN, done = progress.beaten.includes(i), sel = k === M.sel && open;
+    const [sx, sy] = st.at;
+    x.fillStyle = 'rgba(0,0,0,.35)'; x.beginPath(); x.ellipse(sx, sy + 5, 7, 2.5, 0, 0, 6.284); x.fill();
+    x.fillStyle = !open ? '#4a4f57' : (done ? '#f6c445' : '#f4f1e8');
+    x.strokeStyle = sel ? '#ff6fae' : (open ? '#1b1220' : '#2a2c38'); x.lineWidth = sel ? 2 : 1.4;
+    x.beginPath(); x.arc(sx, sy, 6.5, 0, 6.284); x.fill(); x.stroke();
+    if (open && !done && Math.floor(M.frame / 20) % 2) { x.strokeStyle = 'rgba(255,255,255,.7)'; x.lineWidth = 1; x.beginPath(); x.arc(sx, sy, 9, 0, 6.284); x.stroke(); }
+    x.fillStyle = !open ? '#9a9aa6' : '#1b1220';
+    x.fillText(String(k + 1), sx, sy + 0.5);
+    if (LV[i].boss) { x.fillStyle = open ? '#e8364b' : '#6b6f7a'; x.fillRect(sx - 3, sy - 11, 6, 2); x.fillRect(sx - 3, sy - 13, 1, 2); x.fillRect(sx, sy - 14, 1, 3); x.fillRect(sx + 2, sy - 13, 1, 2); }   /* a little crown: a boss stage */
+  });
+  /* Kinan */
+  if (M.openN) {
+    const sp = kinanSprites(progress.outfit), img = M.walking && Math.floor(M.frame / 8) % 2 ? sp.kWalk : sp.kStand;
+    const p = wmapPos(M.s), bob = M.walking ? 0 : Math.round(Math.sin(M.frame / 14));
+    x.save(); x.translate(Math.round(p[0]), Math.round(p[1]) - 4 + bob);
+    if (M.face < 0) x.scale(-1, 1);
+    x.drawImage(img, -Math.round(img.width / 2), -img.height);
+    x.restore();
+    if (!M.walking && !M.reveal) { const ay = Math.round(p[1]) - 26 + Math.round(Math.sin(M.frame / 8) * 2); wmR(p[0] - 3, ay, 7, 2, '#ff6fae'); wmR(p[0] - 2, ay + 2, 5, 1, '#ff6fae'); wmR(p[0] - 1, ay + 3, 3, 1, '#ff6fae'); wmR(p[0], ay + 4, 1, 1, '#ff6fae'); }
+  } else {
+    x.fillStyle = 'rgba(8,9,22,.62)'; x.fillRect(0, 0, WM_W, WM_H);
+    x.font = 'bold 14px "Pixelify Sans",monospace'; x.fillStyle = '#f6c445';
+    x.fillText(worldStatus(M.w), WM_W / 2, WM_H / 2);
+  }
+  x.restore();
+}
+function wmapDrawSaskatoon() {
+  const x = WM.x, f = WM.frame;
+  const sky = x.createLinearGradient(0, 0, 0, 130); sky.addColorStop(0, '#2b2457'); sky.addColorStop(0.6, '#7a4c8f'); sky.addColorStop(1, '#f39a6b');
+  x.fillStyle = sky; x.fillRect(0, 0, WM_W, 130);
+  for (let k = 0; k < 18; k++) wmR((k * 53) % WM_W, (k * 29) % 60, 1, 1, Math.floor((f + k * 13) / 30) % 3 ? '#fff3b0' : '#8a8a98');
+  /* the river with its bridges and the Bessborough behind */
+  wmR(250, 92, 182, 6, '#3b2c55');
+  [[262, 18, 22], [292, 26, 30], [328, 14, 24], [404, 20, 18]].forEach(([bx, bw, bh]) => wmR(bx, 98 - bh, bw, bh, '#2a2244'));   /* downtown */
+  wmR(350, 70, 40, 28, '#e6d5b0'); wmR(362, 56, 16, 14, '#e6d5b0');   /* the Bessborough: a castle-like hotel */
+  wmR(348, 66, 44, 5, '#3d8a6a'); wmR(360, 50, 20, 7, '#3d8a6a'); wmR(366, 44, 8, 6, '#3d8a6a');
+  for (let k = 0; k < 5; k++) wmR(354 + k * 8, 76, 3, 4, Math.floor((f / 40 + k)) % 4 ? '#f6c445' : '#7a6a4a');
+  wmR(244, 104, 188, 14, '#3a6fb0'); wmR(244, 104, 188, 2, '#6fa8dc');
+  for (let k = 0; k < 3; k++) { const bx = 262 + k * 52; x.strokeStyle = '#d7c9a8'; x.lineWidth = 2; x.beginPath(); x.arc(bx + 20, 112, 20, Math.PI, 2 * Math.PI); x.stroke(); wmR(bx, 104, 40, 2, '#d7c9a8'); }
+  /* grass, the yard and the street */
+  wmR(0, 118, WM_W, 125, '#3f7d4e'); wmR(0, 118, WM_W, 3, '#5aa36a');
+  wmR(0, 210, WM_W, 14, '#4a4f57'); for (let k = 0; k < WM_W; k += 24) wmR(k + 4, 216, 10, 2, '#f6c445');
+  wmR(0, 224, WM_W, 19, '#2f6b3a');
+  for (let k = 0; k < 8; k++) wmR(8 + k * 7, 190, 2, 12, '#e8e0cc'); wmR(6, 192, 54, 2, '#e8e0cc');   /* front fence */
+  /* the backyard cake (the Birthday Cake Volcano) */
+  wmR(6, 150, 40, 20, '#f39ac0'); wmR(10, 132, 32, 18, '#f4f1e8'); wmR(14, 118, 24, 14, '#f39ac0');
+  wmR(6, 150, 40, 3, '#ff6fae'); wmR(10, 132, 32, 3, '#ff6fae');
+  for (let k = 0; k < 4; k++) { wmR(17 + k * 6, 110, 2, 8, '#6fc8ff'); wmR(17 + k * 6, 107 - (Math.floor((f + k * 7) / 10) % 2), 2, 3, '#f6c445'); }
+  /* the dream castle in the sky (Bedtime Castle) */
+  x.fillStyle = 'rgba(255,255,255,.18)'; x.beginPath(); x.ellipse(304, 46, 30, 8, 0, 0, 6.284); x.fill();
+  wmR(290, 30, 28, 14, '#b89ad8'); wmR(286, 22, 8, 22, '#c8aee6'); wmR(314, 22, 8, 22, '#c8aee6'); wmR(300, 18, 8, 12, '#c8aee6');
+  wmR(285, 20, 10, 3, '#f39ac0'); wmR(313, 20, 10, 3, '#f39ac0'); wmR(299, 16, 10, 3, '#f39ac0'); wmR(302, 36, 4, 8, '#2b2457');
+  /* the school down the street */
+  wmR(320, 150, 82, 46, '#a8422e'); wmR(320, 146, 82, 5, '#6b3f18'); wmR(352, 132, 18, 18, '#a8422e'); wmR(350, 128, 22, 4, '#6b3f18');
+  for (let k = 0; k < 6; k++) wmR(326 + k * 12, 160, 7, 8, '#f3e6a6');
+  wmR(358, 178, 8, 18, '#6b3f18'); wmR(404, 120, 1, 30, '#c9c9cf'); wmR(405, 120, 10, 6, '#e8364b');   /* door and flag */
+  wmR(380, 186, 2, 12, '#c9c9cf'); wmR(394, 186, 2, 12, '#c9c9cf'); wmR(380, 186, 16, 2, '#c9c9cf'); wmR(386, 192 + Math.round(Math.sin(f / 15) * 2), 4, 2, '#e8364b');   /* swings */
+  /* the house, like a dollhouse */
+  x.fillStyle = '#7d1f33'; x.beginPath(); x.moveTo(54, 50); x.lineTo(136, 22); x.lineTo(218, 50); x.closePath(); x.fill();
+  wmR(60, 50, 152, 132, '#d9cbb0');
+  const rooms = [[64, 54, 70, 38, '#5b7fd1'], [138, 54, 70, 38, '#9fc4a8'], [64, 98, 56, 38, '#e8b05a'], [122, 98, 52, 38, '#f2e3a8'], [176, 98, 32, 38, '#c97f5a'],
+    [64, 142, 70, 36, '#6b6f7a'], [138, 142, 70, 36, '#4a4f57']];
+  rooms.forEach(([rx, ry, rw, rh, c]) => { wmR(rx, ry, rw, rh, c); wmR(rx, ry + rh - 3, rw, 3, 'rgba(0,0,0,.25)'); });
+  wmR(70, 80, 18, 8, '#e8364b'); wmR(70, 77, 6, 4, '#f4f1e8');   /* Kinan's bed */
+  wmR(70, 126, 24, 7, '#7a3f26');   /* the couch */
+  wmR(150, 120, 14, 3, '#c9c9cf'); wmR(130, 104, 8, 22, '#f4f1e8');   /* the kitchen counter and fridge */
+  wmR(180, 124, 24, 3, '#7a3f26'); wmR(182, 127, 2, 6, '#7a3f26'); wmR(200, 127, 2, 6, '#7a3f26');   /* the dinner table */
+  [['#e8364b', 150], ['#f6c445', 160], ['#3fa9f5', 170], ['#5be37a', 180], ['#e8364b', 190]].forEach(([c, bx], k) => wmR(bx, 168 - (k % 2) * 6, 8, 6, c));   /* Lego */
+  wmR(98, 150, 2, 18, '#1b1220'); wmR(92, 148, 14, 6, '#1b1220');   /* the photo camera */
+  wmR(56, 50, 4, 132, '#a89a80'); wmR(212, 50, 4, 132, '#a89a80'); wmR(56, 92, 160, 6, '#a89a80'); wmR(56, 136, 160, 6, '#a89a80'); wmR(56, 178, 160, 4, '#a89a80');
+  /* the garage with Chenoa's art room */
+  wmR(218, 130, 44, 52, '#c8bba0'); wmR(214, 126, 52, 6, '#6b3f18'); wmR(222, 136, 36, 40, '#f4f1e8');
+  wmR(226, 144, 6, 10, '#ff4fa3'); wmR(234, 140, 6, 14, '#44c55a'); wmR(244, 146, 8, 8, '#3fa9f5');   /* paintings */
+  x.font = 'bold 7px "Pixelify Sans",monospace'; x.textAlign = 'left'; x.fillStyle = 'rgba(255,255,255,.75)'; x.fillText('SASKATOON', 328, 124);
+}
+function wmapDrawOilfield() {
+  const x = WM.x, f = WM.frame;
+  const sky = x.createLinearGradient(0, 0, WM_W, 0);
+  sky.addColorStop(0, '#f39a6b'); sky.addColorStop(0.18, '#9fd0f0'); sky.addColorStop(0.62, '#7fb6e0'); sky.addColorStop(0.75, '#4a4f6a'); sky.addColorStop(0.86, '#1d2238'); sky.addColorStop(1, '#0c1024');
+  x.fillStyle = sky; x.fillRect(0, 0, WM_W, 140);
+  x.fillStyle = '#fff3b0'; x.beginPath(); x.arc(18, 118, 14, Math.PI, 2 * Math.PI); x.fill();   /* the sun coming up */
+  for (let k = 0; k < 14; k++) wmR(360 + (k * 23) % 72, 8 + (k * 17) % 60, 1, 1, '#fff3b0');   /* night stars */
+  x.fillStyle = '#3b3f52'; for (let k = 0; k < 4; k++) { x.beginPath(); x.ellipse(310 + k * 14, 34 + (k % 2) * 6, 20, 9, 0, 0, 6.284); x.fill(); }   /* the storm */
+  if (Math.floor(f / 50) % 4 === 0) { wmR(326, 44, 2, 10, '#fff3b0'); wmR(324, 54, 2, 8, '#fff3b0'); wmR(326, 62, 2, 8, '#fff3b0'); }
+  /* the prairie */
+  const g = x.createLinearGradient(0, 0, WM_W, 0); g.addColorStop(0, '#c9b45a'); g.addColorStop(0.7, '#8a8a4a'); g.addColorStop(1, '#2a2c38');
+  x.fillStyle = g; x.fillRect(0, 140, WM_W, 103);
+  wmR(0, 140, WM_W, 2, '#e0cf7a');
+  wmR(0, 214, 60, 8, '#4a4f57'); for (let k = 0; k < 60; k += 14) wmR(k + 2, 217, 6, 2, '#f6c445');   /* the highway */
+  wmR(34, 186, 2, 18, '#c9c9cf'); wmR(26, 180, 18, 8, '#2f6b3a'); x.font = 'bold 6px "Pixelify Sans",monospace'; x.textAlign = 'center'; x.fillStyle = '#fff'; x.fillText('NORTH', 35, 185);
+  /* the camp */
+  wmR(48, 150, 30, 14, '#e8e0cc'); wmR(48, 148, 30, 3, '#9a9aa6'); for (let k = 0; k < 3; k++) wmR(52 + k * 9, 154, 5, 4, '#6fc8ff');
+  /* the lease road mud */
+  x.fillStyle = '#6b4a2a'; x.beginPath(); x.ellipse(110, 212, 22, 6, 0, 0, 6.284); x.fill();
+  /* pumpjacks, nodding */
+  [[150, 140], [176, 150]].forEach(([px, py], k) => {
+    const a = Math.sin(f / 20 + k) * 0.35;
+    wmR(px - 2, py, 4, 14, '#1b1220'); x.save(); x.translate(px, py); x.rotate(a); wmR(-14, -2, 28, 4, '#1b1220'); wmR(10, -5, 6, 10, '#1b1220'); x.restore();
+    wmR(px - 9, py + 14, 18, 3, '#4a4f57');
+  });
+  /* the hydro vac yard: Dad's red trucks */
+  [[194, 168], [214, 174]].forEach(([tx, ty]) => { wmR(tx, ty, 18, 10, '#e8364b'); wmR(tx + 2, ty - 6, 10, 7, '#c9c9cf'); wmR(tx + 14, ty + 2, 6, 6, '#e8364b'); wmR(tx + 2, ty + 10, 4, 3, '#1b1220'); wmR(tx + 13, ty + 10, 4, 3, '#1b1220'); });
+  /* the pipe racks */
+  for (let k = 0; k < 3; k++) { wmR(232 + k * 12, 140, 2, 20, '#9a9aa6'); }
+  wmR(230, 142, 30, 3, '#c9c9cf'); wmR(230, 150, 30, 3, '#c9c9cf');
+  /* the big dig */
+  x.fillStyle = '#4a2c1a'; x.beginPath(); x.ellipse(292, 214, 26, 9, 0, 0, 6.284); x.fill(); wmR(304, 196, 12, 6, '#f6c445'); wmR(312, 188, 3, 10, '#f6c445');
+  /* night shift lights and Dad's rig */
+  for (let k = 0; k < 2; k++) { wmR(362 + k * 30, 140, 2, 34, '#9a9aa6'); x.fillStyle = 'rgba(255,240,170,' + (0.25 + 0.1 * Math.sin(f / 9 + k)) + ')'; x.beginPath(); x.moveTo(363 + k * 30, 140); x.lineTo(350 + k * 30, 190); x.lineTo(376 + k * 30, 190); x.closePath(); x.fill(); }
+  wmR(388, 132, 30, 12, '#e8364b'); wmR(408, 128, 14, 8, '#e8364b'); wmR(410, 129, 8, 5, '#6fc8ff'); wmR(392, 144, 5, 4, '#1b1220'); wmR(412, 144, 5, 4, '#1b1220');
+  x.font = 'bold 7px "Pixelify Sans",monospace'; x.textAlign = 'left'; x.fillStyle = 'rgba(255,255,255,.75)'; x.fillText('NORTHERN ALBERTA', 150, 128);
+}
+function wmapDrawCanada() {
+  const x = WM.x, f = WM.frame;
+  wmR(0, 0, WM_W, WM_H, '#1d3557');
+  for (let k = 0; k < 24; k++) wmR((k * 61) % WM_W, (k * 37) % WM_H, 2, 1, 'rgba(255,255,255,.12)');
+  WM_CANADA.forEach((poly) => {
+    x.fillStyle = '#3f7d4e'; x.strokeStyle = '#8fd1a0'; x.lineWidth = 1;
+    x.beginPath(); poly.forEach(([lo, la], k) => { const px = wmLon(lo), py = wmLat(la); if (k) x.lineTo(px, py); else x.moveTo(px, py); }); x.closePath(); x.fill(); x.stroke();
+  });
+  /* the trip, city to city */
+  x.strokeStyle = 'rgba(255,243,176,.85)'; x.lineWidth = 1.5; x.setLineDash([3, 3]); x.lineDashOffset = -f / 4;
+  x.beginPath(); WM_TRIP.forEach((t, k) => { const px = wmLon(t.lon), py = wmLat(t.lat); if (k) x.lineTo(px, py); else x.moveTo(px, py); }); x.stroke();
+  x.setLineDash([]);
+  x.font = 'bold 8px "Pixelify Sans",monospace'; x.textBaseline = 'middle';
+  WM_TRIP.forEach((t) => {
+    const px = wmLon(t.lon), py = wmLat(t.lat), built = t.n <= 2, open = built && worldOpen(t.n), won = built && worldBeaten(t.n);
+    x.fillStyle = won ? '#f6c445' : (open ? '#f4f1e8' : (built ? '#9a9aa6' : '#5e5e6a'));
+    x.strokeStyle = '#1b1220'; x.lineWidth = 1.2; x.beginPath(); x.arc(px, py, 4.5, 0, 6.284); x.fill(); x.stroke();
+    x.textAlign = 'center'; x.fillStyle = '#1b1220'; x.fillText(String(t.n), px, py + 0.5);
+    const sd = t.side, tx2 = sd === 'l' || sd === 'tl' ? px - 7 : (sd === 'r' || sd === 'tr' ? px + 7 : px), ty2 = sd === 'b' ? py + 10 : (sd === 'tl' || sd === 'tr' ? py - 9 : py);
+    x.textAlign = sd === 'l' || sd === 'tl' ? 'right' : (sd === 'r' || sd === 'tr' ? 'left' : 'center');
+    const label = t.city;   /* locked cities show by their grey dot; the panel below says why */
+    x.lineWidth = 3; x.strokeStyle = 'rgba(12,14,30,.85)'; x.strokeText(label, tx2, ty2);   /* a dark outline so small names read */
+    x.fillStyle = open ? '#fff3b0' : 'rgba(255,255,255,.78)'; x.fillText(label, tx2, ty2);
+  });
+  /* Dad's truck where the trip is now */
+  const cur = WM_TRIP[clamp(WM.world, 1, 11) - 1], tx = wmLon(cur.lon), ty = wmLat(cur.lat) - 12 + Math.round(Math.sin(f / 10));
+  wmR(tx - 7, ty, 12, 5, '#e8364b'); wmR(tx + 2, ty - 3, 5, 4, '#e8364b'); wmR(tx + 3, ty - 2, 3, 2, '#6fc8ff'); wmR(tx - 5, ty + 5, 3, 2, '#1b1220'); wmR(tx + 2, ty + 5, 3, 2, '#1b1220');
+  x.textAlign = 'left'; x.font = 'bold 9px "Pixelify Sans",monospace'; x.fillStyle = '#f6c445'; x.fillText("KINAN'S BIG CANADA ROAD TRIP", 10, 12);
+}
+/* the arrow keys and Enter work on the map too */
+function bindWorldMap() {
+  document.addEventListener('keydown', (e) => {
+    const tag = (e.target && e.target.tagName) || '';
+    if (!WM || !document.body.contains(WM.cv) || /INPUT|TEXTAREA|SELECT/.test(tag)) return;
+    if (e.key === 'ArrowLeft') { wmapStep(-1); e.preventDefault(); }
+    else if (e.key === 'ArrowRight') { wmapStep(1); e.preventDefault(); }
+    else if (e.key === 'Enter' && tag !== 'BUTTON') { wmapPlay(); e.preventDefault(); }   /* Enter on a button presses that button */
+  });
+}
 /* ---- the room chat: tucked away on the side, only for the people in your online room, never saved ---- */
 const CHAT = { log: [], unread: 0, open: false, last: 0 };
 const CHAT_QUICK = ['👍', '😂', '🎉', 'Nice one!', 'Good game!', 'Rematch?', 'Wait for me!', 'Happy birthday, Kinan! 🎂'];
@@ -8239,6 +8598,7 @@ bindPad();
 bindWheel();
 bindChat();
 bindBuilder();
+bindWorldMap();
 AudioSys.on = progress.sound !== false;
 applyLite();
 initPWA();
@@ -8367,6 +8727,9 @@ window.__k11 = {
     cell: (tx, ty) => (builder ? builder.g[ty * builder.b.w + tx] : null),
     saved: () => (progress.builds || []).map((b) => ({ name: b.name, w: b.w, theme: b.theme, candles: b.candles.length, foes: b.foes.length }))
   },
+  wmap: { state: () => (WM ? { world: WM.world, sel: WM.sel, s: Math.round(WM.s), target: Math.round(WM.target), walking: WM.walking, reveal: !!WM.reveal,
+      canada: WM.canada, openN: WM.openN, shownN: WM.shownN, stops: WM.stops.length, face: WM.face } : null),
+    stopXY: (k) => (WM ? WM.stops[k].at.slice() : null), cityXY: (n) => { const t = WM_TRIP[n - 1]; return [wmLon(t.lon), wmLat(t.lat)]; } },
   bosses: { tough: (i) => bossTough(i), rules: (i) => bossRules(i), losses: () => Object.assign({}, progress.bossLosses || {}) },
   worlds: {
     open: (n) => worldOpen(n), next: () => nextStage(), code: (t) => useCode(t), status: () => WORLDS.slice(0, 3).map((w) => worldStatus(w)),
