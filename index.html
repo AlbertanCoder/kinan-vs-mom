@@ -5908,6 +5908,11 @@ async function netJoin(code, role, mode) {
   netLeave();
   NET.mode = mode || 'smash';
   NET.status = 'loading'; NET.error = ''; NET.code = code; NET.role = role; NET.peers = {};
+  /* online play needs the browser's direct-connection feature (WebRTC); a few old or in-app browsers don't have it */
+  if (typeof RTCPeerConnection === 'undefined') {
+    NET.status = 'error'; NET.error = 'This browser can\'t play online. Open the game link in Safari (iPhone or iPad) or Chrome (Android or a computer).';
+    refreshLobby(); return;
+  }
   refreshLobby();
   const lib = await netLib();
   NET.selfId = lib.selfId;
