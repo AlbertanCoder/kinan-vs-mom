@@ -117,6 +117,7 @@ button{font:inherit;color:inherit;touch-action:manipulation}
 .pad button.pow.super{background:#fff3b0;color:var(--night);animation:specglow .8s ease-in-out infinite}
 .pad button.pow:disabled{background:var(--panel);color:var(--dim);opacity:.6;box-shadow:inset 0 0 0 2px var(--panel),inset 0 0 0 4px #22264f}
 .pad button.held{transform:translate(2px,3px);filter:brightness(.88);box-shadow:inset 0 0 0 2px var(--panel),1px 1px 0 var(--shadow)}
+.pad,.pad *,.kwheel,.kwheel *{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}   /* no text magnifier or callout on a long press */
 .keys{margin:0;text-align:center;font-size:13px;color:var(--dim)}
 @media (hover:hover) and (pointer:fine){.pad button{min-height:56px}}
 
@@ -264,8 +265,10 @@ html.sideways .iconbtn{width:28px;height:25px;font-size:12px}
 html.sideways .stage{width:auto;height:calc(var(--vh) - 60px);max-width:100%;margin:0 auto}
 html.sideways .pad{position:absolute;left:0;right:0;bottom:0;display:flex;justify-content:space-between;align-items:flex-end;gap:0;margin:0;padding:0 4px 4px;pointer-events:none;z-index:5}
 html.sideways .dpad,html.sideways .acts{display:flex;gap:10px}
-html.sideways .pad button{pointer-events:auto;min-height:0;width:clamp(58px,9vmin,84px);height:clamp(58px,9vmin,84px);border-radius:50%;font-size:22px;opacity:.6;transition:opacity .15s}
-html.sideways .pad button.jump{font-size:14px;width:clamp(66px,10.5vmin,96px);height:clamp(66px,10.5vmin,96px)}
+html.sideways .pad button{pointer-events:auto;min-height:0;width:clamp(62px,10vmin,86px);height:clamp(62px,10vmin,86px);border-radius:50%;font-size:22px;opacity:.6;transition:opacity .15s}
+html.sideways .pad button.jump{font-size:14px;width:clamp(70px,11.5vmin,98px);height:clamp(70px,11.5vmin,98px)}
+html.sideways .pad button.held{opacity:.95}
+html.sideways .dpad,html.sideways .acts{pointer-events:auto;padding:14px;margin:-14px}   /* the gaps and a ring around the buttons count too (for the nearest one) */
 html.sideways .pad button.pow{font-size:12px}
 html.sideways .pad button.pow:not(:disabled){opacity:.85}
 html.sideways .pad.smashpad .dpad{display:grid;grid-template-columns:auto auto auto;grid-template-rows:auto auto;gap:6px;align-items:center}
@@ -1355,21 +1358,59 @@ window.addEventListener('blur', () => {
 });
 document.addEventListener('visibilitychange', () => { if (document.hidden && running && !pausedByUser && !builder) setPaused(true, true); });
 
+/* the on-screen buttons, made to feel like a controller: each finger holds its button until it lifts (drifting a little
+   off it doesn't let go); sliding onto another button of the same group (◀ to ▶, POW to JUMP) switches without
+   lifting; a touch in the gap between buttons, or just off the edge, counts for the nearest one; and the phone's own
+   press-and-hold (the iPhone's text magnifier, the callout menu) is switched off, so a long hold is never cut short */
 function bindPad() {
-  $$('#pad button').forEach((b) => {
-    const k = b.dataset.k;
-    const on = (e) => {
-      e.preventDefault(); AudioSys.init();
-      try { b.setPointerCapture(e.pointerId); } catch (er) { /* ignore */ }
-      b.classList.add('held'); actionDown(k);
-    };
-    const off = (e) => { e.preventDefault(); b.classList.remove('held'); actionUp(k); };
-    b.addEventListener('pointerdown', on);
-    b.addEventListener('pointerup', off);
-    b.addEventListener('pointercancel', off);
-    b.addEventListener('lostpointercapture', off);
-    b.addEventListener('contextmenu', (e) => e.preventDefault());
+  const pad = el.pad, fingers = new Map();   /* finger (pointer id) -> { group, b: the button it holds } */
+  const groupOf = (b) => (b ? b.closest('.dpad, .acts') : null);
+  const nearest = (x, y, group) => {
+    const t = document.elementFromPoint(x, y), hit = t && t.closest ? t.closest('#pad button') : null;
+    if (hit && !hit.disabled && (!group || groupOf(hit) === group)) return hit;
+    let best = null, bd = Infinity;
+    $$(group ? 'button' : '#pad button', group || document).forEach((c) => {
+      if (c.disabled || c.offsetParent === null) return;
+      const r = c.getBoundingClientRect(); if (!r.width) return;
+      const d = Math.hypot(x - (r.left + r.width / 2), y - (r.top + r.height / 2));
+      if (d < Math.max(r.width, r.height) * 0.8 && d < bd) { bd = d; best = c; }
+    });
+    return best;
+  };
+  const heldBy = (b) => [...fingers.values()].some((f) => f.b === b);
+  const hold = (id, b) => {
+    const f = fingers.get(id), was = f ? f.b : null;
+    if (was === b) return;
+    if (f) f.b = b;
+    if (was && !heldBy(was)) { was.classList.remove('held'); actionUp(was.dataset.k); }
+    if (b && [...fingers.values()].filter((g) => g.b === b).length === 1) { b.classList.add('held'); actionDown(b.dataset.k); }
+  };
+  pad.addEventListener('pointerdown', (e) => {
+    const on = e.target && e.target.closest ? e.target.closest('#pad button') : null;
+    const b = on && !on.disabled ? on : nearest(e.clientX, e.clientY, null);   /* right on a button: that one; in a gap: the nearest */
+    if (!b) return;
+    e.preventDefault(); AudioSys.init();
+    try { e.target.setPointerCapture(e.pointerId); } catch (er) { /* ignore */ }   /* the touched button (or gap) keeps this finger's events */
+    fingers.set(e.pointerId, { group: groupOf(b), b: null });
+    hold(e.pointerId, b);
   });
+  pad.addEventListener('pointermove', (e) => {
+    const f = fingers.get(e.pointerId); if (!f) return;
+    e.preventDefault();
+    const b = nearest(e.clientX, e.clientY, f.group);
+    if (b && b !== f.b) hold(e.pointerId, b);   /* onto another button: switch; off every button: keep holding */
+  });
+  const lift = (e) => { if (!fingers.has(e.pointerId)) return; hold(e.pointerId, null); fingers.delete(e.pointerId); };
+  pad.addEventListener('pointerup', lift);
+  pad.addEventListener('pointercancel', lift);
+  pad.addEventListener('lostpointercapture', lift);
+  window.addEventListener('pointerup', lift);   /* a lift anywhere lets go, so a button can never stay stuck down */
+  window.addEventListener('pointercancel', lift);
+  window.addEventListener('blur', () => { [...fingers.keys()].forEach((id) => { hold(id, null); fingers.delete(id); }); });
+  pad.addEventListener('contextmenu', (e) => e.preventDefault());
+  const noPhoneHold = (e) => { if (e.cancelable) e.preventDefault(); };   /* no magnifier, callout or scroll from a hold */
+  pad.addEventListener('touchstart', noPhoneHold, { passive: false });
+  pad.addEventListener('touchmove', noPhoneHold, { passive: false });
 }
 
 let padPrev = {}, padIn = { left: false, right: false, jump: false, down: false };
@@ -8827,6 +8868,9 @@ function bindWheel() {
   const off = (e) => { if (e.pointerId !== kWheel.id) return; kWheel.id = null; set(0); };
   w.addEventListener('pointerup', off); w.addEventListener('pointercancel', off); w.addEventListener('lostpointercapture', off);
   w.addEventListener('contextmenu', (e) => e.preventDefault());
+  const noPhoneHold = (e) => { if (e.cancelable) e.preventDefault(); };   /* no magnifier or callout from holding the wheel */
+  w.addEventListener('touchstart', noPhoneHold, { passive: false });
+  w.addEventListener('touchmove', noPhoneHold, { passive: false });
 }
 function kartRestart() {
   const K = kart; if (!K) return;
