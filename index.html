@@ -378,6 +378,17 @@ html.sideways .pad button.spec:not(:disabled){opacity:.92}
     <div class="combo" id="comboEl" hidden><span id="comboX">x2</span><small>COMBO</small></div>
     <div class="toast" id="toast" hidden></div>
     <div class="dialog win" id="dialog" hidden><img class="portrait" id="portrait" alt=""><p id="dtext"></p><span class="next" aria-hidden="true">▶</span></div>
+    <div class="pause" id="helpAsk" hidden>
+      <div class="pausebox win">
+        <p class="eyebrow">Tough boss!</p>
+        <h2>Want a helping hand?</h2>
+        <p>That boss beat you 3 times in a row. If you like, this fight gets easier: fewer stomps to win, and <span id="helpAskWho">Dad and Shad jump in to help</span>.</p>
+        <div class="btncol">
+          <button class="btn go" id="helpYes" type="button">Yes please!</button>
+          <button class="btn" id="helpNo" type="button">No thanks, I've got this</button>
+        </div>
+      </div>
+    </div>
     <div class="pause" id="pause" hidden>
       <div class="pausebox win">
         <p class="eyebrow">Paused</p>
@@ -1150,7 +1161,7 @@ function build(i) {
    STATE
    ============================================================ */
 const DEFAULT_PROGRESS = { unlocked: 1, beaten: [], stars: {}, bestScore: {}, totalCandles: 0, pets: { ids: [], names: {} }, hat: 'none', won: false, sound: true, lite: false,
-  wallet: 0, owned: [], outfit: 'classic', trail: 'none', costumes: {}, gold: {}, smashItems: true, codes: [], wonWorlds: [], builds: [] };
+  wallet: 0, owned: [], outfit: 'classic', trail: 'none', costumes: {}, gold: {}, smashItems: true, codes: [], wonWorlds: [], builds: [], bossLosses: {} };
 function loadProgress() {
   let p = store.get(SAVE_KEY, null);
   if (!p) {
@@ -1190,6 +1201,8 @@ function loadProgress() {
   out.codes = Array.isArray(p.codes) ? p.codes.map(Number).filter((n) => n >= 2 && n <= 11) : [];
   out.wonWorlds = Array.isArray(p.wonWorlds) ? p.wonWorlds.map(Number).filter((n) => n >= 2 && n <= 11) : [];
   out.builds = Array.isArray(p.builds) ? p.builds.filter((b) => b && typeof b.g === 'string' && b.w > 0 && b.g.length === b.w * ROWS && LV[b.theme]).slice(0, 6) : [];
+  out.bossLosses = {};
+  if (p.bossLosses && typeof p.bossLosses === 'object') for (const k in p.bossLosses) { const n = Math.floor(Number(p.bossLosses[k])); if (LV[k] && n > 0 && n < 1000) out.bossLosses[k] = n; }
   return out;
 }
 let progress = loadProgress();
@@ -1835,6 +1848,7 @@ function die() {
     const atBoss = boss === 'fight';
     const who = atBoss ? 'mom' : 'dad';
     await say(atBoss ? '<b>MOM:</b> Aww, come here, you need a hug. Then try again!' : '<b>ROBIN:</b> Shake it off, bud. Back to the checkpoint!', who, 'h');
+    if (atBoss) await bossLost();
     Music.duck(false);
     P.hp = P.max; P.dead = 0; P.inv = 110; P.vx = 0; P.vy = 0;
     shots = []; dadUsedBoss = false; dadUsedStage = false; dad = null; bro = null;
@@ -2063,9 +2077,11 @@ function updateDad() {
     if (dad.x >= P.x - 24 || dad.x > camX + W * 0.45) {
       dad.state = 'act'; dad.t = 0;
       if (dad.mode === 'heal') {
-        P.hp = P.max; P.inv = 120; updHud(); SFX.heart();
-        toast('<b>ROBIN:</b> ' + pick(['Just got back from camp, bud! Eat this burger 🍔', 'Nobody beats up the birthday boy! 🍔', "Dad's home from the oilfield! Hearts refilled! 🍔"]), 2400);
-        pop(P.x, P.y - 14, '+❤ +❤ +❤', 50, '#ff6fae');
+        const back = boss === 'fight' ? (L.bossR || bossRules(L.i)).heal : 99;   /* a tough boss fight: fewer hearts back */
+        P.hp = Math.min(P.max, P.hp + back); P.inv = 120; updHud(); SFX.heart();
+        if (back >= P.max) toast('<b>ROBIN:</b> ' + pick(['Just got back from camp, bud! Eat this burger 🍔', 'Nobody beats up the birthday boy! 🍔', "Dad's home from the oilfield! Hearts refilled! 🍔"]), 2400);
+        else toast((dad.mom ? '<b>MOM:</b> ' : '<b>ROBIN:</b> ') + 'A little something to keep you going! 🍔 +' + back + ' ❤', 2400);
+        pop(P.x, P.y - 14, back >= 3 ? '+❤ +❤ +❤' : (back === 2 ? '+❤ +❤' : '+❤'), 50, '#ff6fae');
         sparks(P.x + 5, P.y, 16, ['#ff6fae', '#fff']);
         if (boss !== 'fight' && Math.random() < 0.5 && foes.some((f) => f.alive && f.x > camX - 10 && f.x < camX + W + 10)) startVac(null);
       } else if (dad.mode === 'special') {
@@ -2094,7 +2110,8 @@ function broSlam() {
   rings.push({ x: bro.x + 8, y: bro.y + 18, r: 4, t: 26 });
   sparks(bro.x + 8, bro.y + 18, 10, ['#f6c445', '#ff8a3d', '#fff']);
   if (boss === 'fight') {
-    bosses.forEach((b) => { if (!b.out) { b.inv = 0; damage(b, 1, 'SHAD SLAM!'); if (!b.out) b.stun = 110; } });
+    const R = L.bossR || bossRules(L.i);   /* early on the slam knocks a hit off; later it only stuns, for less time */
+    bosses.forEach((b) => { if (!b.out) { if (R.shadHits) { b.inv = 0; damage(b, 1, 'SHAD SLAM!'); } else pop(b.x - 6, b.y - 14, 'SHAD SLAM! 💫', 34, '#f6c445'); if (!b.out) b.stun = R.shadStun; } });
   } else {
     foes.forEach((f) => { if (f.alive && f.x > camX - 10 && f.x < camX + W + 10) killFoe(f, 'SLAM!'); });
   }
@@ -2293,13 +2310,14 @@ async function startBoss() {
   SFX.boss(); shakeIt(5); flashScreen();
   Music.play(LV[i].final || LV[i].final2 ? 'final' : 'boss');
   dadSpecialDone = false;
-  dadSpecialPlan = worldOf(i) === 1 && (d.kind === 'final' || Math.random() < 0.65);
+  const R = L.bossR = bossRules(i), hp = L.helped ? Math.max(2, Math.round(d.hp * 0.7)) : d.hp + R.extraHp;
+  dadSpecialPlan = worldOf(i) === 1 && (d.kind === 'final' || Math.random() < R.dadVac);
   const kind = (d.kind === 'team' || d.kind === 'final') ? 'mom' : d.kind;
-  bosses = [makeBoss(kind, (ax + (kind === 'mech' || kind === 'pumpjack' || kind === 'moose' ? 12 : 13)) * T, d.hp, d.prop)];
+  bosses = [makeBoss(kind, (ax + (kind === 'mech' || kind === 'pumpjack' || kind === 'moose' ? 12 : 13)) * T, hp, d.prop)];
   await say('<b>BOSS:</b> ' + d.title.toUpperCase() + '!', d.face || 'm', 'a');
   await story(LV[i].bossIntro, d.face || 'm', 'a');
   if (d.kind === 'team') {
-    bosses.push(makeBoss('chenoa', (ax + 16) * T, 3));
+    bosses.push(makeBoss('chenoa', (ax + 16) * T, 3 + Math.round(R.tough * 0.4)));
     updateBossHud();
     await say('<b>CHENOA:</b> Hold on... whose team am I on today?', 'c');
     await say('Chenoa is thinking... 🤔 🤔 🤔', 'c');
@@ -2317,9 +2335,9 @@ async function startBoss() {
   } else if (d.kind === 'final') {
     allies.push(chenoaAlly());
     P.power = 'popper'; SFX.power();
-    await say('Kinan gets the <b>Party Popper</b> for the final fight! Stomp Mom <b>' + d.hp + ' times</b>. Go go go!', 'k');
+    await say('Kinan gets the <b>Party Popper</b> for the final fight! Stomp Mom <b>' + hp + ' times</b>. Go go go!', 'k');
   } else {
-    await say('Jump on their head <b>' + d.hp + ' times</b> to win!', 'k');
+    await say('Jump on their head <b>' + hp + ' times</b> to win!', 'k');
   }
   updateBossHud();
   boss = 'fight';
@@ -2359,8 +2377,31 @@ function damage(b, n, why) {
   if (!broBoss && main && main.hp <= main.max * 0.75 && !main.out && !bro && boss === 'fight') { broBoss = true; callBro(); }
   if (b.hp <= b.max / 2) b.anger = 1;
 }
+/* Kinan lost a boss fight: count it, and after 3 in a row offer a helping hand (Shad, 2026-10-20) */
+async function bossLost() {
+  progress.bossLosses = progress.bossLosses || {};
+  const i = L.i, n = (progress.bossLosses[i] || 0) + 1;
+  progress.bossLosses[i] = n; save();
+  if (L.helped || n % 3 !== 0 || !bosses.length) return;
+  if (!(await askHelp())) return;
+  L.helped = true; L.bossR = bossRules(i);
+  bosses[0].max = Math.max(2, Math.round(LV[i].boss.hp * 0.7));   /* fewer stomps than even the original */
+  dadSpecialPlan = worldOf(i) === 1;   /* Dad's hydro vac joins in this time */
+  toast('<b>Helping hand!</b> Only ' + bosses[0].max + ' stomps this time, and help is on the way. You got this! 💪', 3200);
+}
+function askHelp() {
+  return new Promise((resolve) => {
+    const box = $('#helpAsk'); if (!box) { resolve(false); return; }
+    $('#helpAskWho').textContent = worldOf(L.i) === 1 ? 'Dad and Shad jump in to help' : 'Shad jumps in and Mom sends a care package';
+    box.hidden = false; SFX.click();
+    const done = (yes) => { box.hidden = true; SFX.click(); resolve(yes); };
+    $('#helpYes').onclick = () => done(true);
+    $('#helpNo').onclick = () => done(false);
+  });
+}
 async function bossDefeated() {
   boss = 'done';
+  if (progress.bossLosses) delete progress.bossLosses[L.i];   /* beaten: the count starts again */
   paused = true;
   shots = []; blasts = []; allyShots = [];
   updateBossHud();
@@ -2388,7 +2429,10 @@ function bossAI(b) {
   if (b.flash > 0) b.flash--;
   b.vy = Math.min(7.8, b.vy + 0.42);
   if (b.stun > 0) { b.stun--; b.vx = 0; moveY(b); return; }
-  const anger = 1 + (1 - b.hp / b.max) * 0.9;
+  const R = L.bossR || bossRules(i);
+  b.pace = (b.pace || 0) + R.pace;   /* a tougher boss's timers run faster: attacks sooner, shorter rests */
+  if (b.pace >= 1) { b.pace -= 1; if (b.t > 1) b.t--; }
+  const anger = (1 + (1 - b.hp / b.max) * 0.9) * R.speed;
   const myFinal = !!LV[i].final;
 
   if (b.kind === 'mom') {
@@ -2623,7 +2667,7 @@ function updateAllies() {
     if (target && --a.t <= 0) {
       const dx = target.x - a.x;
       const plates = LV[L.i].bg !== 'art';
-      allyShots.push({ x: a.x + 4, y: a.y, w: 9, h: 9, vx: clamp(dx / 48, -3.2, 3.2), vy: -4.7, life: 220, dmg: 0.5, why: plates ? 'CLANG!' : 'SPLAT', color: plates ? '#f4f1e8' : ['#ff4fa3', '#44c55a', '#3fa9f5'][ri(0, 2)] });
+      allyShots.push({ x: a.x + 4, y: a.y, w: 9, h: 9, vx: clamp(dx / 48, -3.2, 3.2), vy: -4.7, life: 220, dmg: (L.bossR || bossRules(L.i)).paint, why: plates ? 'CLANG!' : 'SPLAT', color: plates ? '#f4f1e8' : ['#ff4fa3', '#44c55a', '#3fa9f5'][ri(0, 2)] });
       a.t = 140 + ri(0, 60);
       if (Math.random() < 0.35) toast('<b>CHENOA:</b> ' + pick(plates ? ['Order up!', 'Table for ONE, Mom!', 'Go, little bro!', 'Team Kinan forever!'] : ['Paint attack!', 'Go, little bro!', 'Team Kinan forever!']), 1300);
     }
@@ -4206,6 +4250,28 @@ function stageName(i) { return (worldOf(i) > 1 ? 'World ' + worldOf(i) + ' · ' 
 function stageLabel(i) { const w = worldInfo(i); return (w.n > 1 ? 'WORLD ' + w.n + ' · ' : '') + 'STAGE ' + stageNum(i) + ' / ' + (w.to - w.from + 1) + ' · ' + LV[i].place.toUpperCase(); }
 /* how hard a stage is: World 2 starts a bit harder than the end of World 1 and climbs gently */
 const stageDiff = (i) => (i <= 10 ? i : 8 + (i - 11) * 0.4);
+/* how tough a stage's boss is (Shad, 2026-10-20): 0 = the original fight. World 1 stages 1-5 stay 0, then it climbs
+   to the finale; World 2 starts above that; each world after starts 1.5 higher again. */
+function bossTough(i) {
+  const w = worldOf(i), k = i - WORLDS[w - 1].from;
+  if (w === 1) return Math.max(0, (k - 4) * 0.4);   /* stage 6: 0.4 ... the finale: 2.4 */
+  return 2.5 + (w - 2) * 1.5 + k * 0.25;            /* World 2: 2.5 ... 4.75 */
+}
+/* what the toughness does. A helping hand (after 3 losses in a row) brings back the original fight. */
+function bossRules(i) {
+  const t = L && L.helped ? 0 : bossTough(i);
+  return {
+    tough: t,
+    extraHp: Math.round(t * 0.75),             /* more stomps to win */
+    pace: Math.min(0.5, t * 0.1),              /* attacks come round sooner, rests are shorter */
+    speed: 1 + t * 0.05,                       /* walks a little faster */
+    shadHits: t < 1,                           /* early on Shad's slam knocks a hit off; later it only stuns */
+    shadStun: Math.round(110 / (1 + t * 0.25)),
+    dadVac: t < 1 ? 0.65 : 0.35,               /* World 1: how often Dad's hydro vac joins a boss fight */
+    heal: t < 1 ? 99 : (t < 2.5 ? 2 : 1),      /* hearts back from the refill during a boss fight */
+    paint: t < 1 ? 0.5 : 0.25                  /* Chenoa's paint, per splat */
+  };
+}
 /* the next stage to play: the first open stage not beaten yet, in the newest open world */
 function nextStage() {
   for (let n = WORLDS.length; n >= 1; n--) {
@@ -8301,6 +8367,7 @@ window.__k11 = {
     cell: (tx, ty) => (builder ? builder.g[ty * builder.b.w + tx] : null),
     saved: () => (progress.builds || []).map((b) => ({ name: b.name, w: b.w, theme: b.theme, candles: b.candles.length, foes: b.foes.length }))
   },
+  bosses: { tough: (i) => bossTough(i), rules: (i) => bossRules(i), losses: () => Object.assign({}, progress.bossLosses || {}) },
   worlds: {
     open: (n) => worldOpen(n), next: () => nextStage(), code: (t) => useCode(t), status: () => WORLDS.slice(0, 3).map((w) => worldStatus(w)),
     stages: () => LV.map((th, i) => ({ i: i, world: worldOf(i), num: stageNum(i), place: th.place, boss: th.boss ? th.boss.kind : null, open: stageOpen(i), clock: th.clock }))
