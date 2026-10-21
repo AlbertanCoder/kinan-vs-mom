@@ -87,6 +87,7 @@ button{font:inherit;color:inherit;touch-action:manipulation}
 @keyframes cpop{0%{transform:scale(1.6) rotate(-6deg)}100%{transform:scale(1) rotate(0)}}
 .toast{position:absolute;left:50%;top:8px;transform:translateX(-50%);width:max-content;max-width:94%;padding:5px 11px;background:rgba(17,19,43,.94);border:2px solid var(--edge);border-radius:5px;font-size:clamp(12px,2.6vw,16px);text-align:center;pointer-events:none;line-height:1.25}
 .toast b{color:var(--gold)}
+.toast.menutoast{position:fixed;top:max(10px,env(safe-area-inset-top));z-index:80}
 .dialog{position:absolute;left:7px;right:7px;bottom:7px;display:flex;align-items:center;gap:9px;padding:8px 30px 8px 8px;font-size:clamp(13px,3.1vw,18px);line-height:1.3;cursor:pointer;background:rgba(27,30,70,.97);min-height:52px}
 .dialog p{margin:0}
 .dialog b{color:var(--gold)}
@@ -131,6 +132,7 @@ button{font:inherit;color:inherit;touch-action:manipulation}
 .eyebrow{margin:0;font-size:11.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--dim)}
 .logo{width:88px;height:88px;display:block;image-rendering:pixelated;border-radius:6px;box-shadow:0 4px 0 rgba(0,0,0,.35);margin-bottom:2px}
 @media (max-width:560px){.logo{width:68px;height:68px}}
+@media (orientation:landscape) and (max-height:500px){html .logo{width:36px;height:36px}html h1.title .t1{font-size:clamp(28px,9vh,48px)}html h1.title .t2{font-size:clamp(16px,5vh,24px)}html .modes{grid-template-columns:1fr 1fr;gap:8px;margin:4px 0}html .screen{gap:8px;padding:10px 12px 14px}html .modebtn .mt{min-width:0}html .modebtn small{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}}
 h1.title{margin:0;font-family:var(--display);font-weight:400;line-height:.86;text-wrap:balance;letter-spacing:.01em}
 h1.title .t1{display:block;font-size:clamp(50px,13.5vw,96px);color:var(--gold);text-shadow:3px 3px 0 var(--maroon)}
 h1.title .t2{display:block;font-size:clamp(24px,6.4vw,40px);color:var(--edge)}
@@ -1041,7 +1043,7 @@ LV.push(
     intro: ['The rig at night. Lights everywhere. And Dad, at the controls of the biggest hydro vac Kinan has ever seen.', '<b>DAD:</b> Hey bud. You were supposed to wait in the truck.'],
     boss: { kind: 'dadboss', title: 'Hydro Vac Dad', hp: 6, face: 'd' },
     bossIntro: ['<b>DAD:</b> You want to see what a hydro vac operator can REALLY do? Okay. Let\'s go.', '<b>DAD:</b> I can dig a hole without touching one single pipe. I can suck up a mud puddle in two seconds. And I can DEFINITELY catch one sneaky kid.',
-      'His hydro vac pulls you in! Jump over the pull, dodge the water, and stomp Dad <b>6 times</b>!'],
+      'His hydro vac pulls you in! Jump over the pull, dodge the water, and stomp Dad!'],
     taunts: ['Ha! Missed me!', 'Hard hat ON, mister!', 'You are SO grounded... after ice cream.', 'This hose is LOUD, eh?', 'Okay, that one tickled!'],
     win: []
   }
@@ -1257,9 +1259,9 @@ function loadProgress() {
 let progress = loadProgress();
 let saveWarnAt = 0;
 /* a save that doesn't fit (the device is out of room) says so, at most every 30 s, instead of failing quietly */
-const save = () => {
+const save = (loud) => {   /* loud: a save the player asked for always says when it didn't work */
   if (store.set(SAVE_KEY, progress)) return true;
-  if (Date.now() - saveWarnAt > 30000) { saveWarnAt = Date.now(); toast('This device is out of room, so the game could not save! Delete a homemade level or two to make room.', 4200); }
+  if (loud || Date.now() - saveWarnAt > 30000) { saveWarnAt = Date.now(); toast('This device is out of room, so the game could not save! Delete a homemade level or two to make room.', 4200); }
   return false;
 };
 
@@ -1327,6 +1329,7 @@ window.addEventListener('keydown', (e) => {
   if (e.repeat) return;
   AudioSys.init();
   if (smash && smashKey(k, true)) return;   /* Family Smash has its own buttons: attack, special, shield, aim */
+  if (advance && ['Space', 'ArrowUp', 'KeyW', 'KeyZ', 'KeyX', 'KeyJ'].indexOf(k) >= 0) { advanceDialog(); return; }   /* a story box: the jump and pow keys move it on too */
   if (k === 'ArrowLeft' || k === 'KeyA') actionDown('left');
   else if (k === 'ArrowRight' || k === 'KeyD') actionDown('right');
   else if (k === 'Space' || k === 'ArrowUp' || k === 'KeyW' || k === 'KeyZ') actionDown('jump');
@@ -1369,11 +1372,11 @@ function bindPad() {
   });
 }
 
-let padPrev = {}, padIn = { left: false, right: false, jump: false };
+let padPrev = {}, padIn = { left: false, right: false, jump: false, down: false };
 function pollGamepad() {
   if (!navigator.getGamepads) return;
   const pads = navigator.getGamepads();
-  padIn.left = padIn.right = padIn.jump = false;
+  padIn.left = padIn.right = padIn.jump = padIn.down = false;
   for (let i = 0; i < pads.length; i++) {
     const gp = pads[i]; if (!gp) continue;
     const ax = gp.axes[0] || 0;
@@ -1390,15 +1393,24 @@ function pollGamepad() {
       padPrev = st;
       break;
     }
+    if (advance) {   /* a story box is open: any face button or Start moves it on (holding one doesn't skip the next box) */
+      const any = btn(0) || btn(1) || btn(2) || btn(3) || btn(9);
+      if (any && !padPrev.adv) advanceDialog();
+      padPrev = { adv: any, jump: btn(0) || btn(12), fire: btn(1) || btn(2) || btn(3), start: btn(9) };
+      break;
+    }
+    const ay = gp.axes[1] || 0;
     const st = {
       left: ax < -0.35 || btn(14), right: ax > 0.35 || btn(15),
-      jump: btn(0) || btn(12), fire: btn(2) || btn(1) || btn(3),
+      jump: btn(0) || btn(12), fire: btn(2) || btn(1) || (!kart && btn(3)),
+      spec: !!kart && (btn(3) || btn(4) || btn(5)), down: !!kart && (ay > 0.5 || btn(13) || btn(6) || btn(7)),   /* Family Kart: Y or a shoulder = ★ special; stick down or a trigger = brake */
       start: btn(9)
     };
     if (st.jump && !padPrev.jump) input.jumpBuf = 8;
     if (st.fire && !padPrev.fire) input.fireBuf = 10;
+    if (st.spec && !padPrev.spec) input.specBuf = 10;
     if (st.start && !padPrev.start) togglePause();
-    padIn.left = st.left; padIn.right = st.right; padIn.jump = st.jump;
+    padIn.left = st.left; padIn.right = st.right; padIn.jump = st.jump; padIn.down = st.down;
     padPrev = st;
     break;
   }
@@ -1639,6 +1651,11 @@ function advanceDialog() { if (advance) advance(); }
 el.dialog.addEventListener('click', advanceDialog);
 
 function toast(html, ms) {
+  /* on a menu screen the game picture (and this message inside it) is hidden: float the message over the menu */
+  const onMenu = el.stage.hidden;
+  if (onMenu && el.toast.parentNode !== document.body) document.body.appendChild(el.toast);
+  else if (!onMenu && el.toast.parentNode !== el.stage) el.stage.insertBefore(el.toast, el.dialog);
+  el.toast.classList.toggle('menutoast', onMenu);
   el.toast.innerHTML = html;
   el.toast.hidden = false;
   clearTimeout(toastTimer);
@@ -1654,7 +1671,7 @@ function setPaused(on, showMenu) {
   const pn = document.getElementById('pauseNote'), onl = (smash && smash.online) || (kart && kart.online);
   if (pn) {
     pn.hidden = !(on && onl);
-    if (on && onl) pn.textContent = kart ? 'Online: the race keeps going for everyone else while you\'re paused.'
+    if (on && onl) pn.textContent = kart ? 'Online: the race keeps going while you\'re paused, and your kart stops where it is.'
       : (onl.role === 'client' ? 'Online: the fight keeps going for everyone else while you\'re paused.' : 'Online: everyone else waits while you\'re paused.');
   }
   if (on && smash && onl && onl.role === 'client' && NET.send) { NET.lastIn = ''; NET.send.input({ l: false, r: false, j: false, u: false, d: false, a: false, sh: false, jp: NET.jp, fp: NET.fp, ap: NET.ap || 0 }); }
@@ -1811,7 +1828,9 @@ function autoSave() {
 function manualSave() {
   const s = snapshotStage();
   if (!s) { toast('Nothing to save right now.', 1400); return; }
-  progress.resume = s; save(); SFX.save();
+  progress.resume = s;
+  if (!save(true)) return;   /* out of room: the warning shows instead of Saved */
+  SFX.save();
   toast('<b>Saved!</b> ✓ CONTINUE on the title screen brings you back here.', 2600);
   const b = $('#saveBtn');
   if (b) { b.textContent = 'Saved ✓'; setTimeout(() => { b.textContent = 'Save game'; }, 1500); }
@@ -1937,8 +1956,8 @@ function die() {
   Music.duck(true);
   (async () => {
     const atBoss = boss === 'fight';
-    const who = atBoss ? 'mom' : 'dad';
-    await say(atBoss ? '<b>MOM:</b> Aww, come here, you need a hug. Then try again!' : '<b>ROBIN:</b> Shake it off, bud. Back to the checkpoint!', who, 'h');
+    const w2 = worldOf(L.i) > 1, who = atBoss && !w2 ? 'mom' : 'dad';   /* World 2 is at Dad's job site: Dad cheers him on */
+    await say(atBoss ? (w2 ? '<b>DAD:</b> So close, bud! Shake it off and try again!' : '<b>MOM:</b> Aww, come here, you need a hug. Then try again!') : '<b>ROBIN:</b> Shake it off, bud. Back to the checkpoint!', who, 'h');
     if (atBoss) await bossLost();
     Music.duck(false);
     P.hp = P.max; P.dead = 0; P.inv = 110; P.vx = 0; P.vy = 0;
@@ -2358,7 +2377,8 @@ function updateShots() {
 /* ============================================================
    BOSSES
    ============================================================ */
-const BOSS_NAMES = { mom: 'MOM', chenoa: 'CHENOA', mech: 'MEGA-MECH', neighbour: 'NEIGHBOUR', bully: 'BIG KID' };
+const BOSS_NAMES = { mom: 'MOM', chenoa: 'CHENOA', mech: 'MEGA-MECH', neighbour: 'NEIGHBOUR', bully: 'BIG KID',
+  moose: 'BULL MOOSE', foreman: 'SAFETY FOREMAN', pumpjack: 'PUMPJACK PETE', dadboss: 'HYDRO VAC DAD' };
 function bossName(b) { return BOSS_NAMES[b.kind] || 'BOSS'; }
 function makeBoss(kind, x, hp, prop) {
   const sizes = { mom: [14, 22], chenoa: [12, CH_H], mech: [28, 34], neighbour: [14, 22], bully: [14, 22], moose: [36, 32], foreman: [14, 22], pumpjack: [28, 34], dadboss: [14, 22] };
@@ -4090,7 +4110,7 @@ function showScreen(html) {
   builder = null; $('#btools').hidden = true; el.stage.classList.remove('buildmode');
   $('#bBackBtn').hidden = true; bPanelClose();
   el.dialog.hidden = true;
-  el.toast.hidden = true;
+  if (!el.toast.classList.contains('menutoast')) el.toast.hidden = true;   /* a message over the menus stays up across menu screens until it times out */
   el.pause.hidden = true;
   el.bossHud.hidden = true;
   el.comboEl.hidden = true;
@@ -4212,7 +4232,7 @@ function enterPuzzle(pc) {
   L = pz.room;
   P.x = 2.5 * T; P.y = GROUND * T - P.h; P.vx = 0; P.vy = 0; P.face = 1; P.onGround = true;
   trail = []; shots = []; blasts = []; camX = 0;
-  el.stageLbl.textContent = 'STAGE ' + (i + 1) + ' · PUZZLE ROOM';
+  el.stageLbl.textContent = (worldOf(i) > 1 ? 'WORLD ' + worldOf(i) + ' · ' : '') + 'STAGE ' + stageNum(i) + ' · PUZZLE ROOM';
   SFX.flag();
   toast(PUZZLE_HELP[kind], 3400);
 }
@@ -4866,7 +4886,7 @@ function shopTap(id, from) {
   if (ownsItem(id)) { equip(it, !isEquipped(it)); shopConfirm = null; save(); SFX.save(); }
   else if ((progress.wallet || 0) < it.price) { shopConfirm = null; SFX.click(); shopMsg = 'Need <b>' + (it.price - (progress.wallet || 0)) + '</b> more coins for the ' + it.name + '.'; }
   else if (shopConfirm !== id) { shopConfirm = id; SFX.click(); }
-  else { progress.wallet -= it.price; progress.owned.push(id); shopConfirm = null; equip(it, true); save(); SFX.power(); shopMsg = '🛍️ <b>' + it.name + '</b> is yours!'; }
+  else { progress.wallet -= it.price; progress.owned.push(id); shopConfirm = null; equip(it, true); const kept = save(true); SFX.power(); shopMsg = '🛍️ <b>' + it.name + '</b> is yours!' + (kept ? '' : ' This device is out of room, so it will be gone next time.'); }
   shopScreen(from);
   window.scrollTo(0, y);   /* stay where you were in the list */
 }
@@ -4883,7 +4903,7 @@ function titleScreen() {
   const rs = progress.resume && LV[progress.resume.i] ? progress.resume : null;
   const cont = !!rs || progress.beaten.length > 0 || progress.unlocked > 1;
   const next = nextStage();
-  const storySub = rs ? 'Continue · ' + stageName(rs.i) + ' · ' + LV[rs.i].place + (rs.atBoss ? ' · at the boss' : (rs.cpHit ? ' · past the checkpoint' : '')) + ' · ' + rs.got + ' coins'
+  const storySub = rs ? 'Continue · ' + stageName(rs.i) + ' · ' + LV[rs.i].place + (rs.atBoss ? ' · at the boss' : (rs.cpHit ? ' · past the checkpoint' : '')) + ' · ' + rs.got + (rs.got === 1 ? ' coin' : ' coins')
     : (cont ? 'Continue · ' + stageName(next) + ' · ' + LV[next].place + ' · ' + progress.beaten.filter((b) => worldOf(b) === worldOf(next)).length + ' of ' + (worldInfo(next).to - worldInfo(next).from + 1) + ' cleared' : '11 stages · 1 birthday · 4 cats · 2 dogs');
   /* the front door: pick a game. The story text and the moves live under "How to play". */
   showScreen(
@@ -4918,8 +4938,9 @@ function titleScreen() {
   const mb = $('#mapBtn'); if (mb) mb.addEventListener('click', () => { AudioSys.init(); SFX.click(); mapScreen(); });
   const nb = $('#newBtn');
   if (nb) nb.addEventListener('click', () => {
-    if (!confirm('Start over? This clears all stars, pets and stage progress.')) return;
-    progress = JSON.parse(JSON.stringify(DEFAULT_PROGRESS));
+    if (!confirm('Start over? The story goes back to stage 1: stars, pets, coins, Party Shop things, golden coins, Kart best times and settings are cleared. Your homemade levels and reward codes stay.')) return;
+    const keep = { builds: progress.builds || [], codes: progress.codes || [], bTour: progress.bTour };   /* his own levels and the codes he was given are his */
+    progress = Object.assign(JSON.parse(JSON.stringify(DEFAULT_PROGRESS)), JSON.parse(JSON.stringify(keep)));
     progress.sound = AudioSys.on;
     progress.unlocked = 1; applyLite(); save(); SFX.click(); titleScreen();
   });
@@ -4998,7 +5019,7 @@ function mapScreen() {
   const mw = WORLDS[want - 1] && !WORLDS[want - 1].soon ? want : 1, wd = WORLDS[mw - 1];
   const tabsOld = '<div class="worldtabs">' + WORLDS.slice(0, 3).map((w) => '<button type="button" class="worldtab' + (w.n === mw ? ' on' : '') + '" data-world="' + w.n + '"' + (w.soon ? ' disabled' : '') + '>' +
     (worldOpen(w.n) ? '' : '🔒 ') + '<b>World ' + w.n + '</b> · ' + (w.soon ? 'coming soon' : escAttr(w.name)) + '</button>').join('') + '<button type="button" class="worldtab" id="codeBtnM">🎁 Reward code</button></div>';
-  const lock = worldOpen(mw) ? '' : '<div class="lockcard"><p><b>🔒 World ' + mw + ': ' + escAttr(wd.name) + '</b> · ' + escAttr(wd.where) + ' · 10 new stages and a new boss</p><p class="tiny">' + worldStatus(wd) + '. A grown-up gives out reward codes when you have been awesome.</p></div>';
+  const lock = worldOpen(mw) ? '' : '<div class="lockcard"><p><b>🔒 World ' + mw + ': ' + escAttr(wd.name) + '</b> · ' + escAttr(wd.where) + ' · ' + (wd.to - wd.from + 1) + ' new stages and ' + ((n) => n + ' new boss' + (n === 1 ? '' : 'es'))(LV.slice(wd.from, wd.to + 1).filter((v) => v && v.boss).length) + '</p><p class="tiny">' + worldStatus(wd) + '. A grown-up gives out reward codes when you have been awesome.</p></div>';
   const here = []; for (let i = wd.from; i <= wd.to; i++) here.push(i);
   const clearedHere = here.filter((i) => progress.beaten.includes(i)).length, starsHere = here.reduce((a, i) => a + (progress.stars[i] || 0), 0);
   const list = !worldOpen(mw) ? '' : here.map((i) => {
@@ -5039,7 +5060,7 @@ function mapScreen() {
     '<div class="divider"></div>' +
     '<p class="eyebrow">The pet pack · ' + progress.pets.ids.length + ' of 6 rescued · tap a name to change it</p>' +
     '<div class="petedit">' + petEditor + '</div>' +
-    '<div class="btnrow"><button class="btn go" type="button" id="playNext">' + (progress.won ? 'Replay final stage' : 'Play next stage') + '</button>' +
+    '<div class="btnrow"><button class="btn go" type="button" id="playNext">' + (progress.beaten.indexOf(nextStage()) >= 0 ? 'Replay final stage' : 'Play next stage') + '</button>' +
     '<button class="btn" type="button" id="shopBtnM">🛍️ Party Shop</button>' +
     '<button class="btn" type="button" id="titleBtn">Title screen</button></div>' +
     '<p class="wrapnote">Tip: 3 stars needs a clean run — clear the boss, collect 70% of coins and lose zero hearts.</p>'
@@ -5124,7 +5145,7 @@ function resultsScreen(i) {
     '<div><dt>Score</dt><dd>' + score.toLocaleString() + (newBest ? ' <b>★</b>' : '') + '</dd></div>' +
     '<div><dt>Best combo</dt><dd>' + (bestCombo > 1 ? 'x' + bestCombo : '—') + '</dd></div>' +
     '</dl>' +
-    (st < 3 ? '<p class="wrapnote">' + (pct < 0.7 ? 'Grab 70% of the coins' : '') + (pct < 0.7 && heartsLost > 0 ? ' and ' : '') + (heartsLost > 0 ? 'never lose a heart' : '') + ' for 3 stars.</p>' : '<p class="wrapnote">Perfect run. Kinan is unstoppable. ⭐⭐⭐</p>') +
+    (st < 3 ? '<p class="wrapnote">' + (pct < 0.7 ? 'Grab 70% of the coins' : '') + (heartsLost > 0 ? (pct < 0.7 ? ' and never' : 'Never') + ' lose a heart' : '') + ' for 3 stars.</p>' : '<p class="wrapnote">Perfect run. Kinan is unstoppable. ⭐⭐⭐</p>') +
     '<p class="wrapnote" id="walletNote">🛍️ +' + got + ' coins for the Party Shop · you have <b>' + (progress.wallet || 0) + '</b></p>' +
     '<p class="wrapnote" id="goldNote">' + (goldCount(i) === 3 ? '<i class="coin-ico"></i>All 3 golden coins found here!' : '<i class="coin-ico"></i>Golden coins here: <b>' + goldCount(i) + '</b> / 3 · jump into the 🧩 puzzle pieces to find them') + '</p>' +
     (th.meanwhile ? '<p class="lede meanwhile"><b>Meanwhile…</b> ' + th.meanwhile.replace('{coins}', String(progress.totalCandles || 0)) + '</p>' : '') +
@@ -5157,7 +5178,7 @@ function ending() {
   refreshWorlds();
   save();
   Music.play('title');
-  const stars = totalStars();
+  let stars = 0; for (let k = 0; k <= 10; k++) stars += progress.stars[k] || 0;   /* World 1's own 33 */
   const petFigures = PET_DEFS.map((d) => {
     const own = progress.pets.ids.indexOf(d.id) >= 0;
     return '<figure' + (own ? '' : ' style="opacity:.4"') + '>' + imgOf(PET_SPRITES[d.id], 4) + '<figcaption>' + (own ? escAttr(petName(d.id)) : 'Not rescued') + '</figcaption></figure>';
@@ -7849,7 +7870,7 @@ function kartUpdate() {
   const K = kart;
   frame++;
   pollGamepad();
-  if (paused) return;
+  if (paused && !K.online) return;   /* online the race goes on for everyone: your own kart just stops while you're paused */
   K.t++;
   if (K.state === 'countdown') {
     K.count--;
@@ -7859,12 +7880,13 @@ function kartUpdate() {
   const me = kartMe();
   /* this player's buttons drive their kart (unless the race is over for them: then the computer drives it home) */
   if (me && !me.cpu && !me.auto) {
-    const mi = me.input;
-    mi.left = input.left || padIn.left; mi.right = input.right || padIn.right; mi.jump = input.jump || padIn.jump; mi.down = !!input.down;
-    if (input.jumpBuf > 0) { mi.jumpBuf = input.jumpBuf; input.jumpBuf = 0; }
-    if (input.fireBuf > 0) { mi.fireBuf = input.fireBuf; input.fireBuf = 0; }
-    if (input.specBuf > 0) { mi.specBuf = input.specBuf; input.specBuf = 0; }
-    mi.steer = kWheel.id != null ? kWheel.v : null;
+    const mi = me.input, on = !paused;   /* paused in an online race: let go of everything; the kart rolls to a stop and waits */
+    mi.left = on && (input.left || padIn.left); mi.right = on && (input.right || padIn.right); mi.jump = on && (input.jump || padIn.jump); mi.down = on && (!!input.down || padIn.down);
+    if (input.jumpBuf > 0) { if (on) mi.jumpBuf = input.jumpBuf; input.jumpBuf = 0; }
+    if (input.fireBuf > 0) { if (on) mi.fireBuf = input.fireBuf; input.fireBuf = 0; }
+    if (input.specBuf > 0) { if (on) mi.specBuf = input.specBuf; input.specBuf = 0; }
+    mi.steer = on && kWheel.id != null ? kWheel.v : null;
+    me.paused = paused;
   }
   for (const k of K.karts) {
     if (k.remote) { kartRemoteStep(k); continue; }   /* another player's kart in an online race: it moves by their messages */
@@ -7934,7 +7956,7 @@ function kartStep(k) {
   const off = Math.abs(k.lat) > tr.width / 2 + 3 && k.z <= 0;
   if (off && k.boostT <= 0 && k.starT <= 0) { top *= 0.55; if (k.v > 1 && K.t % 3 === 0) kartDust(k); }
   if (k.spinT > 0) { k.spinT--; top *= 0.25; k.spinA += 0.42; } else k.spinA = 0;
-  if (!racing) top = 0;
+  if (!racing || k.paused) top = 0;   /* k.paused: its player paused in an online race */
   if (inp.down && racing) k.v = Math.max(-1.1, k.v - 0.1);
   else if (k.v < top) k.v = Math.min(top, k.v + d.accel * (k.v < 1.3 ? 1.7 : 1));
   else k.v = Math.max(top, k.v - (off ? 0.09 : 0.045));
@@ -8439,6 +8461,12 @@ function drawKartHud() {
       if (k < lit) { glowDisc(cx, cy - 14, 14, 'rgba(255,190,80,.8)', 0.9); ctx.fillStyle = '#ffb02e'; ctx.beginPath(); ctx.ellipse(cx, cy - 15, 4.5, 7, 0, 0, 6.284); ctx.fill(); ctx.fillStyle = '#fff3b0'; ctx.beginPath(); ctx.ellipse(cx, cy - 13, 2, 3.5, 0, 0, 6.284); ctx.fill(); }
     }
     if (lit) kText(String(4 - lit), W / 2, 122, 34, '#f6c445', 'center');
+  }
+  /* online: the room maker's game stopped sending (in the background, or the screen locked): say so */
+  if (K.online && K.online.role === 'client' && K.hostAt && Date.now() - K.hostAt > 1500 && !(K.endT < 0)) {
+    const host = K.karts[0];
+    ctx.fillStyle = 'rgba(10,11,24,.82)'; ctx.fillRect(W / 2 - 112, 84, 224, 22);
+    kText('Waiting for ' + (host ? host.name : 'the host') + '\'s game…', W / 2, 99, 11, '#f6c445', 'center');
   }
   if (K.msg) kText(K.msg.text, W / 2, 120, K.msg.text.length > 8 ? 26 : 34, K.msg.col, 'center');
   else if (me.wrongT > 60 && Math.floor(K.t / 20) % 2) kText('WRONG WAY ↩', W / 2, 120, 22, '#ff6b6b', 'center');
@@ -8956,7 +8984,7 @@ function buildCustom(b, from) {
     foes: b.foes.map((f) => ({ tx: f[0], ty: FOE[f[2]] && FOE[f[2]].beh === 'flyer' ? f[1] - 2 : f[1], type: FOE[f[2]] ? f[2] : 'sock' })),
     candles: b.candles.map((c) => ({ tx: c[0], ty: c[1] })),
     arenaX: hasBoss ? b.bossAt : w + 8, arenaW: hasBoss ? 28 : 1, hasBoss: hasBoss,
-    goalBox: b.goal ? { x: b.goal[0] * T - 2, y: (b.goal[1] + 1) * T - fh, w: T + 4, h: fh } : null,
+    goalBox: b.goal ? { x: b.goal[0] * T - 2, y: (b.goal[1] + 1) * T - fh - 6 * T, w: T + 4, h: fh + 6 * T } : null,   /* a tall invisible pole: jumping over the flag counts too */
     custom: true, src: b, startT: from || b.start, th: customTheme(b), song: song
   };
 }
