@@ -5232,6 +5232,7 @@ function updateSmash() {
   if (hitStop > 0) { hitStop--; updateFx(); return; }
   if (paused) { updateFx(); return; }
   S.t++;
+  if (S.online) S.fighters.forEach((f) => { if (f.away && Date.now() - f.away > NET_AWAY_MS) smashDropOut(f); });
   if (S.state === 'countdown') {
     S.count--;
     if (S.count === 90 || S.count === 30) SFX.click();
@@ -5254,6 +5255,7 @@ function updateSmash() {
 function updateFighter(f) {
   const c = SMASH_CHARS[f.who], inp = f.input;
   if (f.out) return;
+  if (f.away) { f.vx = 0; f.vy = 0; f.inv = Math.max(f.inv, 2); return; }   /* reconnecting: frozen and can't be hit */
   if (f.ko > 0) { f.ko--; if (f.ko === 0) { placeFighter(f, true); f.inv = 150; f.dmg = 0; } return; }
   const wasGround = f.onGround;
   const control = f.stun === 0 && !(f.act && f.act.lock);
@@ -5642,6 +5644,7 @@ function drawFighter(f) {
   const tag = f.name + ' ' + f.dmg + '%', tagY = sy - 4 - (f.shield > 0 ? 5 : 0);
   ctx.fillStyle = '#1b1220'; ctx.fillText(tag, sx + w / 2 + 1, tagY + 1);
   ctx.fillStyle = c.color; ctx.fillText(tag, sx + w / 2, tagY);
+  if (f.away) { ctx.fillStyle = '#1b1220'; ctx.fillText('reconnecting…', sx + w / 2 + 1, tagY - 9); ctx.fillStyle = '#fff3b0'; ctx.fillText('reconnecting…', sx + w / 2, tagY - 10); }
   for (let k = 0; k < (f.ammo || 0); k++) { ctx.fillStyle = ['#ff6fae', '#f6c445', '#6fc8ff'][k % 3]; ctx.fillRect(Math.round(sx + w / 2 - 6 + k * 5), tagY - 13, 3, 3); }   /* popper shots left */
 }
 function drawSmashShots() {
@@ -5869,7 +5872,8 @@ function smashResults() {
    (trystero) and then talk directly over WebRTC. The room's host runs
    the fight; everyone else sends their buttons and sees the host's picture.
    ============================================================ */
-const NET = { lib: null, room: null, code: null, role: null, peers: {}, send: null, myWho: 'kinan', arena: -1, status: 'off', error: '', ping: {}, jp: 0, fp: 0, selfId: null, lastIn: '', lastInAt: 0, pingTimer: null };
+const NET = { lib: null, room: null, code: null, role: null, peers: {}, send: null, myWho: 'kinan', arena: -1, status: 'off', error: '', ping: {}, jp: 0, fp: 0, selfId: null, lastIn: '', lastInAt: 0, pingTimer: null, bye: {}, reconnect: null };
+const NET_AWAY_MS = 20000;   /* how long a dropped player's place is kept while their phone reconnects */
 const NET_LIB_URLS = ['https://cdn.jsdelivr.net/npm/trystero@0.26.0/+esm', 'https://unpkg.com/trystero@0.26.0?module'];
 const ROOM_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
 function roomCode() { let s = ''; for (let k = 0; k < 4; k++) s += ROOM_ALPHABET[Math.floor(Math.random() * ROOM_ALPHABET.length)]; return s; }
@@ -5905,7 +5909,7 @@ function netOn(evt, fn) {
   if (typeof NET.room[evt] === 'function') NET.room[evt](fn); else NET.room[evt] = fn;
 }
 async function netJoin(code, role, mode) {
-  netLeave();
+  netLeave(true);
   NET.mode = mode || 'smash';
   NET.status = 'loading'; NET.error = ''; NET.code = code; NET.role = role; NET.peers = {};
   /* online play needs the browser's direct-connection feature (WebRTC); a few old or in-app browsers don't have it */
@@ -5917,25 +5921,38 @@ async function netJoin(code, role, mode) {
   const lib = await netLib();
   NET.selfId = lib.selfId;
   const turn = await turnServers();
-  NET.room = lib.joinRoom({ appId: 'kinan-vs-mom-smash', turnConfig: turn }, 'kvm-' + NET.mode + '-' + code);   /* kvm-smash-CODE or kvm-kart-CODE */
+  const room = NET.room = lib.joinRoom({ appId: 'kinan-vs-mom-smash', turnConfig: turn }, 'kvm-' + NET.mode + '-' + code);   /* kvm-smash-CODE or kvm-kart-CODE */
   NET.status = 'open';
   const hello = netAction('hello'), pick = netAction('pick'), start = netAction('start'), inp = netAction('input'), state = netAction('state'), ev = netAction('event');
   const kst = netAction('kstate'), kev = netAction('kevent'), chat = netAction('chat');
   NET.send = { hello: hello.send, pick: pick.send, start: start.send, input: inp.send, state: state.send, event: ev.send, kstate: kst.send, kevent: kev.send, chat: chat.send };
   netOn('onPeerJoin', (id) => {
+    if (NET.room !== room) return;   /* a room we already left */
     NET.peers[id] = NET.peers[id] || { who: null, name: null, role: null, at: Date.now() };
     hello.send({ who: NET.myWho, role: NET.role, look: lookFor(NET.myWho) }, id);
+    if (NET.role === 'host' && smash && smash.online) smashPeerBack(id);
+    if (kart && kart.online) kartPeerBack(id);
     refreshLobby();
     if (NET.role === 'host' && !NET.pingTimer) NET.pingTimer = setInterval(netPing, 2500);
   });
-  netOn('onPeerLeave', (id) => {
+  netOn('onPeerLeave', (id) => setTimeout(() => {
+    /* a quick reconnect can report the old connection closing after the new one opened: look again first */
+    if (NET.room !== room) return;
+    let live = null; try { live = room.getPeers(); } catch (e) { /* ignore */ }
+    if (live && live[id]) return;   /* they are connected again */
     delete NET.peers[id]; delete NET.ping[id];
     if (smash && smash.online) smashPeerLeft(id);
     else if (kart && kart.online) kartPeerLeft(id);
-    else if (NET.role === 'client' && !Object.keys(NET.peers).length) NET.error = 'The room closed.';
+    else if (NET.role === 'client' && !Object.keys(NET.peers).length) { if (NET.bye[id]) NET.error = 'The room closed.'; else netReconnect(id); }   /* dropped while waiting in the room */
+    delete NET.bye[id];
     refreshLobby();
+  }, 400));
+  hello.on((d, id) => {
+    if (d && d.bye) { NET.bye[id] = true; return; }   /* they are leaving on purpose: don't hold their place */
+    NET.peers[id] = Object.assign(NET.peers[id] || { at: Date.now() }, { who: d.who, role: d.role, look: d.look || null }); refreshLobby();
+    /* back in the room after a dropped connection, but the game we were in has ended: wait in the room */
+    if (NET.reconnect && d.role === 'host') { const R = NET.reconnect; setTimeout(() => { if (NET.reconnect === R) netRejoinedRoom(); }, 2500); }
   });
-  hello.on((d, id) => { NET.peers[id] = Object.assign(NET.peers[id] || { at: Date.now() }, { who: d.who, role: d.role, look: d.look || null }); refreshLobby(); });
   pick.on((d, id) => { if (NET.peers[id]) { NET.peers[id].who = d.who; NET.peers[id].look = d.look || null; } refreshLobby(); });
   start.on((d) => { if (NET.role === 'client') { if (d && d.mode === 'kart') kartNetClientStart(d); else netClientStart(d); } });
   kst.on((d) => { if (kart && kart.online) kartApplyState(d); });
@@ -5951,10 +5968,17 @@ function netPing() {
   if (!NET.room) return;
   Object.keys(NET.peers).forEach((id) => { NET.room.ping(id).then((ms) => { NET.ping[id] = ms; if (!smash) refreshLobby(); }).catch(() => {}); });
 }
-function netLeave() {
-  chatShow(false);
+function netLeave(quiet) {
+  /* leaving on purpose (not a rejoin): tell the others first, so they don't hold our place */
+  if (!quiet) {
+    if (NET.send) { try { NET.send.hello({ bye: true }); } catch (e) { /* ignore */ } }
+    if (NET.reconnect) { clearTimeout(NET.reconnect.timer); NET.reconnect = null; }
+    chatShow(false);   /* a rejoin keeps the chat */
+  }
   if (NET.pingTimer) { clearInterval(NET.pingTimer); NET.pingTimer = null; }
-  if (NET.room) { try { NET.room.leave(); } catch (e) { /* ignore */ } }
+  const room = NET.room;   /* a goodbye needs a moment to get out before the connection closes */
+  if (room && quiet) { try { room.leave(); } catch (e) { /* ignore */ } }   /* a rejoin: close the old connection now */
+  else if (room) setTimeout(() => { try { room.leave(); } catch (e) { /* ignore */ } }, 250);
   NET.room = null; NET.send = null; NET.peers = {}; NET.ping = {}; NET.status = 'off'; NET.code = null; NET.role = null;
 }
 function netPeerList() {
@@ -5968,12 +5992,15 @@ function netStartFight() {
   if (players.length < 2) { toast('Need at least 2 players in the room.', 1600); return; }
   if (!arenaUnlocked(NET.arena)) NET.arena = newestArena();
   const itemsOn = progress.smashItems !== false;
-  NET.send.start({ players: players, arena: NET.arena, items: itemsOn });
+  const msg = { players: players, arena: NET.arena, items: itemsOn };
+  NET.send.start(msg);
   playSmash({ players: players, online: { role: 'host', me: 0 }, arena: NET.arena, items: itemsOn });
+  smash.netStart = msg;
 }
 function netClientStart(d) {
   const me = d.players.findIndex((p) => p.peer === NET.selfId);
   if (me < 0) return;
+  if (NET.reconnect) { clearTimeout(NET.reconnect.timer); NET.reconnect = null; toast('📶 Back in the game!', 1500); }
   NET.jp = 0; NET.fp = 0; NET.lastIn = '';
   playSmash({ players: d.players, online: { role: 'client', me: me }, arena: ARENAS[d.arena] ? d.arena : 0, items: d.items !== false });   /* the host's unlocks and items choice count for everyone */
 }
@@ -5987,18 +6014,69 @@ function netApplyInput(d, id) {
 function smashPeerLeft(id) {
   const f = smash.fighters.filter((o) => o.peer === id)[0];
   if (NET.role === 'host') {
-    if (f && !f.out) { f.out = true; f.stocks = 0; f.x = -9999; toast('<b>' + escAttr(f.name) + '</b> left the fight.', 2000); smashEvent('left', { s: f.slot }); checkSmashOver(); }
+    if (!f || f.out) return;
+    if (NET.bye[id] || smash.state === 'over') { smashDropOut(f); return; }   /* left on purpose */
+    /* maybe just a dropped connection: keep their place, frozen and safe, while their phone gets back in */
+    f.away = Date.now(); f.inv = Math.max(f.inv, 2);
+    Object.assign(f.input, { left: false, right: false, jump: false, jumpBuf: 0, fireBuf: 0 });
+    toast('📶 <b>' + escAttr(f.name) + '</b> lost connection. Waiting for them…', 2500);
+    smashEvent('away', { s: f.slot });
   } else if (f && f.slot === 0) {
-    toast('The host left the fight.', 2500);
-    setTimeout(() => { if (smash) { netLeave(); smashMenu(); } }, 1200);
+    if (NET.bye[id] || smash.state === 'over') {   /* the host really left */
+      toast('The host left the fight.', 2500);
+      setTimeout(() => { if (smash) { netLeave(); smashMenu(); } }, 1200);
+    } else netReconnect(id);
   }
+}
+/* a dropped player's place is given up: they are out of this fight */
+function smashDropOut(f) {
+  f.away = 0; f.out = true; f.stocks = 0; f.x = -9999;
+  toast('<b>' + escAttr(f.name) + '</b> left the fight.', 2000); smashEvent('left', { s: f.slot }); checkSmashOver();
+}
+/* a dropped player is back: send them the fight so their screen joins in again */
+function smashPeerBack(id) {
+  const S = smash, f = S.fighters.filter((o) => o.peer === id)[0];
+  if (!f || !f.away || !S.netStart) return;
+  f.away = 0; f.inv = 90;
+  NET.send.start(S.netStart, id);
+  toast('📶 <b>' + escAttr(f.name) + '</b> is back!', 1800);
+  smashEvent('back', { s: f.slot });
+}
+/* our connection to the host dropped in the middle of a game: rejoin the same room every few seconds; the host
+   puts us back in. If the host isn't back in time, go back to the menu like before. */
+function netReconnect(hostId) {
+  if (NET.role !== 'client' || NET.reconnect || !NET.code) return;
+  const R = NET.reconnect = { code: NET.code, mode: NET.mode, host: hostId, started: Date.now(), timer: null };
+  toast('📶 Connection lost. Reconnecting…', NET_AWAY_MS);
+  const attempt = () => {
+    if (NET.reconnect !== R) return;
+    if (Date.now() - R.started > NET_AWAY_MS) {
+      NET.reconnect = null;
+      toast('Could not get back into the room.', 2500);
+      setTimeout(() => { netLeave(); if (R.mode === 'kart') kartMenu(); else smashMenu(); }, 1200);
+      return;
+    }
+    /* the library already reconnected us: wait for the host's messages instead of closing that connection */
+    if (NET.room && R.host && NET.peers[R.host]) { R.timer = setTimeout(attempt, 2500); return; }
+    netJoin(R.code, 'client', R.mode).catch(() => { /* try again below */ });
+    R.timer = setTimeout(attempt, 5000);
+  };
+  R.timer = setTimeout(attempt, 1500);
+}
+/* back in the room, but the game we were in is over: wait in the room for the next one */
+function netRejoinedRoom() {
+  const R = NET.reconnect; if (!R) return;
+  clearTimeout(R.timer); NET.reconnect = null;
+  if (R.mode === 'kart' && kart && kart.online && Date.now() - (kart.hostAt || 0) < 2000) { toast('📶 Back in the race!', 1500); return; }
+  toast('📶 Back in the room.', 1500);
+  if (R.mode === 'kart') kartLobbyScreen(R.code, 'client'); else smashLobbyScreen(R.code, 'client');
 }
 /* host -> everyone: the picture, 20 times a second; client -> host: the buttons, on change and as a heartbeat */
 function smashSnapshot() {
   const S = smash;
   return {
     t: S.t, st: S.state, c: S.count, w: S.winner,
-    fs: S.fighters.map((o) => [Math.round(o.x * 10) / 10, Math.round(o.y * 10) / 10, Math.round(o.vx * 100) / 100, Math.round(o.vy * 100) / 100, o.face, o.dmg, o.stocks, o.inv, o.stun, o.ko, o.out ? 1 : 0, o.onGround ? 1 : 0, Math.round(o.anim * 10) / 10, o.cool, o.act ? o.act.kind : '', o.kos, o.falls, o.rush, o.shield, o.float, o.ammo]),
+    fs: S.fighters.map((o) => [Math.round(o.x * 10) / 10, Math.round(o.y * 10) / 10, Math.round(o.vx * 100) / 100, Math.round(o.vy * 100) / 100, o.face, o.dmg, o.stocks, o.inv, o.stun, o.ko, o.out ? 1 : 0, o.onGround ? 1 : 0, Math.round(o.anim * 10) / 10, o.cool, o.act ? o.act.kind : '', o.kos, o.falls, o.rush, o.shield, o.float, o.ammo, o.away ? 1 : 0]),
     sh: S.shots.map((s) => [s.kind, Math.round(s.x), Math.round(s.y), s.vx, s.vy, s.owner, s.prop || '']),
     dr: S.drops.map((d) => [d.kind, Math.round(d.x), Math.round(d.y), d.life, d.landed ? 1 : 0])
   };
@@ -6011,7 +6089,7 @@ function smashApplySnapshot(d) {
     const o = S.fighters[k]; if (!o) return;
     o.x = a[0]; o.y = a[1]; o.vx = a[2]; o.vy = a[3]; o.face = a[4]; o.dmg = a[5]; o.stocks = a[6]; o.inv = a[7]; o.stun = a[8]; o.ko = a[9];
     o.out = !!a[10]; o.onGround = !!a[11]; o.anim = a[12]; o.cool = a[13]; o.act = a[14] ? { kind: a[14] } : null; o.kos = a[15]; o.falls = a[16];
-    o.rush = a[17] || 0; o.shield = a[18] || 0; o.float = a[19] || 0; o.ammo = a[20] || 0;
+    o.rush = a[17] || 0; o.shield = a[18] || 0; o.float = a[19] || 0; o.ammo = a[20] || 0; o.away = a[21] || 0;
   });
   S.shots = d.sh.map((a) => ({ kind: a[0], x: a[1], y: a[2], vx: a[3], vy: a[4], owner: a[5], prop: a[6], w: 8, h: 8 }));
   S.drops = (d.dr || []).map((a) => ({ kind: a[0], x: a[1], y: a[2], life: a[3], landed: !!a[4], w: 12, h: 12 }));
@@ -6065,6 +6143,8 @@ function smashClientEvent(m) {
   else if (m.t === 'shield') { pop(d.x - 4, d.y - 12, 'CLONK!', 30, '#f6c445'); SFX.thud(); }
   else if (m.t === 'bigpop') { SFX.pew(); pop(d.x, d.y - 10, 'POP!', 22, '#f6c445'); }
   else if (m.t === 'left') { const f = smash.fighters[d.s]; if (f) toast('<b>' + escAttr(f.name) + '</b> left the fight.', 2000); }
+  else if (m.t === 'away') { const f = smash.fighters[d.s]; if (f && f !== myFighter()) toast('📶 <b>' + escAttr(f.name) + '</b> lost connection. Waiting for them…', 2500); }
+  else if (m.t === 'back') { const f = smash.fighters[d.s]; if (f && f !== myFighter()) toast('📶 <b>' + escAttr(f.name) + '</b> is back!', 1800); }
 }
 /* ---- online screens ---- */
 function smashOnlineScreen(prefill) {
@@ -7632,6 +7712,7 @@ function kartNetTick() {
 function kartApplyState(d) {
   const K = kart;
   if (!K || !d || !d.ks) return;
+  if (d.st) K.hostAt = Date.now();
   if (K.online.role === 'client' && d.st) {
     if (K.state === 'countdown' && d.st === 'countdown' && Math.abs(K.count - d.c) > 6) K.count = d.c;
     if (K.state === 'countdown' && d.st === 'race') { K.state = 'race'; K.msg = { text: 'GO!', t: 50, col: '#5be37a' }; }
@@ -7688,14 +7769,28 @@ function kartPeerLeft(id) {
   const i = K.karts.findIndex((k) => k.peer === id);
   if (i < 0) return;
   const k = K.karts[i];
-  if (i === 0 && K.online.role === 'client') {   /* the host left: nobody is running the race any more */
-    toast('The host left the race.', 2500);
-    setTimeout(() => { if (kart) { netLeave(); kartMenu(); } }, 1200);
+  if (i === 0 && K.online.role === 'client') {
+    if (NET.bye[id]) {   /* the host left on purpose: nobody is running the race any more */
+      toast('The host left the race.', 2500);
+      setTimeout(() => { if (kart) { netLeave(); kartMenu(); } }, 1200);
+    } else netReconnect(id);   /* maybe a dropped connection: keep driving and get back in */
     return;
   }
-  toast('<b>' + escAttr(k.name) + '</b> left the race. The computer drives for them.', 2200);
+  /* on a rider's phone that lost its own connection, the others haven't gone anywhere: no message */
+  let hostThere = true; if (K.online.role === 'client') { try { hostThere = !!NET.room.getPeers()[K.karts[0].peer]; } catch (e) { /* ignore */ } }
+  if (hostThere) toast(NET.bye[id] ? '<b>' + escAttr(k.name) + '</b> left the race. The computer drives for them.'
+    : '📶 <b>' + escAttr(k.name) + '</b> lost connection. The computer drives until they are back.', 2200);
   k.left = true;
   if (K.online.role === 'host') { k.remote = false; k.cpu = true; K.players[i] = Object.assign({}, K.players[i], { cpu: true }); }
+}
+/* a rider whose connection dropped is back: the host gives them their ride back */
+function kartPeerBack(id) {
+  const K = kart, i = K.karts.findIndex((k) => k.peer === id && k.left);
+  if (i < 0) return;
+  const k = K.karts[i];
+  k.left = false;
+  if (K.online.role === 'host') { k.cpu = false; k.remote = true; K.players[i] = Object.assign({}, K.players[i], { cpu: false }); }
+  toast('📶 <b>' + escAttr(k.name) + '</b> is back!', 1800);
 }
 /* ---- the online screens ---- */
 function kartOnlineScreen(prefill) {
@@ -8216,7 +8311,7 @@ window.__k11 = {
     state: () => (kart ? { t: kart.t, state: kart.state, count: kart.count, raceT: kart.raceT, track: kart.ti, me: kart.me, online: kart.online, len: Math.round(kart.path.len),
       karts: kart.karts.map((k) => ({ slot: k.slot, who: k.who, name: k.name, x: Math.round(k.x), y: Math.round(k.y), a: Math.round(k.a * 100) / 100, v: Math.round(k.v * 100) / 100, z: Math.round(k.z * 10) / 10,
         lap: k.lap, prog: Math.round(k.prog), place: k.place, done: k.done, finishT: k.finishT, item: k.item, roulette: k.roulette, candles: k.candles, got: k.got, spin: k.spinT, boost: k.boostT, star: k.starT,
-        drift: k.drift, driftT: k.driftT, air: !!k.air, trick: !!k.trick, lat: Math.round(k.lat), cpu: !!k.cpu, remote: !!k.remote, peer: k.peer, auto: !!k.auto, meter: k.meter, itemN: k.itemN, vacT: k.vacT, st: Math.round(k.st * 100) / 100, assist: k.assist })),
+        drift: k.drift, driftT: k.driftT, air: !!k.air, trick: !!k.trick, lat: Math.round(k.lat), cpu: !!k.cpu, remote: !!k.remote, left: !!k.left, peer: k.peer, auto: !!k.auto, meter: k.meter, itemN: k.itemN, vacT: k.vacT, st: Math.round(k.st * 100) / 100, assist: k.assist })),
       ramps: (kart.track._ramps || []).map((r) => Math.round(r.s)), movers: (kart.movers || []).map((m) => [m.kind, Math.round(m.x), Math.round(m.y), Math.round(m.z)]),
       shots: kart.shots.map((s) => s.kind), hazards: kart.hazards.length, boxes: kart.boxes.filter((b) => !b.t).length, endT: kart.endT, seen: kart.netSeen } : null),
     autopilot: (on) => { window.__kartAuto = !!on; },
@@ -8236,7 +8331,7 @@ window.__k11 = {
     arenas: () => ARENAS.map((a, i) => ({ i: i, name: a.name, layout: a.layout, unlocked: arenaUnlocked(i) })),
     state: () => (smash ? { t: smash.t, state: smash.state, winner: smash.winner, online: smash.online, local2: smash.local2, arena: smash.arena,
       fighters: smash.fighters.map((f) => ({ slot: f.slot, who: f.who, name: f.name, x: Math.round(f.x), y: Math.round(f.y), vx: Math.round(f.vx * 100) / 100, vy: Math.round(f.vy * 100) / 100,
-        dmg: f.dmg, stocks: f.stocks, out: f.out, ko: f.ko, cool: f.cool, act: f.act ? f.act.kind : null, cpu: f.cpu, peer: f.peer, onGround: f.onGround, stun: f.stun, kos: f.kos, falls: f.falls, mine: f.input === input, look: f.look, rush: f.rush, shield: f.shield, float: f.float, ammo: f.ammo })),
+        dmg: f.dmg, stocks: f.stocks, out: f.out, ko: f.ko, cool: f.cool, act: f.act ? f.act.kind : null, cpu: f.cpu, peer: f.peer, onGround: f.onGround, stun: f.stun, kos: f.kos, falls: f.falls, away: f.away ? 1 : 0, mine: f.input === input, look: f.look, rush: f.rush, shield: f.shield, float: f.float, ammo: f.ammo })),
       shots: smash.shots.map((s) => s.kind), itemsOn: smash.itemsOn,
       drops: smash.drops.map((d) => ({ kind: d.kind, x: Math.round(d.x), y: Math.round(d.y), landed: !!d.landed, life: d.life })) } : null),
     drop: (kind, x) => !!(smash && spawnDrop(kind, x)),
