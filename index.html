@@ -1469,8 +1469,10 @@ function build(i) {
     if (t === 'cart') for (let k = 1; k <= 2; k++) foes.push({ tx: fx + k, ty: fy, type: t });   /* shopping carts roll in a line */
   };
   flat(10);
+  let lastPillar = false;
   while (x < len) {
     const roll = r();
+    const afterPillar = lastPillar; lastPillar = false;
     if (!petSpot && x > len * 0.2) {
       flat(3);
       petSpot = { x: (x + 3) * T, y: (h - 1) * T };
@@ -1490,6 +1492,9 @@ function build(i) {
       flat(3);
       for (let k = 1; k <= 3; k++) set(x + k, h - 3, 7);   /* life-line shelf */
       candle(x + 2, h - 4);
+      /* right after a brick pillar, a jump over the pillar comes down here: from World 3 on, a floor two tiles down,
+         not a drop (World 3 starts at stage 21; Worlds 1 and 2 keep their stages exactly as they were built) */
+      if (afterPillar && i >= 21) for (let k = 0; k < gap; k++) col(x + k, Math.min(ROWS - 1, h + 2));
       x += gap;
       /* friendly trench: a floor two tiles down, plus a candle for your trouble */
       for (let k = 0; k < gap; k++) col(x + k, Math.min(ROWS - 1, h + 2));
@@ -1524,6 +1529,7 @@ function build(i) {
       for (let y = 1; y <= bh; y++) set(x + 2, h - y, 2);
       candle(x + 2, h - bh - 1);
       flat(3);
+      lastPillar = true;
     } else {
       flat(3); foe(x - 1, h - 7); flat(5);
     }
