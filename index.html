@@ -1674,15 +1674,20 @@ const SMASH_KEYS_P1 = { ArrowLeft: 'left', ArrowRight: 'right', ArrowUp: 'upjump
 function smashKey(code, down) {
   if (smash.local2 && P2_KEYS[code]) { (down ? pressInto : releaseInto)(input2, P2_KEYS[code]); return true; }
   const a = (smash.local2 ? SMASH_KEYS_P1 : SMASH_KEYS1)[code];
-  if (!a) return false;
+  if (!a) return !!(smash.local2 && SMASH_KEYS1[code]);   /* two players: the one-player keys near P2's hand do nothing */
   (down ? pressInto : releaseInto)(input, a);
   return true;
 }
 function actionDown(k) { pressInto(input, k); }
 function actionUp(k) { releaseInto(input, k); }
+/* a real keyboard: a key pressed outside a text box (an on-screen keyboard only types into text boxes), or a mouse or
+   trackpad that usually comes with one */
+let keyboardSeen = false;
+const keyboardLikely = () => keyboardSeen || (window.matchMedia && matchMedia('(any-pointer: fine)').matches);
 window.addEventListener('keydown', (e) => {
   const k = e.code;
   if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
+  keyboardSeen = true;
   if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Space'].indexOf(k) >= 0) e.preventDefault();
   if (e.repeat) return;
   AudioSys.init();
@@ -8433,13 +8438,13 @@ function smashMenu() {
     '<div class="btnrow">' +
     '<button class="btn go" id="smOnline" type="button">🌐 Play online · up to 5 players</button>' +
     '<button class="btn" id="smCpu" type="button">🤖 Play vs. the computer</button>' +
-    '<button class="btn" id="smLocal" type="button">👫 Two players, one keyboard</button>' +
+    (keyboardLikely() ? '<button class="btn" id="smLocal" type="button">👫 Two players, one keyboard</button>' : '') +
     '<button class="btn ghost" id="smBack" type="button">Title screen</button>' +
     '</div>' +
     '<p class="tiny">Online: one player makes a room and gets a 4-letter code; everyone else types it in. Works from the game\'s web address on any phone, tablet or computer.</p>'
   );
   $('#smOnline').addEventListener('click', () => { AudioSys.init(); SFX.click(); smashOnlineScreen(); });
-  $('#smLocal').addEventListener('click', () => { AudioSys.init(); SFX.click(); smashPickScreen('local'); });
+  const lb = $('#smLocal'); if (lb) lb.addEventListener('click', () => { AudioSys.init(); SFX.click(); smashPickScreen('local'); });
   $('#smCpu').addEventListener('click', () => { AudioSys.init(); SFX.click(); smashPickScreen('cpu'); });
   $('#smBack').addEventListener('click', () => { SFX.click(); netLeave(); titleScreen(); });
 }
