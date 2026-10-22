@@ -883,6 +883,8 @@ const LIFEGUARD = recolor(MOM, { H: 'L', p: 'R', y: 'w' });
 const CONDUCTOR = recolor(DAD, { g: 'J', Q: 'y', b: 'J', d: 'w' });
 const WAITER = recolor(DAD, { g: 'k', Q: 'H', b: 'w', d: 's', y: 'k' });
 const BUSKER = recolor(DAD, { g: 'n', Q: 'L', b: 'E' });
+/* World 4: the Carnival Barker (straw hat, red vest, black moustache) */
+const BARKER = recolor(DAD, { g: 'Y', Q: 'R', b: 'R', d: 'k' });
 /* the Lego Mega-Mech's face for story boxes (the mech itself is drawn with rectangles in drawBoss) */
 const MECH = ['..RRRRRRRRRRRR..', '..RRRRRRRRRRRR..', '.kQQQQQQQQQQQQk.', '.kQQwwwQQQwwwQk.', '.kQQwkwQQQwkwQk.', '.kQQwwwQQQwwwQk.',
   '.kQQQQQVVQQQQQk.', '.kQQQQQQQQQQQQk.', '..kkkkkkkkkkkk..', 'kJJJJJJJJJJJJJJk', 'kJRRRRRRRRRRRRJk', 'kJRyRRRyRRRyRRJk',
@@ -898,6 +900,7 @@ const SP = {
   fStand: bake(legs(FOREMAN, LEGS.stand, 'J')), fWalk: bake(legs(FOREMAN, LEGS.walk, 'J')),
   lgStand: bake(legs(LIFEGUARD, LEGS.stand, 's')), lgWalk: bake(legs(LIFEGUARD, LEGS.walk, 's')), cdStand: bake(legs(CONDUCTOR, LEGS.stand, 'J')),
   waStand: bake(legs(WAITER, LEGS.stand, 'J')), buStand: bake(legs(BUSKER, LEGS.stand, 'j')),
+  brStand: bake(legs(BARKER, LEGS.stand, 'J')), brWalk: bake(legs(BARKER, LEGS.walk, 'J')),
   cat: bakeOutlined(CAT, { a: PAL.a, A: PAL.A }), dog: bakeOutlined(DOG, { n: PAL.n, L: PAL.L }), candle: bake(CANDLE), flag: bake(FLAG)
 };
 const CH_H = SP.cStand.height;
@@ -1254,12 +1257,119 @@ LV.push(
     win: []
   }
 );
+/* World 4: "Kinan vs. the Stampede", Calgary during the Stampede (Shad's pick, 2026-10-21: "Edmonton, then Calgary").
+   Mom enters the pancake-flipping contest; Kinan ends up in the Junior Rodeo by accident; Bronco, a grumpy rodeo bull,
+   breaks out and runs all over the city, and Kinan follows him to the Grandstand Show. It opens with a grown-up's
+   reward code once World 3 is beaten. Stages without a boss end at Dad's truck. */
+LV.push(
+  {
+    place: 'The Stampede Parade', bg: 'parade', world: 4, sky: ['#3f8fd8', '#d8efff'], far: '#7f8fb0', mid: '#a8422e',
+    ground: '#6b4a2a', top: '#9a9da6', brick: '#d8342c', accent: '#f6c445', foes: ['drummer', 'corndog', 'haybale'],
+    intro: ['The bus pulls into Calgary. Mom, Dad, Shad and Chenoa are all there... and so is half of Canada. It\'s <b>STAMPEDE</b> week!', '<b>MOM:</b> Cowboy hats on, everybody! The parade is starting!',
+      '<b>DAD:</b> Stay close, bud. There are a LOT of horses.', '<b>KINAN:</b> Why is that marching band marching right at me?!'],
+    boss: null,
+    win: ['<b>DAD:</b> Made it to the truck! Did you see the floats?', '<b>KINAN:</b> I was ON one for a second.', '<b>MOM:</b> Okay, pancakes next. I signed up for something.'],
+    meanwhile: 'Mom quietly signs up for the Stampede Breakfast Pancake-Flipping Contest. First prize: a golden spatula.'
+  },
+  {
+    place: 'The Pancake Breakfast', bg: 'breakfast', world: 4, sky: ['#5aa8e8', '#fde7c0'], far: '#8a9ab5', mid: '#c98d2a',
+    ground: '#5a3a2a', top: '#c98d63', brick: '#e8364b', accent: '#f6c445', foes: ['corndog', 'haybale', 'lassolizard'],
+    intro: ['A Stampede breakfast: giant griddles, a thousand pancakes, and Mom in an apron that says <b>BREAKFAST BOSS</b>.', '<b>MOM:</b> Remember the Breakfast Boss? She\'s BACK. And this time she\'s flipping for GOLD.',
+      'Watch the scoreboard: Mom\'s pancake count keeps going up! The springy griddles bounce you up high.'],
+    boss: null,
+    win: ['<b>MOM:</b> Forty-seven pancakes and counting! How was your breakfast?', '<b>KINAN:</b> I bounced on it.', '<b>MOM:</b> ...That\'s fair.'],
+    meanwhile: 'Over at the rodeo grounds, a gate creaks open. Something big and grumpy steps out.'
+  },
+  {
+    place: 'The Rodeo Grounds', bg: 'rodeo', world: 4, sky: ['#4a9ae0', '#fde2b0'], far: '#8a7a9a', mid: '#b5523b',
+    ground: '#7a5634', top: '#c9a26a', brick: '#a8692e', accent: '#f6c445', foes: ['minibull', 'lassolizard', 'haybale'],
+    intro: ['The rodeo grounds. A man with a clipboard looks at Kinan: "Junior Rodeo? You\'re up next, partner!"', '<b>KINAN:</b> Wait, I didn\'t sign up for—', '<b>CHENOA:</b> Too late. Go get \'em, little bro!'],
+    boss: { kind: 'bronco', title: 'Bronco the Bull', hp: 5, face: 'k' },
+    bossIntro: ['The gate flies open. A huge, grumpy rodeo bull stomps out. His name tag says <b>BRONCO</b>.', 'Bronco snorts. He paws the dirt. He is NOT happy to be here.',
+      'When he charges, jump out of the way! He gets dizzy when he hits the fence: that\'s when you stomp.'],
+    taunts: ['MOOOOO!', '*angry bull noises*', '*snort snort*', 'HRRMPH!'],
+    win: ['Bronco shakes his head, jumps the fence, and runs off into the city!', '<b>DAD:</b> Uh oh. Somebody should follow that bull.', '<b>KINAN:</b> On it!'],
+    meanwhile: 'The Junior Rodeo judge gives Kinan a ribbon anyway. It says "MOST SURPRISED".'
+  },
+  {
+    place: 'The Chuckwagon Track', bg: 'chuckwagon', world: 4, lassoGift: true, lassos: true, sky: ['#5aa8e8', '#fbe4c0'], far: '#8a9ab5', mid: '#9a7a4a',
+    ground: '#6b4528', top: '#a87a4a', brick: '#f4f1e8', accent: '#e8364b', foes: ['minibull', 'haybale', 'corndog'],
+    intro: ['Bronco\'s hoofprints lead straight onto the chuckwagon racetrack. The wagons are warming up.', '<b>SHAD:</b> Those wagons go FAST. Keep moving, and watch out for the little bulls!',
+      '<b>KINAN:</b> There are BABY bulls?!', 'Bonk the first gift box for a <b>lasso</b>: it pulls in coins from far away for the rest of the stage. More lassos are hidden in World 4\'s gift boxes.'],
+    boss: null,
+    win: ['<b>SHAD:</b> You beat a chuckwagon. On foot.', '<b>DAD:</b> Hop in, bud. Bronco went toward the midway.'],
+    meanwhile: 'Mom is up to 112 pancakes. The other contestants are starting to look worried.'
+  },
+  {
+    place: 'The Midway', bg: 'midway', world: 4, lassos: true, sky: ['#ff9e6e', '#ffe0b0'], far: '#7a5a8a', mid: '#5a3a6a',
+    ground: '#4a3a4a', top: '#9a8a7a', brick: '#ff6fae', accent: '#f6c445', foes: ['corndog', 'haybale', 'lassolizard'],
+    intro: ['The midway: rides, games, lights, mini donuts, and the biggest Ferris wheel Kinan has ever seen.', '<b>CHENOA:</b> Bronco went past the ring toss! I saw him!', '<b>KINAN:</b> How do you lose a BULL at a fair?'],
+    boss: { kind: 'barker', title: 'The Carnival Barker', hp: 5, face: 'br' },
+    bossIntro: ['<b>BARKER:</b> STEP RIGHT UP, STEP RIGHT UP! Three throws for a toonie! Win a prize! Win a BULL!', '<b>BARKER:</b> Nobody walks past my booth without playing a game!',
+      'He throws bouncing prize balls and ring-toss rings! Dodge them, and stomp him when he stops to count his money.'],
+    taunts: ['STEP RIGHT UP!', 'Everybody\'s a winner! Except you!', 'No refunds!', 'Try again, partner!'],
+    win: ['<b>BARKER:</b> Okay, okay! You win! Pick any prize you want!', 'Kinan picks the giant stuffed bull. It looks a little like Bronco.', '<b>CHENOA:</b> Bronco went over the bridge! Come on!'],
+    meanwhile: 'Dad wins a goldfish at the ring toss. He names it Hydro.'
+  },
+  {
+    place: 'The Peace Bridge', bg: 'peacebridge', world: 4, lassos: true, bag: 'dog', sky: ['#4a9ae0', '#e0f2fd'], far: '#6f8fb0', mid: '#4f7a5a',
+    ground: '#55473a', top: '#8a92a0', brick: '#e8364b', accent: '#6fc8ff', foes: ['goose', 'lassolizard', 'minibull'],
+    intro: ['The Peace Bridge: a long red tube of a bridge over the Bow River. Bronco\'s hoofprints go right across it.', '<b>DAD:</b> The geese here are no joke, bud. Canada geese. They do NOT share the path.',
+      '<b>KINAN:</b> HONK?!', 'Something in a hay bale near the river is wagging its tail...'],
+    boss: null,
+    win: ['<b>KINAN:</b> The geese chased me the whole way!', '<b>DAD:</b> Yeah. They do that.', '<b>DAD:</b> ...Hey, didn\'t I say that about the gophers?'],
+    meanwhile: 'Shad sends a photo to the family chat: a goose, staring right into the camera. No caption.'
+  },
+  {
+    place: 'The Dinosaur Zoo', bg: 'dinozoo', world: 4, lassos: true, sky: ['#5aa8e8', '#e8f6d8'], far: '#5a7a4a', mid: '#3f6f3a',
+    ground: '#4a3a2a', top: '#6aa04f', brick: '#a8692e', accent: '#f6c445', foes: ['babydino', 'goose', 'haybale'],
+    intro: ['The zoo has a whole dinosaur park: life-size dinosaurs, as tall as houses. Bronco is hiding behind a stegosaurus.', '<b>KINAN:</b> Are they real?!',
+      '<b>CHENOA:</b> They\'re models, little bro. They don\'t move. ...Right?'],
+    boss: { kind: 'rex', title: 'Rex the Robot T-rex', hp: 6, face: 'mech' },
+    bossIntro: ['One of the dinosaurs blinks. Its eyes glow red. Something whirs inside it.', '<b>REX:</b> ROOOAAAR. SYSTEM ONLINE. PROTECT. THE. ZOO.',
+      'Jump over his tail when he swings it! When he bends down to <b>ROAR</b>, his head is low: that\'s when you stomp.'],
+    taunts: ['ROOOAAAR!', 'BEEP. BOOP. RAWR.', 'TINY ARMS. BIG HEART.', 'ERROR: KID TOO FAST.'],
+    win: ['<b>REX:</b> rawr... battery... low... good... game...', 'Rex goes back to standing very still. He looks happy.', '<b>KINAN:</b> Bronco! Wait up!'],
+    meanwhile: 'The zoo puts up a new sign: "PLEASE DO NOT WAKE THE DINOSAURS (KINAN)."'
+  },
+  {
+    place: 'The Calgary Tower', bg: 'calgarytower', wind: true, world: 4, lassos: true, sky: ['#ff8a5c', '#ffd9a8'], far: '#6a5a7a', mid: '#5a4a6a',
+    ground: '#45484f', top: '#9a9da6', brick: '#e8364b', accent: '#f6c445', foes: ['goose', 'lassolizard', 'haybale'],
+    intro: ['Bronco is standing at the bottom of the Calgary Tower, looking up. Then the wind starts to blow. HARD.', '<b>MOM (on the phone):</b> Hold on to your hat, sweetie! In winter, Calgary even has a warm wind with its own name: the chinook!',
+      'The <b>wind gusts</b> push you back! When the dust starts flying, keep running.'],
+    boss: null,
+    win: ['<b>KINAN:</b> The wind blew my hat right off!', '<b>DAD:</b> Got it, bud. It landed in my coffee.'],
+    meanwhile: 'Mom is at 203 pancakes. The judges have run out of plates.'
+  },
+  {
+    place: 'The Ski Jump Hill', bg: 'skijump', world: 4, lassos: true, sky: ['#3a2a63', '#ff9e6e'], far: '#5a4a7a', mid: '#4a5a4a',
+    ground: '#4a4f57', top: '#d8dde6', brick: '#2f5fb3', accent: '#f6c445', foes: ['haybale', 'minibull', 'goose'],
+    intro: ['Bronco runs all the way to the Olympic park, where the ski jumps tower over the city.', '<b>SHAD:</b> They had the Winter Olympics here, way back in 1988. Bobsleds, ski jumps, the works!',
+      '<b>KINAN:</b> Bronco is going UP the hill! Why is he going UP the hill?!'],
+    boss: null,
+    win: ['<b>CHENOA:</b> Look! The fireworks are starting at the grandstand!', '<b>KINAN:</b> And Bronco is running right toward them!'],
+    meanwhile: 'Somewhere, a rodeo clown loads a barrel into his truck. He has a plan.'
+  },
+  {
+    place: 'The Grandstand Show', bg: 'grandstand', world: 4, lassos: true, final4: true, sky: ['#070b22', '#3a2453'], far: '#191536', mid: '#241d44',
+    ground: '#6b4a2a', top: '#c9a26a', brick: '#d8342c', accent: '#ff6fae', foes: ['minibull', 'corndog', 'lassolizard', 'haybale'],
+    intro: ['The Grandstand Show: fireworks, music, thousands of people... and Bronco, right in the middle of the stage.', '<b>MOM:</b> KINAN! I WON! I won the pancake contest! ...Why is there a bull on the stage?',
+      '<b>KINAN:</b> I\'ve got this, Mom.'],
+    boss: { kind: 'rodeo', title: "Bronco's Big Rodeo", hp: 6, face: 'k' },
+    bossIntro: ['Bronco is faster now. And grumpier. The crowd goes quiet.', 'A rodeo clown waves from the side of the arena: <b>"When you need me, kid, I\'ll be there!"</b>',
+      'Dodge his charges and stomp him when he\'s dizzy. At half health, the clown rolls in a barrel to help!'],
+    taunts: ['MOOOOOO!', '*very grumpy snort*', 'HRRRMPH!', '*stomps a hoof*', 'MOO?'],
+    win: []
+  }
+);
 /* the day goes by: one birthday from 7 am in the bedroom to the 7 pm party (the story's own times: bedtime at 6:55, the Mega-Mech's orders until 1900 hours). The light follows the clock. */
 const DAY = [['dawn', '7:00 am'], ['morning', '8:00 am'], ['morning', '8:30 am'], ['day', '10:30 am'], ['day', '12:30 pm'], ['afternoon', '2:00 pm'], ['afternoon', '3:30 pm'], ['late', '4:30 pm'], ['sunset', '5:45 pm'], ['dusk', '6:55 pm'], ['night', '7:00 pm'],
   /* World 2: a work day out of town, from the 5:30 am drive to the 9 pm rig */
   ['dawn', '5:30 am'], ['morning', '6:15 am'], ['morning', '7:00 am'], ['day', '8:30 am'], ['day', '10:00 am'], ['day', '12:00 pm'], ['afternoon', '2:00 pm'], ['dusk', '4:30 pm'], ['night', '8:00 pm'], ['night', '9:00 pm'],
   /* World 3: a Saturday in Edmonton, from the 10 am drive in to the bridge at 9:30 pm */
-  ['morning', '10:00 am'], ['day', '11:00 am'], ['day', '12:30 pm'], ['afternoon', '2:00 pm'], ['afternoon', '3:00 pm'], ['late', '4:30 pm'], ['sunset', '5:30 pm'], ['sunset', '6:45 pm'], ['night', '8:30 pm'], ['night', '9:30 pm']];
+  ['morning', '10:00 am'], ['day', '11:00 am'], ['day', '12:30 pm'], ['afternoon', '2:00 pm'], ['afternoon', '3:00 pm'], ['late', '4:30 pm'], ['sunset', '5:30 pm'], ['sunset', '6:45 pm'], ['night', '8:30 pm'], ['night', '9:30 pm'],
+  /* World 4: Stampede Saturday in Calgary, from the 9 am parade to the 9:45 pm Grandstand Show */
+  ['morning', '9:00 am'], ['morning', '10:30 am'], ['day', '12:00 pm'], ['afternoon', '1:30 pm'], ['afternoon', '3:00 pm'], ['late', '4:30 pm'], ['late', '5:30 pm'], ['sunset', '7:00 pm'], ['dusk', '8:30 pm'], ['night', '9:45 pm']];
 LV.forEach((th, i) => { th.tod = DAY[i][0]; th.clock = DAY[i][1]; });
 const GRADE = { dawn: 'rgba(255,150,110,.10)', morning: 'rgba(255,236,190,.05)', day: '', afternoon: 'rgba(255,210,140,.06)', late: 'rgba(255,175,100,.10)', sunset: 'rgba(255,105,60,.14)', dusk: 'rgba(70,60,170,.10)', night: 'rgba(40,40,120,.07)' };
 
@@ -1307,7 +1417,15 @@ const FOE = {
   wetsign: { beh: 'hopper', kind: 'wetsign', color: '#f6c445', spd: 0.5, seek: true },
   waiter: { beh: 'thrower', kind: 'waiter', throwType: 'plate' },
   biker: { beh: 'charger', kind: 'biker', color: '#3fa9f5' },
-  busker: { beh: 'thrower', kind: 'busker', throwType: 'note' }
+  busker: { beh: 'thrower', kind: 'busker', throwType: 'note' },
+  /* World 4, the Stampede: lasso lizards throw a rope that pulls you in; corn dog kids are very fast */
+  drummer: { beh: 'walker', kind: 'drummer', color: '#d8342c', spd: 0.8 },
+  corndog: { beh: 'walker', kind: 'corndog', color: '#f6c445', spd: 1.7 },
+  haybale: { beh: 'walker', kind: 'haybale', color: '#e0b84a', spd: 1.2 },
+  minibull: { beh: 'charger', kind: 'minibull', color: '#6b3f18' },
+  lassolizard: { beh: 'thrower', kind: 'lassolizard', throwType: 'lasso' },
+  goose: { beh: 'flyer', kind: 'goose', color: '#6b5a4a' },
+  babydino: { beh: 'hopper', kind: 'babydino', color: '#5ab84a', spd: 0.6, seek: true }
 };
 /* ============================================================
    LEVEL BUILDER — seeded chunks, guaranteed set pieces
@@ -1340,9 +1458,9 @@ function build(i) {
   const gift = (gx, gy) => {
     set(gx, gy, 3);
     let kind = 'candle';
-    if (giftCount === 0) kind = LV[i].hardhat ? 'hat' : 'popper';   /* Shad's job site: his old hard hat */
+    if (giftCount === 0) kind = LV[i].hardhat ? 'hat' : (LV[i].lassoGift ? 'lasso' : 'popper');   /* Shad's job site: his old hard hat; the chuckwagon track: a lasso */
     else if (!cakeGiven && gr() < 0.45) { kind = 'cake'; cakeGiven = true; }
-    else { const q = gr(); kind = q < 0.2 ? 'popper' : q < 0.3 ? 'heart' : (LV[i].hats && q < 0.4 ? 'hat' : 'candle'); }
+    else { const q = gr(); kind = q < 0.2 ? 'popper' : q < 0.3 ? 'heart' : (LV[i].hats && q < 0.4 ? 'hat' : (LV[i].lassos && q < 0.4 ? 'lasso' : 'candle')); }
     gifts[gy * w + gx] = kind; giftCount++;
   };
   const foe = (fx, fy) => {
@@ -1426,7 +1544,7 @@ function build(i) {
   const arenaX = x + 1;
   for (let k = 0; k < arenaW + 3; k++) col(arenaX + k, GROUND);
   for (let y = 0; y < GROUND; y++) set(arenaX + arenaW, y, 5);
-  return { i, g, w, foes, candles, gifts, checkpoint, petSpot, arenaX, arenaW, len, ice: !!LV[i].ice };
+  return { i, g, w, foes, candles, gifts, checkpoint, petSpot, arenaX, arenaW, len, ice: !!LV[i].ice, wind: !!LV[i].wind };
 }
 /* ============================================================
    STATE
@@ -1800,6 +1918,7 @@ const FACE_DEF = {
   f: { rows: () => FOREMAN, eye: 4, eyes: [5, 9], mouth: 7, m: [7, 8], ink: 'm', teeth: true, crop: [1, 15, 0, 11] },
   lg: { rows: () => LIFEGUARD, eye: 5, eyes: [5, 9], mouth: 7, m: [7, 8], ink: 'm', crop: [2, 14, 0, 12] },
   cd: { rows: () => CONDUCTOR, eye: 4, eyes: [5, 9], mouth: 7, m: [7, 8], ink: 'm', teeth: true, crop: [1, 15, 0, 11] },
+  br: { rows: () => BARKER, eye: 4, eyes: [5, 9], mouth: 7, m: [7, 8], ink: 'm', teeth: true, crop: [1, 15, 0, 11] },
   s: { rows: () => SHAD, eye: 4, eyes: [5, 9], mouth: 6, m: [6, 7], ink: 'm', crop: [2, 14, 0, 11] },
   c: { rows: () => CHENOA, eye: 4, eyes: [5, 10], mouth: 6, m: [7, 8], ink: 'r', wide: [6, 9], crop: [2, 14, 0, 11] },
   mech: { rows: () => MECH, mech: true, crop: [0, 16, 0, 11] }
@@ -1839,7 +1958,7 @@ function portraitFor(who, mood) {
 }
 /* who is talking: a line that starts with "<b>NAME:</b>" shows that person's face and voice; narration shows Kinan, no voice */
 const SPEAKERS = { 'MOM': 'm', 'CHENOA': 'c', 'KINAN': 'k', 'ROBIN': 'd', 'DAD': 'd', 'SHAD': 's', 'NOSY NEIGHBOUR': 'n', 'NEIGHBOUR': 'n', 'BIG KID': 'b', 'MEGA-MECH': 'mech', '???': 'mech', 'FOREMAN': 'f', 'SAFETY FOREMAN': 'f', 'PUMPJACK PETE': 'mech',
-  'LIFEGUARD': 'lg', 'CONDUCTOR': 'cd', 'SHAD AND CHENOA': 's' };
+  'LIFEGUARD': 'lg', 'CONDUCTOR': 'cd', 'SHAD AND CHENOA': 's', 'BARKER': 'br', 'REX': 'mech' };
 function speakerOf(html, who) {
   const m = /^<b>([^<:(]+?)\s*(?:\([^)]*\))?:<\/b>/.exec(html || '');
   if (!m) return null;
@@ -1854,7 +1973,7 @@ function moodOf(html, fallback) {
   return fallback || 'n';
 }
 /* each voice: [pitch Hz, wave]; one short beep every couple of letters, like old game text */
-const VOICES = { k: [540, 'square'], m: [700, 'triangle'], c: [820, 'square'], d: [300, 'square'], s: [390, 'square'], n: [250, 'sawtooth'], b: [460, 'square'], mech: [980, 'square'], f: [270, 'sawtooth'], lg: [760, 'triangle'], cd: [330, 'square'] };
+const VOICES = { k: [540, 'square'], m: [700, 'triangle'], c: [820, 'square'], d: [300, 'square'], s: [390, 'square'], n: [250, 'sawtooth'], b: [460, 'square'], mech: [980, 'square'], f: [270, 'sawtooth'], lg: [760, 'triangle'], cd: [330, 'square'], br: [420, 'sawtooth'] };
 let typing = null;
 function tokenizeHTML(html) {
   const out = [], re = /(<[^>]+>|&[a-z#0-9]+;)/gi;
@@ -2059,7 +2178,7 @@ function snapshotStage() {
   return {
     i: SL.i, x: Math.round(onGround ? P.x : safe.x), y: Math.round(onGround ? P.y : safe.y),
     hp: P.hp, max: P.max, got: got, score: score, stageTime: stageTime, deaths: deaths, heartsLost: heartsLost, bestCombo: bestCombo,
-    power: P.power, hat: !!P.hat, cpHit: cpHit, spawn: { x: spawn.x, y: spawn.y }, nextHeartAt: nextHeartAt, dadUsedStage: dadUsedStage,
+    power: P.power, hat: !!P.hat, lasso: !!P.lasso, cpHit: cpHit, spawn: { x: spawn.x, y: spawn.y }, nextHeartAt: nextHeartAt, dadUsedStage: dadUsedStage,
     candles: candles.map((c, k) => (c.got ? k : -1)).filter((k) => k >= 0),
     gifts: Object.keys(SL.gifts).filter((k) => SL.g[Number(k)] === 4),
     foesDead: SL.foes.map((f, k) => k).filter((k) => !foes.some((f) => f.idx === k && f.alive)),
@@ -2076,6 +2195,7 @@ function restoreStage(s) {
   if (s.cpHit && s.spawn) spawn = { x: s.spawn.x, y: s.spawn.y };
   P.hp = s.hp; P.max = s.max; P.power = s.power || null; P.hat = !!s.hat;
   if (s.bagOpen && bag) bag.open = true;
+  P.lasso = !!s.lasso;
   if (s.atBoss) { P.x = (L.arenaX + 4) * T; P.y = (GROUND - 1) * T; }   /* the boss fight starts over from its intro */
   else { P.x = s.x; P.y = s.y; }
   P.vx = 0; P.vy = 0; P.inv = 60;
@@ -2123,6 +2243,10 @@ function updatePlayer() {
     P.vx *= P.onGround ? (ice ? 0.975 : 0.76) : 0.96;
     if (Math.abs(P.vx) < 0.08) P.vx = 0;
     if (ice && Math.abs(P.vx) > 1 && frame % 4 === 0) part(P.x + 5, P.y + P.h, { vx: -P.vx * 0.2, vy: -0.3, life: 14, size: 1, color: '#ffffff', g: 0 });
+  }
+  if (L.wind && boss === 'off' && (frame % 300) < 90) {   /* the Calgary Tower: a gust of wind pushes you back */
+    P.vx = Math.max(-RUN_MAX, P.vx - 0.12);
+    if (frame % 300 === 0) toast('💨 <b>WIND!</b> Keep running!', 1200);
   }
   if (P.onGround) {
     P.coyote = 7;
@@ -2282,6 +2406,7 @@ function giveItem(kind) {
     SFX.heart(); toast('❤ <b>Extra heart!</b>', 1300);
   }
   else if (kind === 'hat') { P.hat = true; SFX.power(); toast("⛑️ <b>SHAD'S HARD HAT!</b> It takes one hit for you.", 2400); }
+  else if (kind === 'lasso') { P.lasso = true; SFX.power(); toast('🤠 <b>LASSO!</b> Coins fly to you from far away. YEEHAW!', 2400); }
   updHud();
 }
 function trailPart(kind, x, y) {
@@ -2306,7 +2431,7 @@ function updateWorld() {
     sparks(L.checkpoint.tx * T + 6, (L.checkpoint.ty - 1) * T, 12, ['#44c55a', '#fff', '#f6c445']);
     autoSave();
   }
-  const magnet = (P.rush > 0 ? 34 : 24) + (hasPet('cat2') ? 18 : 0);
+  const magnet = (P.rush > 0 ? 34 : 24) + (hasPet('cat2') ? 18 : 0) + (P.lasso ? 70 : 0);
   for (const c of candles) {
     if (c.got) continue;
     const ccx = c.x + 3, ccy = c.y + 5;
@@ -2345,9 +2470,10 @@ function updateWorld() {
   if (bag && !bag.open) {
     bag.t++;
     if (overlap(P, bag)) {
-      bag.open = true; SFX.meow(); addCandle(5);
-      toast('🐱 <b>MEOW!</b> A cat was hiding in a shopping bag! <b>+5 coins</b>', 2600);
-      pop(bag.x, bag.y - 10, 'MEOW! +5', 50, '#f6c445'); sparks(bag.x + 8, bag.y + 8, 18, ['#f6c445', '#fff', '#7be3a3']);
+      const dog = LV[L.i].bag === 'dog';
+      bag.open = true; if (dog) SFX.woof(); else SFX.meow(); addCandle(5);
+      toast(dog ? '🐶 <b>WOOF!</b> A dog was hiding in a hay bale! <b>+5 coins</b>' : '🐱 <b>MEOW!</b> A cat was hiding in a shopping bag! <b>+5 coins</b>', 2600);
+      pop(bag.x, bag.y - 10, dog ? 'WOOF! +5' : 'MEOW! +5', 50, '#f6c445'); sparks(bag.x + 8, bag.y + 8, 18, ['#f6c445', '#fff', '#7be3a3']);
     }
   }
   for (const p of pops) { p.t--; p.y -= 0.55; }
@@ -2649,6 +2775,11 @@ function updateShots() {
       const tx = Math.floor((s.x + s.w / 2) / T), ty = Math.floor((s.y + s.h / 2) / T);
       if (solid(tx, ty)) { s.vx = -s.vx; if (s.x < 0) s.life = 0; }
     }
+    if (s.kind === 'lasso' && !P.dead && P.rush <= 0 && overlap(P, s)) {   /* a lasso lizard's rope: it pulls you in, it doesn't hurt */
+      s.gone = true; P.vx = (s.vx > 0 ? -1 : 1) * 3.4; P.vy = Math.min(P.vy, -2.2);
+      toast('🤠 <b>YEEHAW!</b> Lassoed! (Stomp that lizard!)', 1300); SFX.pew();
+      continue;
+    }
     if (!P.dead && overlap(P, s)) {
       s.gone = true;
       if (P.power === 'popper' || P.rush > 0) {
@@ -2683,11 +2814,11 @@ function updateShots() {
    BOSSES
    ============================================================ */
 const BOSS_NAMES = { mom: 'MOM', chenoa: 'CHENOA', mech: 'MEGA-MECH', neighbour: 'NEIGHBOUR', bully: 'BIG KID',
-  moose: 'BULL MOOSE', foreman: 'SAFETY FOREMAN', pumpjack: 'PUMPJACK PETE', dadboss: 'HYDRO VAC DAD',
+  moose: 'BULL MOOSE', foreman: 'SAFETY FOREMAN', pumpjack: 'PUMPJACK PETE', dadboss: 'HYDRO VAC DAD', bronco: 'BRONCO', rodeo: 'BRONCO', barker: 'CARNIVAL BARKER', rex: 'REX',
   lifeguard: 'LIFEGUARD', conductor: 'COASTER CONDUCTOR', supchenoa: '🍽️ CHENOA', shadboss: '👷 SHAD' };
 function bossName(b) { return BOSS_NAMES[b.kind] || 'BOSS'; }
 function makeBoss(kind, x, hp, prop) {
-  const sizes = { mom: [14, 22], chenoa: [12, CH_H], mech: [28, 34], neighbour: [14, 22], bully: [14, 22], moose: [36, 32], foreman: [14, 22], pumpjack: [28, 34], dadboss: [14, 22], lifeguard: [14, 22], conductor: [24, 26], supchenoa: [12, CH_H], shadboss: [14, 22] };
+  const sizes = { mom: [14, 22], chenoa: [12, CH_H], mech: [28, 34], neighbour: [14, 22], bully: [14, 22], moose: [36, 32], foreman: [14, 22], pumpjack: [28, 34], dadboss: [14, 22], lifeguard: [14, 22], conductor: [24, 26], supchenoa: [12, CH_H], shadboss: [14, 22], bronco: [32, 26], rodeo: [32, 26], barker: [14, 22], rex: [30, 34] };
   const s = sizes[kind] || [12, 18];
   return {
     kind: kind, x: x, homeX: x, y: GROUND * T - s[1], w: s[0], h: s[1], vx: 0, vy: 0,
@@ -2731,7 +2862,7 @@ async function startBoss() {
   const R = L.bossR = bossRules(i), hp = L.helped ? Math.max(2, Math.round(d.hp * 0.7)) : d.hp + R.extraHp;
   dadSpecialPlan = worldOf(i) !== 2 && (d.kind === 'final' || Math.random() < R.dadVac);   /* not in Dad's own world */
   const kind = (d.kind === 'team' || d.kind === 'final') ? 'mom' : (d.kind === 'siblings' ? 'shadboss' : d.kind);
-  bosses = [makeBoss(kind, (ax + (kind === 'mech' || kind === 'pumpjack' || kind === 'moose' || kind === 'conductor' ? 12 : 13)) * T, hp, d.prop)];
+  bosses = [makeBoss(kind, (ax + (kind === 'mech' || kind === 'pumpjack' || kind === 'moose' || kind === 'conductor' || kind === 'bronco' || kind === 'rodeo' || kind === 'rex' ? 12 : 13)) * T, hp, d.prop)];
   await say('<b>BOSS:</b> ' + d.title.toUpperCase() + '!', d.face || 'm', 'a');
   await story(LV[i].bossIntro, d.face || 'm', 'a');
   if (d.kind === 'team') {
@@ -2834,6 +2965,7 @@ async function bossDefeated() {
   if (LV[i].final) return ending();
   if (LV[i].final2) return ending2();
   if (LV[i].final3) return ending3();
+  if (LV[i].final4) return ending4();
   await story(LV[i].win, LV[i].boss.face || 'm', 'h');
   firstClear = !progress.beaten.includes(i);   /* first time through: this world is now a Family Smash arena too */
   if (firstClear) progress.beaten.push(i);
@@ -2954,19 +3086,34 @@ function bossAI(b) {
       if (--b.t <= 0) { b.state = 'walk'; b.t = 100; }
     }
   }
-  else if (b.kind === 'moose') {
-    /* the Big Bull Moose: snorts, charges down the road, gets dizzy when he hits the fence (that is when you stomp) */
+  else if (b.kind === 'moose' || b.kind === 'bronco' || b.kind === 'rodeo') {
+    /* the Big Bull Moose, and Bronco the Bull: snort, charge, get dizzy when they hit the fence (that is when you stomp).
+       In Bronco's Big Rodeo, from half health a rodeo clown rolls a barrel in and waves Bronco over: Bronco charges the
+       barrel instead (the clown ducks inside) and crashes into it, dizzy for longer */
+    const bull = b.kind !== 'moose', rodeo = b.kind === 'rodeo';
+    if (rodeo && !b.clown && b.hp <= b.max / 2) {
+      b.clown = { x: (L.arenaX + Math.floor(L.arenaW / 2)) * T, hide: 0 };
+      toast('<b>RODEO CLOWN:</b> HEY, BULL! Over here! (Kinan: stomp him when he hits my barrel!)', 2600);
+    }
+    if (b.clown && b.clown.hide > 0) b.clown.hide--;
     if (b.state === 'walk') {
-      if (b.vx === 0) b.vx = dx < 0 ? -0.6 : 0.6;
-      if (--b.t <= 0) { b.state = 'windup'; b.t = 44; b.vx = 0; b.dir = sign(dx); AudioSys.tone(110, 0.3, { type: 'sawtooth', vol: 0.12, slide: 70 }); }
+      if (b.vx === 0) b.vx = dx < 0 ? -(bull ? 0.8 : 0.6) : (bull ? 0.8 : 0.6);
+      if (--b.t <= 0) {
+        b.state = 'windup'; b.t = rodeo ? 34 : 44; b.vx = 0;
+        b.dir = b.clown ? (b.clown.x < b.x + b.w / 2 ? -1 : 1) : sign(dx);
+        if (b.clown) toast('<b>RODEO CLOWN:</b> ' + pick(['YOO-HOO! Over here, Bronco!', 'Nice horns! Bet you can\'t catch me!', 'Hey! MOO-ve it!']), 1300);
+        AudioSys.tone(bull ? 90 : 110, 0.3, { type: 'sawtooth', vol: 0.12, slide: bull ? 60 : 70 });
+      }
     } else if (b.state === 'windup') {
       b.vx = 0;
       if (b.t % 5 === 0) part(b.x + (b.dir > 0 ? 2 : b.w - 4), b.y + b.h - 2, { vx: -b.dir * rand(0.5, 1.5), vy: rand(-1, 0), life: 16, size: 2, color: '#8a6a4a' });
       if (--b.t <= 0) b.state = 'charge';
     } else if (b.state === 'charge') {
-      b.vx = b.dir * (3.8 + (b.anger ? 0.8 : 0));
-      if (b.x <= lo + 1 || b.x >= hi - 1) {
-        b.state = 'dizzy'; b.t = 140; b.vx = 0; SFX.thud(); shakeIt(5);
+      b.vx = b.dir * ((b.kind === 'rodeo' ? 4.4 : 3.8) + (b.anger ? 0.8 : 0));
+      const barrel = b.clown && (b.dir > 0 ? b.x + b.w >= b.clown.x - 9 && b.x < b.clown.x : b.x <= b.clown.x + 9 && b.x + b.w > b.clown.x);
+      if (barrel) b.clown.hide = 150;   /* the clown ducks into his barrel */
+      if (b.x <= lo + 1 || b.x >= hi - 1 || barrel) {
+        b.state = 'dizzy'; b.t = barrel ? 190 : 140; b.vx = 0; SFX.thud(); shakeIt(5);
         pop(b.x, b.y - 10, '💫 STOMP NOW!', 46, '#f6c445');
         sparks(b.x + b.w / 2, b.y + 4, 10, ['#f6c445', '#fff']);
       }
@@ -3141,15 +3288,59 @@ function bossAI(b) {
       b.vy = -7.2; b.vx = clamp(dx / 40, -2, 2); b.pound = true;
       b.t = (partnerOut ? 72 : 100) + ri(0, 30);
     }
+  } else if (b.kind === 'barker') {
+    /* the Carnival Barker: bouncing prize balls, then ring-toss rings, then he stops to count his money (stomp him then) */
+    if (b.state === 'walk') {
+      if (b.vx === 0) b.vx = dx < 0 ? -0.75 : 0.75;
+      if (--b.t <= 0) {
+        b.state = b.next === 'rings' ? 'rings' : 'balls'; b.next = b.state === 'balls' ? 'rings' : 'balls';
+        b.t = 50; b.vx = 0;
+        toast('<b>BARKER:</b> ' + pick(b.state === 'balls' ? ['STEP RIGHT UP!', 'Three balls for a toonie!', 'Knock \'em down, win a prize!'] : ['RING TOSS! Ring the bottle!', 'Ringer! Ringer!', 'Everybody\'s a winner!']), 1300);
+      }
+    } else if (b.state === 'balls') {
+      b.vx = 0;
+      if (b.t === 44 || b.t === 30 || (b.anger && b.t === 16)) { shots.push({ x: b.x + b.w / 2, y: b.y, w: 9, h: 9, vx: sign(dx) * rand(1.6, 2.6), vy: -3.8, g: 0.18, bounce: 3.2, life: 200, kind: 'ball' }); SFX.pew(); }
+      if (--b.t <= 0) { b.state = 'count'; b.t = 84; }
+    } else if (b.state === 'rings') {
+      b.vx = 0;
+      if (b.t === 44 || b.t === 24 || (b.anger && b.t === 8)) { shots.push({ x: b.x + b.w / 2, y: b.y - 2, w: 10, h: 6, vx: clamp(dx / 55, -2.6, 2.6) || sign(dx), vy: -5, g: 0.16, life: 240, kind: 'ring' }); SFX.pew(); }
+      if (--b.t <= 0) { b.state = 'count'; b.t = 84; }
+    } else {   /* counting his money: the time to stomp */
+      b.vx = 0;
+      if (--b.t <= 0) { b.state = 'walk'; b.t = 80; }
+    }
+  } else if (b.kind === 'rex') {
+    /* Rex the Robot T-rex: stomps along, sweeps his tail (a wave along the floor both ways: jump it), then bends down
+       to ROAR. The roar pushes you back, but his head is low: that is when a stomp lands */
+    if (b.state === 'walk') {
+      if (b.vx === 0) b.vx = dx < 0 ? -0.55 : 0.55;
+      if (b.onGround && frame % 40 === 0) shakeIt(1.2);
+      if (--b.t <= 0) {
+        b.state = b.next === 'roar' ? 'roar' : 'sweep'; b.next = b.state === 'sweep' ? 'roar' : 'sweep';
+        b.t = b.state === 'roar' ? 110 : 50; b.vx = 0;
+        if (b.state === 'roar') { toast('<b>REX:</b> ' + pick(['ROOOAAAR!', 'RAAAWR! (beep)', 'ROAR.EXE RUNNING']), 1300); AudioSys.noise(1.2, { filter: 'lowpass', freq: 300, vol: 0.16 }); }
+      }
+    } else if (b.state === 'sweep') {
+      b.vx = 0;
+      if (b.t === 30) {
+        for (const d of [-1, 1]) shots.push({ x: b.x + (d > 0 ? b.w : -12), y: GROUND * T - 8, w: 12, h: 8, vx: d * 2.4, vy: 0, g: 0, life: 80, kind: 'wave', color: 'rgba(120,200,120,.9)' });
+        SFX.thud(); shakeIt(3);
+      }
+      if (--b.t <= 0) { b.state = 'walk'; b.t = 70; }
+    } else if (b.state === 'roar') {
+      b.vx = 0;
+      if (Math.abs(dx) < 190 && Math.abs(P.y - b.y) < 60) P.vx = clamp(P.vx + sign(dx) * 0.12, -3, 3);
+      if (--b.t <= 0) { b.state = 'walk'; b.t = 80; }
+    }
   }
   moveX(b);
-  const charging = (b.kind === 'bully' || b.kind === 'moose' || b.kind === 'conductor' || b.kind === 'supchenoa') && b.state === 'charge';
+  const charging = (b.kind === 'bully' || b.kind === 'moose' || b.kind === 'conductor' || b.kind === 'supchenoa' || b.kind === 'bronco' || b.kind === 'rodeo') && b.state === 'charge';
   if (b.x <= lo) { b.x = lo; if (!charging) b.vx = Math.abs(b.vx); }
   if (b.x >= hi) { b.x = hi; if (!charging) b.vx = -Math.abs(b.vx); }
   moveY(b);
 }
 
-const bossPad = (b) => (b.kind === 'mom' || b.kind === 'dadboss') ? (LV[L.i].final ? 10 : 7) : (['neighbour', 'bully', 'foreman', 'moose', 'lifeguard', 'shadboss'].indexOf(b.kind) >= 0 ? 4 : 0);
+const bossPad = (b) => (b.kind === 'mom' || b.kind === 'dadboss') ? (LV[L.i].final ? 10 : 7) : (['neighbour', 'bully', 'foreman', 'moose', 'lifeguard', 'shadboss', 'bronco', 'rodeo', 'barker'].indexOf(b.kind) >= 0 ? 4 : 0);
 function bossTouch(b) {
   const pad = bossPad(b);
   return P.x < b.x + b.w && P.x + P.w > b.x && P.y < b.y + b.h && P.y + P.h > b.y - pad;
@@ -3157,13 +3348,18 @@ function bossTouch(b) {
 function bossContact(b) {
   if (b.out || !bossTouch(b)) return;
   const pad = bossPad(b);
-  const reach = b.kind === 'mech' || b.kind === 'pumpjack' || b.kind === 'conductor' ? 16 : 14;
+  const reach = b.kind === 'mech' || b.kind === 'pumpjack' || b.kind === 'conductor' || b.kind === 'bronco' || b.kind === 'rodeo' || b.kind === 'rex' ? 16 : 14;
   const fromAbove = P.vy > 0.1 && (P.y + P.h) - (b.y - pad) < reach;
   if (fromAbove) {
     if (b.inv > 0) { P.vy = -4.6; return; }
-    if (b.kind === 'moose' && b.state !== 'dizzy') {
+    if ((b.kind === 'moose' || b.kind === 'bronco' || b.kind === 'rodeo') && b.state !== 'dizzy') {
       P.vy = -6.2; b.inv = 24;
-      toast('The moose shrugs you off! (Wait till he is dizzy!)', 1500);
+      toast(b.kind === 'moose' ? 'The moose shrugs you off! (Wait till he is dizzy!)' : 'Bronco bucks you off! (Wait till he is dizzy!)', 1500);
+      return;
+    }
+    if (b.kind === 'rex' && b.state !== 'roar') {
+      P.vy = -6.4; b.inv = 20;
+      toast('Rex is too tall! Stomp his head when he bends down to ROAR!', 1500);
       return;
     }
     if (b.kind === 'bully' && b.state !== 'dizzy') {
@@ -3188,7 +3384,7 @@ function bossContact(b) {
     return;
   }
   if (P.rush > 0) { if (b.inv === 0) damage(b, 0.34); P.vx = sign(P.x - b.x) * 3.2; return; }
-  if (b.inv === 0 && b.stun === 0 && !((b.kind === 'bully' || b.kind === 'moose') && b.state === 'dizzy') && !(b.kind === 'conductor' && b.state === 'stall') && !(b.kind === 'lifeguard' && b.state === 'rest')) hurt(b.x);
+  if (b.inv === 0 && b.stun === 0 && !((b.kind === 'bully' || b.kind === 'moose' || b.kind === 'bronco' || b.kind === 'rodeo') && b.state === 'dizzy') && !(b.kind === 'conductor' && b.state === 'stall') && !(b.kind === 'lifeguard' && b.state === 'rest')) hurt(b.x);
 }
 
 function updateAllies() {
@@ -3323,7 +3519,7 @@ function glowDisc(x, y, r, color, alpha) {
 }
 function drawBackdrop(th, i) {
   const p1 = Math.round(camX * 0.12), p2 = Math.round(camX * 0.3), p3 = Math.round(camX * 0.55);
-  const dark = th.bg === 'castle' || th.bg === 'cake' || th.bg === 'room' || th.bg === 'night' || th.bg === 'storm' || th.bg === 'whyte' || th.bg === 'bridge';
+  const dark = th.bg === 'castle' || th.bg === 'cake' || th.bg === 'room' || th.bg === 'night' || th.bg === 'storm' || th.bg === 'whyte' || th.bg === 'bridge' || th.bg === 'grandstand' || th.bg === 'skijump';
   if (th.bg === 'room') {
     ctx.globalAlpha = 0.5; ctx.fillStyle = th.far;
     for (let k = -1; k < 12; k++) { const x = k * 44 - (p2 % 44); ctx.fillRect(x, 0, 16, GROUND * T); }
@@ -3647,7 +3843,7 @@ function drawAtmosphere(th) {
       ctx.globalAlpha = 0.35 + a.z * 0.4;
       ctx.fillStyle = ['#ff9fc0', '#f6c445', '#fff'][i % 3];
       ctx.fillRect(Math.round(x), Math.round(y), 2, 2);
-    } else if (bg === 'night' || bg === 'whyte' || bg === 'bridge') {
+    } else if (bg === 'night' || bg === 'whyte' || bg === 'bridge' || bg === 'grandstand') {
       ctx.globalAlpha = (0.3 + a.z * 0.6) * (0.65 + 0.35 * Math.sin(frame / 40 + a.p)); ctx.fillStyle = '#f4f8ff';
       ctx.fillRect(Math.round(a.x), Math.round(a.y * 0.55), 1, 1);
     } else if (bg === 'outdoor' || bg === 'school' || bg === 'lego') {
@@ -3754,6 +3950,12 @@ function drawTiles(th) {
         ctx.fillStyle = '#242642'; ctx.fillRect(sx, sy, T, T);
         ctx.fillStyle = 'rgba(255,255,255,.06)'; ctx.fillRect(sx + 2, sy, 2, T); ctx.fillRect(sx + T - 4, sy, 2, T);
         ctx.fillStyle = 'rgba(0,0,0,.35)'; ctx.fillRect(sx, sy + 6, T, 2); ctx.fillRect(sx, sy + 14, T, 2);
+      } else if (t === 6 && tb === 'breakfast') {   /* the pancake breakfast's springs are hot griddles with a pancake on top */
+        const up = Math.round(Math.max(0, Math.sin(frame / 9)) * 2);
+        ctx.fillStyle = 'rgba(0,0,0,.25)'; ctx.fillRect(sx + 1, sy + 14, 14, 2);
+        ctx.fillStyle = '#2a2a2e'; ctx.fillRect(sx, sy + 9, T, 5); ctx.fillStyle = '#4a4f57'; ctx.fillRect(sx + 2, sy + 14, 2, 2); ctx.fillRect(sx + 12, sy + 14, 2, 2);
+        glowDisc(sx + 8, sy + 9, 8, 'rgba(255,90,40,.35)', 0.5);
+        ctx.fillStyle = '#d9a45b'; ctx.beginPath(); ctx.ellipse(sx + 8, sy + 8 - up, 6, 2, 0, 0, 6.284); ctx.fill(); ctx.fillStyle = '#f6c445'; ctx.fillRect(sx + 7, sy + 6 - up, 2, 1);
       } else if (t === 6) {
         const squish = Math.round(Math.max(0, Math.sin(frame / 9)) * 1.2);
         ctx.fillStyle = 'rgba(0,0,0,.25)'; ctx.fillRect(sx + 1, sy + 14, 14, 2);
@@ -3827,7 +4029,19 @@ function drawProps(th) {
   }
   if (bag) {
     const sx = Math.round(bag.x - camX), sy = Math.round(bag.y);
-    if (!bag.open) {   /* a paper shopping bag that wobbles, two cat ears poking out */
+    if (LV[L.i].bag === 'dog') {   /* a hay bale with a wagging tail sticking out; then the dog, sitting by it */
+      const wag = Math.round(Math.sin(bag.t / 4) * 2);
+      if (!bag.open) {
+        ctx.fillStyle = 'rgba(246,196,69,' + (0.2 + Math.sin(bag.t / 10) * 0.12) + ')'; ctx.fillRect(sx - 3, sy - 4, 22, 24);
+        ctx.fillStyle = '#e0b84a'; ctx.fillRect(sx, sy + 4, 16, 12); ctx.fillStyle = '#b08a2e'; for (let k = 0; k < 4; k++) ctx.fillRect(sx + 1, sy + 6 + k * 3, 14, 1);
+        ctx.fillStyle = '#8a5a2a'; ctx.fillRect(sx + 5, sy + 4, 2, 12); ctx.fillRect(sx + 10, sy + 4, 2, 12);
+        ctx.fillStyle = '#a8692e'; ctx.fillRect(sx + 15, sy + 6 + wag, 4, 2);
+      } else {
+        const dg = progress.pets.ids.filter((id) => petDef(id).kind === 'dog')[0], img = dg ? PET_SPRITES[dg] : SP.dog;
+        ctx.fillStyle = '#e0b84a'; ctx.fillRect(sx + 8, sy + 8, 10, 8);
+        ctx.drawImage(img, sx - 6, sy + 16 - img.height);
+      }
+    } else if (!bag.open) {   /* a paper shopping bag that wobbles, two cat ears poking out */
       const wob = Math.round(Math.sin(bag.t / 9));
       ctx.fillStyle = 'rgba(246,196,69,' + (0.2 + Math.sin(bag.t / 10) * 0.12) + ')'; ctx.fillRect(sx - 3, sy - 4, 22, 24);
       ctx.fillStyle = 'rgba(0,0,0,.2)'; ctx.fillRect(sx + 1, sy + 15, 14, 2);
@@ -4292,6 +4506,65 @@ function drawFoe(f) {
       ctx.fillStyle = '#e8364b'; ctx.fillRect(x + 3, y - 3, 5, 2);
       eye(4, 0, 1);
       break; }
+    case 'drummer': {   /* a marching band drummer: red uniform, a tall hat with a plume, a drum */
+      const st = Math.floor(frame / 8) % 2;
+      ctx.fillStyle = '#1b1220'; ctx.fillRect(x + 4, y - 3, 6, 5); ctx.fillStyle = '#f4f1e8'; ctx.fillRect(x + 6, y - 6, 2, 3);
+      ctx.fillStyle = '#d9a27a'; ctx.fillRect(x + 4, y + 2, 6, 3);
+      ctx.fillStyle = col; ctx.fillRect(x + 3, y + 5, 8, 5);
+      ctx.fillStyle = '#f6c445'; ctx.fillRect(x + 6, y + 5, 2, 5);
+      ctx.fillStyle = '#f4f1e8'; ctx.beginPath(); ctx.ellipse(x + 10, y + 9, 4, 3, 0, 0, 6.284); ctx.fill(); ctx.strokeStyle = col; ctx.lineWidth = 1; ctx.stroke();
+      ctx.fillStyle = '#1b1220'; ctx.fillRect(x + 4, y + 10, 2, 3 - st); ctx.fillRect(x + 8, y + 10, 2, 2 + st);
+      eye(5, 3, 1); eye(8, 3, 1);
+      break; }
+    case 'corndog': {   /* a kid running with a corn dog: very fast, very silly */
+      const st = Math.floor(frame / 4) % 2;
+      ctx.fillStyle = '#6b3f18'; ctx.fillRect(x + 4, y, 6, 3);
+      ctx.fillStyle = '#d9a27a'; ctx.fillRect(x + 4, y + 2, 6, 4);
+      ctx.fillStyle = '#2f5fb3'; ctx.fillRect(x + 3, y + 6, 8, 4);
+      ctx.fillStyle = '#3f63a8'; ctx.fillRect(x + 3 + st, y + 10, 3, 3); ctx.fillRect(x + 8 - st, y + 10, 3, 3);
+      ctx.fillStyle = '#c98d2a'; ctx.fillRect(x - 3, y + 4, 6, 3); ctx.fillStyle = '#f4f1e8'; ctx.fillRect(x - 5, y + 5, 3, 1);
+      ctx.fillStyle = '#e8364b'; ctx.fillRect(x - 2, y + 4, 4, 1);
+      eye(5, 3, 1); eye(8, 3, 1);
+      break; }
+    case 'haybale': {   /* a rolling hay bale */
+      ctx.save(); ctx.translate(x + w / 2, y + h / 2); ctx.rotate(-f.x / 7);
+      ctx.fillStyle = col; ctx.beginPath(); ctx.arc(0, 0, w / 2, 0, 6.284); ctx.fill();
+      ctx.strokeStyle = '#b08a2e'; ctx.lineWidth = 1; for (let k = 1; k < 4; k++) { ctx.beginPath(); ctx.arc(0, 0, k * 1.8, 0, 6.284); ctx.stroke(); }
+      ctx.fillStyle = '#8a5a2a'; ctx.fillRect(-w / 2, -1, w, 2);
+      ctx.restore();
+      eye(3, 4, 1); eye(w - 4, 4, 1);
+      break; }
+    case 'minibull': {   /* a little bull that charges */
+      ctx.fillStyle = col; ctx.fillRect(x + 2, y + 4, 10, 6); ctx.fillRect(x, y + 3, 5, 5);
+      ctx.fillStyle = '#f4f1e8'; ctx.fillRect(x - 1, y + 1, 2, 2); ctx.fillRect(x + 4, y + 1, 2, 2);
+      ctx.fillStyle = '#4a2a10'; ctx.fillRect(x + 3, y + 10, 2, 3); ctx.fillRect(x + 9, y + 10, 2, 3);
+      ctx.fillStyle = '#c98d63'; ctx.fillRect(x, y + 6, 3, 2);
+      ctx.fillStyle = '#f6c445'; ctx.fillRect(x, y + 8, 1, 1);
+      eye(1, 4, 1);
+      break; }
+    case 'lassolizard': {   /* a lizard in a cowboy hat, swinging a lasso */
+      ctx.fillStyle = '#5a9a3a'; ctx.fillRect(x + 2, y + 6, 9, 5); ctx.fillRect(x, y + 4, 5, 4); ctx.fillRect(x + 10, y + 9, 5, 2);
+      ctx.fillStyle = '#3f6f2a'; ctx.fillRect(x + 3, y + 11, 2, 3); ctx.fillRect(x + 8, y + 11, 2, 3);
+      ctx.fillStyle = '#c49a5e'; ctx.fillRect(x - 1, y + 2, 7, 2); ctx.fillRect(x + 1, y, 3, 2);
+      ctx.strokeStyle = '#c9a26a'; ctx.lineWidth = 1; ctx.beginPath(); ctx.ellipse(x + 4, y - 4 + Math.sin(frame / 6), 5, 2, 0, 0, 6.284); ctx.stroke();
+      eye(1, 5, 1);
+      break; }
+    case 'goose': {   /* a Canada goose: brown body, black neck, white chin strap */
+      const flap = Math.floor(frame / 6) % 2;
+      ctx.fillStyle = '#7a6a5a'; ctx.beginPath(); ctx.ellipse(x + w / 2 + 1, y + h / 2 + 2, 6, 3.5, 0, 0, 6.284); ctx.fill();
+      ctx.fillStyle = '#1b1220'; ctx.fillRect(x + 1, y + 1, 2, 6); ctx.fillRect(x - 1, y, 4, 3);
+      ctx.fillStyle = '#f4f1e8'; ctx.fillRect(x, y + 2, 2, 1);
+      ctx.fillStyle = '#5a4a3a'; ctx.fillRect(x + 5, y + (flap ? 1 : h / 2 + 1), 7, flap ? 4 : 2);
+      ctx.fillStyle = '#4a4f57'; ctx.fillRect(x - 3, y + 1, 2, 1);
+      eye(0, 1, 1);
+      break; }
+    case 'babydino': {   /* a baby dinosaur that hops after you */
+      ctx.fillStyle = col; ctx.beginPath(); ctx.ellipse(x + w / 2, y + 8, 5, 4, 0, 0, 6.284); ctx.fill();
+      ctx.fillRect(x + 1, y + 2, 5, 5); ctx.fillRect(x + 9, y + 7, 4, 2);
+      ctx.fillStyle = '#3f8a3a'; ctx.fillRect(x + 4, y + 11, 2, 2); ctx.fillRect(x + 7, y + 11, 2, 2);
+      ctx.fillStyle = '#f6c445'; ctx.fillRect(x + 6, y + 4, 2, 2); ctx.fillRect(x + 9, y + 5, 2, 2);
+      eye(2, 3, 1);
+      break; }
     case 'neighbor':
       ctx.drawImage(SP.nStand, x - 1, y - 5);
       break;
@@ -4392,6 +4665,9 @@ function drawBoss(b) {
   else if (b.kind === 'conductor') drawConductor(b, sx, sy);
   else if (b.kind === 'supchenoa') drawSupChenoa(b, sx, sy);
   else if (b.kind === 'shadboss') drawShadBoss(b, sx, sy);
+  else if (b.kind === 'bronco' || b.kind === 'rodeo') drawBull(b, sx, sy);
+  else if (b.kind === 'barker') drawBarker(b, sx, sy);
+  else if (b.kind === 'rex') drawRex(b, sx, sy);
   else if (b.kind === 'bully') {
     const walking = Math.abs(b.vx) > 0.2 && b.onGround;
     drawBig(walking && Math.floor(frame / 12) % 2 ? SP.bWalk : SP.bStand, sx + b.w / 2, sy + b.h, b.face, 1.45);
@@ -4473,6 +4749,10 @@ function drawShots() {
     } else if (s.kind === 'note') {
       ctx.fillStyle = '#f6c445'; ctx.beginPath(); ctx.ellipse(sx + 3, sy + 6, 3, 2, -0.4, 0, 6.284); ctx.fill();
       ctx.fillRect(sx + 5, sy - 1, 1.5, 7); ctx.fillRect(sx + 5, sy - 1, 4, 1.5);
+    } else if (s.kind === 'ring') {
+      ctx.strokeStyle = '#ff6fae'; ctx.lineWidth = 2; ctx.beginPath(); ctx.ellipse(sx + 5, sy + 3, 5, 3, 0, 0, 6.284); ctx.stroke(); ctx.lineWidth = 1;
+    } else if (s.kind === 'lasso') {
+      ctx.strokeStyle = '#c9a26a'; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.ellipse(sx + 4, sy + 4, 5, 3, frame / 5, 0, 6.284); ctx.stroke(); ctx.lineWidth = 1;
     } else if (s.kind === 'burger') {
       ctx.font = '11px "Segoe UI Emoji",sans-serif'; ctx.textAlign = 'center';
       ctx.fillText('🍔', sx + 5, sy + 8);
@@ -5019,9 +5299,10 @@ function drawPuzzle() {
 const WORLDS = [
   { n: 1, name: 'Kinan vs. Mom', where: 'the birthday, at home in Saskatoon', from: 0, to: 10 },
   { n: 2, name: 'Kinan vs. Dad', where: "Dad's oilfield job site", from: 11, to: 20 },
-  { n: 3, name: 'Kinan vs. Shad & Chenoa', where: 'a weekend in Edmonton', from: 21, to: 30 }
+  { n: 3, name: 'Kinan vs. Shad & Chenoa', where: 'a weekend in Edmonton', from: 21, to: 30 },
+  { n: 4, name: 'Kinan vs. the Stampede', where: 'the Calgary Stampede', from: 31, to: 40 }
 ];
-for (let n = 4; n <= 11; n++) WORLDS.push({ n: n, name: 'World ' + n, where: 'being built', from: -1, to: -1, soon: true });
+for (let n = 5; n <= 11; n++) WORLDS.push({ n: n, name: 'World ' + n, where: 'being built', from: -1, to: -1, soon: true });
 const CODE_SALT = '38c60e5665866a0e';
 const CODE_HASH = {'2': '9ad410626f9342abc9682aec5aa5e01d6092ccb2d00b216ca8e8e56f191acbdb', '3': '2cc4446b83762f35763d948917db7518994a710291fd78f559ffb370bb1fdf09', '4': 'cd961045d7d2a30a4e590a3f2998e9b52f7931c3822b33e4d56567ef6e4a8fae', '5': '26bb21be1bec703f8ac1e2cd2b273bcadfa35c2aadbe708b84c32be340d10dba', '6': '8a20c57f7f6150912709d8a4d745f4330114d60a01deacc4268bf201f777f6f9', '7': '99f2c87e392edb24489bcecc48a065cf857a70f7a7412410f00c1f72b0babbb2', '8': '42650263170026ab707abd47791545eb75ab75d832f45d42a3542b10db757560', '9': '8ca4b0034588262258e6209e44e9f3e5a7d6ec5cc581c01eac7d04f42c5c8512', '10': 'e91ae5fd91428cd7c323dd3481612276a7a26113fc9b5e128dec8cbb8da042bf', '11': 'e69c5eeadaa728ec6e6c67b9ec066aac7babfc18030d0f6e7b05291d67e0d282'};
 const worldOf = (i) => { let n = 1; for (const w of WORLDS) if (!w.soon && i >= w.from) n = w.n; return n; };
@@ -5206,6 +5487,56 @@ function ending3() {
   $('#mapBtn').addEventListener('click', () => { SFX.click(); mapScreen(); });
   $('#titleBtn').addEventListener('click', () => { SFX.click(); titleScreen(); });
   $('#againBtn').addEventListener('click', () => { SFX.click(); playStage(WORLDS[2].to); });
+  SFX.win();
+  confetti();
+}
+/* World 4's ending: Bronco is just lonely; Kinan calms him down, Mom wins the pancake contest, a postcard from Calgary */
+function ending4() {
+  progress.wonWorlds = progress.wonWorlds || [];
+  if (progress.wonWorlds.indexOf(4) < 0) progress.wonWorlds.push(4);
+  const i = L.i, pct = totalCandles ? got / totalCandles : 1;
+  const st = 1 + (pct >= 0.7 ? 1 : 0) + (heartsLost === 0 ? 1 : 0);   /* stars the same way as any other stage */
+  if (progress.beaten.indexOf(i) < 0) progress.beaten.push(i);
+  progress.stars[i] = Math.max(st, progress.stars[i] || 0);
+  progress.bestScore[i] = Math.max(progress.bestScore[i] || 0, score);
+  progress.bestTime = progress.bestTime || {};
+  if (!progress.bestTime[i] || stageTime < progress.bestTime[i]) progress.bestTime[i] = stageTime;
+  progress.totalCandles = (progress.totalCandles || 0) + got;
+  progress.wallet = (progress.wallet || 0) + got;
+  delete progress.resume;
+  refreshWorlds();
+  save();
+  Music.play('title');
+  let stars = 0, gold = 0;
+  for (let k = WORLDS[3].from; k <= WORLDS[3].to; k++) { stars += progress.stars[k] || 0; gold += goldCount(k); }
+  showScreen(
+    '<p class="eyebrow">World 4 clear · Kinan vs. the Stampede · Calgary</p>' +
+    '<h1 class="title"><span class="t2">Bull whisperer:</span><span class="t1">Kinan!</span></h1>' +
+    '<div class="cast"><figure class="hero">' + imgOf(SP.kJump, 5) + '<figcaption><b>Kinan</b><br>Bull Whisperer</figcaption></figure>' +
+    '<figure>' + imgOf(SP.mStand, 4) + '<figcaption>Mom, Pancake Champion</figcaption></figure>' +
+    '<figure>' + imgOf(SP.dStand, 4) + '<figcaption>Dad</figcaption></figure></div>' +
+    '<p class="lede">You marched with the parade, bounced on the griddles, rode out the rodeo, outran the chuckwagons, beat the Carnival Barker at his own games, crossed the Peace Bridge, out-roared Rex the Robot T-rex, held on through the wind at the Calgary Tower, climbed the ski jump hill and calmed <b>Bronco</b> at the Grandstand Show.</p>' +
+    '<p class="lede">Bronco wobbles, sits down... and puts his big head in Kinan\'s lap. <b>KINAN:</b> You\'re not grumpy. You were just lonely, huh? Bronco gives a happy little moo.</p>' +
+    '<p class="lede"><b>MOM:</b> Four hundred and twelve pancakes! I WON! The golden spatula is coming home to Saskatoon!</p>' +
+    '<div class="postcard"><b>Howdy from Calgary!</b><span>Mom: Pancake Champion · Kinan: Bull Whisperer 🤠</span></div>' +
+    '<p class="lede">On the back of Kinan\'s Stampede ticket, in Mom\'s handwriting: <b>NEXT STOP: THE OCEAN</b>. 🎟️</p>' +
+    '<p class="wrapnote"><i class="coin-ico"></i>Golden coins in World 4: <b>' + gold + '</b> / 30 · ⭐ ' + stars + ' / 30 stars</p>' +
+    '<p class="wrapnote">🎁 <b>World 5</b> ' + (WORLDS[4] && !WORLDS[4].soon ? '(Vancouver) is next.' : 'is being built.') + ' Keep being awesome: a grown-up has the next reward code.</p>' +
+    '<ul class="credits">' +
+    '<li><b>Kinan</b> as The Hero (and the Bull Whisperer)</li>' +
+    '<li><b>Mom</b> as the Pancake Champion (412 pancakes)</li>' +
+    '<li><b>Bronco the Bull</b> as himself (not grumpy, just lonely)</li>' +
+    '<li><b>The Carnival Barker</b>, <b>Rex the Robot T-rex</b> and <b>a very brave rodeo clown</b> as themselves</li>' +
+    '<li><b>Dad</b>, <b>Shad</b> and <b>Chenoa</b> as the cheering section</li>' +
+    '</ul>' +
+    '<div class="btnrow"><button class="btn go" type="button" id="mapBtn">Stage map</button>' +
+    '<button class="btn" type="button" id="titleBtn">Title screen</button>' +
+    '<button class="btn ghost" type="button" id="againBtn">Play the rodeo again</button></div>'
+  );
+  el.stageLbl.textContent = 'KINAN · LV 11';
+  $('#mapBtn').addEventListener('click', () => { SFX.click(); mapScreen(); });
+  $('#titleBtn').addEventListener('click', () => { SFX.click(); titleScreen(); });
+  $('#againBtn').addEventListener('click', () => { SFX.click(); playStage(WORLDS[3].to); });
   SFX.win();
   confetti();
 }
@@ -5842,6 +6173,377 @@ function drawShadBoss(b, sx, sy) {
   ctx.fillStyle = '#f6c445'; ctx.beginPath(); ctx.arc(Math.round(cx), top + 5, 8, Math.PI, 0); ctx.fill(); ctx.fillRect(Math.round(cx) - 10, top + 4, 20, 2);   /* his hard hat */
   ctx.fillStyle = '#c99a1e'; ctx.fillRect(Math.round(cx) - 1, top - 2, 2, 6);
   if (b.pound && b.vy > 0) { ctx.strokeStyle = 'rgba(255,220,120,.7)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.ellipse(Math.round(cx), GROUND * T, 20, 5, 0, 0, 6.284); ctx.stroke(); ctx.lineWidth = 1; }
+}
+/* ---- World 4 backgrounds: Calgary during the Stampede. The parade, the pancake breakfast, the rodeo grounds, the
+   chuckwagon track, the midway, the Peace Bridge over the Bow River, the dinosaur zoo, the Calgary Tower, the Olympic
+   ski jumps and the Grandstand Show. The Rocky Mountains are on the horizon. ---- */
+function calRockies(p, base, night) {   /* the Rockies, drawn once and kept: grey-blue peaks with snow on top */
+  const img = w3Cache('rockies:' + (night ? 'n' : 'd'), 480, 90, (c, w, h) => {
+    const peaks = [[0, 40], [40, 12], [70, 34], [105, 6], [150, 30], [180, 16], [215, 38], [250, 8], [290, 28], [330, 14], [370, 36], [410, 10], [450, 32], [480, 40]];
+    c.fillStyle = night ? '#2a2f5a' : '#7f8fb0';
+    c.beginPath(); c.moveTo(0, h);
+    peaks.forEach(([x, y]) => c.lineTo(x, y + 30));
+    c.lineTo(w, h); c.closePath(); c.fill();
+    c.fillStyle = night ? '#4a5078' : '#f4f8ff';   /* snow caps */
+    for (let k = 1; k < peaks.length - 1; k++) {
+      const [x, y] = peaks[k], [lx, ly] = peaks[k - 1], [rx, ry] = peaks[k + 1];
+      if (y > 20) continue;
+      c.beginPath(); c.moveTo(x, y + 30);
+      c.lineTo(x + (lx - x) * 0.28, y + 30 + (ly - y) * 0.28); c.lineTo(x + (rx - x) * 0.22, y + 30 + (ry - y) * 0.4); c.closePath(); c.fill();
+    }
+    c.fillStyle = night ? 'rgba(0,0,0,.25)' : 'rgba(60,70,100,.25)'; c.fillRect(0, h - 22, w, 22);
+  });
+  for (let k = -1; k < 3; k++) { const x = k * 480 - (p % 480); if (x > W || x + 480 < 0) continue; ctx.drawImage(img, x, base - 90); }
+}
+function calTower(x, base, h, night) {   /* the Calgary Tower: a tall column, the round lookout on top, the flame */
+  ctx.fillStyle = night ? '#5a5f7a' : '#c9c9cf'; ctx.fillRect(x - 3, base - h, 6, h);
+  ctx.fillStyle = night ? '#3a3f5a' : '#9aa1ab'; ctx.fillRect(x + 1, base - h, 2, h);
+  ctx.fillStyle = '#d8342c'; ctx.fillRect(x - 9, base - h - 8, 18, 8);
+  ctx.fillStyle = night ? '#f6d77a' : '#2b3550'; for (let k = 0; k < 4; k++) ctx.fillRect(x - 7 + k * 4, base - h - 6, 2, 3);
+  ctx.fillStyle = '#9aa1ab'; ctx.fillRect(x - 2, base - h - 14, 4, 6);
+  if (night || Math.floor(frame / 40) % 3 === 0) { glowDisc(x, base - h - 16, 6, 'rgba(255,160,60,.8)', 0.8); ctx.fillStyle = '#ffb02e'; ctx.fillRect(x - 1, base - h - 18, 2, 3); }
+}
+function calSkyline(th, p, base, night) {   /* downtown Calgary: towers, and the Calgary Tower among them */
+  edmSkyline(th, p, base, night, 0.8);
+  for (let k = -1; k < 2; k++) { const x = k * 520 - (p % 520) + 300; if (x > -20 && x < W + 20) calTower(x, base, 74, night); }
+}
+function calBunting(p, y) {   /* Stampede flags on a string: red, yellow, blue */
+  for (let k = -1; k < 6; k++) {
+    const x = k * 96 - (p % 96);
+    ctx.strokeStyle = 'rgba(40,30,30,.6)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x, y); ctx.quadraticCurveTo(x + 48, y + 10, x + 96, y); ctx.stroke();
+    for (let q = 0; q < 6; q++) {
+      const fx = x + 8 + q * 14, fy = y + Math.sin((q + 0.5) / 6 * Math.PI) * 7;
+      ctx.fillStyle = ['#d8342c', '#f6c445', '#2f5fb3'][q % 3]; ctx.beginPath(); ctx.moveTo(fx - 4, fy); ctx.lineTo(fx + 4, fy); ctx.lineTo(fx, fy + 7); ctx.fill();
+    }
+  }
+}
+function calCrowd(p, y, night) {   /* people in cowboy hats */
+  for (let k = -1; k < 40; k++) {
+    const x = k * 12 - (p % 12), kk = k + Math.floor(p / 12), bob = Math.round(Math.sin(frame / 14 + kk) * 0.8);
+    ctx.fillStyle = night ? '#1d1838' : ['#7a3f26', '#2f5fb3', '#9b2d6b', '#3f6f3a'][((kk % 4) + 4) % 4]; ctx.fillRect(x, y + 4 + bob, 8, 10);
+    ctx.fillStyle = night ? '#2a2448' : '#d9a27a'; ctx.fillRect(x + 2, y + bob, 4, 4);
+    if (((kk % 3) + 3) % 3 !== 1) { ctx.fillStyle = night ? '#3a3358' : '#c49a5e'; ctx.fillRect(x, y - 1 + bob, 8, 2); ctx.fillRect(x + 2, y - 3 + bob, 4, 2); }
+  }
+}
+const W4BG = {
+  parade(th, p1, p2, p3) {
+    w3Clouds(p1, 'rgba(255,255,255,.75)');
+    calRockies(p1, 120, false);
+    calSkyline(th, p1, 132, false);
+    calBunting(p2, 70);
+    const fx = ((frame * 0.5) % (W + 360)) - 180;   /* a parade float going by: a giant cowboy hat on a wagon */
+    ctx.fillStyle = '#a8422e'; ctx.fillRect(fx, 132, 130, 22); ctx.fillStyle = '#f6c445'; ctx.fillRect(fx, 150, 130, 4);
+    ctx.fillStyle = '#c49a5e'; ctx.beginPath(); ctx.ellipse(fx + 65, 128, 58, 7, 0, 0, 6.284); ctx.fill(); ctx.fillRect(fx + 40, 104, 50, 26);
+    ctx.fillStyle = '#7a3f26'; ctx.fillRect(fx + 40, 122, 50, 4);
+    ctx.fillStyle = '#222327'; for (const wx of [fx + 18, fx + 112]) { ctx.beginPath(); ctx.arc(wx, 156, 6, 0, 6.284); ctx.fill(); }
+    ['#ff6fae', '#6fc8ff', '#f6c445'].forEach((c, q) => { ctx.fillStyle = c; ctx.beginPath(); ctx.ellipse(fx + 20 + q * 45, 92 + Math.sin(frame / 25 + q) * 3, 7, 9, 0, 0, 6.284); ctx.fill(); });
+    calCrowd(p3, 156, false);
+  },
+  breakfast(th, p1, p2, p3) {
+    calRockies(p1, 118, false);
+    for (let k = -1; k < 4; k++) {   /* striped tents */
+      const x = k * 150 - (p2 % 150) + 10;
+      for (let s = 0; s < 6; s++) { ctx.fillStyle = s % 2 ? '#f4f1e8' : '#d8342c'; ctx.beginPath(); ctx.moveTo(x + 60, 84); ctx.lineTo(x + s * 20, 112); ctx.lineTo(x + s * 20 + 20, 112); ctx.fill(); }
+      ctx.fillStyle = 'rgba(40,20,20,.3)'; ctx.fillRect(x + 4, 112, 112, 40);
+      ctx.fillStyle = '#8a6a48'; ctx.fillRect(x + 6, 112, 3, 40); ctx.fillRect(x + 111, 112, 3, 40);
+    }
+    /* Mom's scoreboard: the pancake count keeps going up */
+    const n = 12 + Math.floor(frame / 90) % 300;
+    for (let k = -1; k < 2; k++) {
+      const x = k * 460 - (p2 % 460) + 260;
+      ctx.fillStyle = '#2a1414'; ctx.fillRect(x, 40, 120, 40); ctx.strokeStyle = '#f6c445'; ctx.lineWidth = 2; ctx.strokeRect(x + 2, 42, 116, 36); ctx.lineWidth = 1;
+      ctx.fillStyle = '#ff6fae'; ctx.font = 'bold 8px monospace'; ctx.textAlign = 'center'; ctx.fillText('BREAKFAST BOSS', x + 60, 54);
+      ctx.fillStyle = '#f6c445'; ctx.font = 'bold 13px monospace'; ctx.fillText('MOM: ' + n, x + 60, 70);
+      ctx.fillStyle = '#4a4f57'; ctx.fillRect(x + 20, 80, 3, 40); ctx.fillRect(x + 97, 80, 3, 40);
+    }
+    for (let k = -1; k < 6; k++) {   /* the long griddles, pancakes flipping */
+      const x = k * 90 - (p3 % 90) + 10, kk = k + Math.floor(p3 / 90);
+      ctx.fillStyle = '#2a2a2e'; ctx.fillRect(x, 150, 70, 6); ctx.fillStyle = '#4a4f57'; ctx.fillRect(x + 4, 156, 3, 20); ctx.fillRect(x + 63, 156, 3, 20);
+      glowDisc(x + 35, 150, 14, 'rgba(255,90,40,.35)', 0.5);
+      for (let q = 0; q < 3; q++) {
+        const ph = (frame / 40 + kk + q * 0.7) % 3, up = ph < 1 ? Math.sin(ph * Math.PI) * 18 : 0;
+        ctx.fillStyle = '#d9a45b'; ctx.beginPath(); ctx.ellipse(x + 14 + q * 21, 148 - up, 8, up > 2 ? 3 : 2, ph < 1 ? ph * 3 : 0, 0, 6.284); ctx.fill();
+      }
+    }
+  },
+  rodeo(th, p1, p2, p3) {
+    calRockies(p1, 110, false);
+    for (let k = -1; k < 3; k++) {   /* the grandstand full of people */
+      const x = k * 300 - (p1 % 300) + 30;
+      ctx.fillStyle = '#6d5a4a'; ctx.beginPath(); ctx.moveTo(x, 132); ctx.lineTo(x + 30, 78); ctx.lineTo(x + 230, 78); ctx.lineTo(x + 260, 132); ctx.fill();
+      ctx.fillStyle = '#d8342c'; ctx.fillRect(x + 26, 70, 208, 8);
+      for (let r = 0; r < 5; r++) for (let c = 0; c < 22; c++) { ctx.fillStyle = ['#f6c445', '#2f5fb3', '#f4f1e8', '#d8342c', '#44c55a'][(r * 3 + c + k) % 5]; ctx.fillRect(x + 36 + c * 9 - r * 4 + (r * 7) % 3, 84 + r * 10, 4, 5); }
+    }
+    for (let k = -1; k < 6; k++) {   /* the bucking chutes */
+      const x = k * 120 - (p2 % 120);
+      ctx.fillStyle = '#8a5a3a'; ctx.fillRect(x, 120, 40, 4); ctx.fillRect(x, 134, 40, 4); ctx.fillRect(x, 120, 4, 36); ctx.fillRect(x + 36, 120, 4, 36);
+      ctx.fillStyle = '#f6c445'; ctx.font = 'bold 8px monospace'; ctx.textAlign = 'center'; ctx.fillText(String(((k + Math.floor(p2 / 120)) % 6 + 6) % 6 + 1), x + 20, 116);
+    }
+    ctx.fillStyle = 'rgba(200,160,110,.35)';   /* dust in the air */
+    for (let k = 0; k < 5; k++) { const dx = ((frame * 0.4 + k * 97) % (W + 80)) - 40; ctx.beginPath(); ctx.ellipse(dx, 164 - (k % 2) * 6, 26, 6, 0, 0, 6.284); ctx.fill(); }
+    for (let k = -1; k < 12; k++) {   /* the arena fence */
+      const x = k * 40 - (p3 % 40);
+      ctx.fillStyle = '#7a5634'; ctx.fillRect(x, 150, 4, 26); ctx.fillRect(x - 20, 154, 44, 3); ctx.fillRect(x - 20, 164, 44, 3);
+    }
+  },
+  chuckwagon(th, p1, p2, p3) {
+    calRockies(p1, 116, false);
+    ctx.fillStyle = '#6d5a4a'; ctx.fillRect(0, 96, W, 30);   /* the grandstand far away */
+    for (let k = 0; k < 54; k++) { ctx.fillStyle = ['#f6c445', '#2f5fb3', '#f4f1e8', '#d8342c'][k % 4]; ctx.fillRect(((k * 8 - p1) % W + W) % W, 100 + (k % 3) * 8, 4, 4); }
+    ctx.fillStyle = '#a87a4a'; ctx.fillRect(0, 128, W, 30);   /* the track */
+    ctx.fillStyle = '#f4f1e8'; for (let k = -1; k < 12; k++) ctx.fillRect(k * 40 - (p2 % 40), 127, 20, 2);
+    for (let k = 0; k < 3; k++) {   /* chuckwagons racing by, horses in front */
+      const x = (((frame * (2.2 + k * 0.4)) + k * 190 - p2 * 0.3) % (W + 220)) - 110, y = 136 + k * 6;
+      ctx.fillStyle = '#f4f1e8'; ctx.beginPath(); ctx.arc(x + 18, y + 2, 14, Math.PI, 0); ctx.fill();   /* the canvas top */
+      ctx.fillStyle = ['#d8342c', '#2f5fb3', '#44c55a'][k]; ctx.fillRect(x + 4, y + 2, 28, 8);
+      ctx.fillStyle = '#222327'; ctx.beginPath(); ctx.arc(x + 8, y + 12, 4, 0, 6.284); ctx.arc(x + 28, y + 12, 4, 0, 6.284); ctx.fill();
+      const gal = Math.floor(frame / 5 + k) % 2;
+      for (let h = 0; h < 2; h++) { ctx.fillStyle = '#6b3f18'; ctx.fillRect(x + 36 + h * 16, y, 12, 6); ctx.fillRect(x + 46 + h * 16, y - 4, 4, 5); ctx.fillRect(x + 37 + h * 16 + gal, y + 6, 2, 5); ctx.fillRect(x + 45 + h * 16 - gal, y + 6, 2, 5); }
+      ctx.fillStyle = 'rgba(200,160,110,.4)'; ctx.beginPath(); ctx.ellipse(x - 8, y + 12, 14, 5, 0, 0, 6.284); ctx.fill();
+    }
+    for (let k = -1; k < 12; k++) { const x = k * 40 - (p3 % 40); ctx.fillStyle = '#f4f1e8'; ctx.fillRect(x, 160, 3, 16); ctx.fillRect(x - 18, 162, 40, 2); }
+  },
+  midway(th, p1, p2, p3) {
+    calRockies(p1, 112, false);
+    for (let k = -1; k < 2; k++) {   /* the big Ferris wheel, turning, its cars lit */
+      const cx = k * 420 - (p1 % 420) + 250, cy = 76, r = 52, a0 = frame / 220;
+      ctx.strokeStyle = '#f4f1e8'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(cx, cy, r, 0, 6.284); ctx.stroke();
+      ctx.lineWidth = 1; ctx.strokeStyle = 'rgba(244,241,232,.6)';
+      for (let s = 0; s < 12; s++) { const a = a0 + s * Math.PI / 6; ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + Math.cos(a) * r, cy + Math.sin(a) * r); ctx.stroke(); }
+      for (let s = 0; s < 12; s++) { const a = a0 + s * Math.PI / 6; ctx.fillStyle = ['#ff6fae', '#f6c445', '#6fc8ff', '#7be3a3'][s % 4]; ctx.fillRect(cx + Math.cos(a) * r - 4, cy + Math.sin(a) * r, 8, 6); }
+      ctx.strokeStyle = '#9aa1ab'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(cx - 30, 150); ctx.lineTo(cx, cy); ctx.lineTo(cx + 30, 150); ctx.stroke(); ctx.lineWidth = 1;
+    }
+    for (let k = -1; k < 5; k++) {   /* game booths with striped roofs */
+      const x = k * 120 - (p2 % 120) + 10, kk = k + Math.floor(p2 / 120);
+      for (let s = 0; s < 5; s++) { ctx.fillStyle = s % 2 ? '#f4f1e8' : ['#d8342c', '#2f5fb3', '#9b2d6b'][((kk % 3) + 3) % 3]; ctx.fillRect(x + s * 18, 118, 18, 10); }
+      ctx.fillStyle = '#3a2a3a'; ctx.fillRect(x + 4, 128, 82, 30);
+      ctx.fillStyle = '#f6c445'; ctx.font = 'bold 7px monospace'; ctx.textAlign = 'center'; ctx.fillText(['RING TOSS', 'BALLOON POP', 'MINI DONUTS'][((kk % 3) + 3) % 3], x + 45, 140);
+      for (let q = 0; q < 4; q++) { ctx.fillStyle = ['#ff6fae', '#6fc8ff', '#f6c445', '#7be3a3'][q]; ctx.beginPath(); ctx.arc(x + 16 + q * 18, 150, 4, 0, 6.284); ctx.fill(); }
+    }
+    for (let k = -1; k < 5; k++) {   /* string lights */
+      const x = k * 110 - (p3 % 110);
+      for (let q = 0; q <= 10; q++) { ctx.fillStyle = ['#ff6fae', '#f6c445', '#6fc8ff'][(q + Math.floor(frame / 15)) % 3]; ctx.fillRect(x + q * 11, 104 + Math.sin(q / 10 * Math.PI) * 10, 2, 2); }
+    }
+  },
+  peacebridge(th, p1, p2, p3) {
+    w3Clouds(p1, 'rgba(255,255,255,.7)');
+    calRockies(p1, 112, false);
+    calSkyline(th, p1, 122, false);
+    ctx.fillStyle = '#4f8fbf'; ctx.fillRect(0, 128, W, 22);   /* the Bow River */
+    ctx.fillStyle = 'rgba(255,255,255,.6)'; for (let k = 0; k < 10; k++) ctx.fillRect(((k * 47 - p2 * 0.5 + frame * 0.4) % W + W) % W, 132 + (k % 3) * 5, 8, 1);
+    for (let k = -1; k < 2; k++) {   /* the Peace Bridge: a long red tube of crossing arches */
+      const x = k * 460 - (p2 % 460) + 60;
+      ctx.strokeStyle = '#d8342c'; ctx.lineWidth = 2;
+      for (let q = 0; q < 14; q++) { const bx = x + q * 22; ctx.beginPath(); ctx.ellipse(bx + 11, 126, 14, 18, 0, Math.PI, 0); ctx.stroke(); }
+      ctx.lineWidth = 1; ctx.fillStyle = '#9aa1ab'; ctx.fillRect(x - 4, 126, 320, 3);
+      ctx.fillStyle = '#6d7480'; ctx.fillRect(x + 4, 129, 6, 20); ctx.fillRect(x + 300, 129, 6, 20);
+    }
+    for (let k = 0; k < 4; k++) {   /* Canada geese flying over */
+      const gx = ((frame * 0.7 + k * 60) % (W + 80)) - 40, gy = 40 + k * 7, wing = Math.floor(frame / 8 + k) % 2 ? -2 : 1;
+      ctx.strokeStyle = '#3a3030'; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(gx - 5, gy + wing); ctx.lineTo(gx, gy); ctx.lineTo(gx + 5, gy + wing); ctx.stroke(); ctx.lineWidth = 1;
+    }
+    for (let k = -1; k < 10; k++) { const x = k * 48 - (p3 % 48); ctx.fillStyle = '#3f6f3a'; ctx.beginPath(); ctx.ellipse(x + 20, 160, 18, 12, 0, 0, 6.284); ctx.fill(); }
+  },
+  dinozoo(th, p1, p2, p3) {
+    calRockies(p1, 110, false);
+    const dino = (x, y, s, kind, c) => {   /* simple dinosaur models: a long-neck, a T-rex, a stegosaurus */
+      ctx.fillStyle = c;
+      if (kind === 0) { ctx.beginPath(); ctx.ellipse(x, y, 30 * s, 13 * s, 0, 0, 6.284); ctx.fill(); ctx.fillRect(x + 18 * s, y - 50 * s, 7 * s, 46 * s); ctx.beginPath(); ctx.ellipse(x + 24 * s, y - 52 * s, 9 * s, 5 * s, 0, 0, 6.284); ctx.fill();
+        ctx.beginPath(); ctx.moveTo(x - 26 * s, y); ctx.lineTo(x - 62 * s, y + 6 * s); ctx.lineTo(x - 26 * s, y + 6 * s); ctx.fill(); for (const lx of [-18, -6, 8, 20]) ctx.fillRect(x + lx * s, y + 8 * s, 6 * s, 14 * s); }
+      else if (kind === 1) { ctx.beginPath(); ctx.ellipse(x, y, 20 * s, 14 * s, -0.3, 0, 6.284); ctx.fill(); ctx.fillRect(x + 8 * s, y - 30 * s, 18 * s, 16 * s); ctx.fillRect(x + 20 * s, y - 24 * s, 12 * s, 8 * s);
+        ctx.beginPath(); ctx.moveTo(x - 16 * s, y); ctx.lineTo(x - 48 * s, y + 14 * s); ctx.lineTo(x - 14 * s, y + 8 * s); ctx.fill(); ctx.fillRect(x - 6 * s, y + 10 * s, 6 * s, 16 * s); ctx.fillRect(x + 6 * s, y + 10 * s, 6 * s, 16 * s); }
+      else { ctx.beginPath(); ctx.ellipse(x, y, 26 * s, 12 * s, 0, Math.PI, 0); ctx.fill(); ctx.fillRect(x - 26 * s, y, 52 * s, 6 * s); ctx.fillStyle = '#c96a3a';
+        for (let q = 0; q < 5; q++) { ctx.beginPath(); ctx.moveTo(x - 18 * s + q * 9 * s, y - 9 * s); ctx.lineTo(x - 14 * s + q * 9 * s, y - 19 * s); ctx.lineTo(x - 10 * s + q * 9 * s, y - 9 * s); ctx.fill(); } }
+    };
+    for (let k = -1; k < 3; k++) { const x = k * 300 - (p1 % 300) + 120; dino(x, 110, 1, ((k % 3) + 3) % 3, 'rgba(80,110,90,.7)'); }
+    ctx.globalAlpha = 0.55;   /* models in the background: fainter than Rex, who is in front */
+    for (let k = -1; k < 4; k++) { const x = k * 220 - (p2 % 220) + 70, kk = k + Math.floor(p2 / 220); dino(x, 140, 0.8, ((kk + 1) % 3 + 3) % 3, ['#5a8a4a', '#7a6a4a', '#4a7a6a'][((kk % 3) + 3) % 3]); }
+    ctx.globalAlpha = 1;
+    for (let k = -1; k < 6; k++) {   /* ferns and the zoo sign */
+      const x = k * 90 - (p3 % 90);
+      ctx.fillStyle = '#2f6b3a'; for (let q = 0; q < 5; q++) { ctx.beginPath(); ctx.ellipse(x + 20 + q * 4, 168, 4, 12, (q - 2) * 0.45, 0, 6.284); ctx.fill(); }
+    }
+    for (let k = -1; k < 2; k++) {
+      const x = k * 480 - (p3 % 480) + 300;
+      ctx.fillStyle = '#7a5634'; ctx.fillRect(x, 136, 4, 40); ctx.fillRect(x + 76, 136, 4, 40); ctx.fillStyle = '#3f6f3a'; ctx.fillRect(x - 4, 124, 88, 18);
+      ctx.fillStyle = '#f6c445'; ctx.font = 'bold 8px monospace'; ctx.textAlign = 'center'; ctx.fillText('DINOSAUR PARK', x + 40, 136);
+    }
+  },
+  calgarytower(th, p1, p2, p3) {
+    const sx = 330 - (p1 % 700);
+    glowDisc(sx, 112, 50, 'rgba(255,170,90,.7)', 0.8); ctx.fillStyle = '#ffd48a'; ctx.beginPath(); ctx.arc(sx, 116, 14, Math.PI, 0); ctx.fill();
+    calRockies(p1, 120, false);
+    edmSkyline({ far: '#7a5a7a' }, p1, 140, false, 0.9);
+    for (let k = -1; k < 2; k++) { const x = k * 430 - (p2 % 430) + 220; if (x > -40 && x < W + 40) calTower(x, 176, 130, false); }   /* the tower, up close */
+    const gust = (frame % 300) < 90;   /* the wind: dust and leaves blowing left */
+    if (gust) {
+      ctx.strokeStyle = 'rgba(255,240,210,.55)'; ctx.lineWidth = 1;
+      for (let k = 0; k < 14; k++) { const y = 30 + (k * 37) % 140, x = W - ((frame * 9 + k * 61) % (W + 60)); ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + 24, y); ctx.stroke(); }
+      ctx.fillStyle = 'rgba(200,160,110,.6)'; for (let k = 0; k < 10; k++) ctx.fillRect(W - ((frame * 6 + k * 47) % (W + 30)), 120 + (k * 13) % 50, 3, 2);
+    }
+  },
+  skijump(th, p1, p2, p3) {
+    calRockies(p1, 108, true);
+    ctx.fillStyle = 'rgba(255,240,200,.25)'; for (let k = 0; k < 30; k++) ctx.fillRect(((k * 41 - p1 * 0.5) % W + W) % W, 150 + (k % 4) * 4, 2, 2);   /* the city lights below */
+    ctx.fillStyle = th.mid;   /* the hill */
+    ctx.beginPath(); ctx.moveTo(-20, 176); ctx.lineTo(-20, 120); ctx.quadraticCurveTo(200, 90, W + 20, 140); ctx.lineTo(W + 20, 176); ctx.fill();
+    for (let k = -1; k < 2; k++) {   /* the two ski jump towers and their ramps */
+      const x = k * 420 - (p2 % 420) + 230;
+      for (const [ox, h] of [[0, 70], [40, 54]]) {
+        ctx.fillStyle = '#e8ecf2'; ctx.fillRect(x + ox, 104 - h, 10, h + 10);
+        ctx.fillStyle = '#9aa1ab'; ctx.fillRect(x + ox + 7, 104 - h, 3, h + 10);
+        ctx.strokeStyle = '#d8dde6'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(x + ox + 5, 104 - h); ctx.quadraticCurveTo(x + ox - 30, 104 - h * 0.3, x + ox - 70, 120); ctx.stroke(); ctx.lineWidth = 1;
+        ctx.fillStyle = '#d8342c'; ctx.fillRect(x + ox - 1, 100 - h, 12, 4);
+      }
+    }
+    ctx.strokeStyle = '#c9ced8'; ctx.lineWidth = 4;   /* the bobsled track winding down */
+    for (let k = -1; k < 3; k++) { const x = k * 300 - (p3 % 300); ctx.beginPath(); ctx.moveTo(x, 150); ctx.bezierCurveTo(x + 60, 130, x + 110, 170, x + 170, 148); ctx.bezierCurveTo(x + 220, 132, x + 260, 160, x + 300, 150); ctx.stroke(); }
+    ctx.lineWidth = 1;
+  },
+  grandstand(th, p1, p2, p3) {
+    for (let k = 0; k < 4; k++) {   /* fireworks bursting */
+      const t = (frame + k * 70) % 280, cx = ((k * 113 + 60) % 400) + 16, cy = 40 + (k * 23) % 50;
+      if (t < 110) {
+        const r = t * 0.45, c = ['#ff6fae', '#f6c445', '#6fc8ff', '#7be3a3'][k];
+        for (let q = 0; q < 12; q++) { const a = q * Math.PI / 6; ctx.fillStyle = c; ctx.globalAlpha = 1 - t / 110; ctx.fillRect(cx + Math.cos(a) * r, cy + Math.sin(a) * r, 2, 2); }
+        ctx.globalAlpha = 1;
+        if (t < 8) glowDisc(cx, cy, 20, 'rgba(255,240,200,.6)', 0.7);
+      }
+    }
+    for (let k = -1; k < 3; k++) {   /* the grandstand, lit up, and the stage */
+      const x = k * 330 - (p1 % 330) + 20;
+      ctx.fillStyle = '#241d44'; ctx.beginPath(); ctx.moveTo(x, 140); ctx.lineTo(x + 30, 88); ctx.lineTo(x + 270, 88); ctx.lineTo(x + 300, 140); ctx.fill();
+      ctx.fillStyle = '#3a2453'; ctx.fillRect(x + 26, 80, 248, 8);
+      for (let q = 0; q < 8; q++) { glowDisc(x + 40 + q * 32, 80, 6, 'rgba(255,240,170,.8)', 0.7); }
+      for (let r = 0; r < 4; r++) for (let c = 0; c < 26; c++) { ctx.fillStyle = (r + c + Math.floor(frame / 30)) % 7 === 0 ? '#fff3b0' : '#3a3358'; ctx.fillRect(x + 40 + c * 9 - r * 4, 96 + r * 10, 4, 5); }
+    }
+    calCrowd(p3, 158, true);
+  }
+};
+Object.assign(W2BG, W4BG);   /* World 4's scenes join the same table the stages are drawn from */
+/* ---- World 4 bosses ---- */
+function drawBull(b, sx, sy) {   /* Bronco the Bull: dark brown, white horns, a gold nose ring */
+  ctx.save();
+  ctx.translate(sx + b.w / 2, sy);
+  ctx.scale(b.face > 0 ? -1.3 : 1.3, 1.3);
+  const x = -13, y = 0, step = Math.abs(b.vx) > 0.2 ? Math.floor(frame / 5) % 2 : 0;
+  const body = b.kind === 'rodeo' ? '#3b2618' : '#5a3a24', dark = '#2a1a10', light = '#7a5236';
+  ctx.fillStyle = dark;
+  ctx.fillRect(x + 8, y + 14, 3, 6 - step); ctx.fillRect(x + 12, y + 14, 3, 6); ctx.fillRect(x + 19, y + 14, 3, 5 + step); ctx.fillRect(x + 23, y + 14, 3, 6);
+  ctx.fillStyle = body; ctx.fillRect(x + 6, y + 5, 22, 11); ctx.fillRect(x + 8, y + 3, 10, 4);   /* the hump */
+  ctx.fillStyle = light; ctx.fillRect(x + 6, y + 5, 22, 2);
+  ctx.fillStyle = body; ctx.fillRect(x, y + 6, 9, 8);   /* the head */
+  ctx.fillStyle = '#c98d63'; ctx.fillRect(x - 1, y + 10, 5, 4);   /* the muzzle */
+  ctx.fillStyle = '#f6c445'; ctx.fillRect(x - 1, y + 13, 2, 2);   /* the nose ring */
+  ctx.fillStyle = '#f4f1e8'; ctx.fillRect(x - 2, y + 4, 3, 2); ctx.fillRect(x - 3, y + 2, 2, 3); ctx.fillRect(x + 7, y + 4, 3, 2); ctx.fillRect(x + 9, y + 2, 2, 3);   /* horns */
+  ctx.fillStyle = '#1b1220'; ctx.fillRect(x + 2, y + 8, 2, 2);
+  ctx.fillStyle = dark; ctx.fillRect(x + 27, y + 6, 2, 7); ctx.fillRect(x + 28, y + 12, 2, 2);   /* the tail */
+  ctx.fillStyle = '#d8342c'; ctx.fillRect(x + 10, y + 9, 14, 2);   /* the rodeo strap */
+  if (b.state === 'windup') { ctx.fillStyle = 'rgba(255,255,255,.75)'; ctx.fillRect(x - 5, y + 11, 3, 1); ctx.fillRect(x - 6, y + 13, 3, 1); }
+  ctx.restore();
+  ctx.textAlign = 'center';
+  if (b.state === 'dizzy') { ctx.font = '10px sans-serif'; ctx.fillText('💫', Math.round(sx + b.w / 2 + Math.sin(frame / 30) * 3), sy - 6); }
+  else if (b.state === 'windup') { ctx.fillStyle = '#ff6b6b'; ctx.font = 'bold 11px monospace'; ctx.fillText('!', Math.round(sx + b.w / 2), sy - 6); }
+  if (b.clown) {   /* the rodeo clown's barrel, and the clown popping out of it */
+    const bx = Math.round(b.clown.x - camX), by = GROUND * T;
+    ctx.fillStyle = '#8a5a3a'; ctx.fillRect(bx - 9, by - 20, 18, 20); ctx.fillStyle = '#4a4f57'; ctx.fillRect(bx - 9, by - 16, 18, 2); ctx.fillRect(bx - 9, by - 6, 18, 2);
+    if (!b.clown.hide) {
+      const wave = Math.round(Math.sin(frame / 6) * 2);
+      ctx.fillStyle = '#f4f1e8'; ctx.fillRect(bx - 4, by - 30, 8, 8); ctx.fillStyle = '#e8364b'; ctx.fillRect(bx - 1, by - 27, 2, 2);
+      ctx.fillStyle = '#6fc8ff'; ctx.fillRect(bx - 5, by - 34, 10, 4); ctx.fillStyle = '#f6c445'; ctx.fillRect(bx - 6 + wave, by - 22, 3, 6); ctx.fillRect(bx + 3 - wave, by - 22, 3, 6);
+    }
+  }
+}
+function drawBarker(b, sx, sy) {   /* the Carnival Barker: straw hat, red vest, a cane */
+  const walking = Math.abs(b.vx) > 0.2 && b.onGround, cx = sx + b.w / 2;
+  drawBig(walking && Math.floor(frame / 12) % 2 ? SP.brWalk : SP.brStand, cx, sy + b.h, b.face, 1.45);
+  ctx.strokeStyle = '#1b1220'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(cx + b.face * 9, sy + 10); ctx.lineTo(cx + b.face * 11, sy + b.h); ctx.stroke(); ctx.lineWidth = 1;
+  ctx.fillStyle = '#f6c445'; ctx.fillRect(Math.round(cx + b.face * 8) - 2, sy + 8, 4, 2);
+  ctx.textAlign = 'center';
+  if (b.state === 'count') { ctx.font = '10px sans-serif'; ctx.fillText('💰', Math.round(cx + 9), sy - 4); }
+}
+function drawRex(b, sx, sy) {   /* Rex the Robot T-rex: green plates, glowing red eyes, tiny arms; the head comes down to roar */
+  const x = sx, y = sy, f = b.face < 0 ? -1 : 1, low = b.state === 'roar' ? 12 : 0, step = Math.abs(b.vx) > 0.2 ? Math.floor(frame / 8) % 2 : 0;
+  const cx = x + b.w / 2, g = '#4a8a4a', g2 = '#3a6a3a', metal = '#9aa1ab';
+  ctx.fillStyle = g2; ctx.fillRect(cx - 8, y + 26, 6, 8 - step); ctx.fillRect(cx + 2, y + 26, 6, 8);   /* legs */
+  ctx.fillStyle = g; ctx.beginPath(); ctx.ellipse(cx, y + 20, 12, 10, 0, 0, 6.284); ctx.fill();   /* the body */
+  const sw = b.state === 'sweep' ? Math.sin(frame / 3) * 0.6 : 0;   /* the tail */
+  ctx.save(); ctx.translate(cx - f * 10, y + 20); ctx.rotate(sw * -f); ctx.fillStyle = g2; ctx.beginPath(); ctx.moveTo(0, -4); ctx.lineTo(-f * 22, 4); ctx.lineTo(0, 5); ctx.fill(); ctx.restore();
+  ctx.fillStyle = metal; ctx.fillRect(cx - 8, y + 14, 16, 3); ctx.fillRect(cx - 6, y + 20, 12, 2);
+  const hx = cx + f * 6, hy = y + 2 + low;   /* the head */
+  ctx.fillStyle = g; ctx.fillRect(f > 0 ? hx - 2 : hx - 14, hy, 16, 11); ctx.fillStyle = metal; ctx.fillRect(f > 0 ? hx - 2 : hx - 14, hy, 16, 2);
+  ctx.fillStyle = '#ff3b3b'; ctx.fillRect(f > 0 ? hx + 7 : hx - 9, hy + 3, 3, 3); glowDisc(f > 0 ? hx + 8 : hx - 8, hy + 4, 5, 'rgba(255,60,60,.6)', 0.6);
+  ctx.fillStyle = '#f4f1e8'; for (let k = 0; k < 4; k++) ctx.fillRect((f > 0 ? hx + 1 : hx - 13) + k * 3, hy + 10, 2, 2);   /* teeth */
+  ctx.fillStyle = g2; ctx.fillRect(cx + f * 6 - 1, y + 18, 4, 3);   /* the tiny arms */
+  if (b.state === 'roar') {
+    ctx.strokeStyle = 'rgba(255,255,255,.6)'; ctx.lineWidth = 1;
+    for (let k = 1; k <= 3; k++) { ctx.beginPath(); ctx.arc(f > 0 ? hx + 16 : hx - 16, hy + 6, 3 + k * 4 + (frame % 10) / 3, f > 0 ? -0.8 : Math.PI - 0.8, f > 0 ? 0.8 : Math.PI + 0.8); ctx.stroke(); }
+    ctx.font = 'bold 9px monospace'; ctx.textAlign = 'center'; ctx.fillStyle = '#fff3b0'; ctx.fillText('ROAR!', cx, y - 6);
+  }
+}
+/* ---- the World 4 walk-around map: Calgary. The Stampede grounds on the left (the parade, the pancake breakfast, the
+   rodeo, the chuckwagon track, the midway); the Bow River across the middle with the Peace Bridge; the zoo and its
+   dinosaurs north of the river; downtown and the Calgary Tower; the Olympic ski jumps on the hill; the Grandstand Show.
+   The Rocky Mountains are on the horizon, and the day goes by from left to right. ---- */
+const calRiver = (rx) => 128 + Math.sin(rx / 60) * 6;
+function wmapDrawCalgary() {
+  const x = WM.x, f = WM.frame;
+  const sky = x.createLinearGradient(0, 0, WM_W, 0);
+  sky.addColorStop(0, '#8fd0f5'); sky.addColorStop(0.5, '#bfe4f5'); sky.addColorStop(0.7, '#ffb37a'); sky.addColorStop(0.86, '#5a3f7a'); sky.addColorStop(1, '#141a3a');
+  x.fillStyle = sky; x.fillRect(0, 0, WM_W, 76);
+  for (let k = 0; k < 10; k++) wmR(360 + (k * 23) % 70, 6 + (k * 17) % 34, 1, 1, '#fff3b0');
+  /* the Rockies along the horizon */
+  x.fillStyle = '#7f8fb0'; x.beginPath(); x.moveTo(0, 76);
+  [[0, 50], [30, 30], [55, 46], [85, 22], [120, 44], [150, 28], [185, 48], [215, 34], [250, 52], [290, 40], [330, 56], [380, 48], [432, 58]].forEach(([mx, my]) => x.lineTo(mx, my));
+  x.lineTo(WM_W, 76); x.closePath(); x.fill();
+  x.fillStyle = '#f4f8ff'; [[30, 30], [85, 22], [150, 28], [215, 34]].forEach(([mx, my]) => { x.beginPath(); x.moveTo(mx, my); x.lineTo(mx - 7, my + 8); x.lineTo(mx + 6, my + 7); x.closePath(); x.fill(); });
+  /* the land, and evening falling on the east side */
+  wmR(0, 74, WM_W, 169, '#6a9a4a'); wmR(0, 74, WM_W, 2, '#8ab860');
+  const dusk = x.createLinearGradient(0, 0, WM_W, 0); dusk.addColorStop(0, 'rgba(10,10,40,0)'); dusk.addColorStop(0.65, 'rgba(10,10,40,.06)'); dusk.addColorStop(1, 'rgba(10,10,40,.42)');
+  x.fillStyle = dusk; x.fillRect(0, 74, WM_W, 169);
+  /* the Bow River, with the Peace Bridge and two more bridges */
+  x.fillStyle = '#3a78b5'; x.beginPath(); x.moveTo(0, calRiver(0) - 6);
+  for (let rx = 0; rx <= WM_W; rx += 6) x.lineTo(rx, calRiver(rx) - 6);
+  for (let rx = WM_W; rx >= 0; rx -= 6) x.lineTo(rx, calRiver(rx) + 6);
+  x.closePath(); x.fill();
+  x.strokeStyle = '#7ab8e8'; x.lineWidth = 1; x.beginPath(); for (let rx = 0; rx <= WM_W; rx += 6) { if (rx) x.lineTo(rx, calRiver(rx) - 5.5); else x.moveTo(rx, calRiver(rx) - 5.5); } x.stroke();
+  for (let k = 0; k < 10; k++) { const sx = (k * 47 + f * 0.4) % WM_W; wmR(sx, calRiver(sx) - 1 + (k % 3) * 2, 6, 1, 'rgba(255,255,255,.55)'); }
+  x.strokeStyle = '#d8342c'; x.lineWidth = 1.4;   /* the Peace Bridge: red arches */
+  for (let k = 0; k < 5; k++) { x.beginPath(); x.ellipse(232 + k * 6, calRiver(246) - 1, 4, 6, 0, Math.PI, 0); x.stroke(); }
+  wmR(228, calRiver(246) - 1, 34, 1.6, '#c9c9cf');
+  [[312, 0], [352, 1], [396, 2]].forEach(([bx]) => { const by = calRiver(bx); x.strokeStyle = '#d7c9a8'; x.lineWidth = 1.6; x.beginPath(); x.arc(bx, by + 4, 11, Math.PI * 1.15, Math.PI * 1.85); x.stroke(); wmR(bx - 11, by - 2, 22, 1.6, '#d7c9a8'); });
+  /* the Stampede grounds: the parade street, the pancake tent, the rodeo arena, the chuckwagon track, the Ferris wheel */
+  wmR(0, 222, 230, 10, '#9a9da6'); for (let k = 0; k < 230; k += 16) wmR(k + 3, 226, 8, 1.4, '#f6c445');
+  for (let k = 0; k < 6; k++) wmR(4 + k * 36, 214, 10, 7, ['#d8342c', '#f6c445', '#2f5fb3'][k % 3]);   /* floats */
+  for (let s = 0; s < 6; s++) { x.fillStyle = s % 2 ? '#f4f1e8' : '#d8342c'; x.beginPath(); x.moveTo(70, 168); x.lineTo(56 + s * 5, 180); x.lineTo(61 + s * 5, 180); x.closePath(); x.fill(); }
+  wmR(56, 180, 30, 10, 'rgba(60,30,20,.35)');
+  x.fillStyle = '#c9a26a'; x.beginPath(); x.ellipse(118, 206, 22, 10, 0, 0, 6.284); x.fill(); x.strokeStyle = '#7a5634'; x.lineWidth = 1.4; x.stroke();   /* the rodeo arena */
+  wmR(112, 203, 8, 4, '#3b2618'); wmR(110, 202, 2, 2, '#f4f1e8'); wmR(119, 202, 2, 2, '#f4f1e8');   /* Bronco */
+  x.strokeStyle = '#a87a4a'; x.lineWidth = 3.4; x.beginPath(); x.ellipse(164, 176, 22, 10, 0, 0, 6.284); x.stroke();   /* the chuckwagon track */
+  x.strokeStyle = '#f4f1e8'; x.lineWidth = 0.6; x.beginPath(); x.ellipse(164, 176, 22, 10, 0, 0, 6.284); x.stroke();
+  const wa = f / 30; wmR(164 + Math.cos(wa) * 22 - 2, 176 + Math.sin(wa) * 10 - 2, 4, 3, '#f4f1e8');
+  x.strokeStyle = '#f4f1e8'; x.lineWidth = 1; x.beginPath(); x.arc(212, 190, 14, 0, 6.284); x.stroke();   /* the Ferris wheel */
+  for (let k = 0; k < 8; k++) { const a = f / 90 + k * Math.PI / 4; wmR(212 + Math.cos(a) * 14 - 1.5, 190 + Math.sin(a) * 14 - 1, 3, 2.5, ['#ff6fae', '#f6c445', '#6fc8ff', '#7be3a3'][k % 4]); }
+  x.strokeStyle = '#9aa1ab'; x.lineWidth = 1.4; x.beginPath(); x.moveTo(204, 208); x.lineTo(212, 190); x.lineTo(220, 208); x.stroke();
+  /* the zoo, north of the river, and its dinosaurs */
+  wmR(272, 88, 52, 22, 'rgba(47,107,58,.5)');
+  x.fillStyle = '#4a7a5a'; x.beginPath(); x.ellipse(286, 100, 9, 4, 0, 0, 6.284); x.fill(); wmR(292, 86, 2.5, 12, '#4a7a5a'); wmR(292, 85, 5, 2.5, '#4a7a5a');   /* a long-neck */
+  wmR(304, 92, 9, 8, '#7a6a4a'); wmR(310, 88, 6, 4, '#7a6a4a'); wmR(306, 100, 2, 4, '#7a6a4a'); wmR(310, 100, 2, 4, '#7a6a4a');   /* a T-rex */
+  /* downtown and the Calgary Tower */
+  [[316, 14, 10], [328, 22, 9], [358, 18, 11], [370, 26, 9]].forEach(([tx, th2, tw], k) => { wmR(tx, 182 - th2 - 16, tw, th2 + 16, k % 2 ? '#5f7090' : '#4a5a7a'); for (let wy = 186 - th2 - 16; wy < 180; wy += 4) wmR(tx + 2, wy, tw - 4, 1.4, ((wy + k) % 3) ? '#f6d77a' : 'rgba(255,255,255,.2)'); });
+  wmR(342.5, 98, 3, 84, '#c9c9cf'); wmR(338, 92, 12, 7, '#d8342c'); wmR(343, 86, 2, 6, '#9aa1ab');
+  if (Math.floor(f / 20) % 2) { x.fillStyle = 'rgba(255,170,60,.8)'; x.beginPath(); x.arc(344, 84, 2.4, 0, 6.284); x.fill(); }
+  /* the Olympic park: the ski jumps on the hill */
+  x.fillStyle = '#5a7a4a'; x.beginPath(); x.moveTo(350, 120); x.quadraticCurveTo(380, 78, 410, 112); x.closePath(); x.fill();
+  wmR(374, 74, 4, 26, '#e8ecf2'); wmR(386, 80, 4, 20, '#e8ecf2');
+  x.strokeStyle = '#d8dde6'; x.lineWidth = 1.6; x.beginPath(); x.moveTo(376, 74); x.quadraticCurveTo(366, 96, 356, 110); x.moveTo(388, 80); x.quadraticCurveTo(380, 98, 372, 110); x.stroke();
+  /* the Grandstand Show: the stands, the stage lights, fireworks */
+  wmR(392, 186, 36, 18, '#3a2453'); wmR(390, 182, 40, 5, '#241d44'); for (let k = 0; k < 6; k++) wmR(394 + k * 6, 190, 3, 2, '#fff3b0');
+  for (let k = 0; k < 3; k++) {
+    const t = (f + k * 50) % 150;
+    if (t < 60) { const cx = 398 + k * 12, cy = 150 + k * 6, r = t * 0.25; for (let q = 0; q < 8; q++) { const a = q * Math.PI / 4; wmR(cx + Math.cos(a) * r, cy + Math.sin(a) * r, 1.4, 1.4, ['#ff6fae', '#f6c445', '#6fc8ff'][k]); } }
+  }
+  wmLabel(x, 'CALGARY', 140, 98, 8, '#fff3b0', 'center');
 }
 /* ============================================================
    PARTY SHOP — the candles Kinan collects are money here.
@@ -7351,7 +8053,11 @@ function outlined(img) {
 }
 /* the item pictures, shared with the story's gift-block items */
 function drawPickup(kind, sx, sy, bob) {
-  if (kind === 'popper') {
+  if (kind === 'lasso') {   /* a coiled rope */
+    ctx.strokeStyle = '#c9a26a'; ctx.lineWidth = 1.6;
+    for (let k = 0; k < 3; k++) { ctx.beginPath(); ctx.ellipse(sx + 6, sy + 6 + bob, 5 - k, 4 - k, 0, 0, 6.284); ctx.stroke(); }
+    ctx.beginPath(); ctx.moveTo(sx + 10, sy + 7 + bob); ctx.quadraticCurveTo(sx + 14, sy + 12, sx + 9, sy + 13); ctx.stroke(); ctx.lineWidth = 1;
+  } else if (kind === 'popper') {
     ctx.fillStyle = '#ff6fae'; ctx.beginPath(); ctx.moveTo(sx + 1, sy + 11); ctx.lineTo(sx + 6, sy + 1 + bob); ctx.lineTo(sx + 11, sy + 11); ctx.fill();
     ctx.fillStyle = '#f6c445'; ctx.fillRect(sx + 4, sy + 8, 4, 2);
     ctx.fillStyle = '#fff'; ctx.fillRect(sx + 5, sy + 2 + bob, 1, 2);
@@ -9963,7 +10669,8 @@ const BSONGS = [['stage', 'Party tune'], ['title', 'Calm tune'], ['boss', 'Boss 
 /* time of day: [id, name, sky (outdoor scenes), light over everything] */
 const BTIMES = [['own', "The scene's own"], ['dawn', 'Sunrise', ['#4a3a8a', '#ff9f6e'], 'rgba(255,150,110,.12)'], ['day', 'Daytime', ['#4fa8ff', '#cfeeff'], ''],
   ['sunset', 'Sunset', ['#3b2a6b', '#ff8a5c'], 'rgba(255,105,60,.16)'], ['night', 'Night', ['#070b24', '#1f2a5c'], 'rgba(18,22,80,.30)']];
-const BOUTSIDE = ['outdoor', 'school', 'prairie', 'camp', 'dig', 'oilfield', 'truckyard', 'night', 'storm', 'edmroad', 'busroute', 'jobsite', 'valley', 'whyte', 'bridge'];
+const BOUTSIDE = ['outdoor', 'school', 'prairie', 'camp', 'dig', 'oilfield', 'truckyard', 'night', 'storm', 'edmroad', 'busroute', 'jobsite', 'valley', 'whyte', 'bridge',
+  'parade', 'breakfast', 'rodeo', 'chuckwagon', 'midway', 'peacebridge', 'dinozoo', 'calgarytower', 'skijump', 'grandstand'];
 let builder = null;   /* the level editor, while it is open */
 let bFolder = 'work';  /* which folder the Builder menu shows */
 let bSession = null;   /* the last editor: its undo steps, copied chunk, tool and zoom outlast a test play (not saved) */
@@ -10790,6 +11497,18 @@ const WM_PATHS = {
     { at: [250, 142], via: [[322, 112], [296, 124]] },        /* down by the funicular, over the river, into the trees */
     { at: [306, 212], via: [[250, 212]] },                    /* Whyte Ave */
     { at: [404, 123], via: [[364, 200], [378, 150]] }         /* past Shad's house, up onto the High Level Bridge */
+  ],
+  4: [
+    { at: [20, 226] },                                        /* the Stampede parade */
+    { at: [70, 194] },                                        /* the pancake breakfast tent */
+    { at: [118, 206] },                                       /* the rodeo arena */
+    { at: [164, 176] },                                       /* the chuckwagon track */
+    { at: [212, 190] },                                       /* the midway's Ferris wheel */
+    { at: [246, 122] },                                       /* the Peace Bridge */
+    { at: [298, 110] },                                       /* the dinosaur zoo */
+    { at: [344, 192], via: [[312, 121]] },                    /* over a bridge to the Calgary Tower */
+    { at: [380, 112], via: [[352, 124]] },                    /* over the river to the ski jumps */
+    { at: [410, 210], via: [[396, 128]] }                     /* back over to the Grandstand Show */
   ]
 };
 /* the road trip: the 11 cities on a map of Canada (Worlds 3-11 are planned, not built yet) */
@@ -11298,7 +12017,7 @@ function wmapDrawEdmonton() {
   wmLabel(x, 'EDMONTON', 78, 98, 8, '#fff3b0', 'center');
 }
 /* each world's own map scene */
-const WM_SCENES = { 1: wmapDrawSaskatoon, 2: wmapDrawOilfield, 3: wmapDrawEdmonton };
+const WM_SCENES = { 1: wmapDrawSaskatoon, 2: wmapDrawOilfield, 3: wmapDrawEdmonton, 4: wmapDrawCalgary };
 /* the arrow keys and Enter work on the map too */
 function bindWorldMap() {
   document.addEventListener('keydown', (e) => {
