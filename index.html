@@ -1492,9 +1492,8 @@ function build(i) {
       flat(3);
       for (let k = 1; k <= 3; k++) set(x + k, h - 3, 7);   /* life-line shelf */
       candle(x + 2, h - 4);
-      /* right after a brick pillar, a jump over the pillar comes down here: from World 3 on, a floor two tiles down,
-         not a drop (World 3 starts at stage 21; Worlds 1 and 2 keep their stages exactly as they were built) */
-      if (afterPillar && i >= 21) for (let k = 0; k < gap; k++) col(x + k, Math.min(ROWS - 1, h + 2));
+      /* right after a brick pillar, a jump over the pillar comes down here: a floor two tiles down, not a drop */
+      if (afterPillar) for (let k = 0; k < gap; k++) col(x + k, Math.min(ROWS - 1, h + 2));
       x += gap;
       /* friendly trench: a floor two tiles down, plus a candle for your trouble */
       for (let k = 0; k < gap; k++) col(x + k, Math.min(ROWS - 1, h + 2));
