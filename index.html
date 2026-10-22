@@ -151,6 +151,9 @@ h1.title .t2{display:block;font-size:clamp(24px,6.4vw,40px);color:var(--edge)}
 .btn{min-height:48px;padding:8px 18px;background:#11132b;border:3px solid var(--edge);border-radius:6px;font-size:17px;font-weight:700;cursor:pointer;box-shadow:0 4px 0 var(--shadow)}
 .btn:hover{filter:brightness(1.15)}
 .btn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--shadow)}
+.btn:disabled,.btn:disabled:hover,.btn:disabled:active,.btn.off,.btn.off:hover,.btn.off:active{opacity:.45;filter:saturate(.15);cursor:not-allowed;transform:none;box-shadow:none}
+.tiny.why{margin:0;color:var(--gold)}
+@media (orientation:landscape) and (max-height:500px){html .scrfoot .lobbyrow .btn{min-height:38px;padding:4px 12px;font-size:14px}}
 .btn.go{background:var(--gold);color:var(--night);border-color:#fff7db}
 .btn.ghost{background:transparent;border-color:var(--panel2);font-size:14px;min-height:40px;font-weight:600}
 .btnbeat{display:inline-block;animation:beat 1.6s ease-in-out infinite}
@@ -498,7 +501,7 @@ html.sideways .stage{max-width:100%}
       <button class="iconbtn" id="installBtn" type="button" aria-label="Install app" hidden>📲</button>
     </div>
   </header>
-  <p class="turnhint" id="turnHint" aria-hidden="true">↻ Turn your phone sideways</p>
+  <p class="turnhint" id="turnHint" aria-hidden="true">↻ Turn the screen sideways</p>
 
   <div class="stage" id="stage" hidden>
     <canvas id="cv" width="432" height="240" aria-label="Game screen"></canvas>
@@ -1598,6 +1601,17 @@ function loadProgress() {
   if (!out.mapSeen || typeof out.mapSeen !== 'object') out.mapSeen = {};
   out.bossLosses = {};
   if (p.bossLosses && typeof p.bossLosses === 'object') for (const k in p.bossLosses) { const n = Math.floor(Number(p.bossLosses[k])); if (LV[k] && n > 0 && n < 1000) out.bossLosses[k] = n; }
+  /* a damaged or hand-edited save must never stop the game from starting: each field back to its own kind, or the default */
+  out.beaten = Array.isArray(p.beaten) ? p.beaten.map(Number).filter((n, k, a) => Number.isInteger(n) && n >= 0 && n < LV.length && a.indexOf(n) === k) : [];
+  const unl = Math.floor(Number(p.unlocked));
+  out.unlocked = Number.isFinite(unl) ? clamp(unl, 1, LV.length) : Math.min(LV.length, 1 + out.beaten.length);
+  const perStage = (o, ok) => { const r = {}; if (o && typeof o === 'object' && !Array.isArray(o)) for (const k in o) { const v = Number(o[k]); if (LV[k] && ok(v)) r[k] = v; } return r; };
+  out.stars = perStage(p.stars, (v) => Number.isInteger(v) && v >= 0 && v <= 3);
+  out.bestScore = perStage(p.bestScore, (v) => Number.isFinite(v) && v >= 0);
+  out.bestTime = perStage(p.bestTime, (v) => Number.isFinite(v) && v > 0);
+  out.won = !!out.won; out.sound = out.sound !== false; out.lite = !!out.lite;
+  out.wallet = Math.max(0, Math.floor(Number(out.wallet) || 0)); out.totalCandles = Math.max(0, Math.floor(Number(out.totalCandles) || 0));
+  for (const k of ['hat', 'outfit', 'trail']) if (typeof out[k] !== 'string') out[k] = DEFAULT_PROGRESS[k];
   return out;
 }
 let progress = loadProgress();
@@ -4934,6 +4948,7 @@ function showScreen(html) {
    pages: ◀ ▶ in its foot, a swipe, the mouse wheel or Page Up / Page Down move a whole page, and whatever belongs to
    the next page is covered, so a page never shows half of something. Lists and grids split between their rows. ---- */
 const PAGE_SPLIT = '.shopgrid,.credits,.mapgrid,.hatrow,.petedit,.howto,.bigstats,.modes,.cast,.pickgrid,.buildgrid,.smhow,.arenarow,.kartrow,.btnrow,.btncol,.brow';
+const PAGE_WRAP = '#lobby';   /* a wrapper that a screen is drawn inside: page breaks go between its own children */
 function pinActions(root) {   /* the screen's last row of buttons stays at the bottom of the window, on every page */
   const c = root.querySelector('.scrc'), foot = root.querySelector('.scrfoot');
   if (!c || !foot) return;
@@ -4972,10 +4987,12 @@ function pagerLayout(P) {
   const H = P.view.clientHeight, total = c.scrollHeight, starts = [0];
   if (H > 40 && total > H + 1 && !P.view.parentNode.classList.contains('mapmode')) {   /* the map screen is made to fit: never pages */
     const base = c.getBoundingClientRect().top, cands = [];
-    for (const ch of c.children) {
+    const add = (ch) => {
+      if (ch.matches(PAGE_WRAP)) { for (const g of ch.children) add(g); return; }
       if (ch.matches(PAGE_SPLIT)) { for (const g of ch.children) cands.push({ t: g.getBoundingClientRect().top - base, e: g }); }
       else cands.push({ t: ch.getBoundingClientRect().top - base, e: ch });
-    }
+    };
+    for (const ch of c.children) add(ch);
     cands.sort((a, b) => a.t - b.t);
     while (starts.length < 60) {
       const s = starts[starts.length - 1];
@@ -5548,9 +5565,9 @@ function ending4() {
 function ending2() {
   progress.wonWorlds = progress.wonWorlds || [];
   if (progress.wonWorlds.indexOf(2) < 0) progress.wonWorlds.push(2);
-  const i = L.i;
+  const i = L.i, pct = totalCandles ? got / totalCandles : 1;
   if (progress.beaten.indexOf(i) < 0) progress.beaten.push(i);
-  progress.stars[i] = Math.max(3, progress.stars[i] || 0);
+  progress.stars[i] = Math.max(1 + (pct >= 0.7 ? 1 : 0) + (heartsLost === 0 ? 1 : 0), progress.stars[i] || 0);   /* stars the same way as any other stage */
   progress.bestScore[i] = Math.max(progress.bestScore[i] || 0, score);
   progress.bestTime = progress.bestTime || {};
   if (!progress.bestTime[i] || stageTime < progress.bestTime[i]) progress.bestTime[i] = stageTime;
@@ -6660,7 +6677,7 @@ function shopTap(id, from) {
   if (!it) return;
   const pg = screenPage();
   if (ownsItem(id)) { equip(it, !isEquipped(it)); shopConfirm = null; save(); SFX.save(); }
-  else if ((progress.wallet || 0) < it.price) { shopConfirm = null; SFX.click(); shopMsg = 'Need <b>' + (it.price - (progress.wallet || 0)) + '</b> more coins for the ' + it.name + '.'; }
+  else if ((progress.wallet || 0) < it.price) { shopConfirm = null; SFX.click(); shopMsg = 'Need <b>' + (it.price - (progress.wallet || 0)) + '</b> more coins for “' + it.name + '”.'; }
   else if (shopConfirm !== id) { shopConfirm = id; SFX.click(); }
   else { progress.wallet -= it.price; progress.owned.push(id); shopConfirm = null; equip(it, true); const kept = save(true); SFX.power(); shopMsg = '🛍️ <b>' + it.name + '</b> is yours!' + (kept ? '' : ' This device is out of room, so it will be gone next time.'); }
   const msg = shopMsg;
@@ -6955,7 +6972,8 @@ function ending() {
   progress.won = true;
   progress.unlocked = Math.max(progress.unlocked, 11);
   for (let n = 0; n <= 10; n++) if (progress.beaten.indexOf(n) < 0) progress.beaten.push(n);
-  progress.stars[10] = Math.max(3, progress.stars[10] || 0);
+  const pct = totalCandles ? got / totalCandles : 1;
+  progress.stars[10] = Math.max(1 + (pct >= 0.7 ? 1 : 0) + (heartsLost === 0 ? 1 : 0), progress.stars[10] || 0);   /* stars the same way as any other stage */
   progress.bestScore[10] = Math.max(progress.bestScore[10] || 0, score);
   progress.bestTime = progress.bestTime || {};
   if (!progress.bestTime[10] || stageTime < progress.bestTime[10]) progress.bestTime[10] = stageTime;
@@ -8568,12 +8586,25 @@ function netErrorText(e) {
   return 'Could not connect to the room. Check the internet, then try again.';
 }
 /* a room that couldn't open: why, with Try again and Back (instead of a room code that can't work) */
+/* the room is drawn inside #lobby (again whenever someone joins): its last row of buttons goes in the screen's bottom
+   bar like every other screen's main buttons, the row from the last drawing swapped out */
+function pinLobbyRow(box) {
+  const foot = el.screen.querySelector(':scope > .scrfoot');
+  if (!foot) return;
+  foot.querySelectorAll(':scope > .lobbyrow').forEach((r) => r.remove());
+  const rows = Array.from(box.children).filter((e) => e.classList.contains('btnrow') && e.querySelector('button'));
+  if (!rows.length) return;
+  const row = rows[rows.length - 1];
+  row.classList.add('lobbyrow');
+  foot.insertBefore(row, foot.firstChild);
+}
 function lobbyErrorHTML(box, title, retry, back) {
   box.innerHTML = '<p class="eyebrow">' + title + ' · online</p><h1 class="title"><span class="t2">The room didn\'t open</span></h1>' +
     '<p class="lede" style="color:#ff6b6b">' + escAttr(NET.error) + '</p>' +
     '<div class="btnrow"><button class="btn go" id="netRetry" type="button">Try again</button><button class="btn ghost" id="netBack" type="button">Back</button></div>';
   $('#netRetry', box).addEventListener('click', () => { SFX.click(); retry(); });
   $('#netBack', box).addEventListener('click', () => { SFX.click(); back(); });
+  pinLobbyRow(box);
 }
 /* Open Relay's free TURN (metered.ca, static-auth): a fallback path when two home networks cannot connect directly */
 async function turnServers() {
@@ -8895,6 +8926,12 @@ function smashLobbyScreen(code, role) {
   showScreen('<div id="lobby"></div>');
   refreshLobby();
 }
+/* why the host can't start yet ('' = ready): still connecting, or not enough players */
+function startWhy(k, race) {
+  if (NET.status !== 'open') return 'Connecting to the room…';
+  if (k < 2) return race ? 'A race needs 2 players: wait for someone to join, or turn on computer drivers.' : 'A fight needs 2 fighters: wait for someone to join, or add a computer player.';
+  return '';
+}
 function refreshLobby() {
   if (NET.mode === 'kart') { refreshKartLobby(); return; }
   const box = $('#lobby');
@@ -8920,8 +8957,9 @@ function refreshLobby() {
     (NET.role === 'host' ? itemsRowHTML() +
       '<p class="tiny"><b>Computer players:</b> <button class="btn ghost small" type="button" id="netCpuLess">−</button> <b>' + (NET.cpuN || 0) + '</b> <button class="btn ghost small" type="button" id="netCpuMore">+</button></p>' +
       levelRowHTML(NET.level || 'medium') + teamsRowHTML(!!NET.teams) + arenaRowHTML(arenaUnlocked(NET.arena) ? NET.arena : (NET.arena = newestArena())) : '') +
+    (NET.role === 'host' && startWhy(n + (NET.cpuN || 0)) ? '<p class="tiny why">' + startWhy(n + (NET.cpuN || 0)) + '</p>' : '') +
     '<div class="btnrow">' +
-    (NET.role === 'host' ? '<button class="btn go" id="smStart" type="button"' + (n + (NET.cpuN || 0) < 2 || NET.status !== 'open' ? ' disabled' : '') + '>START THE FIGHT · ' + (n + Math.min(NET.cpuN || 0, SMASH_MAX - n)) + ' fighters</button>' : '<p class="tiny">Waiting for the host to start the fight…</p>') +
+    (NET.role === 'host' ? '<button class="btn go' + (startWhy(n + (NET.cpuN || 0)) ? ' off" aria-disabled="true"' : '"') + ' id="smStart" type="button">START THE FIGHT · ' + (n + Math.min(NET.cpuN || 0, SMASH_MAX - n)) + ' fighter' + (n + Math.min(NET.cpuN || 0, SMASH_MAX - n) === 1 ? '' : 's') + '</button>' : '<p class="tiny">Waiting for the host to start the fight…</p>') +
     '<button class="btn ghost" id="smLeave" type="button">Leave the room</button></div>';
   $$('.pickbtn', box).forEach((b) => b.addEventListener('click', () => {
     SFX.click(); NET.myWho = b.dataset.who;
@@ -8943,8 +8981,9 @@ function refreshLobby() {
       else { await navigator.clipboard.writeText(link); toast('Link copied! Paste it to the family.', 1800); }
     } catch (e) { /* cancelled */ }
   });
-  const st = $('#smStart'); if (st) st.addEventListener('click', () => { SFX.click(); netStartFight(); });
+  const st = $('#smStart'); if (st) st.addEventListener('click', () => { SFX.click(); const why = startWhy(n + (NET.cpuN || 0)); if (why) { toast(why, 2600); return; } netStartFight(); });
   $('#smLeave').addEventListener('click', () => { SFX.click(); netLeave(); smashMenu(); });
+  pinLobbyRow(box);
 }
 
 /* ============================================================
@@ -10579,8 +10618,9 @@ function refreshKartLobby() {
     '<p class="tiny"><b>Your ride</b></p><div class="pickgrid">' + KART_ORDER.map((w) => kartPickCard(w, NET.myWho, 'data-tag="knet"')).join('') + '</div>' +
     (NET.role === 'host' ? trackRowHTML(trackUnlocked(NET.arena) ? NET.arena : (NET.arena = newestTrack())) +
       '<p class="tiny"><b>Computer drivers</b> <button class="btn ghost small" type="button" id="kFill" aria-pressed="' + kartFill + '">' + (kartFill ? 'ON 🤖' : 'OFF') + '</button> fill the empty spots up to 5</p>' : '') +
+    (NET.role === 'host' && startWhy(kartFill ? 2 : n, true) ? '<p class="tiny why">' + startWhy(kartFill ? 2 : n, true) + '</p>' : '') +
     '<div class="btnrow">' +
-    (NET.role === 'host' ? '<button class="btn go" id="kStart" type="button"' + ((n < 2 && !kartFill) || NET.status !== 'open' ? ' disabled' : '') + '>START THE RACE · ' + n + ' player' + (n === 1 ? '' : 's') + '</button>' : '<p class="tiny">Waiting for the host to start the race…</p>') +
+    (NET.role === 'host' ? '<button class="btn go' + (startWhy(kartFill ? 2 : n, true) ? ' off" aria-disabled="true"' : '"') + ' id="kStart" type="button">START THE RACE · ' + n + ' player' + (n === 1 ? '' : 's') + '</button>' : '<p class="tiny">Waiting for the host to start the race…</p>') +
     '<button class="btn ghost" id="kLeave" type="button">Leave the room</button></div>';
   $$('.pickbtn[data-tag="knet"]', box).forEach((b) => b.addEventListener('click', () => {
     SFX.click(); NET.myWho = b.dataset.who;
@@ -10597,8 +10637,9 @@ function refreshKartLobby() {
       else { await navigator.clipboard.writeText(link); toast('Link copied! Paste it to the family.', 1800); }
     } catch (e) { /* cancelled */ }
   });
-  const st = $('#kStart'); if (st) st.addEventListener('click', () => { SFX.click(); kartNetStart(); });
+  const st = $('#kStart'); if (st) st.addEventListener('click', () => { SFX.click(); const why = startWhy(kartFill ? 2 : n, true); if (why) { toast(why, 2600); return; } kartNetStart(); });
   $('#kLeave').addEventListener('click', () => { SFX.click(); netLeave(); kartMenu(); });
+  pinLobbyRow(box);
 }
 const kWheel = { id: null, v: 0, cx: 0, span: 1 };
 function bindWheel() {
