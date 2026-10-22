@@ -154,6 +154,8 @@ h1.title .t2{display:block;font-size:clamp(24px,6.4vw,40px);color:var(--edge)}
 .btn.go{background:var(--gold);color:var(--night);border-color:#fff7db}
 .btn.ghost{background:transparent;border-color:var(--panel2);font-size:14px;min-height:40px;font-weight:600}
 .btnbeat{display:inline-block;animation:beat 1.6s ease-in-out infinite}
+.modebtn.btnbeat{animation-name:beatsoft}   /* a wide button pulses less, so it never grows past the window's edge */
+@keyframes beatsoft{0%,100%{transform:scale(1)}50%{transform:scale(1.015)}}
 @keyframes beat{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
 .btnrow{display:flex;flex-wrap:wrap;gap:9px;align-items:center}
 .howto{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:8px}
@@ -396,6 +398,86 @@ html.sideways .pad button.spec:not(:disabled){opacity:.92}
 @media (prefers-reduced-motion:reduce){
   .dialog .next,.btnbeat,.starslot.on,.combo.pop{animation:none!important}
   *{scroll-behavior:auto!important}
+}
+
+/* ---- game-style screens (Shad, 2026-10-21: "when you're playing a game on any console ... the screen doesn't scroll
+   down to a menu"): the page never scrolls or bounces; every menu fits the game window with its last row of buttons at
+   the bottom, and anything longer flips through pages with ◀ ▶ (a swipe, the mouse wheel, Page Up / Page Down) ---- */
+html,body{height:100%;overflow:hidden}
+body{position:fixed;inset:0}
+html .app{height:100%;min-height:0}
+.screen{flex:1 1 auto;min-height:0;position:relative;display:flex;flex-direction:column;gap:0;overflow:hidden}
+.scrv{flex:1 1 0;min-height:0;overflow:hidden;position:relative}
+.scrc{display:grid;align-content:start;gap:14px;padding:0 8px}   /* room at the sides: a pulsing button is never clipped */
+.scrfoot{flex:none;display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;padding-top:10px}
+.scrfoot:empty{display:none}
+.scrfoot>.btnrow{flex:1 1 auto}
+.pager{display:flex;align-items:center;gap:6px;margin-left:auto}
+.pager .btn{min-width:48px;min-height:42px;padding:4px 10px;font-size:16px}
+.pager .btn:disabled{opacity:.35;cursor:default}
+.pager .pgn{font-size:13px;color:var(--dim);min-width:4.2em;text-align:center;font-variant-numeric:tabular-nums}
+.scrcurtain{position:absolute;left:0;right:0;top:0;height:0;background:var(--panel);pointer-events:none;z-index:3}
+@media (max-width:560px){.scrc{gap:11px}}
+@media (orientation:landscape) and (max-height:500px){html .scrc{gap:8px}html .scrfoot{padding-top:6px}html .titlecast,html .titletip,html .screen .eyebrow.titleeye{display:none}
+  html .screen .logo{display:none}
+  html .modebtn{padding:6px 10px;gap:8px}html .modebtn .mico{font-size:20px;width:28px}html .modebtn b{font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}html .modebtn small{font-size:11px}
+  html .scrfoot .btnrow.tools{flex:1 1 0;min-width:0}
+  html .pager .btn{min-height:36px;min-width:42px}}
+@media (max-height:900px){.titlecast{display:none}}
+@media (min-width:700px){.modes{grid-template-columns:1fr 1fr}}
+@media (max-height:720px) and (orientation:portrait){html .screen .logo{display:none}html h1.title .t1{font-size:clamp(34px,11vw,52px)}html h1.title .t2{font-size:clamp(20px,5.6vw,28px)}}
+/* during play the picture fits the window (on a computer it gets smaller instead of running off the bottom) */
+.stage{max-width:calc((100vh - 200px) * 1.8);max-width:calc((100dvh - 200px) * 1.8);margin-left:auto;margin-right:auto}
+html.sideways .stage{max-width:100%}
+/* a bar of icon buttons (the map's tools, the title screen's extras) */
+.maptools,.scrfoot .btnrow.tools{display:grid;grid-template-columns:repeat(auto-fit,minmax(44px,1fr));gap:6px}
+.scrfoot .btnrow.tools{flex:1 1 100%}
+.pager{flex:1 1 auto;justify-content:flex-end}
+.mtool{display:grid;justify-items:center;align-content:center;gap:1px;min-height:52px;padding:4px 2px;background:#11132b;border:2px solid var(--panel2);border-radius:7px;color:var(--text);font:inherit;cursor:pointer;box-shadow:0 3px 0 var(--shadow)}
+.mtool .ti{font-size:20px;line-height:1.1}
+.mtool .tl{font-size:10.5px;line-height:1.05;color:var(--edge);text-align:center}
+@media (max-width:560px){
+  html .screen .eyebrow.titleeye{display:none}
+  html .logo{width:52px;height:52px}
+  html .modebtn .mt{min-width:0}
+  html .modebtn small{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .worldtab .wtn{display:none}
+}
+.mtool:hover{background:var(--panel2)}
+.mtool:active{transform:translateY(2px);box-shadow:0 1px 0 var(--shadow)}
+/* panels that open over the game window: the map's stages, hat locker and pet pack */
+.gpanel{position:absolute;inset:6px;z-index:20;display:flex;flex-direction:column;gap:8px;padding:12px 14px;background:var(--panel);border:3px solid var(--edge);border-radius:8px;box-shadow:0 0 0 3px #06070f,0 14px 34px rgba(0,0,0,.6)}
+.gphead{position:relative;display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px;padding-right:50px;min-height:40px}
+.gphead b{font-family:var(--display);font-size:28px;font-weight:400;line-height:1;color:var(--gold)}
+.gphead span{font-size:12px;color:var(--dim)}
+.gpx{position:absolute;right:0;top:-2px;width:44px;height:44px;display:grid;place-items:center;background:#11132b;border:2px solid var(--edge);border-radius:6px;color:var(--edge);font-size:18px;cursor:pointer}
+/* the stage map: the worlds on top, the map as big as fits, the stage bar and PLAY, the tools along the bottom */
+.screen.mapmode>.scrv>.scrc{display:block;height:100%}
+.mapscr{height:100%;min-height:0;display:flex;flex-direction:column;justify-content:center;gap:7px}
+.mapsub{margin:0;font-size:12px;color:var(--dim);text-align:center}
+.maptop .worldtabs{margin:0;flex-wrap:nowrap;gap:5px}
+.maptop .worldtab{flex:1 1 0;min-width:0;min-height:38px;padding:4px 8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:12.5px}
+.mapmain{flex:0 0 auto;display:flex;flex-direction:column;gap:6px}
+.mapmain .wmap{flex:0 0 auto;margin:0;display:flex;flex-direction:column;gap:6px}
+.wmcan{flex:0 0 auto;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.wmcan canvas{max-width:100%;max-height:100%}
+.mapmain .wmapbar{margin:0 auto;width:100%;max-width:760px}
+.wmplayrow{justify-content:center}
+.mapscr.locked .wmplayrow,.mapscr.locked .wmapbar{display:none}
+.mapscr .lockcard{margin:0;padding:8px 12px;font-size:13px}
+.mapscr .lockcard p{margin:0 0 4px}
+@media (orientation:landscape) and (max-height:560px){
+  .mapscr{display:grid;grid-template-columns:minmax(0,1fr) minmax(190px,31%);grid-template-rows:auto minmax(0,1fr) auto auto;grid-template-areas:"top top" "can bar" "can play" "tools tools";gap:6px 10px}
+  .mapsub{display:none}
+  .mapscr .mapmain,.mapscr .mapmain .wmap{display:contents}
+  .mapscr .maptop{grid-area:top}
+  .mapscr .wmcan{grid-area:can;min-height:0}
+  .mapscr .wmapbar{grid-area:bar;align-self:start}
+  .mapscr .wmplayrow{grid-area:play}
+  .mapscr .lockcard{grid-row:2 / 4;grid-column:2;align-self:start}
+  .mapscr .maptools{grid-area:tools;grid-template-columns:repeat(7,1fr)}
+  .mtool{min-height:38px;padding:2px}.mtool .ti{font-size:15px}.mtool .tl{font-size:10px}
+  .gphead b{font-size:22px}
 }
 
 </style>
@@ -4557,10 +4639,132 @@ function showScreen(html) {
   advance = null; stopTyping(false);
   showGame(false);
   el.stage.classList.remove('bossmode');
-  el.screen.innerHTML = html;
-  el.screen.scrollTop = 0;
+  el.screen.className = 'screen win';   /* a screen's own mode (the map's) goes with it */
+  el.screen.innerHTML = '<div class="scrv"><div class="scrc">' + html + '</div></div><div class="scrfoot"></div>';
+  pinActions(el.screen);
+  pagerFor(el.screen.querySelector('.scrv'));
   window.scrollTo(0, 0);
 }
+/* ---- pages (Shad, 2026-10-21): nothing in the game scrolls. A screen or panel that does not fit flips through
+   pages: ◀ ▶ in its foot, a swipe, the mouse wheel or Page Up / Page Down move a whole page, and whatever belongs to
+   the next page is covered, so a page never shows half of something. Lists and grids split between their rows. ---- */
+const PAGE_SPLIT = '.shopgrid,.credits,.mapgrid,.hatrow,.petedit,.howto,.bigstats,.modes,.cast,.pickgrid,.buildgrid,.smhow,.arenarow,.kartrow,.btnrow,.btncol,.brow';
+function pinActions(root) {   /* the screen's last row of buttons stays at the bottom of the window, on every page */
+  const c = root.querySelector('.scrc'), foot = root.querySelector('.scrfoot');
+  if (!c || !foot) return;
+  const rows = Array.from(c.children).filter((e) => e.classList.contains('btnrow') && e.querySelector('button') && !e.querySelector('input'));
+  if (rows.length) foot.appendChild(rows[rows.length - 1]);
+}
+function pagerFor(view) {
+  if (!view) return null;
+  if (view._pager) { pagerLayout(view._pager); return view._pager; }
+  const P = { view: view, content: view.firstElementChild, foot: view.parentNode.querySelector(':scope > .scrfoot'), starts: [0], k: 0, H: 0, bar: null, curtain: document.createElement('div') };
+  P.curtain.className = 'scrcurtain';
+  view.appendChild(P.curtain);
+  view._pager = P;
+  if (window.ResizeObserver) { const ro = new ResizeObserver(() => pagerLayout(P)); ro.observe(P.content); ro.observe(view); }
+  view.addEventListener('scroll', () => pagerSync(P));
+  view.addEventListener('wheel', (e) => {
+    if (P.starts.length < 2 || Math.abs(e.deltaY) < 4) return;
+    e.preventDefault();
+    const now = Date.now(); if (now - (P.wheelAt || 0) < 350) return;
+    P.wheelAt = now; pagerGo(P, P.k + (e.deltaY > 0 ? 1 : -1));
+  }, { passive: false });
+  let t0 = null;
+  view.addEventListener('touchstart', (e) => { const t = e.touches[0]; t0 = e.touches.length === 1 ? { x: t.clientX, y: t.clientY } : null; }, { passive: true });
+  view.addEventListener('touchend', (e) => {
+    if (!t0 || P.starts.length < 2) return;
+    const t = e.changedTouches[0], dx = t.clientX - t0.x, dy = t.clientY - t0.y; t0 = null;
+    if (Math.max(Math.abs(dx), Math.abs(dy)) < 50) return;
+    pagerGo(P, P.k + ((Math.abs(dy) > Math.abs(dx) ? dy : dx) < 0 ? 1 : -1));   /* a swipe up or to the left: the next page */
+  }, { passive: true });
+  pagerLayout(P);
+  return P;
+}
+function pagerLayout(P) {
+  const c = P.content; if (!c) return;
+  c.style.paddingBottom = '';   /* measured without the room added at the end for the last page */
+  const H = P.view.clientHeight, total = c.scrollHeight, starts = [0];
+  if (H > 40 && total > H + 1 && !P.view.parentNode.classList.contains('mapmode')) {   /* the map screen is made to fit: never pages */
+    const base = c.getBoundingClientRect().top, cands = [];
+    for (const ch of c.children) {
+      if (ch.matches(PAGE_SPLIT)) { for (const g of ch.children) cands.push({ t: g.getBoundingClientRect().top - base, e: g }); }
+      else cands.push({ t: ch.getBoundingClientRect().top - base, e: ch });
+    }
+    cands.sort((a, b) => a.t - b.t);
+    while (starts.length < 60) {
+      const s = starts[starts.length - 1];
+      if (s + H >= total - 1) break;
+      let next = -1, ni = -1;
+      cands.forEach((q, j) => { if (q.t > s + 4 && q.t <= s + H) { next = q.t; ni = j; } });
+      while (ni > 0 && cands[ni - 1].e.classList.contains('eyebrow') && cands[ni - 1].t > s + 4) { ni--; next = cands[ni].t; }   /* a heading goes with its list */
+      if (next < 0) next = s + H;   /* one thing taller than the whole window: shown in parts */
+      starts.push(Math.floor(next));
+    }
+  }
+  P.starts = starts; P.H = H;
+  const room = starts.length > 1 ? starts[starts.length - 1] + H - total : 0;
+  if (room > 0) c.style.paddingBottom = room + 'px';   /* the browser stops at "content height minus window": make room for the last page */
+  P.k = clamp(P.k, 0, starts.length - 1);
+  pagerBar(P);
+  P.view.scrollTop = starts[P.k];
+  pagerSync(P);
+}
+function pagerSync(P) {   /* the page number and the cover follow the content (also after something is focused on another page) */
+  const n = P.starts.length, st = P.view.scrollTop;
+  let k = 0;
+  for (let j = 0; j < n; j++) if (P.starts[j] <= st + 2) k = j;
+  P.k = k;
+  const end = k + 1 < n ? P.starts[k + 1] : -1;
+  P.curtain.style.top = Math.max(0, end) + 'px';
+  P.curtain.style.height = (end < 0 ? 0 : Math.max(0, st + P.H - end)) + 'px';
+  if (P.bar) {
+    P.bar.querySelector('.pgn').textContent = 'Page ' + (k + 1) + ' / ' + n;
+    P.bar.querySelector('[data-pg="-1"]').disabled = k === 0;
+    P.bar.querySelector('[data-pg="1"]').disabled = k === n - 1;
+  }
+}
+function pagerBar(P) {
+  if (P.starts.length < 2 || !P.foot) { if (P.bar) { P.bar.remove(); P.bar = null; } return; }
+  if (P.bar) return;
+  P.bar = document.createElement('div');
+  P.bar.className = 'pager';
+  P.bar.innerHTML = '<button type="button" class="btn" data-pg="-1" aria-label="Previous page">◀</button><span class="pgn" aria-live="polite"></span><button type="button" class="btn" data-pg="1" aria-label="Next page">▶</button>';
+  P.bar.querySelectorAll('button').forEach((b) => b.addEventListener('click', () => pagerGo(P, P.k + Number(b.dataset.pg))));
+  P.foot.appendChild(P.bar);
+}
+function pagerGo(P, k) {
+  k = clamp(k, 0, P.starts.length - 1);
+  if (k === P.k) return;
+  P.k = k; SFX.click();
+  P.view.scrollTop = P.starts[k];
+  pagerSync(P);
+}
+/* the page the screen is on (with k: go to that page, e.g. the Party Shop after it is drawn again) */
+function screenPage(k) {
+  const v = el.screen.querySelector('.scrv'), P = v && v._pager;
+  if (!P) return 0;
+  if (k != null) { P.k = k; pagerLayout(P); }
+  return P.k;
+}
+function openPanel(id, quiet) {
+  const p = $('#' + id); if (!p) return;
+  $$('.gpanel', el.screen).forEach((q) => { q.hidden = q !== p; });
+  if (!quiet) SFX.click();
+  pagerFor(p.querySelector('.scrv'));
+  const x = p.querySelector('.gpx'); if (x) x.focus({ preventScroll: true });
+}
+function closePanel(p) { if (!p || p.hidden) return; p.hidden = true; SFX.click(); }
+document.addEventListener('keydown', (e) => {
+  if (!el.stage.hidden) return;   /* playing: the game's own keys */
+  const tag = (e.target && e.target.tagName) || '';
+  if (/INPUT|TEXTAREA|SELECT/.test(tag)) return;
+  const panel = $$('.gpanel', el.screen).filter((p) => !p.hidden)[0];
+  if (e.key === 'Escape' && panel) { closePanel(panel); e.preventDefault(); return; }
+  if (e.key !== 'PageDown' && e.key !== 'PageUp') return;
+  const v = (panel || el.screen).querySelector('.scrv'), P = v && v._pager;
+  if (P) { pagerGo(P, P.k + (e.key === 'PageDown' ? 1 : -1)); e.preventDefault(); }
+});
 function castHTML() {
   return '<figure class="hero">' + imgOf(SP.kStand, 5) + '<figcaption><b>Kinan</b><br>the hero · LV 11</figcaption></figure>' +
     '<figure>' + imgOf(SP.mStand, 4) + '<figcaption><b>Mom (Debbie)</b><br>stay-at-home boss</figcaption></figure>' +
@@ -5747,13 +5951,15 @@ function shopScreen(from) {
 function shopTap(id, from) {
   const it = SHOP_BY_ID[id];
   if (!it) return;
-  const y = window.scrollY;
+  const pg = screenPage();
   if (ownsItem(id)) { equip(it, !isEquipped(it)); shopConfirm = null; save(); SFX.save(); }
   else if ((progress.wallet || 0) < it.price) { shopConfirm = null; SFX.click(); shopMsg = 'Need <b>' + (it.price - (progress.wallet || 0)) + '</b> more coins for the ' + it.name + '.'; }
   else if (shopConfirm !== id) { shopConfirm = id; SFX.click(); }
   else { progress.wallet -= it.price; progress.owned.push(id); shopConfirm = null; equip(it, true); const kept = save(true); SFX.power(); shopMsg = '🛍️ <b>' + it.name + '</b> is yours!' + (kept ? '' : ' This device is out of room, so it will be gone next time.'); }
+  const msg = shopMsg;
   shopScreen(from);
-  window.scrollTo(0, y);   /* stay where you were in the list */
+  screenPage(pg);   /* stay on the same page of the shop */
+  if (msg) toast(msg, 2600);   /* on any page, the message is seen */
 }
 
 function titleScreen() {
@@ -5773,7 +5979,7 @@ function titleScreen() {
   /* the front door: pick a game. The story text and the moves live under "How to play". */
   showScreen(
     '<img class="logo" src="apple-touch-icon.png" alt="Kinan vs. Mom icon">' +
-    '<p class="eyebrow">A birthday game from Shad · Saskatoon, Saskatchewan</p>' +
+    '<p class="eyebrow titleeye">A birthday game from Shad · Saskatoon, Saskatchewan</p>' +
     '<h1 class="title"><span class="t1">Kinan vs. Mom</span><span class="t2">Birthday Remaster</span></h1>' +
     '<div class="modes">' +
     '<button class="modebtn go btnbeat" id="startBtn" type="button"><span class="mico">🎂</span><span class="mt"><b>Story mode · ' + (cont ? 'CONTINUE' : 'START') + '</b><small id="saveNote">' + storySub + '</small></span></button>' +
@@ -5781,16 +5987,16 @@ function titleScreen() {
     '<button class="modebtn" id="kartBtn" type="button"><span class="mico">🏎️</span><span class="mt"><b>Family Kart</b><small>Race the family: online with a room code, or vs. the computer</small></span></button>' +
     '<button class="modebtn" id="buildBtn" type="button"><span class="mico">🧱</span><span class="mt"><b>Builder</b><small>Build your own level with the game\'s blocks, then play it</small></span></button>' +
     '</div>' +
-    '<div class="cast">' + castHTML() + '</div>' +
-    '<div class="btnrow">' +
-    (cont ? '<button class="btn" id="mapBtn" type="button">Stage map</button>' : '') +
-    '<button class="btn" id="howBtn" type="button">How to play</button>' +
-    '<button class="btn" id="shopBtn" type="button">🛍️ Party Shop</button>' +
-    '<button class="btn ghost" id="codeBtn" type="button">🎁 Reward code</button>' +
-    (cont ? '<button class="btn ghost" id="newBtn" type="button">Start over</button>' : '') +
-    (IS_STANDALONE ? '' : '<button class="btn ghost" id="installBtn2" type="button">📲 Install app</button>') +
+    '<div class="cast titlecast">' + castHTML() + '</div>' +
+    '<div class="btnrow tools">' +
+    (cont ? '<button class="mtool" id="mapBtn" type="button"><span class="ti">🗺️</span><span class="tl">Stage map</span></button>' : '') +
+    '<button class="mtool" id="howBtn" type="button"><span class="ti">❓</span><span class="tl">How to play</span></button>' +
+    '<button class="mtool" id="shopBtn" type="button"><span class="ti">🛍️</span><span class="tl">Party Shop</span></button>' +
+    '<button class="mtool" id="codeBtn" type="button"><span class="ti">🎁</span><span class="tl">Reward code</span></button>' +
+    (cont ? '<button class="mtool" id="newBtn" type="button"><span class="ti">🔄</span><span class="tl">Start over</span></button>' : '') +
+    (IS_STANDALONE ? '' : '<button class="mtool" id="installBtn2" type="button"><span class="ti">📲</span><span class="tl">Install app</span></button>') +
     '</div>' +
-    '<p class="tiny">' + (totalStars() ? '<b>' + totalStars() + '</b> ⭐ collected so far. Can you get all ' + LV.filter((t, i) => worldOpen(worldOf(i))).length * 3 + '?' : 'No stars yet — go get some.') + '</p>'
+    '<p class="tiny titletip">' + (totalStars() ? '<b>' + totalStars() + '</b> ⭐ collected so far. Can you get all ' + LV.filter((t, i) => worldOpen(worldOf(i))).length * 3 + '?' : 'No stars yet — go get some.') + '</p>'
   );
   $('#startBtn').addEventListener('click', () => {
     AudioSys.init(); SFX.click();
@@ -5914,22 +6120,27 @@ function mapScreen() {
       '<span class="pcol"><input data-pet="' + d.id + '" maxlength="12" value="' + escAttr(nm) + '" placeholder="' + d.label + '" aria-label="Name for ' + d.label + '">' +
       '<span class="perk">' + (own ? d.perk : 'Not rescued yet') + '</span></span></label>';
   }).join('');
+  const tool = (id, ico, label) => '<button type="button" class="mtool" id="' + id + '"><span class="ti">' + ico + '</span><span class="tl">' + label + '</span></button>';
+  const panel = (id, cls, title, sub, body, foot) => '<div class="gpanel' + (cls ? ' ' + cls : '') + '" id="' + id + '" role="dialog" aria-label="' + escAttr(title) + '" hidden>' +
+    '<div class="gphead"><b>' + title + '</b><span>' + sub + '</span><button type="button" class="gpx" aria-label="Close">✕</button></div>' +
+    '<div class="scrv"><div class="scrc">' + body + '</div></div><div class="scrfoot">' + (foot || '') + '</div></div>';
+  const tabs = '<div class="worldtabs">' + WORLDS.filter((w) => !w.soon).map((w) => '<button type="button" class="worldtab' + (w.n === mw ? ' on' : '') + '" data-world="' + w.n + '" title="World ' + w.n + ' · ' + escAttr(w.name) + '">' +
+    (worldOpen(w.n) ? '' : '🔒 ') + '<b>World ' + w.n + '</b><span class="wtn"> · ' + escAttr(w.name.replace(/^Kinan vs\.\s*/, '')) + '</span></button>').join('') + '</div>';
   showScreen(
-    '<p class="eyebrow">Stage map · World ' + mw + ' · ' + clearedHere + ' of ' + here.length + ' cleared · ' + starsHere + ' of ' + here.length * 3 + ' stars</p>' +
-    '<h1 class="title"><span class="t2">Pick a stage, birthday boy</span></h1>' +
-    wmapHTML(mw) + lock +
-    '<details class="stagelist"><summary>Stage list</summary><ul class="mapgrid">' + list + '</ul></details>' +
-    '<div class="divider"></div>' +
-    '<p class="eyebrow">Hat locker · stars unlock hats</p>' +
-    '<div class="hatrow">' + hats + '</div>' +
-    '<div class="divider"></div>' +
-    '<p class="eyebrow">The pet pack · ' + progress.pets.ids.length + ' of 6 rescued · tap a name to change it</p>' +
-    '<div class="petedit">' + petEditor + '</div>' +
-    '<div class="btnrow"><button class="btn go" type="button" id="playNext">' + (progress.beaten.indexOf(nextStage()) >= 0 ? 'Replay final stage' : 'Play next stage') + '</button>' +
-    '<button class="btn" type="button" id="shopBtnM">🛍️ Party Shop</button>' +
-    '<button class="btn" type="button" id="titleBtn">Title screen</button></div>' +
-    '<p class="wrapnote">Tip: 3 stars needs a clean run — clear the boss, collect 70% of coins and lose zero hearts.</p>'
+    '<div class="mapscr' + (worldOpen(mw) ? '' : ' locked') + '">' +
+    '<div class="maptop">' + tabs + '<p class="mapsub">' + escAttr(wd.name) + ' · ' + clearedHere + ' of ' + here.length + ' cleared · ' + starsHere + ' of ' + here.length * 3 + ' ★</p></div>' +
+    '<div class="mapmain">' + wmapHTML(mw) + lock + '</div>' +
+    '<div class="maptools">' + tool('stagesBtn', '📋', 'Stages') + tool('hatsBtn', '🎩', 'Hats') + tool('petsBtn', '🐾', 'Pets') + tool('shopBtnM', '🛍️', 'Shop') +
+    tool('wmCanada', '🗺️', 'Canada') + tool('codeBtnM', '🎁', 'Code') + tool('titleBtn', '🏠', 'Home') + '</div>' +
+    '</div>' +
+    panel('panStages', 'stagelist', 'World ' + mw + ' stages', clearedHere + ' of ' + here.length + ' cleared · ' + starsHere + ' of ' + here.length * 3 + ' stars',
+      (list ? '<ul class="mapgrid">' + list + '</ul>' : '<p class="lede">' + worldStatus(wd) + '</p>') + '<p class="wrapnote">Tip: 3 stars needs a clean run — clear the boss, collect 70% of coins and lose zero hearts.</p>',
+      '<div class="btnrow"><button class="btn go" type="button" id="playNext">' + (progress.beaten.indexOf(nextStage()) >= 0 ? 'Replay final stage' : 'Play next stage') + '</button></div>') +
+    panel('panHats', '', 'Hat locker', 'Stars unlock hats · you have ' + stars + ' ★', '<div class="hatrow">' + hats + '</div>', '') +
+    panel('panPets', '', 'The pet pack', progress.pets.ids.length + ' of 6 rescued · tap a name to change it', '<div class="petedit">' + petEditor + '</div>', '')
   );
+  el.screen.classList.add('mapmode'); screenPage(0);
+  $$('.gpanel', el.screen).forEach((p) => el.screen.appendChild(p));   /* the panels open over the whole game window */
   el.stageLbl.textContent = 'KINAN · LV 11';
   $$('.lvbtn', el.screen).forEach((b) => b.addEventListener('click', () => {
     if (b.disabled) return;
@@ -5938,7 +6149,7 @@ function mapScreen() {
   }));
   $$('.hatbtn', el.screen).forEach((b) => b.addEventListener('click', () => {
     if (b.disabled) return;
-    progress.hat = b.dataset.hat; save(); SFX.save(); mapScreen();
+    progress.hat = b.dataset.hat; save(); SFX.save(); mapScreen(); openPanel('panHats', true);
   }));
   $$('.petname input', el.screen).forEach((inp) => {
     inp.addEventListener('focus', () => { try { inp.select(); } catch (e) { /* ignore */ } });
@@ -5959,6 +6170,10 @@ function mapScreen() {
   $('#shopBtnM').addEventListener('click', () => { SFX.click(); shopScreen('map'); });
   $$('.worldtab[data-world]', el.screen).forEach((b) => b.addEventListener('click', () => { if (b.disabled) return; SFX.click(); progress.mapWorld = Number(b.dataset.world); save(); mapScreen(); }));
   $('#codeBtnM').addEventListener('click', () => { SFX.click(); codeScreen('map'); });
+  $('#stagesBtn').addEventListener('click', () => { AudioSys.init(); openPanel('panStages'); });
+  $('#hatsBtn').addEventListener('click', () => { AudioSys.init(); openPanel('panHats'); });
+  $('#petsBtn').addEventListener('click', () => { AudioSys.init(); openPanel('panPets'); });
+  $$('.gpanel .gpx', el.screen).forEach((b) => b.addEventListener('click', () => closePanel(b.closest('.gpanel'))));
   wmapStart(mw);
 }
 
@@ -10616,6 +10831,20 @@ function wmapScale(cv) {
   return clamp(Math.ceil(w * dpr / WM_W), 2, 4);
 }
 function wmapFit(M) {
+  const box = M.cv.parentElement, scr = box && box.closest('.mapscr');   /* the map is as big as the game window allows, never stretched */
+  if (scr) {
+    let aw, ah;
+    if (getComputedStyle(scr).display === 'grid') { const r = box.getBoundingClientRect(); aw = r.width; ah = r.height; }   /* sideways: its own cell */
+    else {
+      let used = 0, n = 0;
+      scr.querySelectorAll(':scope > .maptop, :scope > .maptools, .wmapbar, .wmplayrow, .lockcard').forEach((e) => { if (e.offsetParent !== null) { used += e.getBoundingClientRect().height; n++; } });
+      aw = scr.clientWidth; ah = scr.clientHeight - used - (n + 1) * 7;
+    }
+    if (aw > 0 && ah > 0) {
+      const w = Math.floor(Math.max(120, Math.min(aw, ah * WM_W / WM_H, 1000)));
+      if (Math.abs(w - (M.cssW || 0)) > 1) { M.cssW = w; M.cv.style.width = w + 'px'; M.cv.style.height = Math.round(w * WM_H / WM_W) + 'px'; }
+    }
+  }
   const S = wmapScale(M.cv);
   if (S === M.S) return;
   M.S = S; M.cv.width = WM_W * S; M.cv.height = WM_H * S;
@@ -10632,15 +10861,12 @@ function wmapPos(s) {
   return P[P.length - 1].slice();
 }
 /* the map's part of the stage map page: world buttons, the picture, and the controls under it */
-function wmapHTML(mw) {
+function wmapHTML(mw) {   /* the picture, the stage bar and PLAY (the world tabs and the tools are the map screen's) */
   return '<div class="wmap" id="wmap">' +
-    '<div class="worldtabs">' + WORLDS.filter((w) => !w.soon).map((w) => '<button type="button" class="worldtab' + (w.n === mw ? ' on' : '') + '" data-world="' + w.n + '">' +
-      (worldOpen(w.n) ? '' : '🔒 ') + '<b>World ' + w.n + '</b> · ' + escAttr(w.name) + '</button>').join('') +
-    '<button type="button" class="worldtab" id="wmCanada">🗺️ Canada trip</button><button type="button" class="worldtab" id="codeBtnM">🎁 Reward code</button></div>' +
-    '<canvas id="wmCanvas" width="' + WM_W + '" height="' + WM_H + '" aria-label="World map: tap a stop to walk there"></canvas>' +
+    '<div class="wmcan"><canvas id="wmCanvas" width="' + WM_W + '" height="' + WM_H + '" aria-label="World map: tap a stop to walk there"></canvas></div>' +
     '<div class="wmapbar"><button type="button" class="btn" id="wmPrev" aria-label="Previous stop">◀</button><div id="wmInfo" aria-live="polite"></div>' +
     '<button type="button" class="btn" id="wmNext" aria-label="Next stop">▶</button></div>' +
-    '<div class="btnrow"><button class="btn go" type="button" id="wmPlay">▶ Play this stage</button></div></div>';
+    '<div class="btnrow wmplayrow"><button class="btn go" type="button" id="wmPlay">▶ Play this stage</button></div></div>';
 }
 function wmapStart(world) {
   const cv = $('#wmCanvas'); if (!cv) return;
@@ -10728,7 +10954,7 @@ function wmapTap(e) {
 function wmapInfo() {
   const M = WM, box = $('#wmInfo'), play = $('#wmPlay'), cb = $('#wmCanada');
   if (!M || !box) return;
-  cb.textContent = M.canada ? '↩ Back to World ' + M.world : '🗺️ Canada trip';
+  cb.innerHTML = '<span class="ti">' + (M.canada ? '↩' : '🗺️') + '</span><span class="tl">' + (M.canada ? 'World ' + M.world : 'Canada') + '</span>';
   if (M.canada) {
     box.innerHTML = M.note || 'The road trip across Canada. Tap a city.';
     play.disabled = true; $('#wmPrev').disabled = $('#wmNext').disabled = true;
@@ -11077,7 +11303,7 @@ const WM_SCENES = { 1: wmapDrawSaskatoon, 2: wmapDrawOilfield, 3: wmapDrawEdmont
 function bindWorldMap() {
   document.addEventListener('keydown', (e) => {
     const tag = (e.target && e.target.tagName) || '';
-    if (!WM || !document.body.contains(WM.cv) || /INPUT|TEXTAREA|SELECT/.test(tag)) return;
+    if (!WM || !document.body.contains(WM.cv) || /INPUT|TEXTAREA|SELECT/.test(tag) || $$('.gpanel', el.screen).some((p) => !p.hidden)) return;
     if (e.key === 'ArrowLeft') { wmapStep(-1); e.preventDefault(); }
     else if (e.key === 'ArrowRight') { wmapStep(1); e.preventDefault(); }
     else if (e.key === 'Enter' && tag !== 'BUTTON') { wmapPlay(); e.preventDefault(); }   /* Enter on a button presses that button */
