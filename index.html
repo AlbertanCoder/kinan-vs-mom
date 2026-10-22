@@ -891,6 +891,13 @@ const WAITER = recolor(DAD, { g: 'k', Q: 'H', b: 'w', d: 's', y: 'k' });
 const BUSKER = recolor(DAD, { g: 'n', Q: 'L', b: 'E' });
 /* World 4: the Carnival Barker (straw hat, red vest, black moustache) */
 const BARKER = recolor(DAD, { g: 'Y', Q: 'R', b: 'R', d: 'k' });
+/* World 5: the Lumberjack Champ (red toque, red-and-black plaid flannel, a ginger beard, jeans), Professor Static (wild
+   white hair and beard, a lab coat) and the face of Drizzle the rain cloud for story boxes */
+const LUMBERJACK = recolor(DAD.slice(0, 8).concat(['..kRRmRRRmRRRk..', '.kmmmmmmmmmmmmk.', '.kRRmRRRmRRRmRk.', '.kRRmRRRmRRRmRk.', '.kmmmmmmmmmmmmk.'], DAD.slice(13)),
+  { g: 'R', Q: 'w', d: 'n', J: 'j' });
+const PROF = recolor(DAD, { g: 'w', Q: 'w', b: 'c', y: 'b', d: 'w' });
+const CLOUD = ['....kkkk..kkk...', '...kaaaakkaaak..', '..kaaaaaaaaaaak.', '.kaaaaaaaaaaaaak', 'kaaawkaaaawkaaak', 'kaaawkaaaawkaaak',
+  'kaaaaaaaaaaaaaak', 'kaaaaakkkkaaaaak', 'kAaaaaaaaaaaaaAk', '.kAAAAAAAAAAAAk.', '..kkkkkkkkkkkk..', '...j..j..j..j...'];
 /* the Lego Mega-Mech's face for story boxes (the mech itself is drawn with rectangles in drawBoss) */
 const MECH = ['..RRRRRRRRRRRR..', '..RRRRRRRRRRRR..', '.kQQQQQQQQQQQQk.', '.kQQwwwQQQwwwQk.', '.kQQwkwQQQwkwQk.', '.kQQwwwQQQwwwQk.',
   '.kQQQQQVVQQQQQk.', '.kQQQQQQQQQQQQk.', '..kkkkkkkkkkkk..', 'kJJJJJJJJJJJJJJk', 'kJRRRRRRRRRRRRJk', 'kJRyRRRyRRRyRRJk',
@@ -907,6 +914,8 @@ const SP = {
   lgStand: bake(legs(LIFEGUARD, LEGS.stand, 's')), lgWalk: bake(legs(LIFEGUARD, LEGS.walk, 's')), cdStand: bake(legs(CONDUCTOR, LEGS.stand, 'J')),
   waStand: bake(legs(WAITER, LEGS.stand, 'J')), buStand: bake(legs(BUSKER, LEGS.stand, 'j')),
   brStand: bake(legs(BARKER, LEGS.stand, 'J')), brWalk: bake(legs(BARKER, LEGS.walk, 'J')),
+  ljStand: bake(legs(LUMBERJACK, LEGS.stand, 'j')), ljWalk: bake(legs(LUMBERJACK, LEGS.walk, 'j')),
+  psStand: bake(legs(PROF, LEGS.stand, 'J')), psWalk: bake(legs(PROF, LEGS.walk, 'J')),
   cat: bakeOutlined(CAT, { a: PAL.a, A: PAL.A }), dog: bakeOutlined(DOG, { n: PAL.n, L: PAL.L }), candle: bake(CANDLE), flag: bake(FLAG)
 };
 const CH_H = SP.cStand.height;
@@ -1368,6 +1377,117 @@ LV.push(
     win: []
   }
 );
+/* World 5: "Kinan vs. the Rain", Vancouver (the story plan; Shad: "build up to five but no more"). The family drives
+   through the mountains to the Pacific. A small grumpy rain cloud, Drizzle, follows Kinan and rains on only him; it
+   grows into a thunderstorm, and in the end Kinan shows it the sun, the mountains and the ocean. It opens with a
+   grown-up's reward code once World 4 is beaten. Stages without a boss end at Dad's truck. Every stage is rainy
+   (rain: 1; the harbour and the storm rain hard, rain: 2). */
+LV.push(
+  {
+    place: 'The Mountain Highway', bg: 'mtnhwy', world: 5, rain: 1, sky: ['#6f8696', '#c9d6de'], far: '#6a7f8f', mid: '#3f5f4a',
+    ground: '#4a4a46', top: '#7a8590', brick: '#c2414f', accent: '#6fc8ff', foes: ['raincloud', 'puddlefrog', 'raccoon'],
+    intro: ['The family drives west, through the mountains, all the way to the Pacific Ocean. Kinan has never seen the ocean.', '<b>DAD:</b> A few more hours, bud. Then we hit the coast.',
+      'A small grey cloud drifts down off a mountain... and stops right above Kinan. It starts to rain. On Kinan. Only on Kinan.', '<b>KINAN:</b> Hey! Go rain on somebody else!',
+      '<b>SHAD:</b> Ha! It likes you. Let\'s call it <b>Drizzle</b>.'],
+    boss: null,
+    win: ['<b>MOM:</b> Here\'s the truck, sweetie. Why are you all wet?', '<b>KINAN:</b> DRIZZLE.', '<b>CHENOA:</b> Who\'s Drizzle?'],
+    meanwhile: 'Drizzle follows the truck all the way to Vancouver, raining on the back window.'
+  },
+  {
+    place: 'The Seawall', bg: 'seawall', world: 5, rain: 1, waves: true, sky: ['#7a93a3', '#d4e0e6'], far: '#5f7686', mid: '#3a6a5a',
+    ground: '#55524c', top: '#a8a49a', brick: '#3f8fd8', accent: '#f6c445', foes: ['rollerblader', 'seagull', 'puddlefrog'],
+    intro: ['The family parks by the water. And there it is: <b>the Pacific Ocean</b>. Kinan stops and just looks at it for a while.', '<b>KINAN:</b> ...It goes on forever.',
+      '<b>MOM:</b> It sure does, sweetie.', 'Then a <b>wave</b> splashes right over the seawall! When the water bubbles at the edge, a big splash is coming: it knocks you back.'],
+    boss: null,
+    win: ['<b>DAD:</b> Made it around! I saw a seal back there.', '<b>KINAN:</b> A SEAL? Where?!', '<b>DAD:</b> He went to lunch.'],
+    meanwhile: 'Drizzle tries to rain on the ocean. The ocean does not notice.'
+  },
+  {
+    place: 'Stanley Park Forest', bg: 'stanley', world: 5, rain: 1, sky: ['#6f8a86', '#cfdcd6'], far: '#3f5f4a', mid: '#2f4f3a',
+    ground: '#4a3a2a', top: '#5a8a4a', brick: '#8a5a3a', accent: '#f6c445', foes: ['raccoon', 'squirrel', 'slug'],
+    intro: ['Stanley Park: a whole forest right in the middle of the city. The cedar trees are so tall Kinan can\'t see the tops.', '<b>CHENOA:</b> Watch out for raccoons, little bro. They\'re bold here. One stole my muffin once.',
+      'Something long, slimy and yellow slides across the path. It\'s as big as a couch.'],
+    boss: { kind: 'bananaslug', title: 'The Giant Banana Slug', hp: 5, face: 'k' },
+    bossIntro: ['It\'s a <b>BANANA SLUG</b>. A giant one. Its slimy trail shines on the ground: it\'s SLIPPERY.',
+      'It\'s slow... but jump over it, and when it turns around it slides on its own slime and crashes! Stomp it while it\'s dizzy.'],
+    taunts: ['*slurp*', '*sliiiide*', '*happy slug noises*', '...squish.'],
+    win: ['The slug wiggles its eye stalks and slides off into the ferns. It looks happy.', '<b>KINAN:</b> That was the slimiest thing I have ever stomped.', '<b>SHAD:</b> Your shoes are never coming back from that.'],
+    meanwhile: 'A raccoon steals Dad\'s sandwich. Dad pretends he wasn\'t hungry.'
+  },
+  {
+    place: 'The Suspension Bridge', bg: 'capilano', world: 5, rain: 1, sway: true, sky: ['#6f8a96', '#d0dde2'], far: '#4f6f5f', mid: '#2f4f3a',
+    ground: '#5a4636', top: '#a8875a', brick: '#8a5a3a', accent: '#f6c445', foes: ['squirrel', 'umbrellabat', 'raincloud'],
+    intro: ['A long, wobbly bridge hangs over a deep canyon, way up above the river.', '<b>DAD:</b> It\'s safe, bud. It just... moves a bit.',
+      'The bridge <b>sways</b> as you run! It pushes you one way, then the other. Keep your balance!'],
+    boss: null,
+    win: ['<b>KINAN:</b> My legs are still wobbly.', '<b>MOM:</b> Mine too, sweetie. Mine too.'],
+    meanwhile: 'Drizzle is too scared to cross the bridge. It goes the long way around.'
+  },
+  {
+    place: 'The Mountain Top', bg: 'grouse', world: 5, rain: 1, ice: true, sky: ['#8a9ab0', '#e4ecf2'], far: '#7f8fa6', mid: '#4a6a5a',
+    ground: '#4f5660', top: '#e8eef4', brick: '#c2414f', accent: '#6fc8ff', foes: ['umbrellabat', 'raccoon', 'raincloud'],
+    intro: ['A gondola carries the family way up the mountain. At the top: snow, the whole city far below, and a <b>lumberjack show</b>!',
+      '<b>SHAD:</b> Real lumberjacks! I\'m basically a lumberjack. I cut wood at work.', '<b>CHENOA:</b> You cut ONE board, Shad.',
+      'The snow is <b>slippery</b>: it takes a moment to get going, and a moment to stop.'],
+    boss: { kind: 'lumberjack', title: 'The Lumberjack Champ', hp: 5, face: 'lj' },
+    bossIntro: ['<b>LUMBERJACK:</b> WHO DARES CHALLENGE THE CHAMP?! Nobody beats me at log rolling!',
+      'He rolls logs at you: jump over them! When he balances on a log and starts to <b>wobble</b>, that\'s when you stomp.'],
+    taunts: ['TIMBER!', 'Log roll! Log roll!', 'Ha! Too slow, sapling!', 'Feel the sawdust!'],
+    win: ['<b>LUMBERJACK:</b> You... you beat the Champ! Here, take my flannel. You earned it.', 'Kinan is now wearing a flannel shirt that goes down to his knees.', '<b>SHAD:</b> Okay, I\'m jealous.'],
+    meanwhile: 'Mom buys hot chocolate for everyone. Drizzle tries to rain into hers.'
+  },
+  {
+    place: 'Granville Island Market', bg: 'granville', world: 5, rain: 1, umbrellaGift: true, umbrellas: true, sky: ['#7a8f9e', '#d8e2e6'], far: '#6a7a86', mid: '#7a4a3a',
+    ground: '#4a4440', top: '#9a8f84', brick: '#e8364b', accent: '#f6c445', foes: ['flyingfish', 'busker', 'seagull'],
+    intro: ['A big, busy market on an island under a bridge: fruit, fish, fresh bread, and street musicians.', '<b>MOM:</b> Stay close! Ooh, look at those cherries...',
+      'Bonk the first gift box for an <b>umbrella</b>: hold JUMP while you fall to float down slowly. More umbrellas are hidden in World 5\'s gift boxes.',
+      '<b>KINAN:</b> Finally! Take THAT, Drizzle!'],
+    boss: null,
+    win: ['<b>MOM:</b> I got cherries! And a fish! And a hat!', '<b>DAD:</b> Why a hat?', '<b>MOM:</b> It was on sale.'],
+    meanwhile: 'Drizzle rains on Kinan\'s umbrella. It seems a little sad about it.'
+  },
+  {
+    place: 'The Science Dome', bg: 'sciencedome', world: 5, rain: 0, umbrellas: true, sky: ['#2a3a5a', '#5a6a8a'], far: '#3a4a6a', mid: '#4a3a6a',
+    ground: '#3a3f52', top: '#9aa1ab', brick: '#6fc8ff', accent: '#f6c445', foes: ['umbrellabat', 'puddlefrog', 'raincloud'],
+    intro: ['A giant silver ball by the water: the science centre! Inside: experiments, robots, and big <b>magnets</b>.', '<b>CHENOA:</b> Don\'t touch anything, little bro.',
+      '<b>KINAN:</b> It literally says PLEASE TOUCH.', 'The <b>magnet pads</b> pull you up high: step on one and FLY.'],
+    boss: { kind: 'static', title: 'Professor Static', hp: 6, face: 'ps' },
+    bossIntro: ['<b>PROFESSOR STATIC:</b> Welcome to my LIGHTNING SHOW! And for my first experiment... YOU!',
+      'Dodge his bouncing lightning balls: the magnet pads lift you over them. When he stops to <b>recharge</b>, stomp him!'],
+    taunts: ['ZAP!', 'BZZZT! Science!', 'Hold still for the experiment!', 'Positively shocking!'],
+    win: ['<b>PROFESSOR STATIC:</b> Fascinating! The kid has more energy than my machine!', 'His hair finally lies flat. He shakes Kinan\'s hand. ZAP.', '<b>KINAN:</b> OW. Thanks.'],
+    meanwhile: 'Dad spends twenty minutes at the exhibit about vacuums. He says it\'s for work.'
+  },
+  {
+    place: 'The SkyTrain', bg: 'skytrain', world: 5, rain: 1, signs: true, umbrellas: true, sky: ['#7a8a9e', '#e0d4c8'], far: '#5a6a7e', mid: '#4a5a6e',
+    ground: '#4a4f57', top: '#c9c9cf', brick: '#2f5fb3', accent: '#f6c445', foes: ['seagull', 'rollerblader', 'umbrellabat'],
+    intro: ['The SkyTrain zooms along a track high above the city, with no driver at all. Kinan is riding on the ROOF. (In the game only! Never for real.)', '<b>MOM:</b> KINAN! Get back inside this minute!',
+      'Watch out for the <b>signs</b> over the track: stay low when you go under them!'],
+    boss: null,
+    win: ['<b>KINAN:</b> Best. Train. EVER.', '<b>MOM:</b> We are going to have a long talk about this.'],
+    meanwhile: 'Drizzle races the SkyTrain and loses. It gets a little bigger and a little darker.'
+  },
+  {
+    place: 'The Rainy Harbour', bg: 'harbour', world: 5, rain: 2, bag: 'plane', umbrellas: true, sky: ['#4f5f70', '#9aa8b4'], far: '#4a5a66', mid: '#3a4f5a',
+    ground: '#454a50', top: '#8a8f96', brick: '#e8364b', accent: '#f6c445', foes: ['puddlefrog', 'seagull', 'raincloud'],
+    intro: ['The harbour: seaplanes landing on the water, boats bobbing, and mountains behind the city.', 'Drizzle is bigger now. And darker. And it is raining HARD.',
+      '<b>DAD:</b> Look! Out in the water! An <b>orca</b>!', 'Something under a seaplane\'s wing is meowing...'],
+    boss: null,
+    win: ['<b>KINAN:</b> Did everybody see the orca?!', '<b>CHENOA:</b> Everybody saw the orca.', '<b>SHAD:</b> Uh, guys? Look at the sky.'],
+    meanwhile: 'Drizzle has grown into a huge, dark thundercloud. Its rumble rattles the windows.'
+  },
+  {
+    place: 'The Big Storm', bg: 'storm5', world: 5, rain: 2, final5: true, umbrellas: true, sky: ['#1f2433', '#4a5266'], far: '#2a3040', mid: '#1f2a33',
+    ground: '#3a3f44', top: '#7a8590', brick: '#6fc8ff', accent: '#f6c445', foes: ['raincloud', 'seagull', 'puddlefrog'],
+    intro: ['The sky goes black. Thunder rolls over the city. Drizzle isn\'t a little cloud anymore.', '<b>DRIZZLE:</b> RUMBLE. RUMBLE. NOBODY. LIKES. RAIN.',
+      '<b>KINAN:</b> Is THAT what this is about?'],
+    boss: { kind: 'drizzle', title: 'Drizzle the Thunderstorm', hp: 6, face: 'dz' },
+    bossIntro: ['Drizzle the Thunderstorm rumbles over the stage. Lightning flashes!', 'Watch the ground: a flashing spot means lightning is coming right there. MOVE!',
+      'When Drizzle gets tired, it sinks down low: stomp it! At half health the sun breaks through: stand in a sunbeam for a burst of speed.'],
+    taunts: ['RUMBLE!', 'KA-BOOM!', 'NOBODY. LIKES. RAIN.', '*sad thunder*', 'DRIP. DRIP. DRIP.'],
+    win: []
+  }
+);
 /* the day goes by: one birthday from 7 am in the bedroom to the 7 pm party (the story's own times: bedtime at 6:55, the Mega-Mech's orders until 1900 hours). The light follows the clock. */
 const DAY = [['dawn', '7:00 am'], ['morning', '8:00 am'], ['morning', '8:30 am'], ['day', '10:30 am'], ['day', '12:30 pm'], ['afternoon', '2:00 pm'], ['afternoon', '3:30 pm'], ['late', '4:30 pm'], ['sunset', '5:45 pm'], ['dusk', '6:55 pm'], ['night', '7:00 pm'],
   /* World 2: a work day out of town, from the 5:30 am drive to the 9 pm rig */
@@ -1375,7 +1495,9 @@ const DAY = [['dawn', '7:00 am'], ['morning', '8:00 am'], ['morning', '8:30 am']
   /* World 3: a Saturday in Edmonton, from the 10 am drive in to the bridge at 9:30 pm */
   ['morning', '10:00 am'], ['day', '11:00 am'], ['day', '12:30 pm'], ['afternoon', '2:00 pm'], ['afternoon', '3:00 pm'], ['late', '4:30 pm'], ['sunset', '5:30 pm'], ['sunset', '6:45 pm'], ['night', '8:30 pm'], ['night', '9:30 pm'],
   /* World 4: Stampede Saturday in Calgary, from the 9 am parade to the 9:45 pm Grandstand Show */
-  ['morning', '9:00 am'], ['morning', '10:30 am'], ['day', '12:00 pm'], ['afternoon', '1:30 pm'], ['afternoon', '3:00 pm'], ['late', '4:30 pm'], ['late', '5:30 pm'], ['sunset', '7:00 pm'], ['dusk', '8:30 pm'], ['night', '9:45 pm']];
+  ['morning', '9:00 am'], ['morning', '10:30 am'], ['day', '12:00 pm'], ['afternoon', '1:30 pm'], ['afternoon', '3:00 pm'], ['late', '4:30 pm'], ['late', '5:30 pm'], ['sunset', '7:00 pm'], ['dusk', '8:30 pm'], ['night', '9:45 pm'],
+  /* World 5: a rainy day in Vancouver, from the 8:30 am drive through the mountains to the Big Storm at 7:45 pm */
+  ['morning', '8:30 am'], ['morning', '10:00 am'], ['day', '11:30 am'], ['day', '12:45 pm'], ['afternoon', '2:00 pm'], ['afternoon', '3:15 pm'], ['late', '4:30 pm'], ['late', '5:30 pm'], ['sunset', '6:30 pm'], ['sunset', '7:45 pm']];
 LV.forEach((th, i) => { th.tod = DAY[i][0]; th.clock = DAY[i][1]; });
 const GRADE = { dawn: 'rgba(255,150,110,.10)', morning: 'rgba(255,236,190,.05)', day: '', afternoon: 'rgba(255,210,140,.06)', late: 'rgba(255,175,100,.10)', sunset: 'rgba(255,105,60,.14)', dusk: 'rgba(70,60,170,.10)', night: 'rgba(40,40,120,.07)' };
 
@@ -1431,7 +1553,17 @@ const FOE = {
   minibull: { beh: 'charger', kind: 'minibull', color: '#6b3f18' },
   lassolizard: { beh: 'thrower', kind: 'lassolizard', throwType: 'lasso' },
   goose: { beh: 'flyer', kind: 'goose', color: '#6b5a4a' },
-  babydino: { beh: 'hopper', kind: 'babydino', color: '#5ab84a', spd: 0.6, seek: true }
+  babydino: { beh: 'hopper', kind: 'babydino', color: '#5ab84a', spd: 0.6, seek: true },
+  /* World 5, Vancouver in the rain: seagulls grab coins like magpies; umbrella bats bounce you off while their umbrella is
+     open; rain clouds drip on you; the little banana slugs are very slow, the rollerbladers very fast */
+  puddlefrog: { beh: 'hopper', kind: 'puddlefrog', color: '#4aa84a', spd: 0.6, seek: true },
+  seagull: { beh: 'flyer', kind: 'seagull', color: '#f4f1e8', thief: true },
+  slug: { beh: 'walker', kind: 'slug', color: '#e8c83a', spd: 0.28 },
+  umbrellabat: { beh: 'flyer', kind: 'umbrellabat', color: '#2b2f45', umbrella: true },
+  raincloud: { beh: 'flyer', kind: 'raincloud', color: '#9aa4ae', drips: true },
+  rollerblader: { beh: 'walker', kind: 'rollerblader', color: '#e8364b', spd: 1.6 },
+  raccoon: { beh: 'walker', kind: 'raccoon', color: '#8a8f96', spd: 0.9 },
+  flyingfish: { beh: 'hopper', kind: 'flyingfish', color: '#4f9fe8', spd: 0.7 }
 };
 /* ============================================================
    LEVEL BUILDER — seeded chunks, guaranteed set pieces
@@ -1464,9 +1596,9 @@ function build(i) {
   const gift = (gx, gy) => {
     set(gx, gy, 3);
     let kind = 'candle';
-    if (giftCount === 0) kind = LV[i].hardhat ? 'hat' : (LV[i].lassoGift ? 'lasso' : 'popper');   /* Shad's job site: his old hard hat; the chuckwagon track: a lasso */
+    if (giftCount === 0) kind = LV[i].hardhat ? 'hat' : (LV[i].lassoGift ? 'lasso' : (LV[i].umbrellaGift ? 'umbrella' : 'popper'));   /* Shad's job site: his old hard hat; the chuckwagon track: a lasso; the market: an umbrella */
     else if (!cakeGiven && gr() < 0.45) { kind = 'cake'; cakeGiven = true; }
-    else { const q = gr(); kind = q < 0.2 ? 'popper' : q < 0.3 ? 'heart' : (LV[i].hats && q < 0.4 ? 'hat' : (LV[i].lassos && q < 0.4 ? 'lasso' : 'candle')); }
+    else { const q = gr(); kind = q < 0.2 ? 'popper' : q < 0.3 ? 'heart' : (LV[i].hats && q < 0.4 ? 'hat' : (LV[i].lassos && q < 0.4 ? 'lasso' : (LV[i].umbrellas && q < 0.4 ? 'umbrella' : 'candle'))); }
     gifts[gy * w + gx] = kind; giftCount++;
   };
   const foe = (fx, fy) => {
@@ -1555,6 +1687,7 @@ function build(i) {
   const arenaX = x + 1;
   for (let k = 0; k < arenaW + 3; k++) col(arenaX + k, GROUND);
   for (let y = 0; y < GROUND; y++) set(arenaX + arenaW, y, 5);
+  if (LV[i].boss && LV[i].boss.kind === 'static') for (const k of [5, arenaW - 5]) set(arenaX + k, GROUND, 6);   /* the science dome's arena: a magnet pad set into the floor near each end */
   return { i, g, w, foes, candles, gifts, checkpoint, petSpot, arenaX, arenaW, len, ice: !!LV[i].ice, wind: !!LV[i].wind };
 }
 /* ============================================================
@@ -1952,6 +2085,9 @@ const FACE_DEF = {
   lg: { rows: () => LIFEGUARD, eye: 5, eyes: [5, 9], mouth: 7, m: [7, 8], ink: 'm', crop: [2, 14, 0, 12] },
   cd: { rows: () => CONDUCTOR, eye: 4, eyes: [5, 9], mouth: 7, m: [7, 8], ink: 'm', teeth: true, crop: [1, 15, 0, 11] },
   br: { rows: () => BARKER, eye: 4, eyes: [5, 9], mouth: 7, m: [7, 8], ink: 'm', teeth: true, crop: [1, 15, 0, 11] },
+  lj: { rows: () => LUMBERJACK, eye: 4, eyes: [5, 9], mouth: 7, m: [7, 8], ink: 'm', teeth: true, crop: [1, 15, 0, 11] },
+  ps: { rows: () => PROF, eye: 4, eyes: [5, 9], mouth: 7, m: [7, 8], ink: 'm', teeth: true, crop: [1, 15, 0, 11] },
+  dz: { rows: () => CLOUD, eye: 4, eyes: [5, 11], mouth: 7, m: [6, 9], ink: 'k', teeth: true, crop: [0, 16, 0, 11] },
   s: { rows: () => SHAD, eye: 4, eyes: [5, 9], mouth: 6, m: [6, 7], ink: 'm', crop: [2, 14, 0, 11] },
   c: { rows: () => CHENOA, eye: 4, eyes: [5, 10], mouth: 6, m: [7, 8], ink: 'r', wide: [6, 9], crop: [2, 14, 0, 11] },
   mech: { rows: () => MECH, mech: true, crop: [0, 16, 0, 11] }
@@ -1991,7 +2127,7 @@ function portraitFor(who, mood) {
 }
 /* who is talking: a line that starts with "<b>NAME:</b>" shows that person's face and voice; narration shows Kinan, no voice */
 const SPEAKERS = { 'MOM': 'm', 'CHENOA': 'c', 'KINAN': 'k', 'ROBIN': 'd', 'DAD': 'd', 'SHAD': 's', 'NOSY NEIGHBOUR': 'n', 'NEIGHBOUR': 'n', 'BIG KID': 'b', 'MEGA-MECH': 'mech', '???': 'mech', 'FOREMAN': 'f', 'SAFETY FOREMAN': 'f', 'PUMPJACK PETE': 'mech',
-  'LIFEGUARD': 'lg', 'CONDUCTOR': 'cd', 'SHAD AND CHENOA': 's', 'BARKER': 'br', 'REX': 'mech' };
+  'LIFEGUARD': 'lg', 'CONDUCTOR': 'cd', 'SHAD AND CHENOA': 's', 'BARKER': 'br', 'REX': 'mech', 'LUMBERJACK': 'lj', 'PROFESSOR STATIC': 'ps', 'DRIZZLE': 'dz' };
 function speakerOf(html, who) {
   const m = /^<b>([^<:(]+?)\s*(?:\([^)]*\))?:<\/b>/.exec(html || '');
   if (!m) return null;
@@ -2006,7 +2142,7 @@ function moodOf(html, fallback) {
   return fallback || 'n';
 }
 /* each voice: [pitch Hz, wave]; one short beep every couple of letters, like old game text */
-const VOICES = { k: [540, 'square'], m: [700, 'triangle'], c: [820, 'square'], d: [300, 'square'], s: [390, 'square'], n: [250, 'sawtooth'], b: [460, 'square'], mech: [980, 'square'], f: [270, 'sawtooth'], lg: [760, 'triangle'], cd: [330, 'square'], br: [420, 'sawtooth'] };
+const VOICES = { k: [540, 'square'], m: [700, 'triangle'], c: [820, 'square'], d: [300, 'square'], s: [390, 'square'], n: [250, 'sawtooth'], b: [460, 'square'], mech: [980, 'square'], f: [270, 'sawtooth'], lg: [760, 'triangle'], cd: [330, 'square'], br: [420, 'sawtooth'], lj: [180, 'square'], ps: [880, 'square'], dz: [110, 'sawtooth'] };
 let typing = null;
 function tokenizeHTML(html) {
   const out = [], re = /(<[^>]+>|&[a-z#0-9]+;)/gi;
@@ -2211,7 +2347,7 @@ function snapshotStage() {
   return {
     i: SL.i, x: Math.round(onGround ? P.x : safe.x), y: Math.round(onGround ? P.y : safe.y),
     hp: P.hp, max: P.max, got: got, score: score, stageTime: stageTime, deaths: deaths, heartsLost: heartsLost, bestCombo: bestCombo,
-    power: P.power, hat: !!P.hat, lasso: !!P.lasso, cpHit: cpHit, spawn: { x: spawn.x, y: spawn.y }, nextHeartAt: nextHeartAt, dadUsedStage: dadUsedStage,
+    power: P.power, hat: !!P.hat, lasso: !!P.lasso, umbrella: !!P.umbrella, cpHit: cpHit, spawn: { x: spawn.x, y: spawn.y }, nextHeartAt: nextHeartAt, dadUsedStage: dadUsedStage,
     candles: candles.map((c, k) => (c.got ? k : -1)).filter((k) => k >= 0),
     gifts: Object.keys(SL.gifts).filter((k) => SL.g[Number(k)] === 4),
     foesDead: SL.foes.map((f, k) => k).filter((k) => !foes.some((f) => f.idx === k && f.alive)),
@@ -2228,7 +2364,7 @@ function restoreStage(s) {
   if (s.cpHit && s.spawn) spawn = { x: s.spawn.x, y: s.spawn.y };
   P.hp = s.hp; P.max = s.max; P.power = s.power || null; P.hat = !!s.hat;
   if (s.bagOpen && bag) bag.open = true;
-  P.lasso = !!s.lasso;
+  P.lasso = !!s.lasso; P.umbrella = !!s.umbrella;
   if (s.atBoss) { P.x = (L.arenaX + 4) * T; P.y = (GROUND - 1) * T; }   /* the boss fight starts over from its intro */
   else { P.x = s.x; P.y = s.y; }
   P.vx = 0; P.vy = 0; P.inv = 60;
@@ -2262,8 +2398,9 @@ function dropSave(i) {
 function updatePlayer() {
   const rush = P.rush > 0;
   const left = input.left || padIn.left, right = input.right || padIn.right;
-  const ice = !!(L.ice && P.onGround);   /* the Mall Ice Rink: slow to get going, slow to stop */
-  const acc = P.onGround ? (ice ? 0.16 : 0.55) : 0.38, max = rush ? 3.7 : RUN_MAX;
+  const ice = !!(L.ice && P.onGround && boss === 'off');   /* the Mall Ice Rink: slow to get going, slow to stop (never in a boss arena: the lumberjack show has a sawdust floor) */
+  const slime = !ice && P.onGround && onSlime(P.x + P.w / 2);   /* a giant banana slug's slime: a bit slippery */
+  const acc = P.onGround ? (ice ? 0.16 : (slime ? 0.3 : 0.55)) : 0.38, max = rush ? 3.7 : RUN_MAX;
   const wasGround = P.onGround;
 
   if (left && !right) {
@@ -2273,7 +2410,7 @@ function updatePlayer() {
     if (P.vx < 0 && P.onGround) { P.skid = 6; dust(P.x + 5, P.y + P.h, 2, 'rgba(244,241,232,.5)'); }
     P.vx = Math.min(max, P.vx + acc); P.face = 1;
   } else {
-    P.vx *= P.onGround ? (ice ? 0.975 : 0.76) : 0.96;
+    P.vx *= P.onGround ? (ice ? 0.975 : (slime ? 0.93 : 0.76)) : 0.96;
     if (Math.abs(P.vx) < 0.08) P.vx = 0;
     if (ice && Math.abs(P.vx) > 1 && frame % 4 === 0) part(P.x + 5, P.y + P.h, { vx: -P.vx * 0.2, vy: -0.3, life: 14, size: 1, color: '#ffffff', g: 0 });
   }
@@ -2303,6 +2440,8 @@ function updatePlayer() {
   const holdJump = input.jump || padIn.jump;
   const grav = P.vy < 0 ? (holdJump ? GRAV_HOLD : GRAV_TAP) : GRAV_FALL;
   P.vy = Math.min(MAX_FALL, P.vy + grav);
+  P.floating = !!(P.umbrella && holdJump && !P.onGround && P.vy > 1.1);   /* World 5's umbrella: hold JUMP while you fall to float down slowly */
+  if (P.floating) P.vy = 1.1;
   if (P.vy >= 0) P.springy = false;
 
   moveX(P);
@@ -2440,6 +2579,7 @@ function giveItem(kind) {
   }
   else if (kind === 'hat') { P.hat = true; SFX.power(); toast("⛑️ <b>SHAD'S HARD HAT!</b> It takes one hit for you.", 2400); }
   else if (kind === 'lasso') { P.lasso = true; SFX.power(); toast('🤠 <b>LASSO!</b> Coins fly to you from far away. YEEHAW!', 2400); }
+  else if (kind === 'umbrella') { P.umbrella = true; SFX.power(); toast('☂️ <b>UMBRELLA!</b> Hold JUMP while you fall to float down slowly.', 2600); }
   updHud();
 }
 function trailPart(kind, x, y) {
@@ -2503,9 +2643,9 @@ function updateWorld() {
   if (bag && !bag.open) {
     bag.t++;
     if (overlap(P, bag)) {
-      const dog = LV[L.i].bag === 'dog';
+      const dog = LV[L.i].bag === 'dog', plane = LV[L.i].bag === 'plane';
       bag.open = true; if (dog) SFX.woof(); else SFX.meow(); addCandle(5);
-      toast(dog ? '🐶 <b>WOOF!</b> A dog was hiding in a hay bale! <b>+5 coins</b>' : '🐱 <b>MEOW!</b> A cat was hiding in a shopping bag! <b>+5 coins</b>', 2600);
+      toast(dog ? '🐶 <b>WOOF!</b> A dog was hiding in a hay bale! <b>+5 coins</b>' : (plane ? "🐱 <b>MEOW!</b> A cat was hiding under a seaplane's wing! <b>+5 coins</b>" : '🐱 <b>MEOW!</b> A cat was hiding in a shopping bag! <b>+5 coins</b>'), 2600);
       pop(bag.x, bag.y - 10, dog ? 'WOOF! +5' : 'MEOW! +5', 50, '#f6c445'); sparks(bag.x + 8, bag.y + 8, 18, ['#f6c445', '#fff', '#7be3a3']);
     }
   }
@@ -2718,6 +2858,7 @@ function updateFoes() {
         f.x += f.vx;
       if (Math.abs(f.x - f.originX) > 78) f.vx = -f.vx;
       f.y = f.baseY + Math.sin(f.t / 22) * 13;
+      if (f.def.drips && f.t % 100 === 0 && Math.abs(P.x - f.x) < 140) shots.push({ x: f.x + 5, y: f.y + 12, w: 3, h: 5, vx: 0, vy: 0.6, g: 0.12, life: 160, kind: 'drop' });   /* a rain cloud drips on you */
       }
     } else if (beh === 'thrower') {
       const dx = P.x - f.x;
@@ -2778,6 +2919,11 @@ function updateFoes() {
       }
       continue;
     }
+    if (stomp && umbrellaOpen(f)) {   /* an umbrella bat with its umbrella open: you bounce off the top */
+      P.vy = (input.jump || padIn.jump) ? -7.8 : -6.2; P.y = f.y - P.h + 1; P.squash = 4; SFX.jump();
+      pop(f.x, f.y - 8, 'BOING!', 26, '#f6c445');
+      continue;
+    }
     if (stomp) {
       killFoe(f);
       P.vy = (input.jump || padIn.jump) ? -7.8 - (hasPet('dog2') ? 0.5 : 0) : -6.0 - (hasPet('dog2') ? 0.3 : 0);
@@ -2786,7 +2932,7 @@ function updateFoes() {
     } else if (f.def.thief) {   /* a magpie grabs a coin and flies off with it: stomp it to get the coin back */
       if (!f.flee) {
         f.flee = true; SFX.pew();
-        if (got > 0) { got--; f.loot = 1; updHud(); pop(f.x, f.y - 8, '-1 coin!', 30, '#ff6b6b'); toast('A <b>magpie</b> grabbed a coin! Stomp it to get it back!', 1600); }
+        if (got > 0) { got--; f.loot = 1; updHud(); pop(f.x, f.y - 8, '-1 coin!', 30, '#ff6b6b'); toast('A <b>' + (f.def.kind === 'seagull' ? 'seagull' : 'magpie') + '</b> grabbed a coin! Stomp it to get it back!', 1600); }
         else pop(f.x, f.y - 8, 'SQUAWK!', 26, '#f4f1e8');
       }
     } else {
@@ -2807,6 +2953,9 @@ function updateShots() {
       if (s.y + s.h >= GROUND * T) { s.y = GROUND * T - s.h; s.vy = -s.bounce; }
       const tx = Math.floor((s.x + s.w / 2) / T), ty = Math.floor((s.y + s.h / 2) / T);
       if (solid(tx, ty)) { s.vx = -s.vx; if (s.x < 0) s.life = 0; }
+    }
+    if ((s.kind === 'drop' || s.kind === 'log') && solid(Math.floor((s.kind === 'log' ? s.x + (s.vx > 0 ? s.w : 0) : s.x + 1) / T), Math.floor((s.kind === 'log' ? s.y + s.h / 2 : s.y + s.h) / T))) {
+      s.gone = true; dust(s.x + s.w / 2, s.y + s.h, 2, s.kind === 'drop' ? 'rgba(111,200,255,.8)' : 'rgba(200,170,120,.7)'); continue;   /* a raindrop splashes on the ground; a log stops at a wall */
     }
     if (s.kind === 'lasso' && !P.dead && P.rush <= 0 && overlap(P, s)) {   /* a lasso lizard's rope: it pulls you in, it doesn't hurt */
       s.gone = true; P.vx = (s.vx > 0 ? -1 : 1) * 3.4; P.vy = Math.min(P.vy, -2.2);
@@ -2847,14 +2996,14 @@ function updateShots() {
    BOSSES
    ============================================================ */
 const BOSS_NAMES = { mom: 'MOM', chenoa: 'CHENOA', mech: 'MEGA-MECH', neighbour: 'NEIGHBOUR', bully: 'BIG KID',
-  moose: 'BULL MOOSE', foreman: 'SAFETY FOREMAN', pumpjack: 'PUMPJACK PETE', dadboss: 'HYDRO VAC DAD', bronco: 'BRONCO', rodeo: 'BRONCO', barker: 'CARNIVAL BARKER', rex: 'REX',
+  moose: 'BULL MOOSE', foreman: 'SAFETY FOREMAN', pumpjack: 'PUMPJACK PETE', dadboss: 'HYDRO VAC DAD', bronco: 'BRONCO', rodeo: 'BRONCO', barker: 'CARNIVAL BARKER', rex: 'REX', bananaslug: 'BANANA SLUG', lumberjack: 'LUMBERJACK CHAMP', static: 'PROFESSOR STATIC', drizzle: 'DRIZZLE',
   lifeguard: 'LIFEGUARD', conductor: 'COASTER CONDUCTOR', supchenoa: '🍽️ CHENOA', shadboss: '👷 SHAD' };
 function bossName(b) { return BOSS_NAMES[b.kind] || 'BOSS'; }
 function makeBoss(kind, x, hp, prop) {
-  const sizes = { mom: [14, 22], chenoa: [12, CH_H], mech: [28, 34], neighbour: [14, 22], bully: [14, 22], moose: [36, 32], foreman: [14, 22], pumpjack: [28, 34], dadboss: [14, 22], lifeguard: [14, 22], conductor: [24, 26], supchenoa: [12, CH_H], shadboss: [14, 22], bronco: [32, 26], rodeo: [32, 26], barker: [14, 22], rex: [30, 34] };
+  const sizes = { mom: [14, 22], chenoa: [12, CH_H], mech: [28, 34], neighbour: [14, 22], bully: [14, 22], moose: [36, 32], foreman: [14, 22], pumpjack: [28, 34], dadboss: [14, 22], lifeguard: [14, 22], conductor: [24, 26], supchenoa: [12, CH_H], shadboss: [14, 22], bronco: [32, 26], rodeo: [32, 26], barker: [14, 22], rex: [30, 34], bananaslug: [40, 18], lumberjack: [14, 22], static: [14, 22], drizzle: [48, 26] };
   const s = sizes[kind] || [12, 18];
   return {
-    kind: kind, x: x, homeX: x, y: GROUND * T - s[1], w: s[0], h: s[1], vx: 0, vy: 0,
+    kind: kind, x: x, homeX: x, y: GROUND * T - s[1] - (kind === 'drizzle' ? 92 : 0), w: s[0], h: s[1], vx: 0, vy: 0,   /* Drizzle starts up in the sky */
     hp: hp, max: hp, inv: 0, stun: 0, t: 100, state: 'walk', hold: 0, prop: prop || '🥞',
     onGround: false, pound: false, out: false, face: -1, tele: 0, anger: 0, flash: 0
   };
@@ -2895,7 +3044,7 @@ async function startBoss() {
   const R = L.bossR = bossRules(i), hp = L.helped ? Math.max(2, Math.round(d.hp * 0.7)) : d.hp + R.extraHp;
   dadSpecialPlan = worldOf(i) !== 2 && (d.kind === 'final' || Math.random() < R.dadVac);   /* not in Dad's own world */
   const kind = (d.kind === 'team' || d.kind === 'final') ? 'mom' : (d.kind === 'siblings' ? 'shadboss' : d.kind);
-  bosses = [makeBoss(kind, (ax + (kind === 'mech' || kind === 'pumpjack' || kind === 'moose' || kind === 'conductor' || kind === 'bronco' || kind === 'rodeo' || kind === 'rex' ? 12 : 13)) * T, hp, d.prop)];
+  bosses = [makeBoss(kind, (ax + (kind === 'mech' || kind === 'pumpjack' || kind === 'moose' || kind === 'conductor' || kind === 'bronco' || kind === 'rodeo' || kind === 'rex' || kind === 'bananaslug' || kind === 'drizzle' ? 12 : 13)) * T, hp, d.prop)];
   await say('<b>BOSS:</b> ' + d.title.toUpperCase() + '!', d.face || 'm', 'a');
   await story(LV[i].bossIntro, d.face || 'm', 'a');
   if (d.kind === 'team') {
@@ -2999,6 +3148,7 @@ async function bossDefeated() {
   if (LV[i].final2) return ending2();
   if (LV[i].final3) return ending3();
   if (LV[i].final4) return ending4();
+  if (LV[i].final5) return ending5();
   await story(LV[i].win, LV[i].boss.face || 'm', 'h');
   firstClear = !progress.beaten.includes(i);   /* first time through: this world is now a Family Smash arena too */
   if (firstClear) progress.beaten.push(i);
@@ -3018,7 +3168,7 @@ function bossAI(b) {
   if (b.inv > 0) b.inv--;
   if (b.flash > 0) b.flash--;
   b.vy = Math.min(7.8, b.vy + 0.42);
-  if (b.stun > 0) { b.stun--; b.vx = 0; moveY(b); return; }
+  if (b.stun > 0) { b.stun--; b.vx = 0; if (!b.floats) moveY(b); return; }
   const R = L.bossR || bossRules(i);
   b.pace = (b.pace || 0) + R.pace;   /* a tougher boss's timers run faster: attacks sooner, shorter rests */
   if (b.pace >= 1) { b.pace -= 1; if (b.t > 1) b.t--; }
@@ -3365,15 +3515,118 @@ function bossAI(b) {
       if (Math.abs(dx) < 190 && Math.abs(P.y - b.y) < 60) P.vx = clamp(P.vx + sign(dx) * 0.12, -3, 3);
       if (--b.t <= 0) { b.state = 'walk'; b.t = 80; }
     }
+  } else if (b.kind === 'bananaslug') {
+    /* the Giant Banana Slug: crawls after Kinan and leaves slime under itself. When Kinan jumps over it, it turns
+       around on its own slime and slides, fast, into the end of the arena: dizzy (that is when you stomp) */
+    if (b.state === 'walk') {
+      const want = dx + P.w / 2 - b.w / 2 < 0 ? -1 : 1, above = P.x + P.w > b.x - 2 && P.x < b.x + b.w + 2;
+      if (above) b.vx = (b.dir || want) * (0.32 + (b.anger ? 0.14 : 0));   /* Kinan right over it: it keeps crawling the same way */
+      else if (b.dir && want !== b.dir && onSlime(b.x + b.w / 2)) {   /* Kinan got all the way past it: it turns around on its slime... */
+        b.state = 'turn'; b.t = 26; b.dir = want; b.vx = 0;
+        pop(b.x + b.w / 2, b.y - 12, 'HMM!', 26, '#f6c445');
+      } else { b.dir = want; b.vx = want * (0.32 + (b.anger ? 0.14 : 0)); }
+      if (frame % 4 === 0) for (let k = 0; k < b.w; k += 8) slimeAt(b.x + k + 4, 300);
+    } else if (b.state === 'turn') {   /* ...wiggles for a moment (time to get ready to jump)... */
+      b.vx = 0;
+      if (--b.t <= 0) {
+        b.state = 'slide'; SFX.pew();
+        toast('<b>SLUG:</b> ' + pick(['*sliiiiide*', 'WHEEE-squish!', '*slurp slurp*']), 1100);
+      }
+    } else if (b.state === 'slide') {   /* ...and slides, fast, until it crashes into the end of the arena */
+      b.vx = b.dir * (3.2 + (b.anger ? 0.6 : 0));
+      if (frame % 3 === 0) part(b.x + (b.dir > 0 ? 0 : b.w), b.y + b.h - 1, { vx: -b.dir * 0.8, vy: -0.4, life: 16, size: 2, color: 'rgba(232,240,160,.9)', g: 0.05 });
+      if (b.x <= lo + 1 || b.x >= hi - 1) {
+        b.state = 'dizzy'; b.t = 150; b.vx = 0; SFX.thud(); shakeIt(4);
+        pop(b.x, b.y - 10, '💫 STOMP NOW!', 46, '#f6c445');
+        sparks(b.x + b.w / 2, b.y + 2, 10, ['#e8d24a', '#fff']);
+      }
+    } else {   /* dizzy against the tree */
+      b.vx = 0;
+      if (--b.t <= 0) { b.state = 'walk'; b.t = 60; b.dir = 0; }
+    }
+  } else if (b.kind === 'lumberjack') {
+    /* the Lumberjack Champ: rolls logs along the ground at you (jump them), then balances on a log and wobbles:
+       stomp him then */
+    if (b.state === 'walk') {
+      if (b.vx === 0) b.vx = dx < 0 ? -0.7 : 0.7;
+      if (--b.t <= 0) {
+        b.state = 'roll'; b.t = 70; b.k = 0; b.vx = 0;
+        toast('<b>LUMBERJACK:</b> ' + pick(['LOG ROLL! Jump, sapling, jump!', 'TIMBER! Look out below!', 'Here comes the big one!']), 1300);
+      }
+    } else if (b.state === 'roll') {   /* (b.k counts frames one by one; a tougher boss's timer b.t can skip numbers) */
+      b.vx = 0; b.k++;
+      if (b.k === 10 || b.k === 34 || (b.anger && b.k === 58)) {
+        const d = dx < 0 ? -1 : 1;
+        shots.push({ x: b.x + (d > 0 ? b.w : -16), y: GROUND * T - 10, w: 16, h: 10, vx: d * (2.1 + (b.anger ? 0.5 : 0)), vy: 0, g: 0, life: 220, kind: 'log' });
+        SFX.thud(); shakeIt(1.5);
+      }
+      if (--b.t <= 0) { b.state = 'wobble'; b.t = 110; toast('<b>LUMBERJACK:</b> ' + pick(['Whoa... whoa... WHOA!', 'Steady... steady...', 'This log is SLIPPERY!']), 1200); }
+    } else {   /* wobbling on his log: the time to stomp */
+      b.vx = 0;
+      if (--b.t <= 0) { b.state = 'walk'; b.t = 80; }
+    }
+  } else if (b.kind === 'static') {
+    /* Professor Static: throws bouncing lightning balls, then stops at his machine to recharge (stomp him then). The
+       magnet pads by the walls lift you over the lightning */
+    if (b.state === 'walk') {
+      if (b.vx === 0) b.vx = dx < 0 ? -0.8 : 0.8;
+      if (--b.t <= 0) {
+        b.state = 'zap'; b.t = 60; b.k = 0; b.vx = 0;
+        toast('<b>PROFESSOR STATIC:</b> ' + pick(['ZAP! Science!', 'Behold: BALL LIGHTNING!', 'Hold still for the experiment!']), 1300);
+      }
+    } else if (b.state === 'zap') {
+      b.vx = 0; b.k++;
+      if (b.k === 6 || b.k === 22 || b.k === 38 || (b.anger && b.k === 52)) {
+        shots.push({ x: b.x + b.w / 2 - 4, y: b.y, w: 8, h: 8, vx: (dx < 0 ? -1 : 1) * rand(1.4, 2.4), vy: -3.4, g: 0.17, bounce: 3.4, life: 220, kind: 'spark' });
+        SFX.pew();
+      }
+      if (--b.t <= 0) {   /* his machine pulls every lightning ball back in: the coast is clear for a stomp */
+        b.state = 'charge'; b.t = 100; toast('<b>PROFESSOR STATIC:</b> Must... recharge...', 1200);
+        for (const s of shots) if (s.kind === 'spark') sparks(s.x + 4, s.y + 4, 4, ['#bfe8ff', '#fff']);
+        shots = shots.filter((s) => s.kind !== 'spark');
+      }
+    } else {   /* recharging: the time to stomp */
+      b.vx = 0;
+      if (--b.t <= 0) { b.state = 'walk'; b.t = 80; }
+    }
+  } else if (b.kind === 'drizzle') {
+    /* Drizzle the Thunderstorm floats over the stage and throws lightning where Kinan stands (a flashing spot first).
+       After three strikes it gets tired and sinks down low: stomp it then. From half health the sun breaks through:
+       sunbeams give a burst of speed, and Drizzle gets tired after two strikes */
+    b.floats = true;
+    const sun = b.hp <= b.max / 2, hover = GROUND * T - 118, low = GROUND * T - b.h - 4, cdx = P.x + P.w / 2 - (b.x + b.w / 2);
+    if (sun && !b.sunny) { toast('☀️ <b>The sun breaks through!</b> Stand in a sunbeam for a burst of speed!', 2600); SFX.power(); }
+    b.sunny = sun; L.sunny = sun;   /* back to full health after a lost try: the clouds close again */
+    if (b.state === 'walk') {   /* floating after Kinan, high up */
+      b.vx = clamp(cdx * 0.025, -1.5, 1.5); b.y += (hover - b.y) * 0.06;
+      if (--b.t <= 0) { b.state = 'aim'; b.t = 52; b.mark = clamp(P.x + P.w / 2, lo + 6, hi + b.w - 6); b.strikes = (b.strikes || 0) + 1; }
+    } else if (b.state === 'aim') {   /* the flashing spot on the ground: move away! */
+      b.vx = 0; b.y += (hover - b.y) * 0.06;
+      if (--b.t <= 0) {
+        b.state = 'strike'; b.t = 16; SFX.thud(); shakeIt(3); flashScreen();
+        if (!P.dead && Math.abs(P.x + P.w / 2 - b.mark) < 13 && P.y + P.h > GROUND * T - 60) hurt(b.mark);
+      }
+    } else if (b.state === 'strike') {
+      b.vx = 0;
+      if (--b.t <= 0) {
+        if (b.strikes >= (sun ? 2 : 3)) {
+          b.state = 'rest'; b.t = sun ? 150 : 115; b.strikes = 0;
+          toast('<b>DRIZZLE:</b> ' + pick(['puff... puff... so tired...', 'drip... drip...', 'rumble... (yawn)']), 1300);
+        } else { b.state = 'walk'; b.t = 44; }
+      }
+    } else {   /* resting, low and puffing: the time to stomp */
+      b.vx = 0; b.y += (low - b.y) * 0.08;
+      if (--b.t <= 0) { b.state = 'walk'; b.t = 60; }
+    }
   }
   moveX(b);
-  const charging = (b.kind === 'bully' || b.kind === 'moose' || b.kind === 'conductor' || b.kind === 'supchenoa' || b.kind === 'bronco' || b.kind === 'rodeo') && b.state === 'charge';
+  const charging = ((b.kind === 'bully' || b.kind === 'moose' || b.kind === 'conductor' || b.kind === 'supchenoa' || b.kind === 'bronco' || b.kind === 'rodeo') && b.state === 'charge') || (b.kind === 'bananaslug' && b.state === 'slide');
   if (b.x <= lo) { b.x = lo; if (!charging) b.vx = Math.abs(b.vx); }
   if (b.x >= hi) { b.x = hi; if (!charging) b.vx = -Math.abs(b.vx); }
-  moveY(b);
+  if (!b.floats) moveY(b);   /* Drizzle floats */
 }
 
-const bossPad = (b) => (b.kind === 'mom' || b.kind === 'dadboss') ? (LV[L.i].final ? 10 : 7) : (['neighbour', 'bully', 'foreman', 'moose', 'lifeguard', 'shadboss', 'bronco', 'rodeo', 'barker'].indexOf(b.kind) >= 0 ? 4 : 0);
+const bossPad = (b) => (b.kind === 'mom' || b.kind === 'dadboss') ? (LV[L.i].final ? 10 : 7) : (['neighbour', 'bully', 'foreman', 'moose', 'lifeguard', 'shadboss', 'bronco', 'rodeo', 'barker', 'lumberjack', 'static'].indexOf(b.kind) >= 0 ? 4 : 0);
 function bossTouch(b) {
   const pad = bossPad(b);
   return P.x < b.x + b.w && P.x + P.w > b.x && P.y < b.y + b.h && P.y + P.h > b.y - pad;
@@ -3381,7 +3634,7 @@ function bossTouch(b) {
 function bossContact(b) {
   if (b.out || !bossTouch(b)) return;
   const pad = bossPad(b);
-  const reach = b.kind === 'mech' || b.kind === 'pumpjack' || b.kind === 'conductor' || b.kind === 'bronco' || b.kind === 'rodeo' || b.kind === 'rex' ? 16 : 14;
+  const reach = b.kind === 'mech' || b.kind === 'pumpjack' || b.kind === 'conductor' || b.kind === 'bronco' || b.kind === 'rodeo' || b.kind === 'rex' || b.kind === 'drizzle' ? 16 : 14;
   const fromAbove = P.vy > 0.1 && (P.y + P.h) - (b.y - pad) < reach;
   if (fromAbove) {
     if (b.inv > 0) { P.vy = -4.6; return; }
@@ -3393,6 +3646,13 @@ function bossContact(b) {
     if (b.kind === 'rex' && b.state !== 'roar') {
       P.vy = -6.4; b.inv = 20;
       toast('Rex is too tall! Stomp his head when he bends down to ROAR!', 1500);
+      return;
+    }
+    const w5wait = { bananaslug: ['dizzy', 'The slug is too slimy! Wait till it crashes and gets dizzy!'], lumberjack: ['wobble', 'The Champ is too quick! Stomp him when he wobbles on his log!'],
+      static: ['charge', 'BZZT! Too much electricity! Stomp him while he recharges!'], drizzle: ['rest', 'Drizzle is all thunder! Stomp it when it gets tired and sinks down low!'] }[b.kind];
+    if (w5wait && b.state !== w5wait[0]) {
+      P.vy = -6.2; b.inv = 24;
+      toast(w5wait[1], 1500);
       return;
     }
     if (b.kind === 'bully' && b.state !== 'dizzy') {
@@ -3417,7 +3677,7 @@ function bossContact(b) {
     return;
   }
   if (P.rush > 0) { if (b.inv === 0) damage(b, 0.34); P.vx = sign(P.x - b.x) * 3.2; return; }
-  if (b.inv === 0 && b.stun === 0 && !((b.kind === 'bully' || b.kind === 'moose' || b.kind === 'bronco' || b.kind === 'rodeo') && b.state === 'dizzy') && !(b.kind === 'conductor' && b.state === 'stall') && !(b.kind === 'lifeguard' && b.state === 'rest')) hurt(b.x);
+  if (b.inv === 0 && b.stun === 0 && !((b.kind === 'bully' || b.kind === 'moose' || b.kind === 'bronco' || b.kind === 'rodeo') && b.state === 'dizzy') && !(b.kind === 'conductor' && b.state === 'stall') && !(b.kind === 'lifeguard' && b.state === 'rest') && b.kind !== 'drizzle' && ({ bananaslug: 'dizzy', lumberjack: 'wobble', static: 'charge' }[b.kind] !== b.state)) hurt(b.x);   /* Drizzle's cloud is soft: only its lightning hurts */
 }
 
 function updateAllies() {
@@ -3487,6 +3747,7 @@ function update() {
   if (puzzle) return;
   updateFoes();
   updateShots();
+  updateWorld5();
   updatePets();
   if (L.custom && boss === 'off' && L.goalBox && overlap(P, L.goalBox)) { customGoal(); return; }   /* your own level: touch the flag */
   if (boss === 'off' && P.x > (L.arenaX + 3) * T && (!L.up || P.y > (GROUND - 7) * T)) { startBoss(); return; }   /* a tall level of his own: from down at the arena, not from a walkway up high */
@@ -3552,7 +3813,7 @@ function glowDisc(x, y, r, color, alpha) {
 }
 function drawBackdrop(th, i) {
   const p1 = Math.round(camX * 0.12), p2 = Math.round(camX * 0.3), p3 = Math.round(camX * 0.55);
-  const dark = th.bg === 'castle' || th.bg === 'cake' || th.bg === 'room' || th.bg === 'night' || th.bg === 'storm' || th.bg === 'whyte' || th.bg === 'bridge' || th.bg === 'grandstand' || th.bg === 'skijump';
+  const dark = th.bg === 'castle' || th.bg === 'cake' || th.bg === 'room' || th.bg === 'night' || th.bg === 'storm' || th.bg === 'whyte' || th.bg === 'bridge' || th.bg === 'grandstand' || th.bg === 'skijump' || th.bg === 'storm5';
   if (th.bg === 'room') {
     ctx.globalAlpha = 0.5; ctx.fillStyle = th.far;
     for (let k = -1; k < 12; k++) { const x = k * 44 - (p2 % 44); ctx.fillRect(x, 0, 16, GROUND * T); }
@@ -3893,9 +4154,10 @@ function drawAtmosphere(th) {
       ctx.fillRect(Math.round(x), Math.round(y), 1, 1);
     }
   }
-  if (bg === 'storm') {   /* prairie rain */
+  if (bg === 'storm' || (th.rain && !(L && L.sunny))) {   /* prairie rain; Vancouver's rain (heavy at the harbour and in the Big Storm) */
+    const drops = bg === 'storm' || th.rain > 1 ? 70 : 40;
     ctx.globalAlpha = 0.35; ctx.strokeStyle = '#bcd7ef'; ctx.lineWidth = 1; ctx.beginPath();
-    for (let k = 0; k < (lite ? 30 : 70); k++) { const x = (k * 37 + frame * 5) % (W + 40) - 20, y = (k * 53 + frame * 9) % 200; ctx.moveTo(x, y); ctx.lineTo(x - 3, y + 8); }
+    for (let k = 0; k < (lite ? 30 : drops); k++) { const x = (k * 37 + frame * 5) % (W + 40) - 20, y = (k * 53 + frame * 9) % 200; ctx.moveTo(x, y); ctx.lineTo(x - 3, y + 8); }
     ctx.stroke();
   }
   ctx.restore();
@@ -3983,6 +4245,14 @@ function drawTiles(th) {
         ctx.fillStyle = '#242642'; ctx.fillRect(sx, sy, T, T);
         ctx.fillStyle = 'rgba(255,255,255,.06)'; ctx.fillRect(sx + 2, sy, 2, T); ctx.fillRect(sx + T - 4, sy, 2, T);
         ctx.fillStyle = 'rgba(0,0,0,.35)'; ctx.fillRect(sx, sy + 6, T, 2); ctx.fillRect(sx, sy + 14, T, 2);
+      } else if (t === 6 && tb === 'sciencedome') {   /* the science dome's springs are magnet pads: red and blue poles, a humming field */
+        const floor = tileAt(tx - 1, ty) === 1 || tileAt(tx + 1, ty) === 1, by = floor ? sy : sy + 11, pulse = Math.floor(frame / 6) % 3;   /* a pad set into the floor (the professor's arena) or standing on it */
+        if (floor) { ctx.fillStyle = th.ground; ctx.fillRect(sx, sy, T, T); ctx.fillStyle = th.top; ctx.fillRect(sx, sy, T, 2); }
+        else { ctx.fillStyle = 'rgba(0,0,0,.25)'; ctx.fillRect(sx + 1, sy + 14, 14, 2); ctx.fillStyle = '#4a4f57'; ctx.fillRect(sx, by + 1, T, 4); }
+        ctx.fillStyle = '#e8364b'; ctx.fillRect(sx + 1, by - 2, 6, 3); ctx.fillStyle = '#2f5fb3'; ctx.fillRect(sx + 9, by - 2, 6, 3);
+        ctx.fillStyle = '#c9c9cf'; ctx.fillRect(sx + 1, by - 3, 6, 1); ctx.fillRect(sx + 9, by - 3, 6, 1);
+        ctx.strokeStyle = 'rgba(160,220,255,.8)'; ctx.lineWidth = 1;
+        for (let k = 0; k < 3; k++) { if (k === pulse) continue; ctx.beginPath(); ctx.ellipse(sx + 8, by - 3, 3 + k * 2, 2 + k * 1.5, 0, Math.PI, 0); ctx.stroke(); }
       } else if (t === 6 && tb === 'breakfast') {   /* the pancake breakfast's springs are hot griddles with a pancake on top */
         const up = Math.round(Math.max(0, Math.sin(frame / 9)) * 2);
         ctx.fillStyle = 'rgba(0,0,0,.25)'; ctx.fillRect(sx + 1, sy + 14, 14, 2);
@@ -4062,7 +4332,22 @@ function drawProps(th) {
   }
   if (bag) {
     const sx = Math.round(bag.x - camX), sy = Math.round(bag.y);
-    if (LV[L.i].bag === 'dog') {   /* a hay bale with a wagging tail sticking out; then the dog, sitting by it */
+    if (LV[L.i].bag === 'plane') {   /* a little seaplane parked on the dock, a cat's tail swishing under its wing; then the cat, sitting by it */
+      const swish = Math.round(Math.sin(bag.t / 5) * 2);
+      if (!bag.open) { ctx.fillStyle = 'rgba(246,196,69,' + (0.2 + Math.sin(bag.t / 10) * 0.12) + ')'; ctx.fillRect(sx - 6, sy - 4, 28, 24); }
+      ctx.fillStyle = 'rgba(0,0,0,.2)'; ctx.fillRect(sx - 4, sy + 15, 24, 2);
+      ctx.fillStyle = '#9aa1ab'; ctx.fillRect(sx - 4, sy + 13, 24, 2);
+      ctx.fillStyle = '#f4f1e8'; ctx.fillRect(sx - 2, sy + 4, 20, 6);
+      ctx.fillStyle = '#e8364b'; ctx.fillRect(sx - 2, sy + 7, 20, 1); ctx.fillRect(sx + 15, sy, 3, 5);
+      ctx.fillStyle = '#6fc8ff'; ctx.fillRect(sx, sy + 5, 4, 2);
+      ctx.fillStyle = '#d8dde6'; ctx.fillRect(sx - 6, sy + 3, 28, 2);
+      ctx.fillStyle = '#4a4f57'; ctx.fillRect(sx + 1, sy + 10, 1, 3); ctx.fillRect(sx + 13, sy + 10, 1, 3);
+      if (!bag.open) { ctx.fillStyle = '#9a9aa6'; ctx.fillRect(sx + 6 + swish, sy + 11, 4, 2); ctx.fillRect(sx + 9 + swish, sy + 10, 1, 1); }
+      else {
+        const cat = progress.pets.ids.filter((id) => petDef(id).kind === 'cat')[0], img = cat ? PET_SPRITES[cat] : SP.cat;
+        ctx.drawImage(img, sx + 18, sy + 16 - img.height);
+      }
+    } else if (LV[L.i].bag === 'dog') {   /* a hay bale with a wagging tail sticking out; then the dog, sitting by it */
       const wag = Math.round(Math.sin(bag.t / 4) * 2);
       if (!bag.open) {
         ctx.fillStyle = 'rgba(246,196,69,' + (0.2 + Math.sin(bag.t / 10) * 0.12) + ')'; ctx.fillRect(sx - 3, sy - 4, 22, 24);
@@ -4598,6 +4883,88 @@ function drawFoe(f) {
       ctx.fillStyle = '#f6c445'; ctx.fillRect(x + 6, y + 4, 2, 2); ctx.fillRect(x + 9, y + 5, 2, 2);
       eye(2, 3, 1);
       break; }
+    case 'puddlefrog': {   /* a green frog that hops out of puddles and splashes you */
+      const up = !f.onGround;
+      ctx.fillStyle = col; ctx.beginPath(); ctx.ellipse(x + w / 2, y + 9, 6, up ? 3.5 : 4, 0, 0, 6.284); ctx.fill();
+      ctx.fillRect(x + 1, y + 3, 4, 4); ctx.fillRect(x + 8, y + 3, 4, 4);
+      ctx.fillStyle = '#3f7a3a'; ctx.fillRect(x + (up ? 0 : 1), y + 11, 4, up ? 3 : 2); ctx.fillRect(x + (up ? 9 : 8), y + 11, 4, up ? 3 : 2);
+      ctx.fillStyle = '#d8f0b0'; ctx.fillRect(x + 4, y + 10, 5, 2);
+      ctx.fillStyle = '#c2414f'; ctx.fillRect(x + 5, y + 8, 3, 1);
+      eye(2, 4, 2); eye(9, 4, 2);
+      if (!up && Math.floor(frame / 30 + (f.idx || 0)) % 5 === 0) { ctx.fillStyle = 'rgba(111,200,255,.7)'; ctx.fillRect(x - 1, y + 12, 3, 1); ctx.fillRect(x + w - 1, y + 12, 3, 1); }
+      break; }
+    case 'seagull': {   /* a white seagull with grey wings and a yellow beak; it grabs coins like the magpie */
+      const flap = Math.floor(frame / 5) % 2;
+      ctx.fillStyle = '#f4f1e8'; ctx.beginPath(); ctx.ellipse(x + w / 2, y + h / 2 + 1, 5.5, 3.5, 0, 0, 6.284); ctx.fill();
+      ctx.beginPath(); ctx.arc(x + 3, y + h / 2 - 1, 2.6, 0, 6.284); ctx.fill();
+      ctx.fillStyle = '#9aa1ab'; ctx.fillRect(x + 5, y + (flap ? 0 : h / 2 - 1), 7, flap ? 5 : 2);
+      ctx.fillStyle = '#4a4f57'; ctx.fillRect(x + 10, y + (flap ? 0 : h / 2 - 1), 2, flap ? 2 : 1); ctx.fillRect(x + w - 2, y + h / 2 + 1, 4, 2);
+      ctx.fillStyle = '#f6c445'; ctx.fillRect(x - 2, y + h / 2 - 1, 3, 2); ctx.fillStyle = '#e8364b'; ctx.fillRect(x - 1, y + h / 2, 1, 1);
+      eye(2, Math.floor(h / 2) - 2, 1);
+      if (f.loot) { const ci = coinImg(frame); ctx.drawImage(ci, x - 3 - Math.floor(ci.width / 2), y + h / 2); }
+      break; }
+    case 'slug': {   /* a little banana slug: slow and shiny, with eye stalks */
+      const st = Math.sin(frame / 10 + (f.idx || 0)) * 0.6;
+      ctx.fillStyle = col; ctx.beginPath(); ctx.ellipse(x + w / 2, y + 10, 7 + st, 3, 0, 0, 6.284); ctx.fill();
+      ctx.fillRect(x + 1, y + 6, 5, 5);
+      ctx.fillStyle = '#c9a82a'; ctx.fillRect(x + 5, y + 11, 6, 1); ctx.fillRect(x + 3, y + 8, 1, 1); ctx.fillRect(x + 8, y + 9, 1, 1);
+      ctx.strokeStyle = col; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x + 2, y + 6); ctx.lineTo(x + 1, y + 2); ctx.moveTo(x + 5, y + 6); ctx.lineTo(x + 6, y + 2); ctx.stroke();
+      ctx.fillStyle = '#1b1220'; ctx.fillRect(x, y + 1, 2, 2); ctx.fillRect(x + 5, y + 1, 2, 2);
+      ctx.fillStyle = 'rgba(232,240,180,.45)'; ctx.fillRect(x + 6, y + 13, 9, 1);   /* its slime trail */
+      break; }
+    case 'umbrellabat': {   /* a bat hanging from a little umbrella: open, it bounces you off; closed, stomp it */
+      const open = umbrellaOpen(f);
+      ctx.fillStyle = '#4a3f6a'; ctx.beginPath(); ctx.ellipse(x + w / 2, y + 9, 3, 3, 0, 0, 6.284); ctx.fill();
+      const wing = Math.floor(frame / 6) % 2;
+      ctx.fillRect(x + 1, y + 8 - wing, 3, 2); ctx.fillRect(x + w - 4, y + 8 - wing, 3, 2);
+      ctx.fillStyle = '#1b1220'; ctx.fillRect(x + 5, y + 8, 1, 1); ctx.fillRect(x + 7, y + 8, 1, 1);
+      ctx.fillStyle = '#f4f1e8'; ctx.fillRect(x + 6, y + 10, 1, 1);
+      ctx.strokeStyle = '#2a2f45'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x + w / 2, y + 6); ctx.lineTo(x + w / 2, y - 2); ctx.stroke();
+      if (open) {
+        ctx.fillStyle = col; ctx.beginPath(); ctx.moveTo(x - 3, y + 1); ctx.quadraticCurveTo(x + w / 2, y - 9, x + w + 3, y + 1); ctx.closePath(); ctx.fill();
+        ctx.fillStyle = '#e8364b'; ctx.beginPath(); ctx.moveTo(x + 2, y); ctx.quadraticCurveTo(x + w / 2, y - 7, x + w - 2, y); ctx.closePath(); ctx.fill();
+      } else {
+        ctx.fillStyle = col; ctx.beginPath(); ctx.moveTo(x + w / 2 - 2, y + 1); ctx.lineTo(x + w / 2, y - 7); ctx.lineTo(x + w / 2 + 2, y + 1); ctx.closePath(); ctx.fill();
+      }
+      break; }
+    case 'raincloud': {   /* a little grey rain cloud that drips on you */
+      const bob = Math.round(Math.sin(frame / 14 + (f.idx || 0)) * 0.6);
+      ctx.fillStyle = col;
+      for (const [cx, cy, r] of [[x + 3, y + 7, 3.6], [x + 7, y + 5, 4.6], [x + 11, y + 7, 3.6], [x + 7, y + 8, 4]]) { ctx.beginPath(); ctx.arc(cx, cy + bob, r, 0, 6.284); ctx.fill(); }
+      ctx.fillStyle = '#c9d3dc'; ctx.fillRect(x + 4, y + 3 + bob, 3, 1);
+      ctx.fillStyle = '#1b1220'; ctx.fillRect(x + 4, y + 7 + bob, 1, 2); ctx.fillRect(x + 9, y + 7 + bob, 1, 2);
+      ctx.fillRect(x + 6, y + 10 + bob, 2, 1);
+      ctx.fillStyle = 'rgba(111,200,255,.85)'; const d = (frame + (f.idx || 0) * 13) % 24; ctx.fillRect(x + 5, y + 12 + d / 3, 1, 2);
+      break; }
+    case 'rollerblader': {   /* a rollerblader on the seawall: helmet, knee pads, whoosh */
+      const st = Math.floor(frame / 5) % 2;
+      ctx.fillStyle = col; ctx.fillRect(x + 4, y, 6, 3);
+      ctx.fillStyle = '#d9a27a'; ctx.fillRect(x + 4, y + 3, 6, 3);
+      ctx.fillStyle = '#44c55a'; ctx.fillRect(x + 3, y + 6, 8, 4);
+      ctx.fillStyle = '#2b2f45'; ctx.fillRect(x + 3 + st, y + 10, 3, 2); ctx.fillRect(x + 8 - st, y + 10, 3, 2);
+      ctx.fillStyle = '#1b1220'; ctx.fillRect(x + 2 + st, y + 12, 5, 1); ctx.fillRect(x + 7 - st, y + 12, 5, 1);
+      ctx.fillStyle = '#f6c445'; ctx.fillRect(x + 3 + st, y + 12, 1, 1); ctx.fillRect(x + 6 + st, y + 12, 1, 1);
+      ctx.fillStyle = 'rgba(244,241,232,.5)'; ctx.fillRect(x + w, y + 5, 4, 1); ctx.fillRect(x + w + 1, y + 8, 3, 1);
+      eye(5, 4, 1); eye(8, 4, 1);
+      break; }
+    case 'raccoon': {   /* a bold raccoon: grey fur, a black mask, a striped tail */
+      const st = Math.floor(frame / 7) % 2;
+      ctx.fillStyle = col; ctx.fillRect(x + 2, y + 5, 9, 6); ctx.fillRect(x, y + 3, 6, 5);
+      ctx.fillStyle = '#4a4a52'; ctx.fillRect(x, y + 5, 6, 2);
+      ctx.fillStyle = '#f4f1e8'; ctx.fillRect(x, y + 7, 3, 1);
+      ctx.fillStyle = col; ctx.fillRect(x + 1, y + 1, 2, 2); ctx.fillRect(x + 4, y + 1, 2, 2);
+      for (let k = 0; k < 3; k++) { ctx.fillStyle = k % 2 ? '#1b1220' : col; ctx.fillRect(x + 11 + k, y + 4 - k, 2, 3); }
+      ctx.fillStyle = '#3b3f45'; ctx.fillRect(x + 3 + st, y + 11, 2, 2); ctx.fillRect(x + 8 - st, y + 11, 2, 2);
+      eye(1, 5, 1); eye(4, 5, 1);
+      break; }
+    case 'flyingfish': {   /* a cartoon flying fish: blue, big fins like wings */
+      const flap = Math.floor(frame / 4) % 2;
+      ctx.fillStyle = col; ctx.beginPath(); ctx.ellipse(x + w / 2, y + 8, 6, 3, 0, 0, 6.284); ctx.fill();
+      ctx.beginPath(); ctx.moveTo(x + w - 1, y + 8); ctx.lineTo(x + w + 4, y + 4); ctx.lineTo(x + w + 4, y + 12); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = '#c9ecff'; ctx.fillRect(x + 3, y + 9, 7, 1);
+      ctx.fillStyle = '#3f8fd8'; ctx.beginPath(); ctx.moveTo(x + 5, y + 7); ctx.lineTo(x + 9, y + (flap ? 0 : 4)); ctx.lineTo(x + 11, y + 7); ctx.closePath(); ctx.fill();
+      eye(2, 6, 1);
+      break; }
     case 'neighbor':
       ctx.drawImage(SP.nStand, x - 1, y - 5);
       break;
@@ -4701,6 +5068,10 @@ function drawBoss(b) {
   else if (b.kind === 'bronco' || b.kind === 'rodeo') drawBull(b, sx, sy);
   else if (b.kind === 'barker') drawBarker(b, sx, sy);
   else if (b.kind === 'rex') drawRex(b, sx, sy);
+  else if (b.kind === 'bananaslug') drawBananaSlug(b, sx, sy);
+  else if (b.kind === 'lumberjack') drawLumberjack(b, sx, sy);
+  else if (b.kind === 'static') drawStatic(b, sx, sy);
+  else if (b.kind === 'drizzle') drawDrizzle(b, sx, sy);
   else if (b.kind === 'bully') {
     const walking = Math.abs(b.vx) > 0.2 && b.onGround;
     drawBig(walking && Math.floor(frame / 12) % 2 ? SP.bWalk : SP.bStand, sx + b.w / 2, sy + b.h, b.face, 1.45);
@@ -4782,6 +5153,20 @@ function drawShots() {
     } else if (s.kind === 'note') {
       ctx.fillStyle = '#f6c445'; ctx.beginPath(); ctx.ellipse(sx + 3, sy + 6, 3, 2, -0.4, 0, 6.284); ctx.fill();
       ctx.fillRect(sx + 5, sy - 1, 1.5, 7); ctx.fillRect(sx + 5, sy - 1, 4, 1.5);
+    } else if (s.kind === 'drop') {
+      ctx.fillStyle = '#6fc8ff'; ctx.fillRect(sx, sy + 1, 3, 4); ctx.fillRect(sx + 1, sy, 1, 1); ctx.fillStyle = 'rgba(255,255,255,.75)'; ctx.fillRect(sx, sy + 2, 1, 1);
+    } else if (s.kind === 'log') {   /* a rolling log: bark, a cut end, rings */
+      ctx.fillStyle = '#8a5a3a'; ctx.fillRect(sx, sy + 1, s.w, s.h - 2); ctx.fillStyle = '#6b3f18'; ctx.fillRect(sx, sy + 1, s.w, 1); ctx.fillRect(sx, sy + s.h - 2, s.w, 1);
+      for (let k = Math.floor(Math.abs(s.x) / 3) % 4; k < s.w; k += 4) ctx.fillRect(sx + k, sy + 2, 1, s.h - 4);
+      const ex = sx + (s.vx > 0 ? s.w : 0);
+      ctx.fillStyle = '#c49a5e'; ctx.beginPath(); ctx.ellipse(ex, sy + s.h / 2, 3, s.h / 2, 0, 0, 6.284); ctx.fill();
+      ctx.strokeStyle = '#8a5a3a'; ctx.lineWidth = 1; ctx.beginPath(); ctx.ellipse(ex, sy + s.h / 2, 1.5, s.h / 4, 0, 0, 6.284); ctx.stroke();
+    } else if (s.kind === 'spark') {   /* ball lightning: a white-hot core, crackling arms */
+      glowDisc(sx + 4, sy + 4, 9, 'rgba(160,220,255,.8)', 0.7);
+      ctx.fillStyle = '#e8f6ff'; ctx.beginPath(); ctx.arc(sx + 4, sy + 4, 3.5, 0, 6.284); ctx.fill();
+      ctx.strokeStyle = '#bfe8ff'; ctx.lineWidth = 1; ctx.beginPath();
+      for (let k = 0; k < 4; k++) { const a = frame / 3 + k * 1.57; ctx.moveTo(sx + 4, sy + 4); ctx.lineTo(sx + 4 + Math.cos(a) * 7, sy + 4 + Math.sin(a) * 7); }
+      ctx.stroke();
     } else if (s.kind === 'ring') {
       ctx.strokeStyle = '#ff6fae'; ctx.lineWidth = 2; ctx.beginPath(); ctx.ellipse(sx + 5, sy + 3, 5, 3, 0, 0, 6.284); ctx.stroke(); ctx.lineWidth = 1;
     } else if (s.kind === 'lasso') {
@@ -4901,6 +5286,7 @@ function draw() {
   drawPets();
   drawPlayer();
   drawShots();
+  drawWorld5Fx();
   if (cy) ctx.restore();
   drawDaylight(th);
   if (cy) { ctx.save(); ctx.translate(0, -cy); }
@@ -5336,9 +5722,10 @@ const WORLDS = [
   { n: 1, name: 'Kinan vs. Mom', where: 'the birthday, at home in Saskatoon', from: 0, to: 10 },
   { n: 2, name: 'Kinan vs. Dad', where: "Dad's oilfield job site", from: 11, to: 20 },
   { n: 3, name: 'Kinan vs. Shad & Chenoa', where: 'a weekend in Edmonton', from: 21, to: 30 },
-  { n: 4, name: 'Kinan vs. the Stampede', where: 'the Calgary Stampede', from: 31, to: 40 }
+  { n: 4, name: 'Kinan vs. the Stampede', where: 'the Calgary Stampede', from: 31, to: 40 },
+  { n: 5, name: 'Kinan vs. the Rain', where: 'a rainy day in Vancouver', from: 41, to: 50 }
 ];
-for (let n = 5; n <= 11; n++) WORLDS.push({ n: n, name: 'World ' + n, where: 'being built', from: -1, to: -1, soon: true });
+for (let n = 6; n <= 11; n++) WORLDS.push({ n: n, name: 'World ' + n, where: 'being built', from: -1, to: -1, soon: true });
 const CODE_SALT = '38c60e5665866a0e';
 const CODE_HASH = {'2': '9ad410626f9342abc9682aec5aa5e01d6092ccb2d00b216ca8e8e56f191acbdb', '3': '2cc4446b83762f35763d948917db7518994a710291fd78f559ffb370bb1fdf09', '4': 'cd961045d7d2a30a4e590a3f2998e9b52f7931c3822b33e4d56567ef6e4a8fae', '5': '26bb21be1bec703f8ac1e2cd2b273bcadfa35c2aadbe708b84c32be340d10dba', '6': '8a20c57f7f6150912709d8a4d745f4330114d60a01deacc4268bf201f777f6f9', '7': '99f2c87e392edb24489bcecc48a065cf857a70f7a7412410f00c1f72b0babbb2', '8': '42650263170026ab707abd47791545eb75ab75d832f45d42a3542b10db757560', '9': '8ca4b0034588262258e6209e44e9f3e5a7d6ec5cc581c01eac7d04f42c5c8512', '10': 'e91ae5fd91428cd7c323dd3481612276a7a26113fc9b5e128dec8cbb8da042bf', '11': 'e69c5eeadaa728ec6e6c67b9ec066aac7babfc18030d0f6e7b05291d67e0d282'};
 const worldOf = (i) => { let n = 1; for (const w of WORLDS) if (!w.soon && i >= w.from) n = w.n; return n; };
@@ -5427,8 +5814,8 @@ function codeScreen(back) {
     '<p class="lede">When you have been awesome, a grown-up can give you a secret code. Type it here, and the next world opens once you have beaten the world before it. Worlds stay open for good.</p>' +
     '<div class="btnrow"><input class="codein wide" id="rcode" maxlength="24" autocapitalize="characters" autocomplete="off" spellcheck="false" placeholder="WORD-1234" aria-label="Reward code"><button class="btn go" id="rcodeGo" type="button">Unlock</button></div>' +
     '<p class="wrapnote" id="rcodeMsg" aria-live="polite"></p>' +
-    '<ul class="credits" id="worldList">' + WORLDS.slice(0, 4).map((w) => '<li><b>World ' + w.n + '</b>' + (w.soon ? '' : ' · ' + escAttr(w.name)) + ' · ' + worldStatus(w) + '</li>').join('') +
-    '<li>Worlds 5 to 11 · being built</li></ul>' +
+    '<ul class="credits" id="worldList">' + WORLDS.filter((w) => !w.soon).map((w) => '<li><b>World ' + w.n + '</b>' + (w.soon ? '' : ' · ' + escAttr(w.name)) + ' · ' + worldStatus(w) + '</li>').join('') +
+    '<li>Worlds ' + (WORLDS.filter((w) => !w.soon).length + 1) + ' to 11 · being built</li></ul>' +
     '<div class="btnrow"><button class="btn" id="rcodeBack" type="button">Back</button></div>'
   );
   const go = async () => {
@@ -5437,7 +5824,7 @@ function codeScreen(back) {
     $('#rcodeMsg').style.color = r.ok ? '' : '#ff6b6b';
     if (r.ok) { SFX.power(); if (r.opened) confetti(); $('#rcode').value = ''; }
     else SFX.click();
-    $('#worldList').innerHTML = WORLDS.slice(0, 4).map((w) => '<li><b>World ' + w.n + '</b>' + (w.soon ? '' : ' · ' + escAttr(w.name)) + ' · ' + worldStatus(w) + '</li>').join('') + '<li>Worlds 5 to 11 · being built</li>';
+    $('#worldList').innerHTML = WORLDS.filter((w) => !w.soon).map((w) => '<li><b>World ' + w.n + '</b>' + (w.soon ? '' : ' · ' + escAttr(w.name)) + ' · ' + worldStatus(w) + '</li>').join('') + '<li>Worlds ' + (WORLDS.filter((w) => !w.soon).length + 1) + ' to 11 · being built</li>';
   };
   $('#rcodeGo').addEventListener('click', () => { AudioSys.init(); go(); });
   $('#rcode').addEventListener('keydown', (e) => { if (e.key === 'Enter') go(); });
@@ -5573,6 +5960,184 @@ function ending4() {
   $('#mapBtn').addEventListener('click', () => { SFX.click(); mapScreen(); });
   $('#titleBtn').addEventListener('click', () => { SFX.click(); titleScreen(); });
   $('#againBtn').addEventListener('click', () => { SFX.click(); playStage(WORLDS[3].to); });
+  SFX.win();
+  confetti();
+}
+/* ---- World 5 (Vancouver): its tricks, once a frame, in story stages only. The waves over the seawall, the swaying
+   bridge, the SkyTrain's overhead signs, the giant slug's slime, the sunbeams in the Big Storm, and Drizzle, the little
+   rain cloud that follows Kinan around and rains on only him (until the Big Storm). ---- */
+const W5 = { cloudX: null, cloudY: null };
+const w5Stage = () => (L && !L.custom && LV[L.i] && LV[L.i].world === 5 ? LV[L.i] : null);
+const umbrellaOpen = (f) => !!f.def.umbrella && (f.t % 150) < 80;   /* an umbrella bat's umbrella: open, a stomp bounces off it */
+function groundRowAt(tx) { for (let y = 0; y < ROWS; y++) if (solid(tx, y)) return y; return ROWS; }
+function slimeAt(x, life) {   /* the giant banana slug's slime: that bit of floor is slippery for a while */
+  if (!L.slimeT) L.slimeT = new Float32Array(L.w);
+  const k = Math.floor(x / T); if (k >= 0 && k < L.w) L.slimeT[k] = Math.max(L.slimeT[k], life);
+}
+const onSlime = (x) => !!(L.slimeT && L.slimeT[Math.floor(x / T)] > 0);
+const sunbeamXs = () => [(L.arenaX + 5) * T, (L.arenaX + Math.floor(L.arenaW / 2)) * T, (L.arenaX + L.arenaW - 5) * T];
+function makeSigns() {   /* the SkyTrain's overhead signs: only over flat track, away from gaps, steps, gift boxes and coins */
+  const out = [];
+  for (let tx = 24; tx < L.arenaX - 10; tx += 15) {
+    const t0 = groundRowAt(tx); if (t0 >= ROWS || t0 < 5) continue;
+    let ok = true;
+    for (let k = -5; k <= 5 && ok; k++) if (groundRowAt(tx + k) !== t0) ok = false;
+    for (let k = -3; k <= 3 && ok; k++) for (let y = t0 - 5; y < t0; y++) if (tileAt(tx + k, y)) ok = false;
+    if (ok && L.candles.some((c) => Math.abs(c.tx - tx) <= 3 && c.ty >= t0 - 4 && c.ty < t0)) ok = false;
+    if (ok) out.push({ x: tx * T - 6, y: t0 * T - 34, w: 28, h: 9, top: t0 * T });
+  }
+  return out;
+}
+function updateWorld5() {
+  const th = w5Stage(); if (!th) return;
+  if (L.slimeT) for (let k = 0; k < L.slimeT.length; k++) if (L.slimeT[k] > 0) L.slimeT[k]--;
+  /* Drizzle follows Kinan (not in the Big Storm: there it IS the storm) */
+  const tx = P.x + P.w / 2, ty = P.y - 24;
+  if (W5.cloudX == null || Math.abs(W5.cloudX - tx) > 200) { W5.cloudX = tx; W5.cloudY = ty - 30; }
+  W5.cloudX += (tx - W5.cloudX) * 0.07; W5.cloudY += (ty - W5.cloudY) * 0.07;
+  if (th.waves && boss === 'off') {   /* the seawall: the water bubbles at the edge, then a big wave splashes over */
+    const ph = frame % 260;
+    if (ph === 0) {   /* only over solid ground: a splash never knocks you into the water */
+      const ax = P.x + P.w / 2 + (P.vx >= 0 ? 66 : -66), k0 = Math.floor(ax / T);
+      let ok = k0 > 4 && k0 < L.arenaX - 4;
+      for (let k = -4; k <= 4 && ok; k++) if (groundRowAt(k0 + k) >= ROWS) ok = false;
+      if (ok) L.wave = { x: ax, ty: groundRowAt(k0), t: 0 };
+    }
+    const wv = L.wave;
+    if (wv) {
+      wv.t++;
+      if (wv.t < 50 && frame % 3 === 0) part(wv.x + rand(-12, 12), wv.ty * T - 1, { vx: rand(-0.3, 0.3), vy: rand(-1.4, -0.5), life: 16, size: 2, color: 'rgba(170,220,255,.9)', g: 0.06 });
+      if (wv.t === 50) { AudioSys.noise(0.6, { filter: 'lowpass', freq: 900, vol: 0.12 }); toast('🌊 <b>SPLASH!</b>', 900); }
+      if (wv.t >= 50 && wv.t < 74 && !P.dead && Math.abs(P.x + P.w / 2 - wv.x) < 26 && P.y + P.h > wv.ty * T - 44) {
+        P.vx = (P.x + P.w / 2 < wv.x ? -1 : 1) * 3.4; P.vy = Math.min(P.vy, -3.6);
+      }
+      if (wv.t > 84) L.wave = null;
+    }
+  }
+  if (th.sway && boss === 'off' && P.onGround) {   /* the bridge sways: it nudges Kinan one way, then the other (never off an edge) */
+    const d = Math.sin(frame / 70) * 0.3, cx = Math.floor((P.x + P.w / 2 + d * 20) / T), fy = Math.floor((P.y + P.h + 2) / T);
+    if (solid(cx, fy) || tileAt(cx, fy) === 7) { const v = P.vx; P.vx = d; moveX(P); P.vx = v; }
+  }
+  if (th.signs && boss === 'off') {   /* the SkyTrain's signs: jump into one and it knocks you down */
+    if (!L.signs) L.signs = makeSigns();
+    for (const s of L.signs) if (!P.dead && P.inv <= 0 && overlap(P, s)) {
+      hurt(s.x + s.w / 2); P.vy = Math.max(P.vy, 1.5);
+      toast('🚧 Ouch! Stay low under the signs!', 1200);
+    }
+  }
+  if (L.sunny && (boss === 'fight' || boss === 'done')) {   /* the Big Storm, from half health: a sunbeam gives a burst of speed */
+    if (L.beamCool > 0) L.beamCool--;
+    else for (const bx of sunbeamXs()) if (P.onGround && Math.abs(P.x + P.w / 2 - bx) < 10 && !(P.rush > 0)) {
+      P.rush = 80; L.beamCool = 240; SFX.power(); toast('☀️ <b>SUNBEAM!</b> Super speed!', 1200); break;
+    }
+  }
+}
+/* drawn over the world, after the shots: slime, the wave, the signs, the sunbeams, Drizzle, the umbrella */
+function drawWorld5Fx() {
+  const th = w5Stage(); if (!th) return;
+  if (L.slimeT) {
+    const k0 = Math.max(0, Math.floor(camX / T)), k1 = Math.min(L.w - 1, Math.ceil((camX + W) / T));
+    for (let k = k0; k <= k1; k++) if (L.slimeT[k] > 0) {
+      const gy = groundRowAt(k) * T;
+      ctx.globalAlpha = Math.min(1, L.slimeT[k] / 80) * 0.7; ctx.fillStyle = '#e8f096'; ctx.fillRect(Math.round(k * T - camX), gy - 2, T, 3);
+      ctx.fillStyle = '#fff'; if ((k + Math.floor(frame / 20)) % 4 === 0) ctx.fillRect(Math.round(k * T - camX) + 5, gy - 2, 2, 1);
+    }
+    ctx.globalAlpha = 1;
+  }
+  if (th.boss && th.boss.kind === 'lumberjack' && boss !== 'off') {   /* the lumberjack show's arena: sawdust on the floor (not slippery) */
+    const x0 = Math.round((L.arenaX + 1) * T - camX), x1 = Math.round((L.arenaX + L.arenaW) * T - camX), gy = GROUND * T;
+    ctx.fillStyle = '#c9a26a'; ctx.fillRect(x0, gy - 1, x1 - x0, 3);
+    ctx.fillStyle = '#a8803e'; for (let x = x0 + 3; x < x1; x += 7) ctx.fillRect(x, gy - 1 + (x % 3), 2, 1);
+  }
+  if (th.sway) {   /* the suspension bridge: rope handrails along the deck, with a post every four planks, swaying */
+    const sw = Math.sin(frame / 70) * 2, k0 = Math.max(0, Math.floor(camX / T) - 1), k1 = Math.min(L.arenaX - 1, Math.ceil((camX + W) / T) + 1);
+    ctx.globalAlpha = 0.85; ctx.strokeStyle = '#8a6a44'; ctx.lineWidth = 1; ctx.beginPath();
+    for (let k = k0; k <= k1; k++) {
+      const gy = groundRowAt(k); if (gy >= ROWS || groundRowAt(k + 1) !== gy) continue;
+      const x0 = Math.round(k * T - camX), y0 = gy * T - 12 + sw;
+      ctx.moveTo(x0, y0 + Math.sin((k % 4) / 4 * Math.PI) * 2); ctx.lineTo(x0 + T, y0 + Math.sin(((k % 4) + 1) / 4 * Math.PI) * 2);
+      if (k % 4 === 0) { ctx.moveTo(x0, y0); ctx.lineTo(x0, gy * T); }
+    }
+    ctx.stroke(); ctx.globalAlpha = 1;
+  }
+  const wv = L.wave;
+  if (wv && wv.t >= 46 && wv.t < 84) {   /* the splash: a column of water that rises and falls */
+    const s = wv.t < 60 ? (wv.t - 46) / 14 : Math.max(0, 1 - (wv.t - 60) / 24), hgt = Math.round(48 * s), x0 = Math.round(wv.x - camX), gy = wv.ty * T;
+    ctx.fillStyle = 'rgba(90,170,230,.75)'; ctx.fillRect(x0 - 14, gy - hgt, 28, hgt);
+    ctx.fillStyle = 'rgba(220,240,255,.9)'; for (let k = 0; k < 5; k++) ctx.fillRect(x0 - 14 + k * 6, gy - hgt - 2 + ((k + wv.t) % 3), 4, 3);
+  }
+  if (L.signs) for (const s of L.signs) {
+    const x0 = Math.round(s.x - camX); if (x0 < -40 || x0 > W + 40) continue;
+    ctx.fillStyle = '#5a5f6a'; ctx.fillRect(x0 - 4, s.y - 20, 2, s.top - s.y + 20); ctx.fillRect(x0 + s.w + 2, s.y - 20, 2, s.top - s.y + 20); ctx.fillRect(x0 - 4, s.y - 20, s.w + 8, 2);
+    ctx.fillStyle = '#1f7a4a'; ctx.fillRect(x0, s.y, s.w, s.h); ctx.fillStyle = '#f4f1e8'; ctx.fillRect(x0 + 1, s.y + 1, s.w - 2, 1);
+    ctx.fillRect(x0 + 6, s.y + 4, 12, 1); ctx.fillRect(x0 + 16, s.y + 3, 2, 3); ctx.fillStyle = '#f6c445'; ctx.fillRect(x0 + 2, s.y + 6, 3, 2);
+  }
+  if (L.sunny && (boss === 'fight' || boss === 'done')) for (const bx of sunbeamXs()) {   /* sunbeams through the clouds */
+    const x0 = Math.round(bx - camX), a = 0.18 + 0.06 * Math.sin(frame / 12 + bx);
+    const g = ctx.createLinearGradient(0, 0, 0, GROUND * T); g.addColorStop(0, 'rgba(255,230,140,' + a + ')'); g.addColorStop(1, 'rgba(255,230,140,' + (a * 1.6) + ')');
+    ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(x0 - 6, 0); ctx.lineTo(x0 + 6, 0); ctx.lineTo(x0 + 12, GROUND * T); ctx.lineTo(x0 - 12, GROUND * T); ctx.closePath(); ctx.fill();
+  }
+  if (!th.final5 && !P.dead && W5.cloudX != null) {   /* Drizzle, raining on only Kinan; bigger and darker later on */
+    const big = L.i >= WORLDS[4].from + 8 ? 1.4 : (L.i >= WORLDS[4].from + 7 ? 1.2 : 1), cx = Math.round(W5.cloudX - camX), cy = Math.round(W5.cloudY);
+    ctx.fillStyle = 'rgba(111,200,255,.75)';
+    for (let k = 0; k < 5; k++) { const d = (frame * 2 + k * 9) % 26; ctx.fillRect(cx - 8 + k * 4, cy + 6 + d, 1, 3); }
+    ctx.fillStyle = big > 1.3 ? '#5a6370' : (big > 1.1 ? '#7a8490' : '#9aa4ae');
+    for (const [ox, oy, r] of [[-7, 1, 5], [0, -3, 6.5], [7, 1, 5], [0, 3, 5.5]]) { ctx.beginPath(); ctx.arc(cx + ox * big, cy + oy * big, r * big, 0, 6.284); ctx.fill(); }
+    ctx.fillStyle = '#1b1220'; ctx.fillRect(cx - 3, cy - 1, 1, 2); ctx.fillRect(cx + 3, cy - 1, 1, 2); ctx.fillRect(cx - 1, cy + 3, 3, 1);
+  }
+  if (P.umbrella && P.floating && !P.dead) {   /* the umbrella, open over Kinan while he floats */
+    const ux = Math.round(P.x + P.w / 2 - camX), uy = Math.round(P.y - 10);
+    ctx.strokeStyle = '#2b2f45'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(ux, uy); ctx.lineTo(ux, uy + 10); ctx.stroke();
+    ctx.fillStyle = '#e8364b'; ctx.beginPath(); ctx.moveTo(ux - 10, uy); ctx.quadraticCurveTo(ux, uy - 11, ux + 10, uy); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#f6c445'; ctx.beginPath(); ctx.moveTo(ux - 3, uy); ctx.quadraticCurveTo(ux, uy - 10, ux + 3, uy); ctx.closePath(); ctx.fill();
+  }
+}
+/* World 5's ending: Kinan shows Drizzle the sun, the mountains and the ocean; Drizzle turns into a rainbow */
+function ending5() {
+  progress.wonWorlds = progress.wonWorlds || [];
+  if (progress.wonWorlds.indexOf(5) < 0) progress.wonWorlds.push(5);
+  const i = L.i, pct = totalCandles ? got / totalCandles : 1;
+  const st = 1 + (pct >= 0.7 ? 1 : 0) + (heartsLost === 0 ? 1 : 0);   /* stars the same way as any other stage */
+  if (progress.beaten.indexOf(i) < 0) progress.beaten.push(i);
+  progress.stars[i] = Math.max(st, progress.stars[i] || 0);
+  progress.bestScore[i] = Math.max(progress.bestScore[i] || 0, score);
+  progress.bestTime = progress.bestTime || {};
+  if (!progress.bestTime[i] || stageTime < progress.bestTime[i]) progress.bestTime[i] = stageTime;
+  progress.totalCandles = (progress.totalCandles || 0) + got;
+  progress.wallet = (progress.wallet || 0) + got;
+  delete progress.resume;
+  refreshWorlds();
+  save();
+  Music.play('title');
+  let stars = 0, gold = 0;
+  for (let k = WORLDS[4].from; k <= WORLDS[4].to; k++) { stars += progress.stars[k] || 0; gold += goldCount(k); }
+  showScreen(
+    '<p class="eyebrow">World 5 clear · Kinan vs. the Rain · Vancouver</p>' +
+    '<h1 class="title"><span class="t2">Rainbow maker:</span><span class="t1">Kinan!</span></h1>' +
+    '<div class="cast"><figure class="hero">' + imgOf(SP.kJump, 5) + '<figcaption><b>Kinan</b><br>Rainbow Maker</figcaption></figure>' +
+    '<figure>' + imgOf(SP.dStand, 4) + '<figcaption>Dad</figcaption></figure>' +
+    '<figure>' + imgOf(SP.mStand, 4) + '<figcaption>Mom</figcaption></figure></div>' +
+    '<p class="lede">You drove through the mountains, saw the ocean for the very first time, dodged the waves on the seawall, out-slimed a giant banana slug, crossed a swaying bridge, beat the Lumberjack Champ, floated through the market, survived Professor Static\'s lightning show, rode the SkyTrain, met an orca and faced <b>the Big Storm</b>.</p>' +
+    '<p class="lede">Kinan shows Drizzle the sun, the mountains and the ocean. <b>KINAN:</b> See? Rain isn\'t bad. You made all this green! Drizzle stops rumbling... and turns into a <b>rainbow</b> right over the city. 🌈</p>' +
+    '<p class="lede"><b>DAD:</b> That\'s one ocean, bud. Want to see the other one?</p>' +
+    '<div class="postcard"><b>Rain, rain, go away. (It did.)</b><span>Love, Kinan, Vancouver 🌈</span></div>' +
+    '<p class="wrapnote"><i class="coin-ico"></i>Golden coins in World 5: <b>' + gold + '</b> / 30 · ⭐ ' + stars + ' / 30 stars</p>' +
+    '<p class="wrapnote">🎁 <b>World 6</b> ' + (WORLDS[5] && !WORLDS[5].soon ? 'is next.' : 'is being built.') + ' Keep being awesome!</p>' +
+    '<ul class="credits">' +
+    '<li><b>Kinan</b> as The Hero (and the Rainbow Maker)</li>' +
+    '<li><b>Drizzle</b> as a little rain cloud, a big thunderstorm, and a rainbow</li>' +
+    '<li><b>The Giant Banana Slug</b>, <b>the Lumberjack Champ</b> and <b>Professor Static</b> as themselves</li>' +
+    '<li><b>Mom</b>, <b>Dad</b>, <b>Shad</b> and <b>Chenoa</b> as the soggy cheering section</li>' +
+    '<li><b>An orca</b> as the best surprise of the trip</li>' +
+    '</ul>' +
+    '<div class="btnrow"><button class="btn go" type="button" id="mapBtn">Stage map</button>' +
+    '<button class="btn" type="button" id="titleBtn">Title screen</button>' +
+    '<button class="btn ghost" type="button" id="againBtn">Face the storm again</button></div>'
+  );
+  el.stageLbl.textContent = 'KINAN · LV 11';
+  $('#mapBtn').addEventListener('click', () => { SFX.click(); mapScreen(); });
+  $('#titleBtn').addEventListener('click', () => { SFX.click(); titleScreen(); });
+  $('#againBtn').addEventListener('click', () => { SFX.click(); playStage(WORLDS[4].to); });
   SFX.win();
   confetti();
 }
@@ -6580,6 +7145,353 @@ function wmapDrawCalgary() {
     if (t < 60) { const cx = 398 + k * 12, cy = 150 + k * 6, r = t * 0.25; for (let q = 0; q < 8; q++) { const a = q * Math.PI / 4; wmR(cx + Math.cos(a) * r, cy + Math.sin(a) * r, 1.4, 1.4, ['#ff6fae', '#f6c445', '#6fc8ff'][k]); } }
   }
   wmLabel(x, 'CALGARY', 140, 98, 8, '#fff3b0', 'center');
+}
+/* ---- World 5 backgrounds: Vancouver in the rain. The mountain highway, the seawall by the ocean, the Stanley Park
+   cedars, the suspension bridge over the canyon, the snowy mountain top, Granville Island market, inside the science
+   dome, the SkyTrain over the city, the harbour with its seaplanes (and an orca), and the Big Storm. ---- */
+function vanMountains(p, base, snow) {   /* the North Shore mountains: misty blue-green, low clouds caught on them */
+  const img = w3Cache('vanmtn:' + (snow ? 's' : 'g'), 480, 96, (c, w, h) => {
+    const back = [[0, 44], [40, 22], [82, 36], [122, 12], [168, 32], [212, 18], [258, 38], [300, 16], [348, 34], [398, 20], [440, 38], [480, 44]];
+    c.fillStyle = snow ? '#8a9ab0' : '#6a7f8f'; c.beginPath(); c.moveTo(0, h); back.forEach(([x, y]) => c.lineTo(x, y + 18)); c.lineTo(w, h); c.closePath(); c.fill();
+    c.fillStyle = '#f4f8ff';
+    for (let k = 1; k < back.length - 1; k++) {
+      const [x, y] = back[k]; if (y > (snow ? 30 : 20)) continue;
+      c.beginPath(); c.moveTo(x, y + 18); c.lineTo(x - 9, y + 27); c.lineTo(x + 8, y + 26); c.closePath(); c.fill();
+    }
+    c.fillStyle = snow ? '#5a7a6a' : '#3f5f4a'; c.beginPath(); c.moveTo(0, h);
+    [[0, 70], [50, 58], [96, 66], [150, 52], [204, 64], [250, 50], [300, 62], [356, 54], [410, 66], [480, 60]].forEach(([x, y]) => c.lineTo(x, y));
+    c.lineTo(w, h); c.closePath(); c.fill();
+    c.fillStyle = 'rgba(225,232,238,.28)';   /* patches of mist caught on the slopes */
+    for (let k = 0; k < 9; k++) { c.beginPath(); c.ellipse(26 + k * 54 + (k % 2) * 14, 50 + (k % 3) * 6, 30 + (k % 2) * 12, 4 + (k % 3), 0, 0, 6.284); c.fill(); }
+  });
+  for (let k = -1; k < 3; k++) { const x = k * 480 - (p % 480); if (x > W || x + 480 < 0) continue; ctx.drawImage(img, x, base - 96); }
+}
+function vanTowers(p, base, night, s) {   /* downtown Vancouver: glassy blue-green towers */
+  s = s || 1;
+  for (let k = -1; k < 9; k++) {
+    const kk = k + Math.floor(p / 58), x = k * 58 - (p % 58), h = Math.round((36 + ((kk * 37) % 44 + 44) % 44) * s), tw = 24 + ((kk * 13) % 10 + 10) % 10;
+    ctx.fillStyle = night ? '#1f2a3a' : ['#5a8a96', '#4f7a8a', '#6a96a0'][((kk % 3) + 3) % 3]; ctx.fillRect(x, base - h, tw, h);
+    ctx.fillStyle = night ? 'rgba(246,215,122,.7)' : 'rgba(220,240,245,.35)';
+    for (let wy = base - h + 4; wy < base - 4; wy += 6) ctx.fillRect(x + 2, wy, tw - 4, 1);
+    if (((kk % 4) + 4) % 4 === 1) { ctx.fillStyle = night ? '#2a3548' : '#7aa6b0'; ctx.fillRect(x + 4, base - h - 8, tw - 8, 8); }
+  }
+}
+function vanWater(y, h, p, rough, tone) {   /* the ocean: grey-green water with moving lines */
+  ctx.fillStyle = tone || '#3f6a7a'; ctx.fillRect(0, y, W, h);
+  ctx.fillStyle = 'rgba(205,230,240,.38)';
+  for (let k = 0; k < 34; k++) { const wx = ((k * 53 - p * 0.8 + frame * (rough ? 0.7 : 0.3)) % (W + 40) + W + 40) % (W + 40) - 20, wy = y + 3 + (k * 7) % Math.max(4, h - 4); ctx.fillRect(Math.round(wx), wy, 5 + (k % 3) * 3, 1); }
+}
+function vanCedar(x, base, h, dark) {   /* a tall cedar: a straight trunk and drooping layers of branches */
+  ctx.fillStyle = dark ? '#3a2a22' : '#6a4a32'; ctx.fillRect(Math.round(x) - 2, base - Math.round(h * 0.35), 4, Math.round(h * 0.35));
+  for (let k = 0; k < 7; k++) {
+    const ly = base - h + k * h * 0.11, lw = 4 + k * 3.4;
+    ctx.fillStyle = dark ? (k % 2 ? '#1f3a2a' : '#26442f') : (k % 2 ? '#2f5a3a' : '#3a6a44');
+    ctx.beginPath(); ctx.moveTo(x, ly); ctx.lineTo(x + lw, ly + h * 0.12); ctx.lineTo(x - lw, ly + h * 0.12); ctx.closePath(); ctx.fill();
+  }
+}
+const W5BG = {
+  mtnhwy(th, p1, p2, p3) {   /* the highway through the mountains: forested slopes, a winding road, a tunnel */
+    w3Clouds(p1, 'rgba(220,226,232,.7)');
+    vanMountains(p1, 122, false);
+    ctx.fillStyle = '#3f5440'; ctx.fillRect(0, 140, W, 40);   /* the forested slope down to the road */
+    for (let k = -1; k < 14; k++) { const x = k * 36 - (p2 % 36), kk = k + Math.floor(p2 / 36); vanCedar(x + 10, 150 + (((kk * 5) % 3 + 3) % 3) * 3, 34 + (((kk * 7) % 3 + 3) % 3) * 6, true); }
+    const roadY = (x) => 128 + Math.sin((x + p2) / 70) * 10;   /* the highway, winding along the mountainside */
+    ctx.lineCap = 'round';
+    for (const [c, wdt] of [['#2f3238', 7], ['#5a5f66', 5]]) { ctx.strokeStyle = c; ctx.lineWidth = wdt; ctx.beginPath(); for (let x = -10; x <= W + 10; x += 6) { if (x === -10) ctx.moveTo(x, roadY(x)); else ctx.lineTo(x, roadY(x)); } ctx.stroke(); }
+    ctx.lineCap = 'butt'; ctx.fillStyle = '#f6c445';
+    for (let x = -((p2 + frame) % 16); x < W; x += 16) ctx.fillRect(Math.round(x), Math.round(roadY(x)), 5, 1);
+    const tx = W - ((frame * 0.9 + p2 * 0.2) % (W + 60)) + 30, ty = Math.round(roadY(tx));   /* a truck heading for the coast */
+    ctx.fillStyle = '#c2414f'; ctx.fillRect(Math.round(tx) - 6, ty - 6, 12, 4); ctx.fillStyle = '#f4f1e8'; ctx.fillRect(Math.round(tx) - 9, ty - 7, 4, 5);
+    ctx.fillStyle = '#1b1220'; ctx.fillRect(Math.round(tx) - 7, ty - 2, 2, 2); ctx.fillRect(Math.round(tx) + 3, ty - 2, 2, 2);
+    for (let k = -1; k < 3; k++) {   /* a tunnel in the rock */
+      const x = k * 520 - (p3 % 520) + 260; if (x < -80 || x > W + 80) continue;
+      ctx.fillStyle = '#6a6f78'; ctx.fillRect(x - 40, 120, 80, 50); ctx.fillStyle = '#4a4f57'; ctx.fillRect(x - 40, 120, 80, 4);
+      ctx.fillStyle = '#14161c'; ctx.beginPath(); ctx.moveTo(x - 22, 170); ctx.lineTo(x - 22, 146); ctx.quadraticCurveTo(x, 126, x + 22, 146); ctx.lineTo(x + 22, 170); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = '#f6d77a'; for (let q = 0; q < 3; q++) ctx.fillRect(x - 14 + q * 13, 152, 3, 2);
+    }
+  },
+  seawall(th, p1, p2, p3) {   /* the ocean, the mountains across the water, the Lions Gate Bridge, the seawall railing */
+    w3Clouds(p1, 'rgba(225,230,236,.7)');
+    vanMountains(p1, 104, false);
+    vanWater(100, 66, p2, true);
+    for (let k = -1; k < 3; k++) {   /* the Lions Gate Bridge, green, far off across the water */
+      const x = k * 700 - (p1 % 700) + 300; if (x < -160 || x > W + 160) continue;
+      ctx.fillStyle = '#3f7a5a'; ctx.fillRect(x - 60, 92, 3, 22); ctx.fillRect(x + 60, 92, 3, 22);
+      ctx.strokeStyle = '#3f7a5a'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x - 120, 112); ctx.quadraticCurveTo(x - 30, 92, x - 58, 92); ctx.moveTo(x - 58, 92); ctx.quadraticCurveTo(x, 110, x + 62, 92); ctx.moveTo(x + 62, 92); ctx.quadraticCurveTo(x + 90, 92, x + 140, 112); ctx.stroke();
+      ctx.fillStyle = '#5a5f6a'; ctx.fillRect(x - 120, 110, 260, 2);
+    }
+    for (let k = -1; k < 4; k++) {   /* Stanley Park's trees reaching down to the water */
+      const x = k * 260 - (p2 % 260) + 40; if (x < -60 || x > W + 60) continue;
+      for (let q = 0; q < 4; q++) vanCedar(x + q * 14, 164, 30 + (q % 2) * 10, false);
+    }
+    ctx.fillStyle = '#9a9a92'; ctx.fillRect(0, 164, W, 3);   /* the seawall's railing */
+    for (let k = -1; k < 24; k++) { const x = k * 20 - (p3 % 20); ctx.fillRect(x, 164, 2, 10); }
+  },
+  stanley(th, p1, p2, p3) {   /* Stanley Park: giant cedars in the mist, ferns, light coming through */
+    ctx.fillStyle = 'rgba(220,232,226,.35)'; ctx.fillRect(0, 0, W, 170);
+    for (let k = -1; k < 9; k++) { const x = k * 60 - (p1 % 60), kk = k + Math.floor(p1 / 60); ctx.globalAlpha = 0.45; vanCedar(x + 20, 172, 120 + (((kk * 11) % 4 + 4) % 4) * 10, false); ctx.globalAlpha = 1; }
+    for (let k = -1; k < 6; k++) { const x = k * 90 - (p2 % 90), kk = k + Math.floor(p2 / 90); vanCedar(x + 40, 178, 150 + (((kk * 7) % 3 + 3) % 3) * 14, true); }
+    ctx.fillStyle = 'rgba(255,248,210,.10)';   /* light shafts */
+    for (let k = 0; k < 3; k++) { const x = (k * 160 + 60 - p1 * 0.2) % (W + 120); ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x + 26, 0); ctx.lineTo(x - 30, 176); ctx.lineTo(x - 56, 176); ctx.closePath(); ctx.fill(); }
+    for (let k = -1; k < 30; k++) {   /* ferns */
+      const x = k * 16 - (p3 % 16), kk = k + Math.floor(p3 / 16);
+      ctx.fillStyle = ((kk % 2) + 2) % 2 ? '#3f7a3a' : '#4f8a44';
+      for (let q = -2; q <= 2; q++) { ctx.beginPath(); ctx.moveTo(x + 8, 178); ctx.lineTo(x + 8 + q * 5, 166 + Math.abs(q) * 2); ctx.lineTo(x + 9 + q * 5, 167 + Math.abs(q) * 2); ctx.closePath(); ctx.fill(); }
+    }
+  },
+  capilano(th, p1, p2, p3) {   /* the canyon: steep forested walls, the river far below, the bridge's cables */
+    vanMountains(p1, 96, false);
+    ctx.fillStyle = '#3a4a3f'; ctx.fillRect(0, 96, W, 90);   /* the far canyon wall */
+    for (let k = -1; k < 16; k++) { const x = k * 30 - (p2 % 30), kk = k + Math.floor(p2 / 30); vanCedar(x + 12, 112 + (((kk * 3) % 4 + 4) % 4) * 6, 28, true); }
+    for (let k = -1; k < 4; k++) {   /* waterfalls pouring down the far side of the canyon */
+      const x = k * 170 - (p2 % 170) + 60; if (x < -20 || x > W + 20) continue;
+      ctx.fillStyle = 'rgba(200,230,245,.55)'; ctx.fillRect(x, 108, 5, 68);
+      ctx.fillStyle = 'rgba(255,255,255,.8)'; for (let q = 0; q < 6; q++) ctx.fillRect(x + (q % 2) * 3, 108 + ((frame * 2 + q * 12) % 68), 2, 4);
+      ctx.fillStyle = 'rgba(230,245,255,.5)'; ctx.beginPath(); ctx.ellipse(x + 2, 174, 9, 3, 0, 0, 6.284); ctx.fill();
+    }
+    ctx.strokeStyle = '#7a5a3a'; ctx.lineWidth = 1.4;   /* the bridge's cables, swaying */
+    const sway = Math.sin(frame / 70) * 3;
+    for (let k = -1; k < 3; k++) {
+      const x = k * 300 - (p3 % 300);
+      ctx.beginPath(); ctx.moveTo(x, 132); ctx.quadraticCurveTo(x + 150, 158 + sway, x + 300, 132); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(x, 144); ctx.quadraticCurveTo(x + 150, 170 + sway, x + 300, 144); ctx.stroke();
+      for (let q = 1; q < 15; q++) { const qx = x + q * 20, t = q / 15, cy = 132 + 4 * t * (1 - t) * (26 + sway); ctx.beginPath(); ctx.moveTo(qx, cy); ctx.lineTo(qx, cy + 12); ctx.stroke(); }
+      ctx.fillStyle = '#5a3a2a'; ctx.fillRect(x - 3, 124, 6, 54);
+    }
+  },
+  grouse(th, p1, p2, p3) {   /* the snowy mountain top: the city and the ocean far below, the gondola, the lumberjack show */
+    ctx.fillStyle = '#9ab0c0'; ctx.fillRect(0, 118, W, 12);   /* far below: the ocean */
+    vanTowers(p1 * 0.5, 126, false, 0.35);
+    vanMountains(p1, 118, true);
+    ctx.strokeStyle = '#4a4f57'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(0, 40 + (p2 % 40) * 0); ctx.lineTo(W, 100); ctx.stroke();   /* the gondola cable */
+    for (let k = 0; k < 3; k++) {
+      const t = ((frame * 0.25 + k * 160 - p2 * 0.3) % (W + 60) + W + 60) % (W + 60) - 30, gy = 40 + t * 60 / W;
+      ctx.fillStyle = '#e8364b'; ctx.fillRect(t - 6, gy + 6, 12, 9); ctx.fillStyle = '#c9ecff'; ctx.fillRect(t - 4, gy + 8, 8, 3); ctx.fillStyle = '#4a4f57'; ctx.fillRect(t, gy, 1, 6);
+    }
+    for (let k = -1; k < 4; k++) {   /* the lumberjack show: log bleachers and a climbing pole */
+      const x = k * 220 - (p3 % 220) + 40; if (x < -100 || x > W + 100) continue;
+      for (let r = 0; r < 3; r++) { ctx.fillStyle = r % 2 ? '#8a5a3a' : '#a8692e'; ctx.fillRect(x, 160 - r * 7, 90 - r * 10, 5); ctx.fillStyle = '#6b3f18'; ctx.fillRect(x, 160 - r * 7, 3, 5); }
+      ctx.fillStyle = '#7a4a2a'; ctx.fillRect(x + 110, 100, 5, 72); ctx.fillStyle = '#e8364b'; ctx.fillRect(x + 106, 98, 13, 4);
+      ctx.fillStyle = '#f4f8ff'; ctx.fillRect(x - 10, 172, 140, 4);
+    }
+  },
+  granville(th, p1, p2, p3) {   /* Granville Island market: the bridge overhead, the market sheds, boats, fruit stalls */
+    vanTowers(p1, 104, false, 0.7);
+    vanWater(104, 26, p1, false);
+    for (let k = -1; k < 4; k++) { const x = k * 170 - (p1 % 170) + 60; ctx.fillStyle = '#f4f1e8'; ctx.fillRect(x, 112, 22, 5); ctx.fillStyle = '#c2414f'; ctx.fillRect(x + 4, 107, 12, 5); ctx.fillStyle = '#4a4f57'; ctx.fillRect(x + 9, 96, 1, 11); }   /* boats */
+    ctx.fillStyle = '#8a8f96'; ctx.fillRect(0, 14, W, 9);   /* the bridge deck overhead */
+    ctx.fillStyle = '#6a6f78'; ctx.fillRect(0, 23, W, 3);
+    for (let k = -1; k < 4; k++) { const x = k * 200 - (p2 % 200) + 80; ctx.fillStyle = '#7a7f88'; ctx.fillRect(x, 26, 12, 108); ctx.fillStyle = '#6a6f78'; ctx.fillRect(x + 8, 26, 4, 108); }
+    for (let k = -1; k < 5; k++) {   /* the market sheds: corrugated metal, painted signs */
+      const x = k * 140 - (p2 % 140), kk = k + Math.floor(p2 / 140), col = ['#c2414f', '#2f5fb3', '#3f8a3a', '#f6c445'][((kk % 4) + 4) % 4];
+      ctx.fillStyle = col; ctx.fillRect(x, 108, 120, 60); ctx.fillStyle = 'rgba(0,0,0,.18)'; for (let q = 0; q < 120; q += 6) ctx.fillRect(x + q, 108, 2, 60);
+      ctx.fillStyle = '#f4f1e8'; ctx.fillRect(x + 20, 114, 80, 10); ctx.fillStyle = col; ctx.fillRect(x + 26, 118, 68, 2);
+      ctx.fillStyle = '#4a4f57'; ctx.beginPath(); ctx.moveTo(x - 4, 108); ctx.lineTo(x + 60, 92); ctx.lineTo(x + 124, 108); ctx.closePath(); ctx.fill();
+    }
+    for (let k = -1; k < 8; k++) {   /* fruit stalls with striped awnings */
+      const x = k * 64 - (p3 % 64);
+      for (let s = 0; s < 4; s++) { ctx.fillStyle = s % 2 ? '#f4f1e8' : '#e8364b'; ctx.fillRect(x + s * 10, 150, 10, 5); }
+      ctx.fillStyle = '#8a5a3a'; ctx.fillRect(x + 2, 160, 36, 12);
+      ['#e8364b', '#f6c445', '#7a1f4a', '#44c55a'].forEach((c, q) => { ctx.fillStyle = c; ctx.beginPath(); ctx.arc(x + 7 + q * 8, 158, 3, 0, 6.284); ctx.fill(); });
+    }
+  },
+  sciencedome(th, p1, p2, p3) {   /* inside the science dome: the triangle pattern of the dome, a Tesla coil, a big magnet, planets */
+    ctx.strokeStyle = 'rgba(160,190,230,.35)'; ctx.lineWidth = 1;
+    for (let r = 0; r < 6; r++) for (let k = -1; k < 14; k++) {
+      const x = k * 40 - (p1 % 40) + (r % 2) * 20, y = r * 28;
+      ctx.beginPath(); ctx.moveTo(x, y + 28); ctx.lineTo(x + 20, y); ctx.lineTo(x + 40, y + 28); ctx.closePath(); ctx.stroke();
+    }
+    for (let k = -1; k < 4; k++) {
+      const x = k * 260 - (p2 % 260) + 60; if (x < -100 || x > W + 100) continue;
+      ctx.fillStyle = '#4a4f57'; ctx.fillRect(x - 6, 120, 12, 52); ctx.fillStyle = '#c9c9cf'; ctx.fillRect(x - 10, 168, 20, 4);   /* the Tesla coil */
+      ctx.fillStyle = '#9aa1ab'; ctx.beginPath(); ctx.ellipse(x, 116, 14, 6, 0, 0, 6.284); ctx.fill();
+      if (Math.floor((frame + k * 17) / 6) % 3 !== 0) {
+        ctx.strokeStyle = '#bfe8ff'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x, 110);
+        let bx = x, by = 110; for (let q = 0; q < 5; q++) { bx += rand(-8, 8); by -= rand(4, 8); ctx.lineTo(bx, by); } ctx.stroke();
+        glowDisc(x, 112, 12, 'rgba(160,220,255,.7)', 0.6);
+      }
+      ctx.strokeStyle = '#e8364b'; ctx.lineWidth = 6; ctx.beginPath(); ctx.arc(x + 110, 130, 14, Math.PI, 0); ctx.stroke();   /* a big red magnet */
+      ctx.fillStyle = '#c9c9cf'; ctx.fillRect(x + 93, 130, 8, 6); ctx.fillRect(x + 119, 130, 8, 6); ctx.lineWidth = 1;
+      [['#f6c445', 9], ['#6fc8ff', 6], ['#ff8a3d', 7]].forEach(([c, r], q) => {   /* planets on strings */
+        const px = x + 180 + q * 26, py = 64 + q * 12 + Math.sin(frame / 30 + q) * 3;
+        ctx.strokeStyle = 'rgba(200,200,220,.5)'; ctx.beginPath(); ctx.moveTo(px, 0); ctx.lineTo(px, py - r); ctx.stroke();
+        ctx.fillStyle = c; ctx.beginPath(); ctx.arc(px, py, r, 0, 6.284); ctx.fill();
+      });
+    }
+  },
+  skytrain(th, p1, p2, p3) {   /* on top of the SkyTrain: the city rushing past */
+    const run = frame * 1.6;
+    vanMountains(p1 + run * 0.1, 104, false);
+    vanTowers(p1 + run * 0.4, 132, false, 0.9);
+    ctx.fillStyle = '#9aa1ab'; ctx.fillRect(0, 150, W, 8);   /* the guideway beam alongside */
+    for (let k = -1; k < 6; k++) { const x = k * 100 - ((p2 + run * 1.6) % 100); ctx.fillStyle = '#8a8f96'; ctx.fillRect(x, 158, 10, 24); }
+    const tt = (frame * 3.2) % 1400;   /* now and then another SkyTrain zooms past the other way */
+    if (tt < W + 140) {
+      const x0 = W + 20 - tt;
+      for (let c = 0; c < 3; c++) {
+        const cx = x0 + c * 40; ctx.fillStyle = '#e8ecf2'; ctx.fillRect(cx, 138, 38, 12); ctx.fillStyle = '#2f5fb3'; ctx.fillRect(cx, 146, 38, 2);
+        ctx.fillStyle = '#4a5a70'; for (let q = 0; q < 4; q++) ctx.fillRect(cx + 3 + q * 9, 140, 6, 4);
+      }
+    }
+  },
+  harbour(th, p1, p2, p3) {   /* the harbour: mountains, Canada Place's white sails, seaplanes, boats, and an orca */
+    vanMountains(p1, 92, false);
+    vanTowers(p1, 106, false, 0.8);
+    for (let k = -1; k < 3; k++) {   /* Canada Place: white sails on the water */
+      const x = k * 600 - (p1 % 600) + 180; if (x < -100 || x > W + 100) continue;
+      ctx.fillStyle = '#e8ecf2'; for (let q = 0; q < 5; q++) { ctx.beginPath(); ctx.moveTo(x + q * 14, 104); ctx.lineTo(x + q * 14 + 7, 86); ctx.lineTo(x + q * 14 + 14, 104); ctx.closePath(); ctx.fill(); }
+      ctx.fillStyle = '#c9c9cf'; ctx.fillRect(x - 4, 104, 80, 4);
+    }
+    vanWater(106, 70, p2, true, '#36586a');
+    for (let k = 0; k < 2; k++) {   /* seaplanes taking off and landing */
+      const t = ((frame * 0.7 + k * 300) % 700), x = W + 40 - t, up = Math.max(0, (t - 300) * 0.12) * (k ? -1 : 1);
+      const y = 140 - Math.max(0, up);
+      ctx.fillStyle = '#f4f1e8'; ctx.fillRect(x, y, 22, 5); ctx.fillStyle = '#e8364b'; ctx.fillRect(x + 4, y - 3, 14, 2); ctx.fillRect(x + 18, y - 4, 4, 4);
+      ctx.fillStyle = '#9aa1ab'; ctx.fillRect(x + 2, y + 7, 16, 2); ctx.fillRect(x + 6, y + 5, 1, 2); ctx.fillRect(x + 14, y + 5, 1, 2);
+    }
+    for (let k = -1; k < 4; k++) { const x = k * 150 - (p2 % 150) + 50, bob = Math.round(Math.sin(frame / 20 + k) * 1.4); ctx.fillStyle = '#c2414f'; ctx.fillRect(x, 160 + bob, 26, 6); ctx.fillStyle = '#f4f1e8'; ctx.fillRect(x + 6, 154 + bob, 12, 6); }
+    const ot = frame % 420;   /* the orca: a jump every few seconds */
+    if (ot < 70) {
+      const ox = ((Math.floor(frame / 420) * 173) % 300) + 60 - (p2 % 100) * 0.3, oy = 150 - Math.sin(ot / 70 * Math.PI) * 26;
+      ctx.save(); ctx.translate(ox + ot * 0.8, oy); ctx.rotate(-0.6 + ot / 70 * 1.2);
+      ctx.fillStyle = '#1b1220'; ctx.beginPath(); ctx.ellipse(0, 0, 14, 5, 0, 0, 6.284); ctx.fill();
+      ctx.fillRect(-2, -10, 3, 6); ctx.fillStyle = '#f4f1e8'; ctx.fillRect(6, -2, 4, 2); ctx.fillRect(-8, 2, 8, 2);
+      ctx.restore();
+      if (ot > 60) { ctx.fillStyle = 'rgba(220,240,255,.8)'; for (let q = 0; q < 6; q++) ctx.fillRect(ox + 56 + q * 3, 150 - q % 3 * 3, 2, 2); }
+    }
+    for (let k = -1; k < 12; k++) { const x = k * 40 - (p3 % 40); ctx.fillStyle = '#5a4636'; ctx.fillRect(x, 170, 4, 10); }   /* pier posts */
+  },
+  storm5(th, p1, p2, p3) {   /* the Big Storm: dark clouds rolling over the city; from half health, the sun breaks through */
+    const sunny = !!(L && L.sunny);
+    if (sunny) {
+      const g = ctx.createLinearGradient(W, 0, W * 0.5, 120); g.addColorStop(0, 'rgba(255,220,140,.55)'); g.addColorStop(1, 'rgba(255,220,140,0)');
+      ctx.fillStyle = g; ctx.fillRect(0, 0, W, 170);
+      ctx.strokeStyle = 'rgba(255,120,120,.35)'; ctx.lineWidth = 3;
+      ['#ff6b6b', '#f6c445', '#7be3a3', '#6fc8ff', '#9b7ae3'].forEach((c, q) => { ctx.strokeStyle = c; ctx.globalAlpha = 0.28; ctx.beginPath(); ctx.arc(W * 0.55, 190, 150 - q * 4, Math.PI, 0); ctx.stroke(); });
+      ctx.globalAlpha = 1; ctx.lineWidth = 1;
+    } else if (frame % 180 < 6) { ctx.fillStyle = 'rgba(230,236,255,.35)'; ctx.fillRect(0, 0, W, 170); }   /* far-off lightning */
+    vanTowers(p1, 150, !sunny, 1.1);
+    for (let r = 0; r < 3; r++) {   /* rolling clouds */
+      ctx.fillStyle = sunny ? ['rgba(160,170,185,.55)', 'rgba(180,190,200,.45)', 'rgba(200,205,215,.35)'][r] : ['#2a3040', '#323a4a', '#3a4252'][r];
+      for (let k = -1; k < 9; k++) { const x = k * 70 - ((p1 * (0.4 + r * 0.3) + frame * (0.2 + r * 0.15)) % 70), y = 10 + r * 16; ctx.beginPath(); ctx.ellipse(x, y, 46, 14, 0, 0, 6.284); ctx.fill(); }
+    }
+  }
+};
+Object.assign(W2BG, W5BG);   /* World 5's scenes join the same table the stages are drawn from */
+/* ---- World 5's bosses ---- */
+function drawBananaSlug(b, sx, sy) {   /* the Giant Banana Slug: long, yellow, spotted, eye stalks, very happy */
+  const dizzy = b.state === 'dizzy', slide = b.state === 'slide', turn = b.state === 'turn', dir = slide || turn ? b.dir : (b.dir || b.face), wob = slide ? 0 : Math.sin(frame / (turn ? 2 : 8)) * (turn ? 2 : 1);
+  ctx.save(); ctx.translate(sx + b.w / 2, sy + b.h); if (dir < 0) ctx.scale(-1, 1);
+  ctx.fillStyle = 'rgba(240,250,180,.55)'; ctx.fillRect(-22, -2, 40, 2);
+  ctx.fillStyle = '#e8c83a'; ctx.beginPath(); ctx.ellipse(-2, -7, 19 + wob, 7, 0, 0, 6.284); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(13, -10, 8, 7, 0, 0, 6.284); ctx.fill();
+  ctx.fillStyle = '#d4b02e'; ctx.fillRect(-6, -14, 16, 2);
+  ctx.fillStyle = '#9a7a1a'; [[-14, -9], [-6, -11], [2, -8], [-10, -5], [6, -5]].forEach(([x, y]) => ctx.fillRect(x, y, 3, 2));
+  ctx.strokeStyle = '#e8c83a'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(15, -15); ctx.lineTo(17 + wob, -24); ctx.moveTo(18, -15); ctx.lineTo(22 + wob, -22); ctx.stroke(); ctx.lineWidth = 1;
+  ctx.fillStyle = '#1b1220';
+  if (dizzy) { const a = frame / 6; ctx.fillRect(17 + Math.cos(a) * 1.5, -25 + Math.sin(a) * 1.5, 2, 2); ctx.fillRect(22 - Math.cos(a) * 1.5, -23 - Math.sin(a) * 1.5, 2, 2); }
+  else { ctx.fillRect(16 + wob, -26, 3, 3); ctx.fillRect(21 + wob, -24, 3, 3); }
+  ctx.fillRect(16, -8, 4, 1); ctx.fillRect(15, -9, 1, 1); ctx.fillRect(20, -9, 1, 1);
+  if (slide) { ctx.fillStyle = 'rgba(232,240,160,.8)'; for (let k = 0; k < 4; k++) ctx.fillRect(-30 - k * 6, -6 - k * 2, 5, 1); }
+  ctx.restore();
+  if (dizzy) { ctx.font = '9px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('💫', Math.round(sx + b.w / 2), sy - 8); }
+}
+function drawLumberjack(b, sx, sy) {   /* the Lumberjack Champ: red toque, red flannel, a ginger beard, an axe; wobbles on a log */
+  const wob = b.state === 'wobble', walking = Math.abs(b.vx) > 0.2 && b.onGround, cx = sx + b.w / 2 + (wob ? Math.sin(frame / 4) * 2 : 0);
+  if (wob) { ctx.fillStyle = '#8a5a3a'; ctx.beginPath(); ctx.ellipse(sx + b.w / 2, sy + b.h - 2, 14, 4, 0, 0, 6.284); ctx.fill(); ctx.fillStyle = '#c49a5e'; ctx.beginPath(); ctx.ellipse(sx + b.w / 2 + 13, sy + b.h - 2, 2, 4, 0, 0, 6.284); ctx.fill(); }
+  drawBig(walking && Math.floor(frame / 12) % 2 ? SP.ljWalk : SP.ljStand, cx, sy + b.h - (wob ? 4 : 0), b.face, 1.5);
+  if (!wob) {   /* the axe on his shoulder */
+    ctx.strokeStyle = '#7a4a2a'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(cx - b.face * 6, sy + 16); ctx.lineTo(cx - b.face * 2, sy - 2); ctx.stroke(); ctx.lineWidth = 1;
+    ctx.fillStyle = '#c9c9cf'; ctx.fillRect(Math.round(cx - b.face * 2) - 3, sy - 4, 6, 4);
+  } else { ctx.font = '9px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('💫', Math.round(cx), sy - 13); }
+}
+function drawStatic(b, sx, sy) {   /* Professor Static: wild white hair, a lab coat, sparks; recharging at his machine */
+  const charging = b.state === 'charge', zapping = b.state === 'zap', walking = Math.abs(b.vx) > 0.2 && b.onGround, cx = sx + b.w / 2;
+  if (charging) {   /* his machine: a silver ball on a stand */
+    const mx = cx - b.face * 18;
+    ctx.fillStyle = '#4a4f57'; ctx.fillRect(mx - 2, sy + 8, 4, b.h - 8); ctx.fillRect(mx - 6, sy + b.h - 3, 12, 3);
+    glowDisc(mx, sy + 6, 12, 'rgba(160,220,255,.7)', 0.5 + 0.3 * Math.sin(frame / 4));
+    ctx.fillStyle = '#c9c9cf'; ctx.beginPath(); ctx.arc(mx, sy + 6, 6, 0, 6.284); ctx.fill();
+  }
+  drawBig(walking && Math.floor(frame / 12) % 2 ? SP.psWalk : SP.psStand, cx, sy + b.h, b.face, 1.45);
+  ctx.strokeStyle = '#f4f8ff'; ctx.lineWidth = 1.4; ctx.beginPath();   /* his hair, standing up (more when he charges) */
+  const up = charging ? 9 : 5;
+  for (let k = -3; k <= 3; k++) { ctx.moveTo(cx + k * 2.4, sy + 2); ctx.lineTo(cx + k * 3.4 + (k % 2 ? 1 : -1), sy - up + Math.abs(k) * 0.8); }
+  ctx.stroke(); ctx.lineWidth = 1;
+  if (zapping || charging) for (let k = 0; k < 3; k++) { if ((frame + k * 5) % 10 < 5) { ctx.fillStyle = '#bfe8ff'; ctx.fillRect(Math.round(cx + rand(-10, 10)), Math.round(sy + rand(0, b.h)), 2, 2); } }
+  if (charging) { ctx.font = '9px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('🔋', Math.round(cx), sy - 12); }
+}
+function drawDrizzle(b, sx, sy) {   /* Drizzle the Thunderstorm: a big dark cloud with a face; the lightning's warning spot and bolt */
+  const tired = b.state === 'rest', cx = sx + b.w / 2, cy = sy + b.h / 2;
+  if (b.state === 'aim' && b.mark != null) {   /* the flashing spot where lightning will strike */
+    const mx = Math.round(b.mark - camX), on = Math.floor(frame / 5) % 2;
+    ctx.fillStyle = on ? 'rgba(255,240,120,.8)' : 'rgba(255,255,255,.55)'; ctx.beginPath(); ctx.ellipse(mx, GROUND * T - 1, 13, 3, 0, 0, 6.284); ctx.fill();
+    ctx.fillStyle = '#f6c445'; ctx.font = 'bold 9px "Pixelify Sans",monospace'; ctx.textAlign = 'center'; if (on) ctx.fillText('!', mx, GROUND * T - 8);
+  }
+  if (b.state === 'strike' && b.mark != null) {   /* the bolt */
+    const mx = Math.round(b.mark - camX);
+    ctx.strokeStyle = '#fff8c0'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(cx, sy + b.h - 4);
+    let lx = cx, ly = sy + b.h - 4; const steps = 6;
+    for (let k = 1; k <= steps; k++) { ly = sy + b.h - 4 + (GROUND * T - (sy + b.h - 4)) * k / steps; lx = cx + (mx - cx) * k / steps + (k < steps ? rand(-8, 8) : 0); ctx.lineTo(lx, ly); }
+    ctx.stroke(); ctx.strokeStyle = '#f6c445'; ctx.lineWidth = 1; ctx.stroke();
+    glowDisc(mx, GROUND * T - 4, 18, 'rgba(255,240,150,.8)', 0.7);
+  }
+  if (!tired) { ctx.fillStyle = 'rgba(111,200,255,.7)'; for (let k = 0; k < 8; k++) { const d = (frame * 3 + k * 11) % 40; ctx.fillRect(Math.round(sx + 4 + k * 5.5), Math.round(sy + b.h - 2 + d), 1, 4); } }
+  const body = b.sunny ? '#6a7480' : '#3a4250', hi = b.sunny ? '#8a949e' : '#4f5868';
+  for (const [ox, oy, r] of [[-15, 4, 10], [-4, -4, 13], [9, -2, 11], [18, 5, 9], [2, 7, 10]]) { ctx.fillStyle = body; ctx.beginPath(); ctx.arc(cx + ox, cy + oy, r, 0, 6.284); ctx.fill(); }
+  ctx.fillStyle = hi; ctx.beginPath(); ctx.arc(cx - 6, cy - 9, 6, 0, 6.284); ctx.fill();
+  ctx.fillStyle = '#f4f1e8';
+  if (tired) { ctx.fillRect(cx - 9, cy, 5, 1); ctx.fillRect(cx + 4, cy, 5, 1); ctx.fillStyle = '#1b1220'; ctx.beginPath(); ctx.arc(cx, cy + 7, 2, 0, 6.284); ctx.fill(); }
+  else {
+    ctx.fillRect(cx - 9, cy - 2, 5, 4); ctx.fillRect(cx + 4, cy - 2, 5, 4); ctx.fillStyle = '#1b1220'; ctx.fillRect(cx - 7, cy - 1, 2, 2); ctx.fillRect(cx + 6, cy - 1, 2, 2);
+    ctx.fillRect(cx - 10, cy - 4, 6, 1); ctx.fillRect(cx + 4, cy - 4, 6, 1); ctx.fillRect(cx - 4, cy + 7, 8, 1); ctx.fillRect(cx - 5, cy + 8, 1, 1); ctx.fillRect(cx + 4, cy + 8, 1, 1);
+  }
+  if (tired) { ctx.font = '8px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('💤', Math.round(cx + 18), sy - 2); }
+}
+/* ---- the walk-around map: Vancouver ---- */
+function wmapDrawVancouver() {
+  const x = WM.x, f = WM.frame;
+  wmR(0, 70, WM_W, WM_H - 70, '#6a8a5a');   /* land under everything; the water is laid on top */
+  const sky = x.createLinearGradient(0, 0, 0, 70); sky.addColorStop(0, '#7f93a6'); sky.addColorStop(1, '#c9d6de');
+  x.fillStyle = sky; x.fillRect(0, 0, WM_W, 72);
+  for (let k = 0; k < 6; k++) { const cx = (k * 83 + f * 0.15) % (WM_W + 60) - 30; x.fillStyle = 'rgba(240,244,248,.75)'; x.beginPath(); x.ellipse(cx, 12 + (k % 3) * 8, 22, 6, 0, 0, 6.284); x.fill(); }
+  /* the North Shore mountains, Grouse with snow on top */
+  x.fillStyle = '#5a7a6a'; x.beginPath(); x.moveTo(0, 82);
+  [[0, 50], [40, 36], [80, 48], [120, 30], [166, 22], [210, 38], [250, 30], [300, 44], [350, 34], [400, 46], [432, 40]].forEach(([mx, my]) => x.lineTo(mx, my));
+  x.lineTo(WM_W, 82); x.closePath(); x.fill();
+  x.fillStyle = '#f4f8ff'; x.beginPath(); x.moveTo(166, 22); x.lineTo(158, 30); x.lineTo(174, 30); x.closePath(); x.fill();
+  x.fillStyle = '#3f5f4a'; for (let k = 0; k < 40; k++) wmR((k * 11) % WM_W, 60 + (k % 4) * 4, 3, 5, '#3f5f4a');
+  /* the water: Burrard Inlet across the top, English Bay to the west, False Creek to the south */
+  wmR(0, 80, WM_W, 22, '#3f6a7a');
+  wmR(0, 80, 46, 163, '#3f6a7a');
+  x.fillStyle = '#3f6a7a'; x.beginPath(); x.moveTo(46, 164); x.lineTo(268, 158); x.lineTo(270, 174); x.lineTo(46, 182); x.closePath(); x.fill();
+  for (let k = 0; k < 18; k++) { const wx = (k * 37 + f * 0.3) % WM_W; wmR(wx, 86 + (k % 3) * 5, 5, 1, 'rgba(255,255,255,.45)'); }
+  for (let k = 0; k < 10; k++) wmR(6 + (k * 13) % 36, 120 + (k * 17) % 110, 4, 1, 'rgba(255,255,255,.4)');
+  /* Stanley Park, at the tip of downtown */
+  x.fillStyle = '#2f5a3a'; x.beginPath(); x.ellipse(78, 112, 30, 14, 0, 0, 6.284); x.fill();   /* Stanley Park's forest */
+  for (let k = 0; k < 12; k++) wmR(54 + (k * 7) % 48, 102 + (k * 5) % 18, 3, 4, '#3f6a4a');
+  x.strokeStyle = '#c9c4b8'; x.lineWidth = 1; x.beginPath(); x.ellipse(78, 112, 33, 17, 0, 0, 6.284); x.stroke();   /* the seawall */
+  x.strokeStyle = '#3f8a5a'; x.lineWidth = 1.4; x.beginPath(); x.moveTo(98, 100); x.lineTo(114, 64); x.stroke();   /* the Lions Gate Bridge */
+  wmR(103, 86, 2, 6, '#3f8a5a'); wmR(109, 74, 2, 6, '#3f8a5a');
+  x.strokeStyle = '#7a5a3a'; x.lineWidth = 1; x.beginPath(); x.moveTo(112, 56); x.quadraticCurveTo(118, 60, 124, 56); x.stroke();   /* the suspension bridge over the canyon */
+  x.strokeStyle = '#4a4f57'; x.beginPath(); x.moveTo(150, 48); x.lineTo(168, 26); x.stroke();   /* the gondola */
+  const gt = (f / 120) % 1; wmR(150 + 18 * gt - 1.5, 48 - 22 * gt - 1, 3, 2.5, '#e8364b');
+  /* downtown's glass towers, and the harbour's white sails */
+  [[118, 22], [130, 30], [144, 26], [158, 34], [172, 28], [186, 36], [200, 24], [214, 30]].forEach(([tx, th2], k) => { wmR(tx, 152 - th2, 10, th2, k % 2 ? '#5a8a96' : '#4f7a8a'); wmR(tx + 2, 154 - th2, 6, 1, 'rgba(220,240,245,.6)'); });
+  x.fillStyle = '#f4f8ff'; for (let q = 0; q < 4; q++) { x.beginPath(); x.moveTo(222 + q * 6, 101); x.lineTo(225 + q * 6, 93); x.lineTo(228 + q * 6, 101); x.closePath(); x.fill(); }
+  const sp = (f * 0.4) % 80; wmR(236 + sp, 92 - sp * 0.12, 7, 2, '#f4f1e8');   /* a seaplane */
+  /* Granville Island under its bridge, the science dome, the SkyTrain */
+  wmR(138, 168, 26, 9, '#8a6a5a'); x.strokeStyle = '#9aa1ab'; x.lineWidth = 1.6; x.beginPath(); x.moveTo(150, 150); x.lineTo(152, 186); x.moveTo(100, 156); x.lineTo(104, 190); x.stroke();   /* the Granville and Burrard bridges */
+  x.fillStyle = '#c9c9cf'; x.beginPath(); x.arc(264, 166, 7, Math.PI, 0); x.fill(); wmR(257, 166, 14, 2, '#9aa1ab');
+  x.strokeStyle = '#d8dde6'; x.lineWidth = 1.2; x.beginPath(); x.moveTo(214, 146); x.lineTo(300, 144); x.lineTo(WM_W, 132); x.stroke();
+  const tr = (f * 0.6) % 210; wmR(214 + tr * (218 / 210) - 4, 145 - tr * 0.06 - 1.5, 8, 3, '#2f5fb3');
+  /* the highway in from the mountains */
+  wmR(330, 204, 102, 7, '#8a8f96'); for (let k = 0; k < 6; k++) wmR(334 + k * 16, 207, 8, 1, '#f6c445');
+  /* rain over everything */
+  x.strokeStyle = 'rgba(200,220,235,.35)'; x.lineWidth = 0.8; x.beginPath();
+  for (let k = 0; k < 40; k++) { const rx = (k * 37 + f * 2) % WM_W, ry = (k * 53 + f * 4) % WM_H; x.moveTo(rx, ry); x.lineTo(rx - 2, ry + 5); }
+  x.stroke();
+  wmLabel(x, 'VANCOUVER', 372, 120, 8, '#fff3b0', 'center');
 }
 /* ============================================================
    PARTY SHOP — the candles Kinan collects are money here.
@@ -8090,7 +9002,11 @@ function outlined(img) {
 }
 /* the item pictures, shared with the story's gift-block items */
 function drawPickup(kind, sx, sy, bob) {
-  if (kind === 'lasso') {   /* a coiled rope */
+  if (kind === 'umbrella') {   /* a red umbrella with a yellow stripe and a hooked handle */
+    ctx.fillStyle = '#e8364b'; ctx.beginPath(); ctx.moveTo(sx, sy + 7 + bob); ctx.quadraticCurveTo(sx + 6, sy - 3 + bob, sx + 12, sy + 7 + bob); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#f6c445'; ctx.beginPath(); ctx.moveTo(sx + 4, sy + 7 + bob); ctx.quadraticCurveTo(sx + 6, sy - 1 + bob, sx + 8, sy + 7 + bob); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = '#2b2f45'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(sx + 6, sy + 7 + bob); ctx.lineTo(sx + 6, sy + 13 + bob); ctx.quadraticCurveTo(sx + 6, sy + 15 + bob, sx + 4, sy + 14 + bob); ctx.stroke();
+  } else if (kind === 'lasso') {   /* a coiled rope */
     ctx.strokeStyle = '#c9a26a'; ctx.lineWidth = 1.6;
     for (let k = 0; k < 3; k++) { ctx.beginPath(); ctx.ellipse(sx + 6, sy + 6 + bob, 5 - k, 4 - k, 0, 0, 6.284); ctx.stroke(); }
     ctx.beginPath(); ctx.moveTo(sx + 10, sy + 7 + bob); ctx.quadraticCurveTo(sx + 14, sy + 12, sx + 9, sy + 13); ctx.stroke(); ctx.lineWidth = 1;
@@ -10759,7 +11675,8 @@ const BSONGS = [['stage', 'Party tune'], ['title', 'Calm tune'], ['boss', 'Boss 
 const BTIMES = [['own', "The scene's own"], ['dawn', 'Sunrise', ['#4a3a8a', '#ff9f6e'], 'rgba(255,150,110,.12)'], ['day', 'Daytime', ['#4fa8ff', '#cfeeff'], ''],
   ['sunset', 'Sunset', ['#3b2a6b', '#ff8a5c'], 'rgba(255,105,60,.16)'], ['night', 'Night', ['#070b24', '#1f2a5c'], 'rgba(18,22,80,.30)']];
 const BOUTSIDE = ['outdoor', 'school', 'prairie', 'camp', 'dig', 'oilfield', 'truckyard', 'night', 'storm', 'edmroad', 'busroute', 'jobsite', 'valley', 'whyte', 'bridge',
-  'parade', 'breakfast', 'rodeo', 'chuckwagon', 'midway', 'peacebridge', 'dinozoo', 'calgarytower', 'skijump', 'grandstand'];
+  'parade', 'breakfast', 'rodeo', 'chuckwagon', 'midway', 'peacebridge', 'dinozoo', 'calgarytower', 'skijump', 'grandstand',
+  'mtnhwy', 'seawall', 'stanley', 'capilano', 'grouse', 'granville', 'skytrain', 'harbour', 'storm5'];
 let builder = null;   /* the level editor, while it is open */
 let bFolder = 'work';  /* which folder the Builder menu shows */
 let bSession = null;   /* the last editor: its undo steps, copied chunk, tool and zoom outlast a test play (not saved) */
@@ -11598,6 +12515,18 @@ const WM_PATHS = {
     { at: [344, 192], via: [[312, 121]] },                    /* over a bridge to the Calgary Tower */
     { at: [380, 112], via: [[352, 124]] },                    /* over the river to the ski jumps */
     { at: [410, 210], via: [[396, 128]] }                     /* back over to the Grandstand Show */
+  ],
+  5: [
+    { at: [404, 206] },                                                         /* the mountain highway, in from the east */
+    { at: [52, 122], via: [[300, 190], [180, 190], [104, 190], [100, 156], [60, 146]] },   /* along the south shore, over the bridge, to the seawall */
+    { at: [78, 108] },                                                          /* Stanley Park's forest */
+    { at: [118, 56], via: [[98, 100], [104, 86], [114, 64]] },                  /* over the Lions Gate Bridge to the suspension bridge */
+    { at: [166, 30], via: [[150, 48]] },                                        /* up the gondola to the mountain top */
+    { at: [150, 172], via: [[150, 48], [114, 64], [104, 86], [98, 100], [120, 128], [150, 150]] },   /* back down, over the bridges to Granville Island */
+    { at: [262, 166], via: [[210, 182]] },                                      /* along False Creek to the science dome */
+    { at: [330, 142], via: [[290, 152]] },                                      /* up onto the SkyTrain */
+    { at: [232, 100], via: [[300, 126], [256, 112]] },                          /* down to the harbour */
+    { at: [192, 126], via: [[214, 112]] }                                       /* the Big Storm over downtown */
   ]
 };
 /* the road trip: the 11 cities on a map of Canada (Worlds 3-11 are planned, not built yet) */
@@ -12106,7 +13035,7 @@ function wmapDrawEdmonton() {
   wmLabel(x, 'EDMONTON', 78, 98, 8, '#fff3b0', 'center');
 }
 /* each world's own map scene */
-const WM_SCENES = { 1: wmapDrawSaskatoon, 2: wmapDrawOilfield, 3: wmapDrawEdmonton, 4: wmapDrawCalgary };
+const WM_SCENES = { 1: wmapDrawSaskatoon, 2: wmapDrawOilfield, 3: wmapDrawEdmonton, 4: wmapDrawCalgary, 5: wmapDrawVancouver };
 /* the arrow keys and Enter work on the map too */
 function bindWorldMap() {
   document.addEventListener('keydown', (e) => {
