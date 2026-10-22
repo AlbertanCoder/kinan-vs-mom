@@ -8604,7 +8604,8 @@ function smashResults() {
    the fight; everyone else sends their buttons and sees the host's picture.
    ============================================================ */
 const NET = { lib: null, room: null, code: null, role: null, peers: {}, send: null, myWho: 'kinan', arena: -1, status: 'off', error: '', ping: {}, jp: 0, fp: 0, selfId: null, lastIn: '', lastInAt: 0, pingTimer: null, bye: {}, reconnect: null };
-const NET_AWAY_MS = 20000;   /* how long a dropped player's place is kept while their phone reconnects */
+const NET_AWAY_MS = 35000;   /* how long a dropped player's place is kept while their phone reconnects (a rejoin can take ~17 s: the
+   network library waits out a half-open connection, 15 s, before it lets the same player back in) */
 const NET_LIB_URLS = ['https://cdn.jsdelivr.net/npm/trystero@0.26.0/+esm', 'https://unpkg.com/trystero@0.26.0?module'];
 const ROOM_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
 function roomCode() { let s = ''; for (let k = 0; k < 4; k++) s += ROOM_ALPHABET[Math.floor(Math.random() * ROOM_ALPHABET.length)]; return s; }
@@ -8834,9 +8835,9 @@ function netReconnect(hostId) {
     /* the library already reconnected us: wait for the host's messages instead of closing that connection */
     if (NET.room && R.host && NET.peers[R.host]) { R.timer = setTimeout(attempt, 2500); return; }
     netJoin(R.code, 'client', R.mode).catch(() => { /* try again below */ });
-    R.timer = setTimeout(attempt, 5000);
+    R.timer = setTimeout(attempt, 6500);   /* a rejoin takes ~5 s to connect: the next try (which starts by leaving) must not cut it off */
   };
-  R.timer = setTimeout(attempt, 1500);
+  R.timer = setTimeout(attempt, 600);
 }
 /* back in the room, but the game we were in is over: wait in the room for the next one */
 function netRejoinedRoom() {
