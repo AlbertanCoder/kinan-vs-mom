@@ -8667,10 +8667,15 @@ async function netJoin(code, role, mode) {
     if (NET.room !== room) return;
     let live = null; try { live = room.getPeers(); } catch (e) { /* ignore */ }
     if (live && live[id]) return;   /* they are connected again */
+    const wasHost = !!(NET.peers[id] && NET.peers[id].role === 'host');
     delete NET.peers[id]; delete NET.ping[id];
     if (smash && smash.online) smashPeerLeft(id);
     else if (kart && kart.online) kartPeerLeft(id);
-    else if (NET.role === 'client' && !Object.keys(NET.peers).length) { if (NET.bye[id]) NET.error = 'The room closed.'; else netReconnect(id); }   /* dropped while waiting in the room */
+    else if (NET.role === 'client' && (wasHost || !Object.keys(NET.peers).length)) {   /* the host left (or everyone did) while we wait in the room */
+      if (!NET.bye[id]) netReconnect(id);
+      else if (wasHost && Object.keys(NET.peers).length) { NET.error = 'The host left the room. Tap Leave the room, then one of you makes a new room.'; toast(NET.error, 4500); }
+      else NET.error = 'The room closed.';
+    }
     delete NET.bye[id];
     refreshLobby();
   }, 400));
