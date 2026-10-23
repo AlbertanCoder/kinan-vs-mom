@@ -107,6 +107,13 @@ button{font:inherit;color:inherit;touch-action:manipulation}
 .pad button.jump{background:var(--gold);color:var(--night);font-size:21px}
 .pad button.pow{background:var(--pink);color:var(--night);font-size:18px}
 .pad .smashonly{display:none}.pad.smashpad .smashonly{display:block}
+.pad .kartonly{display:none}html.kartpad .pad .kartonly{display:block}
+/* a race: ★ ITEM HOP on top, BRAKE and a big GAS under them, so one thumb slides from GAS up to HOP or across to BRAKE */
+html.kartpad .pad .acts{grid-template-columns:1fr 1fr 1.2fr;grid-template-rows:auto auto}
+html.kartpad .pad .acts .spec{grid-column:1;grid-row:1}html.kartpad .pad .acts .pow{grid-column:2;grid-row:1}html.kartpad .pad .acts .jump{grid-column:3;grid-row:1}
+html.kartpad .pad .acts .brakeb{grid-column:2;grid-row:2}html.kartpad .pad .acts .gasb{grid-column:3;grid-row:2}
+html.kartpad .pad .acts button{min-height:56px}
+.pad button.gasb{background:#5be37a;color:var(--night);font-size:20px}.pad button.brakeb{background:#e8364b;color:#fff;font-size:15px}
 .pad.smashpad .dpad{grid-template-columns:1fr 1fr .7fr;grid-template-rows:1fr 1fr}
 .pad.smashpad .dpad [data-k="left"]{grid-column:1;grid-row:1/3}.pad.smashpad .dpad [data-k="right"]{grid-column:2;grid-row:1/3}
 .pad.smashpad .dpad [data-k="up"]{grid-column:3;grid-row:1;min-height:36px;font-size:18px}.pad.smashpad .dpad [data-k="down"]{grid-column:3;grid-row:2;min-height:36px;font-size:18px}
@@ -116,7 +123,7 @@ button{font:inherit;color:inherit;touch-action:manipulation}
 .pad button.atk{background:#ff8a3d;color:var(--night);font-size:24px}.pad button.shieldb{background:#6fc8ff;color:var(--night);font-size:21px}
 .pad button.pow.super{background:#fff3b0;color:var(--night);animation:specglow .8s ease-in-out infinite}
 .pad button.pow:disabled{background:var(--panel);color:var(--dim);opacity:.6;box-shadow:inset 0 0 0 2px var(--panel),inset 0 0 0 4px #22264f}
-.pad button.held{transform:translate(2px,3px);filter:brightness(.88);box-shadow:inset 0 0 0 2px var(--panel),1px 1px 0 var(--shadow)}
+.pad button.held{transform:translate(1px,2px) scale(.94);filter:brightness(1.3) saturate(1.15);box-shadow:inset 0 0 0 2px var(--panel),0 0 0 3px #fff3b0,0 0 14px 4px rgba(255,243,176,.6)}
 .pad,.pad *,.kwheel,.kwheel *{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}   /* no text magnifier or callout on a long press */
 .keys{margin:0;text-align:center;font-size:13px;color:var(--dim)}
 @media (hover:hover) and (pointer:fine){.pad button{min-height:56px}}
@@ -274,7 +281,7 @@ html.sideways .pad{position:absolute;left:0;right:0;bottom:0;display:flex;justif
 html.sideways .dpad,html.sideways .acts{display:flex;gap:10px}
 html.sideways .pad button{pointer-events:auto;min-height:0;width:clamp(62px,10vmin,86px);height:clamp(62px,10vmin,86px);border-radius:50%;font-size:22px;opacity:.6;transition:opacity .15s}
 html.sideways .pad button.jump{font-size:14px;width:clamp(70px,11.5vmin,98px);height:clamp(70px,11.5vmin,98px)}
-html.sideways .pad button.held{opacity:.95}
+html.sideways .pad button.held{opacity:1}
 html.sideways .dpad,html.sideways .acts{pointer-events:auto;padding:14px;margin:-14px}   /* the gaps and a ring around the buttons count too (for the nearest one) */
 html.sideways .pad button.pow{font-size:12px}
 html.sideways .pad button.pow:not(:disabled){opacity:.85}
@@ -284,7 +291,11 @@ html.sideways .pad.smashpad .acts{display:grid;grid-template-columns:auto auto;g
 html.sideways .pad.smashpad .acts button{width:clamp(48px,8vmin,72px);height:clamp(48px,8vmin,72px);font-size:19px}
 html.sideways .pad.smashpad .acts button.jump{width:clamp(56px,9vmin,84px);height:clamp(56px,9vmin,84px);font-size:13px}
 html.sideways .pad.smashpad .acts button.pow{font-size:12px}
-html.sideways .pad button.held{opacity:.95}
+html.sideways.kartpad .pad .acts{display:grid;grid-template-columns:auto auto auto;grid-template-rows:auto auto;gap:6px;align-items:end;justify-items:end}
+html.sideways.kartpad .pad .acts button{width:clamp(46px,7.4vmin,66px);height:clamp(46px,7.4vmin,66px);font-size:12px}
+html.sideways.kartpad .pad .acts button.jump,html.sideways.kartpad .pad .acts button.brakeb{width:clamp(54px,8.6vmin,76px);height:clamp(54px,8.6vmin,76px);font-size:12px}
+html.sideways.kartpad .pad .acts button.gasb{width:clamp(66px,10.6vmin,94px);height:clamp(66px,10.6vmin,94px);font-size:15px}
+html.sideways .pad button.held{opacity:1}
 html.sideways .keys,html.sideways .rotatehint,html.sideways .mobilefoot{display:none}
 /* story boxes float above the button row so no button covers the words or the ▶ */
 html.sideways .dialog{font-size:clamp(13px,1.6vw,17px);padding:5px 24px 5px 6px;min-height:40px;bottom:calc(clamp(66px,10.5vmin,96px) + 8px)}
@@ -313,7 +324,6 @@ html.rotated .turnhint{display:block}
 .worldtabs{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 10px}.worldtab{background:var(--panel);border:2px solid var(--panel2);border-radius:8px;color:var(--text);padding:7px 10px;font:inherit;font-size:13px;cursor:pointer;min-height:40px}.worldtab.on{border-color:var(--gold);box-shadow:inset 0 0 0 1px var(--gold)}.worldtab:disabled{opacity:.45;cursor:default}
 .lockcard{background:var(--panel);border:2px dashed var(--panel2);border-radius:10px;padding:10px 14px;margin:6px 0 10px}.codein.wide{width:min(260px,70vw);letter-spacing:.08em}
 .kwheel{display:none;touch-action:none;-webkit-user-select:none;user-select:none}.kwheel svg{width:100%;height:100%;display:block;transition:transform .05s linear}
-@media (hover:none){html.kartpad .dpad button{display:none}html.kartpad .kwheel{display:block;pointer-events:auto;width:clamp(104px,19vmin,150px);height:clamp(104px,19vmin,150px);opacity:.62}}
 .pad button.spec{background:var(--panel);color:var(--gold);font-size:22px}.pad button.spec:not(:disabled){background:var(--gold);color:var(--night);animation:specglow 1s ease-in-out infinite}
 @keyframes specglow{50%{filter:brightness(1.25)}}
 html.sideways .pad button.spec:not(:disabled){opacity:.92}
@@ -541,6 +551,8 @@ html.sideways .stage{max-width:100%}
           <button class="btn" id="mapBtnP" type="button">Stage map</button>
           <button class="btn" id="fullBtn" type="button">Fullscreen</button>
           <button class="btn" id="fxBtn" type="button">Effects: FULL</button>
+          <button class="btn" id="buzzBtn" type="button" hidden>Vibration: ON</button>
+          <button class="btn" id="tiltBtnP" type="button" hidden>Tilt to steer: OFF</button>
           <button class="btn" id="installBtnP" type="button">📲 Install app</button>
         </div>
         <p class="tiny" id="pauseNote" hidden></p>
@@ -564,6 +576,8 @@ html.sideways .stage{max-width:100%}
       <button class="win atk smashonly" type="button" data-k="attack" aria-label="Attack">👊</button>
       <button class="win pow" type="button" data-k="fire" id="powBtn" aria-label="Superpower" disabled>POW</button>
       <button class="win jump" type="button" data-k="jump" aria-label="Jump">JUMP</button>
+      <button class="win brakeb kartonly" type="button" data-k="down" aria-label="Brake">BRAKE</button>
+      <button class="win gasb kartonly" type="button" data-k="gas" aria-label="Gas">GAS</button>
     </div>
   </div>
   <p class="keys" id="keys" hidden>← → move · SPACE jump (hold = higher) · X pow · P pause · M mute</p>
@@ -1735,6 +1749,7 @@ function loadProgress() {
   out.costumes = p.costumes && typeof p.costumes === 'object' ? Object.assign({}, p.costumes) : {};
   out.gold = p.gold && typeof p.gold === 'object' ? Object.assign({}, p.gold) : {};
   out.smashItems = p.smashItems !== false;
+  out.buzz = p.buzz !== false; out.kartTilt = p.kartTilt === true;
   out.codes = Array.isArray(p.codes) ? p.codes.map(Number).filter((n) => n >= 2 && n <= 11) : [];
   out.wonWorlds = Array.isArray(p.wonWorlds) ? p.wonWorlds.map(Number).filter((n) => n >= 2 && n <= 11) : [];
   out.builds = Array.isArray(p.builds) ? p.builds.filter(bNorm).slice(0, 50) : [];
@@ -1779,7 +1794,7 @@ let puzzle = null, pieces = [], pieceCool = [];   /* puzzle room in progress; th
 /* ============================================================
    INPUT
    ============================================================ */
-const input = { left: false, right: false, jump: false, jumpBuf: 0, fireBuf: 0, down: false, specBuf: 0, up: false, atk: false, atkBuf: 0, shield: false };
+const input = { left: false, right: false, jump: false, jumpBuf: 0, fireBuf: 0, down: false, specBuf: 0, up: false, atk: false, atkBuf: 0, shield: false, gas: false };
 /* second keyboard player for Family Smash on one computer (A D W J) */
 const input2 = { left: false, right: false, jump: false, jumpBuf: 0, fireBuf: 0, up: false, down: false, atk: false, atkBuf: 0, shield: false };
 function actionDown2(k) { pressInto(input2, k); }
@@ -1794,6 +1809,7 @@ function pressInto(inp, k) {
   else if (k === 'fire') inp.fireBuf = 10;
   else if (k === 'attack') { if (!inp.atk) inp.atkBuf = 8; inp.atk = true; }
   else if (k === 'shield') inp.shield = true;
+  else if (k === 'gas') inp.gas = true;
   else if (k === 'special') inp.specBuf = 10;
 }
 function releaseInto(inp, k) {
@@ -1804,6 +1820,7 @@ function releaseInto(inp, k) {
   else if (k === 'down') inp.down = false;
   else if (k === 'attack') inp.atk = false;
   else if (k === 'shield') inp.shield = false;
+  else if (k === 'gas') inp.gas = false;
 }
 /* Family Smash keys. One player: arrows or WASD, SPACE jump, Z attack, X special, C shield. Two players on one
    keyboard: P1 arrows + . attack, / special, Right Shift shield; P2 A D W S + F attack, G special, H shield. */
@@ -1815,6 +1832,15 @@ function smashKey(code, down) {
   if (smash.local2 && P2_KEYS[code]) { (down ? pressInto : releaseInto)(input2, P2_KEYS[code]); return true; }
   const a = (smash.local2 ? SMASH_KEYS_P1 : SMASH_KEYS1)[code];
   if (!a) return !!(smash.local2 && SMASH_KEYS1[code]);   /* two players: the one-player keys near P2's hand do nothing */
+  (down ? pressInto : releaseInto)(input, a);
+  return true;
+}
+/* Family Kart keys, like a racing game: ↑ or W gas, ↓ or S brake (keep holding to back up), SPACE or Z hop; ← → steer,
+   X item and C special are the usual keys */
+const KART_KEYS = { ArrowUp: 'gas', KeyW: 'gas', ArrowDown: 'down', KeyS: 'down', Space: 'jump', KeyZ: 'jump' };
+function kartKey(code, down) {
+  const a = KART_KEYS[code];
+  if (!a) return false;
   (down ? pressInto : releaseInto)(input, a);
   return true;
 }
@@ -1831,7 +1857,8 @@ window.addEventListener('keydown', (e) => {
   if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Space'].indexOf(k) >= 0) e.preventDefault();
   if (e.repeat) return;
   AudioSys.init();
-  if (smash && smashKey(k, true)) return;   /* Family Smash has its own buttons: attack, special, shield, aim */
+  if (smash && smashKey(k, true)) return;
+  if (kart && kartKey(k, true)) return;   /* Family Smash has its own buttons: attack, special, shield, aim */
   if (advance && ['Space', 'ArrowUp', 'KeyW', 'KeyZ', 'KeyX', 'KeyJ'].indexOf(k) >= 0) { advanceDialog(); return; }   /* a story box: the jump and pow keys move it on too */
   if (k === 'ArrowLeft' || k === 'KeyA') actionDown('left');
   else if (k === 'ArrowRight' || k === 'KeyD') actionDown('right');
@@ -1846,13 +1873,14 @@ window.addEventListener('keydown', (e) => {
 window.addEventListener('keyup', (e) => {
   const k = e.code;
   if (smash && smashKey(k, false)) return;
+  if (kart && kartKey(k, false)) return;
   if (k === 'ArrowLeft' || k === 'KeyA') actionUp('left');
   else if (k === 'ArrowRight' || k === 'KeyD') actionUp('right');
   else if (k === 'Space' || k === 'ArrowUp' || k === 'KeyW' || k === 'KeyZ') actionUp('jump');
   else if (k === 'ArrowDown' || k === 'KeyS') input.down = false;
 });
 window.addEventListener('blur', () => {
-  input.left = input.right = input.jump = input.down = input.up = input.atk = input.shield = false;
+  input.left = input.right = input.jump = input.down = input.up = input.atk = input.shield = input.gas = false;
   input2.left = input2.right = input2.jump = input2.down = input2.up = input2.atk = input2.shield = false;
   if (running && !pausedByUser && !builder) setPaused(true, true);
 });
@@ -1862,6 +1890,10 @@ document.addEventListener('visibilitychange', () => { if (document.hidden && run
    off it doesn't let go); sliding onto another button of the same group (◀ to ▶, POW to JUMP) switches without
    lifting; a touch in the gap between buttons, or just off the edge, counts for the nearest one; and the phone's own
    press-and-hold (the iPhone's text magnifier, the callout menu) is switched off, so a long hold is never cut short */
+/* a short buzz on phones that can (Android phones; an iPhone mostly can't from a web page, an iPad never): a tick for
+   every button, a bump when you are hit. Everywhere, a pressed button also lights up. */
+const canBuzz = () => !!(navigator.vibrate && window.matchMedia && matchMedia('(pointer: coarse)').matches);
+function buzz(p) { if (progress.buzz === false || !canBuzz()) return; try { navigator.vibrate(p); } catch (e) { /* not allowed right now */ } }
 function bindPad() {
   const pad = el.pad, fingers = new Map();   /* finger (pointer id) -> { group, b: the button it holds } */
   const groupOf = (b) => (b ? b.closest('.dpad, .acts') : null);
@@ -1883,7 +1915,7 @@ function bindPad() {
     if (was === b) return;
     if (f) f.b = b;
     if (was && !heldBy(was)) { was.classList.remove('held'); actionUp(was.dataset.k); }
-    if (b && [...fingers.values()].filter((g) => g.b === b).length === 1) { b.classList.add('held'); actionDown(b.dataset.k); }
+    if (b && [...fingers.values()].filter((g) => g.b === b).length === 1) { b.classList.add('held'); actionDown(b.dataset.k); buzz(8); }
   };
   pad.addEventListener('pointerdown', (e) => {
     const on = e.target && e.target.closest ? e.target.closest('#pad button') : null;
@@ -1913,11 +1945,11 @@ function bindPad() {
   pad.addEventListener('touchmove', noPhoneHold, { passive: false });
 }
 
-let padPrev = {}, padIn = { left: false, right: false, jump: false, down: false };
+let padPrev = {}, padIn = { left: false, right: false, jump: false, down: false, gas: false };
 function pollGamepad() {
   if (!navigator.getGamepads) return;
   const pads = navigator.getGamepads();
-  padIn.left = padIn.right = padIn.jump = padIn.down = false;
+  padIn.left = padIn.right = padIn.jump = padIn.down = padIn.gas = false;
   for (let i = 0; i < pads.length; i++) {
     const gp = pads[i]; if (!gp) continue;
     const ax = gp.axes[0] || 0;
@@ -1941,17 +1973,19 @@ function pollGamepad() {
       break;
     }
     const ay = gp.axes[1] || 0;
-    const st = {
+    const st = kart ? {   /* Family Kart, like Mario Kart: A or the right trigger = gas, B or the left trigger = brake, RB or X = hop, LB = item, Y = ★ special */
       left: ax < -0.35 || btn(14), right: ax > 0.35 || btn(15),
-      jump: btn(0) || btn(12), fire: btn(2) || btn(1) || (!kart && btn(3)),
-      spec: !!kart && (btn(3) || btn(4) || btn(5)), down: !!kart && (ay > 0.5 || btn(13) || btn(6) || btn(7)),   /* Family Kart: Y or a shoulder = ★ special; stick down or a trigger = brake */
-      start: btn(9)
+      gas: btn(0) || btn(7), down: btn(1) || btn(6) || ay > 0.5 || btn(13),
+      jump: btn(5) || btn(2) || btn(12), fire: btn(4), spec: btn(3), start: btn(9)
+    } : {
+      left: ax < -0.35 || btn(14), right: ax > 0.35 || btn(15),
+      jump: btn(0) || btn(12), fire: btn(2) || btn(1) || btn(3), spec: false, down: false, start: btn(9)
     };
     if (st.jump && !padPrev.jump) input.jumpBuf = 8;
     if (st.fire && !padPrev.fire) input.fireBuf = 10;
     if (st.spec && !padPrev.spec) input.specBuf = 10;
     if (st.start && !padPrev.start) togglePause();
-    padIn.left = st.left; padIn.right = st.right; padIn.jump = st.jump; padIn.down = st.down;
+    padIn.left = st.left; padIn.right = st.right; padIn.jump = st.jump; padIn.down = st.down; padIn.gas = !!st.gas;
     padPrev = st;
     break;
   }
@@ -2219,8 +2253,13 @@ function setPaused(on, showMenu) {
   paused = on || !!advance;   /* a story box still on screen keeps the game frozen until it is tapped */
   pausedByUser = on;
   el.pause.hidden = !(on && showMenu !== false);
-  if (on) { input.left = input.right = input.jump = false; }
+  if (on) { input.left = input.right = input.jump = input.gas = false; }
   if (on && running) autoSave();   /* pause, app switch or screen off: the spot is kept */
+  if (on) {   /* the pause menu's Vibration switch (phones that can) and, in a race, Tilt to steer */
+    const bz = document.getElementById('buzzBtn'), tb = document.getElementById('tiltBtnP');
+    if (bz) { bz.hidden = !canBuzz(); bz.textContent = 'Vibration: ' + (progress.buzz === false ? 'OFF' : 'ON'); }
+    if (tb) { tb.hidden = !(kart && tiltPossible()); tb.textContent = 'Tilt to steer: ' + (progress.kartTilt ? 'ON' : 'OFF'); }
+  }
   /* online: say what a pause does here, and a joined player lets go of every button at once (the host would keep them held) */
   const pn = document.getElementById('pauseNote'), onl = (smash && smash.online) || (kart && kart.online);
   if (pn) {
@@ -2506,7 +2545,7 @@ function hurt(from) {
     sparks(P.x + 5, P.y + 8, 10, ['#ff6fae', '#f6c445']);
     return;
   }
-  P.hp -= 1; heartsLost++; P.inv = 100; P.vy = -3.4;
+  P.hp -= 1; heartsLost++; P.inv = 100; P.vy = -3.4; buzz(45);
   P.vx = from != null ? (P.x < from ? -2.2 : 2.2) : 0;
   SFX.hurt(); flashScreen(); breakCombo();   /* no screen shake when Kinan is hurt (Shad: "violently shakes, stop that") */
   sparks(P.x + 5, P.y + 8, 8, ['#ff6b6b', '#fff']);
@@ -8053,6 +8092,11 @@ $('#fxBtn').addEventListener('click', () => {
   progress.lite = !progress.lite;
   applyLite(); save(); SFX.click();
 });
+$('#buzzBtn').addEventListener('click', () => {
+  progress.buzz = progress.buzz === false; save(); SFX.click();
+  $('#buzzBtn').textContent = 'Vibration: ' + (progress.buzz === false ? 'OFF' : 'ON'); buzz(40);
+});
+$('#tiltBtnP').addEventListener('click', () => { SFX.click(); setKartTilt(!progress.kartTilt, $('#tiltBtnP')); });
 $('#sheetX').addEventListener('click', closeSheet);
 $('#sheetOk').addEventListener('click', closeSheet);
 $('#sheet').addEventListener('click', (e) => { if (e.target.id === 'sheet') closeSheet(); });
@@ -10626,7 +10670,8 @@ function startKart(opts) {
   $('#restartBtn').textContent = 'Restart the race';
   $('#restartBtn').hidden = !!(kart.online && kart.online.role === 'client');
   $('#mapBtnP').textContent = 'Leave the race';
-  el.keys.textContent = '← → steer · SPACE hop (hold while turning = drift) · X item · C special · ↓ brake · P pause';
+  el.keys.textContent = '↑ gas · ↓ brake (hold = back up) · ← → steer · SPACE hop (hold while turning = drift) · X item · C special · P pause';
+  kTilt.base = null; kTilt.v = null; if (progress.kartTilt) listenTilt();   /* tilt: how you hold it at the start is straight ahead */
   $('#pad .jump').textContent = 'HOP';
   el.pow.textContent = 'ITEM'; el.pow.disabled = true;
   $('#specBtn').hidden = false; $('#specBtn').disabled = true;
@@ -10675,10 +10720,11 @@ function kartUpdate() {
   if (me && !me.cpu && !me.auto) {
     const mi = me.input, on = !paused;   /* paused in an online race: let go of everything; the kart rolls to a stop and waits */
     mi.left = on && (input.left || padIn.left); mi.right = on && (input.right || padIn.right); mi.jump = on && (input.jump || padIn.jump); mi.down = on && (!!input.down || padIn.down);
+    mi.gas = on && (!!input.gas || padIn.gas || !!window.__kartGas);   /* window.__kartGas: a test robot holding the gas */
     if (input.jumpBuf > 0) { if (on) mi.jumpBuf = input.jumpBuf; input.jumpBuf = 0; }
     if (input.fireBuf > 0) { if (on) mi.fireBuf = input.fireBuf; input.fireBuf = 0; }
     if (input.specBuf > 0) { if (on) mi.specBuf = input.specBuf; input.specBuf = 0; }
-    mi.steer = on && kWheel.id != null ? kWheel.v : null;
+    mi.steer = !on || mi.left || mi.right ? null : (kWheel.id != null ? kWheel.v : (progress.kartTilt && kTilt.v != null ? kTilt.v : null));   /* the buttons beat the tilt */
     me.paused = paused;
   }
   for (const k of K.karts) {
@@ -10750,9 +10796,13 @@ function kartStep(k) {
   if (off && k.boostT <= 0 && k.starT <= 0) { top *= 0.55; if (k.v > 1 && K.t % 3 === 0) kartDust(k); }
   if (k.spinT > 0) { k.spinT--; top *= 0.25; k.spinA += 0.42; } else k.spinA = 0;
   if (!racing || k.paused) top = 0;   /* k.paused: its player paused in an online race */
+  /* GAS makes it go (holding HOP keeps the gas on, so one thumb can hop and drift; a boost or a star pushes by itself);
+     BRAKE slows down, then backs up; with neither, the ride rolls to a stop. Computer drivers always have the gas on. */
+  const gas = racing && !!(inp.gas || inp.jump || k.boostT > 0 || k.starT > 0);
   if (inp.down && racing) k.v = Math.max(-1.1, k.v - 0.1);
-  else if (k.v < top) k.v = Math.min(top, k.v + d.accel * (k.v < 1.3 ? 1.7 : 1));
-  else k.v = Math.max(top, k.v - (off ? 0.09 : 0.045));
+  else if (k.v > top) k.v = Math.max(top, k.v - (off ? 0.09 : 0.045));
+  else if (gas) k.v = Math.min(top, k.v + d.accel * (k.v < 1.3 ? 1.7 : 1));
+  else k.v = k.v > 0 ? Math.max(0, k.v - 0.04) : Math.min(0, k.v + 0.04);
   /* turning: a drift keeps turning into the corner, the stick only tightens or widens it */
   let turn = d.grip * steer * Math.min(1, Math.abs(k.v) / 1.4);
   if (k.drift) turn = d.grip * (k.drift * 1.05 + steer * 0.5);
@@ -10829,7 +10879,7 @@ function kartAI(k) {
   if (K.t % 97 === (k.slot * 23) % 97) k.lane = clamp(k.lane + rand(-0.5, 0.5), -0.8, 0.8);
   const tp = kartPointAt(path, k.s + look, k.lane * tr.width * 0.3);
   const diff = kAng(Math.atan2(tp.y - k.y, tp.x - k.x) - k.a);
-  inp.left = diff < -0.035; inp.right = diff > 0.035; inp.jump = false; inp.down = false;
+  inp.left = diff < -0.035; inp.right = diff > 0.035; inp.jump = false; inp.down = false; inp.gas = true;
   const bend = Math.abs(kAng(kartPointAt(path, k.s + 150, 0).a - k.ta));
   k.brake = bend > 1.2 ? 0.78 : (bend > 0.8 ? 0.88 : 1);
   /* a little help or a little holding back, so races stay close */
@@ -10949,7 +10999,7 @@ function kartSpin(k, by) {
   k.spinT = 70; k.v *= 0.45; k.drift = 0; k.driftT = 0;
   k.candles = Math.max(0, k.candles - 2);
   kart.floats.push({ x: k.x, y: k.y, z: 24, text: 'OOPS!', t: 50, col: '#ff6fae' });
-  if (k === kartMe()) { SFX.hurt(); }
+  if (k === kartMe()) { SFX.hurt(); buzz(50); }
 }
 function kartCollide() {
   const ks = kart.karts;
@@ -11311,7 +11361,7 @@ function kartMenu() {
     '<button class="btn" id="kOnline" type="button">🌐 Race online · up to 5 players</button>' +
     '<button class="btn ghost" id="kBack" type="button">Title screen</button>' +
     '</div>' +
-    '<p class="tiny">Steer with the <b>wheel</b> (slide your thumb left or right) or ◀ ▶. Tap <b>HOP</b> to hop; hold it while you turn to <b>drift</b>, and let go after the sparks for a boost. <b>ITEM</b> uses what you got from a gift box: 🍰 Sugar Rush, 🍌 banana peel, 🎈 water balloon, 🧁 sticky frosting, 🎉 party popper (it chases the one ahead), ⭐ birthday star. Coins fill your <b>★ SPECIAL</b>: Kinan\'s turbo, Shad\'s slam, Chenoa\'s plates, Mom\'s laundry lob, Dad\'s hydro vac.</p>'
+    '<p class="tiny">Hold <b>GAS</b> to go and <b>BRAKE</b> to slow down (keep holding it to back up). Steer with ◀ ▶, or switch on <b>Tilt to steer</b> and turn the phone or iPad like a wheel. Tap <b>HOP</b> to hop; hold it while you turn to <b>drift</b> (holding HOP keeps the gas on), and let go after the sparks for a boost. <b>ITEM</b> uses what you got from a gift box: 🍰 Sugar Rush, 🍌 banana peel, 🎈 water balloon, 🧁 sticky frosting, 🎉 party popper (it chases the one ahead), ⭐ birthday star. Coins fill your <b>★ SPECIAL</b>: Kinan\'s turbo, Shad\'s slam, Chenoa\'s plates, Mom\'s laundry lob, Dad\'s hydro vac.</p>'
   );
   $('#kRace').addEventListener('click', () => { AudioSys.init(); SFX.click(); kartPickScreen(); });
   $('#kOnline').addEventListener('click', () => { AudioSys.init(); SFX.click(); kartOnlineScreen(); });
@@ -11326,6 +11376,7 @@ function kartPickScreen() {
     '<div class="pickgrid">' + KART_ORDER.map((w) => kartPickCard(w, kartPicks.who, 'data-tag="kart"')).join('') + '</div>' +
     trackRowHTML(kartPicks.track) +
     '<p class="tiny"><b>Steering help</b> <button type="button" class="arenabtn" id="kAssist">' + (progress.kartAssist === false ? 'OFF' : 'ON 🛞') + '</button> keeps you on the road when you are not steering</p>' +
+    (tiltPossible() ? '<p class="tiny"><b>Tilt to steer</b> <button type="button" class="arenabtn" id="kTilt">' + (progress.kartTilt ? 'ON 📱' : 'OFF') + '</button> turn the phone or iPad like a steering wheel</p>' : '') +
     '<p class="tiny"><b>Computer drivers</b> ' + ['easy', 'normal', 'hard'].map((l) => '<button type="button" class="arenabtn kartlvl' + ((progress.kartLevel || 'normal') === l ? ' on' : '') + '" data-lvl="' + l + '">' + l[0].toUpperCase() + l.slice(1) + '</button>').join(' ') + '</p>' +
     '<div class="btnrow"><button class="btn go" id="kGo" type="button">RACE!</button><button class="btn" id="kBack" type="button">Back</button></div>'
   );
@@ -11335,9 +11386,10 @@ function kartPickScreen() {
   }));
   bindTrackRow(el.screen, (i) => { kartPicks.track = i; });
   $('#kAssist').addEventListener('click', () => { SFX.click(); progress.kartAssist = progress.kartAssist === false; save(); $('#kAssist').textContent = progress.kartAssist === false ? 'OFF' : 'ON 🛞'; });
+  const kt = $('#kTilt'); if (kt) kt.addEventListener('click', () => { SFX.click(); setKartTilt(!progress.kartTilt, kt); });
   $$('.kartlvl', el.screen).forEach((b) => b.addEventListener('click', () => { SFX.click(); progress.kartLevel = b.dataset.lvl; save(); $$('.kartlvl', el.screen).forEach((o) => o.classList.toggle('on', o === b)); }));
   $('#kBack').addEventListener('click', () => { SFX.click(); kartMenu(); });
-  $('#kGo').addEventListener('click', () => { AudioSys.init(); SFX.click(); playKart(kartCpuRace(kartPicks.who, kartPicks.track)); });
+  $('#kGo').addEventListener('click', () => { AudioSys.init(); SFX.click(); if (progress.kartTilt) tiltAllowed(); playKart(kartCpuRace(kartPicks.who, kartPicks.track)); });   /* the tap that lets an iPhone or iPad use motion */
 }
 /* you plus the other four family members, driven by the computer. Each one is tuned against YOUR ride's speed, so
    any ride can win, and who is fastest changes from race to race. Easy, Normal or Hard (remembered). */
@@ -11605,6 +11657,41 @@ function refreshKartLobby() {
   pinLobbyRow(box);
 }
 const kWheel = { id: null, v: 0, cx: 0, span: 1 };
+/* "Tilt to steer" (answer 54): turn the phone or iPad like a steering wheel. The motion sensor says which way is down;
+   the angle is compared with how the device was held when the race started (or tilt was switched on), so it works
+   whichever way round it is held. Turning it clockwise steers right. Lying flat, it can't tell, and the buttons steer.
+   iPhones and iPads ask once to allow motion. */
+const kTilt = { v: null, base: null, on: false };
+const tiltPossible = () => !!(window.DeviceMotionEvent && window.matchMedia && matchMedia('(pointer: coarse)').matches);
+function onTiltMotion(e) {
+  const g = e.accelerationIncludingGravity;
+  if (!kart || !progress.kartTilt || !g || g.x == null || g.y == null) return;
+  if (Math.hypot(g.x, g.y) < 2.5) { kTilt.v = null; return; }
+  const a = Math.atan2(g.y, g.x);
+  if (kTilt.base == null) kTilt.base = a;
+  let d = a - kTilt.base;
+  while (d > Math.PI) d -= 2 * Math.PI;
+  while (d < -Math.PI) d += 2 * Math.PI;
+  const deg = Math.abs(d) * 180 / Math.PI;
+  kTilt.v = deg < 4 ? 0 : Math.sign(d) * Math.min(1, (deg - 4) / 26);   /* a little dead zone, full lock at 30 degrees */
+}
+function listenTilt() { if (!kTilt.on) { kTilt.on = true; window.addEventListener('devicemotion', onTiltMotion); } }
+/* asked from a tap (iPhones and iPads only ask from a tap); true when motion may be used */
+function tiltAllowed() {
+  const DM = window.DeviceMotionEvent;
+  if (!DM) return Promise.resolve(false);
+  if (typeof DM.requestPermission !== 'function') return Promise.resolve(true);
+  try { return DM.requestPermission().then((r) => r === 'granted', () => false); } catch (e) { return Promise.resolve(false); }
+}
+function setKartTilt(on, btn) {
+  const show = () => { if (btn) btn.textContent = btn.id === 'tiltBtnP' ? 'Tilt to steer: ' + (progress.kartTilt ? 'ON' : 'OFF') : (progress.kartTilt ? 'ON 📱' : 'OFF'); };
+  if (!on) { progress.kartTilt = false; save(); kTilt.v = null; show(); return; }
+  tiltAllowed().then((ok) => {
+    progress.kartTilt = ok; save(); show();
+    if (ok) { kTilt.base = null; kTilt.v = null; listenTilt(); toast('📱 <b>Tilt is on.</b> Hold it the way you play and turn it like a wheel. The ◀ ▶ buttons still work.', 2800); }
+    else toast('This device did not allow motion, so the ◀ ▶ buttons steer.', 2400);
+  });
+}
 function bindWheel() {
   const w = $('#kwheel');
   if (!w) return;
