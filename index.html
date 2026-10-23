@@ -59,7 +59,7 @@ button{font:inherit;color:inherit;touch-action:manipulation}
 .coin-ico{display:inline-block;width:10px;height:10px;margin-right:4px;vertical-align:-1px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff3c4 0 15%,#f6c445 28% 60%,#c9922f 64%);box-shadow:inset 0 0 0 1px #8a6420}
 .coin-ico.lg{width:18px;height:18px;margin:0;vertical-align:middle}
 .stage.bossmode .toast{top:52px}
-.stage.smashmode .toast{top:calc(12.5% + 4px)}   /* under the fighters' bar (30 of the picture's 240 rows) in Family Smash */
+.stage.smashmode .toast{top:calc(12.5% + 4px)}   /* under the fighters' bar (30 of the picture's 240 rows) in Family Brawl */
 .iconbtn{width:34px;height:30px;display:grid;place-items:center;background:#11132b;border:2px solid var(--panel2);border-radius:5px;cursor:pointer;font-size:14px;padding:0}
 .iconbtn:hover{background:var(--panel2)}
 .iconbtn[aria-pressed="false"]{color:var(--dim)}
@@ -392,7 +392,7 @@ html.sideways .pad button.spec:not(:disabled){opacity:.92}
 .modebtn.soon{opacity:.5;cursor:default;border-style:dashed}
 .modebtn:not(:disabled):active{transform:translate(2px,3px);box-shadow:1px 1px 0 var(--shadow)}
 @media (max-width:560px){.modebtn{padding:10px 12px;gap:10px}.modebtn b{font-size:16px}.modebtn .mico{font-size:26px;width:36px}.modebtn small{font-size:11.5px}}
-/* Family Smash screens */
+/* Family Brawl screens */
 .pickgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin:6px 0 10px}
 .pickbtn{background:var(--panel);border:2px solid var(--panel2);border-radius:8px;color:var(--text);padding:8px 4px;display:grid;justify-items:center;gap:3px;cursor:pointer;font:inherit;min-height:44px}
 .pickbtn img{image-rendering:pixelated}
@@ -1750,6 +1750,7 @@ function loadProgress() {
   out.gold = p.gold && typeof p.gold === 'object' ? Object.assign({}, p.gold) : {};
   out.smashItems = p.smashItems !== false;
   out.buzz = p.buzz !== false; out.kartTilt = p.kartTilt === true;
+  out.smashSpeed = ['relaxed', 'normal', 'fast'].indexOf(p.smashSpeed) >= 0 ? p.smashSpeed : 'normal';
   out.codes = Array.isArray(p.codes) ? p.codes.map(Number).filter((n) => n >= 2 && n <= 11) : [];
   out.wonWorlds = Array.isArray(p.wonWorlds) ? p.wonWorlds.map(Number).filter((n) => n >= 2 && n <= 11) : [];
   out.builds = Array.isArray(p.builds) ? p.builds.filter(bNorm).slice(0, 50) : [];
@@ -1795,7 +1796,7 @@ let puzzle = null, pieces = [], pieceCool = [];   /* puzzle room in progress; th
    INPUT
    ============================================================ */
 const input = { left: false, right: false, jump: false, jumpBuf: 0, fireBuf: 0, down: false, specBuf: 0, up: false, atk: false, atkBuf: 0, shield: false, gas: false };
-/* second keyboard player for Family Smash on one computer (A D W J) */
+/* second keyboard player for Family Brawl on one computer (A D W J) */
 const input2 = { left: false, right: false, jump: false, jumpBuf: 0, fireBuf: 0, up: false, down: false, atk: false, atkBuf: 0, shield: false };
 function actionDown2(k) { pressInto(input2, k); }
 function actionUp2(k) { releaseInto(input2, k); }
@@ -1803,11 +1804,11 @@ function actionUp2(k) { releaseInto(input2, k); }
 function pressInto(inp, k) {
   if (k === 'left') inp.left = true;
   else if (k === 'right') inp.right = true;
-  else if (k === 'jump' || k === 'upjump') { if (!inp.jump) inp.jumpBuf = 8; inp.jump = true; if (k === 'upjump') inp.up = true; }
+  else if (k === 'jump' || k === 'upjump') { if (!inp.jump) inp.jumpBuf = smash ? 10 : 8; inp.jump = true; if (k === 'upjump') inp.up = true; }
   else if (k === 'up') inp.up = true;
   else if (k === 'down') inp.down = true;
-  else if (k === 'fire') inp.fireBuf = 10;
-  else if (k === 'attack') { if (!inp.atk) inp.atkBuf = 8; inp.atk = true; }
+  else if (k === 'fire') inp.fireBuf = smash ? 12 : 10;
+  else if (k === 'attack') { if (!inp.atk) inp.atkBuf = smash ? 12 : 8; inp.atk = true; }   /* in a fight a press waits a little longer for the move before it to finish */
   else if (k === 'shield') inp.shield = true;
   else if (k === 'gas') inp.gas = true;
   else if (k === 'special') inp.specBuf = 10;
@@ -1822,7 +1823,7 @@ function releaseInto(inp, k) {
   else if (k === 'shield') inp.shield = false;
   else if (k === 'gas') inp.gas = false;
 }
-/* Family Smash keys. One player: arrows or WASD, SPACE jump, Z attack, X special, C shield. Two players on one
+/* Family Brawl keys. One player: arrows or WASD, SPACE jump, Z attack, X special, C shield. Two players on one
    keyboard: P1 arrows + . attack, / special, Right Shift shield; P2 A D W S + F attack, G special, H shield. */
 const P2_KEYS = { KeyA: 'left', KeyD: 'right', KeyW: 'upjump', KeyS: 'down', KeyF: 'attack', KeyG: 'fire', KeyJ: 'fire', KeyH: 'shield', ShiftLeft: 'shield' };
 const SMASH_KEYS1 = { ArrowLeft: 'left', ArrowRight: 'right', ArrowUp: 'upjump', ArrowDown: 'down', KeyA: 'left', KeyD: 'right', KeyW: 'upjump', KeyS: 'down', Space: 'jump',
@@ -1858,7 +1859,7 @@ window.addEventListener('keydown', (e) => {
   if (e.repeat) return;
   AudioSys.init();
   if (smash && smashKey(k, true)) return;
-  if (kart && kartKey(k, true)) return;   /* Family Smash has its own buttons: attack, special, shield, aim */
+  if (kart && kartKey(k, true)) return;   /* Family Brawl has its own buttons: attack, special, shield, aim */
   if (advance && ['Space', 'ArrowUp', 'KeyW', 'KeyZ', 'KeyX', 'KeyJ'].indexOf(k) >= 0) { advanceDialog(); return; }   /* a story box: the jump and pow keys move it on too */
   if (k === 'ArrowLeft' || k === 'KeyA') actionDown('left');
   else if (k === 'ArrowRight' || k === 'KeyD') actionDown('right');
@@ -1954,14 +1955,14 @@ function pollGamepad() {
     const gp = pads[i]; if (!gp) continue;
     const ax = gp.axes[0] || 0;
     const btn = (n) => !!(gp.buttons[n] && gp.buttons[n].pressed);
-    if (smash) {   /* Family Smash, like the real thing: A attack, B special, X or Y jump, the shoulders shield, the stick aims */
+    if (smash) {   /* Family Brawl, like the real thing: A attack, B special, X or Y jump, the shoulders shield, the stick aims */
       const ay = gp.axes[1] || 0;
       const st = { left: ax < -0.35 || btn(14), right: ax > 0.35 || btn(15), up: ay < -0.5 || btn(12), down: ay > 0.5 || btn(13),
         jump: btn(2) || btn(3), atk: btn(0), fire: btn(1), shield: btn(4) || btn(5) || btn(6) || btn(7), start: btn(9) };
       for (const k of ['left', 'right', 'up', 'down', 'jump', 'atk', 'shield']) { if (st[k] && !padPrev[k]) input[k] = true; else if (!st[k] && padPrev[k]) input[k] = false; }
-      if (st.jump && !padPrev.jump) input.jumpBuf = 8;
-      if (st.atk && !padPrev.atk) input.atkBuf = 8;
-      if (st.fire && !padPrev.fire) input.fireBuf = 10;
+      if (st.jump && !padPrev.jump) input.jumpBuf = 10;
+      if (st.atk && !padPrev.atk) input.atkBuf = 12;
+      if (st.fire && !padPrev.fire) input.fireBuf = 12;
       if (st.start && !padPrev.start) togglePause();
       padPrev = st;
       break;
@@ -3193,7 +3194,7 @@ async function bossDefeated() {
   if (LV[i].final4) return ending4();
   if (LV[i].final5) return ending5();
   await story(LV[i].win, LV[i].boss.face || 'm', 'h');
-  firstClear = !progress.beaten.includes(i);   /* first time through: this world is now a Family Smash arena too */
+  firstClear = !progress.beaten.includes(i);   /* first time through: this world is now a Family Brawl arena too */
   if (firstClear) progress.beaten.push(i);
   progress.unlocked = Math.max(progress.unlocked, i + 2);
   save();
@@ -7622,7 +7623,7 @@ function shopPreview(it) {
 let shopConfirm = null, shopMsg = '';
 function shopScreen(from) {
   Music.play('title');
-  const cats = [['outfit', "Kinan's outfits"], ['hat', 'Hats'], ['trail', 'Sparkle trails (when he runs and jumps)'], ['costume', 'Family Smash costumes']];
+  const cats = [['outfit', "Kinan's outfits"], ['hat', 'Hats'], ['trail', 'Sparkle trails (when he runs and jumps)'], ['costume', 'Family Brawl costumes']];
   const card = (it) => {
     const own = ownsItem(it.id), on = own && isEquipped(it);
     const label = on ? 'Wearing ✓' : (own ? 'Tap to wear' : (shopConfirm === it.id ? 'Tap again: buy for ' + it.price + ' <i class="coin-ico"></i>' : it.price + ' <i class="coin-ico"></i>'));
@@ -7676,7 +7677,7 @@ function titleScreen() {
     '<h1 class="title"><span class="t1">Kinan vs. Mom</span><span class="t2">Birthday Remaster</span></h1>' +
     '<div class="modes">' +
     '<button class="modebtn go btnbeat" id="startBtn" type="button"><span class="mico">🎂</span><span class="mt"><b>Story mode · ' + (cont ? 'CONTINUE' : 'START') + '</b><small id="saveNote">' + storySub + '</small></span></button>' +
-    '<button class="modebtn" id="smashBtn" type="button"><span class="mico">🥊</span><span class="mt"><b>Family Smash</b><small>Fight the family: online with a room code, two on one keyboard, or vs. the computer</small></span></button>' +
+    '<button class="modebtn" id="smashBtn" type="button"><span class="mico">🥊</span><span class="mt"><b>Family Brawl</b><small>Fight the family: online with a room code, two on one keyboard, or vs. the computer</small></span></button>' +
     '<button class="modebtn" id="kartBtn" type="button"><span class="mico">🏎️</span><span class="mt"><b>Family Kart</b><small>Race the family: online with a room code, or vs. the computer</small></span></button>' +
     '<button class="modebtn" id="buildBtn" type="button"><span class="mico">🧱</span><span class="mt"><b>Builder</b><small>Build your own level with the game\'s blocks, then play it</small></span></button>' +
     '</div>' +
@@ -7729,7 +7730,7 @@ function howToScreen() {
     '<li><span class="ico">⭐</span><span>Earn up to <b>3 stars</b> per stage: clear it, grab 70% of the coins, and never lose a heart. Stars unlock <b>hats</b>.</span></li>' +
     '<li><span class="ico">🍰</span><span>Every <b>25 coins</b> = an extra heart. Trampolines launch you sky-high. The game saves itself at every checkpoint and whenever you pause.</span></li>' +
     '<li><span class="ico">🧩</span><span>Every stage hides <b>3 puzzle pieces</b> up in the air. Jump into one for a puzzle room with a <b>golden coin</b> (+25 coins). There is always a door out.</span></li>' +
-    '<li><span class="ico">🥊</span><span><b>Family Smash:</b> pick a family member and knock everyone else off the stage. <b>👊</b> (Z) attacks: tap for quick hits, hold for a big one. <b>✨</b> (X) is a special move (hold ▲ or ▼ for two more), and a full meter makes it a SUPER. <b>🛡</b> (C) blocks. Grab the <b>birthday items</b> that float down (🍰 🎉 ❤ ⛑️ 🎈 ⭐ 🍭). Beat story stages to unlock more arenas, sinking stages too.</span></li>' +
+    '<li><span class="ico">🥊</span><span><b>Family Brawl:</b> pick a family member and knock everyone else off the stage. <b>👊</b> (Z) attacks: tap for quick hits, hold for a big one. <b>✨</b> (X) is a special move (hold ▲ or ▼ for two more), and a full meter makes it a SUPER. <b>🛡</b> (C) blocks. Grab the <b>birthday items</b> that float down (🍰 🎉 ❤ ⛑️ 🎈 ⭐ 🍭). Beat story stages to unlock more arenas, sinking stages too.</span></li>' +
     '<li><span class="ico">🧱</span><span><b>Builder:</b> make your own levels with ground, bricks, gift blocks, shelves, trampolines, coins and enemies (or start from a copy of a story stage), put down a start and a 🚩, and play them. Make them long and up to 3 screens tall. Up to 50 levels are kept on this device.</span></li>' +
     '<li><span class="ico">🏎️</span><span><b>Family Kart:</b> race the family in their real rides. Steer with ◀ ▶; hold <b>HOP</b> while turning to drift, let go after the sparks for a boost; <b>ITEM</b> uses what a gift box gave you. Beat story stages to unlock more tracks.</span></li>' +
     '</ul>' +
@@ -7922,7 +7923,7 @@ function resultsScreen(i) {
     '<p class="wrapnote" id="walletNote">🛍️ +' + got + ' coins for the Party Shop · you have <b>' + (progress.wallet || 0) + '</b></p>' +
     '<p class="wrapnote" id="goldNote">' + (goldCount(i) === 3 ? '<i class="coin-ico"></i>All 3 golden coins found here!' : '<i class="coin-ico"></i>Golden coins here: <b>' + goldCount(i) + '</b> / 3 · jump into the 🧩 puzzle pieces to find them') + '</p>' +
     (th.meanwhile ? '<p class="lede meanwhile"><b>Meanwhile…</b> ' + th.meanwhile.replace('{coins}', String(progress.totalCandles || 0)) + '</p>' : '') +
-    ((na) => (na.length ? '<p class="wrapnote" id="arenaNote">🥊 New Family Smash arena' + (na.length > 1 ? 's' : '') + ' unlocked: <b>' + na.join('</b> and <b>') + '</b></p>' : ''))(
+    ((na) => (na.length ? '<p class="wrapnote" id="arenaNote">🥊 New Family Brawl arena' + (na.length > 1 ? 's' : '') + ' unlocked: <b>' + na.join('</b> and <b>') + '</b></p>' : ''))(
       firstClear && i > 0 ? ARENAS.filter((a, k) => (a.unlock != null ? a.unlock : k) === i).map((a) => (a.sink ? '🌊 ' : '') + a.name) : []) +
     (firstClear && i > 0 && KART_TRACKS.some((t) => t.stage === i) ? '<p class="wrapnote" id="trackNote">🏎️ New Family Kart track unlocked: <b>' + KART_TRACKS.filter((t) => t.stage === i)[0].name + '</b></p>' : '') +
     '<div class="btnrow"><button class="btn go" type="button" id="nextBtn">' + (i < wi.to ? 'NEXT STAGE ▶' : 'FINISH') + '</button>' +
@@ -7970,7 +7971,7 @@ function ending() {
     '<p class="lede">Dad hid the hydro vac truck around the corner, Chenoa iced the cake behind a locked door, Shad built the stage, the Neighbour "borrowed" the chairs, the Big Kid brought his friends, and the Mega-Mech carried the cake in. Level 11 looks good on you.</p>' +
     '<p class="lede"><b>MOM:</b> Okay... you win, my boy. You beat ALL of us. But there\'s one move nobody can dodge... the <b>BIRTHDAY HUG!</b></p>' +
     '<p class="lede"><b>Four cats. Two dogs. One very good family.</b> From Saskatoon, Saskatchewan — with love. 💛</p>' +
-    '<p class="wrapnote">🥊 All the World 1 <b>Family Smash</b> arenas are unlocked, Birthday Cake Volcano and three sinking stages included.</p>' +
+    '<p class="wrapnote">🥊 All the World 1 <b>Family Brawl</b> arenas are unlocked, Birthday Cake Volcano and three sinking stages included.</p>' +
     '<p class="wrapnote"><i class="coin-ico"></i>Golden coins found: <b>' + goldTotal() + '</b> / 33' + (goldTotal() < 33 ? ' · the 🧩 puzzle pieces are still out there' : ' · every single one!') + '</p>' +
     '<div class="heroline"><span class="pill">⭐ ' + stars + ' / 33 stars</span><span class="pill"><i class="coin-ico"></i> ' + (progress.totalCandles || 0) + ' coins collected</span><span class="pill">🎂 11 years old</span><span class="pill">🐱 ' + progress.pets.ids.filter((id) => petDef(id).kind === 'cat').length + ' · 🐶 ' + progress.pets.ids.filter((id) => petDef(id).kind === 'dog').length + '</span></div>' +
     '<p class="wrapnote" id="w2Note">' + (worldOpen(2) ? '🛢️ <b>World 2: Kinan vs. Dad</b> is open! Find it on the stage map.' : '🔒 <b>World 2: Kinan vs. Dad</b> is waiting at Dad\'s oilfield job site. Ask a grown-up for a reward code!') + '</p>' +
@@ -8105,7 +8106,7 @@ document.addEventListener('visibilitychange', () => {
 });
 
 /* ============================================================
-   FAMILY SMASH — versus arena for the whole family: 2 to 5 players
+   FAMILY BRAWL — versus arena for the whole family: 2 to 5 players
    on one screen, against the computer, or online by room code.
    Rebuilt Super Smash Bros style on 2026-10-21 (Shad's answers 43-45): attack any time (tap = quick hits and
    combos, hold = a big charged hit), three special moves by direction (side, up, down) with short waits, a Super
@@ -8246,6 +8247,8 @@ function placeFighter(f, fromTop) {
   else f.y = fromTop ? (GROUND - 10) * T : groundYAt(tx, f.h);
   f.vx = 0; f.vy = 0; f.stun = 0; f.act = null; f.move = null; f.charge = 0; f.hold = 0; f.guard = false; f.roll = 0; f.onGround = !fromTop;
 }
+/* how fast a fight runs (answer 55): Normal is a quarter slower than the first version, Fast is that first version */
+const SMASH_SPEEDS = { relaxed: 0.6, normal: 0.75, fast: 1 };
 function myFighter() {
   if (!smash) return null;
   return smash.fighters[smash.online && smash.online.role === 'client' ? smash.online.me : 0] || null;
@@ -8274,14 +8277,15 @@ function startSmash(opts) {
     }),
     shots: [], traps: [], fx: [], t: 0, state: 'countdown', count: 150, winner: -1, winTeam: 0, online: opts.online || null, local2: !!opts.local2, lastSnap: 0, powKey: '', arena: arena,
     itemsOn: opts.items !== false, drops: [], dropT: 240, teams: !!opts.teams, level: ['easy', 'medium', 'hard'].indexOf(opts.level) >= 0 ? opts.level : 'medium',
-    cam: { left: ARENA_PAD * T, top: 0, z: 1 }
+    cam: { left: ARENA_PAD * T, top: 0, z: 1 },
+    rate: SMASH_SPEEDS[opts.speed] || 1, speed: SMASH_SPEEDS[opts.speed] ? opts.speed : 'fast', acc: 0, camPrev: null
   };
   smash.fighters.forEach((f) => placeFighter(f, false));
   const mine = myFighter();
   if (mine && !mine.cpu) mine.input = input;              /* this device's player uses the pad / keys */
   if (smash.local2 && smash.fighters[1]) smash.fighters[1].input = input2;
   smashCamera(true);
-  el.stageLbl.textContent = 'FAMILY SMASH · ' + ARENAS[arena].name.toUpperCase() + (smash.online ? ' · ROOM ' + NET.code : '');
+  el.stageLbl.textContent = 'FAMILY BRAWL · ' + ARENAS[arena].name.toUpperCase() + (smash.online ? ' · ROOM ' + NET.code : '');
   el.hearts.innerHTML = ''; el.cnt.hidden = true; el.scoreEl.hidden = true; el.petStat.hidden = true;
   el.comboEl.hidden = true; el.bossHud.hidden = true; el.pauseBtn.hidden = false;
   el.stage.classList.remove('bossmode'); el.stage.classList.add('smashmode'); el.pad.classList.add('smashpad');
@@ -8317,7 +8321,21 @@ function updateSmash() {
   const S = smash;
   frame++;
   pollGamepad();
+  const me = myFighter();   /* a buzz when you are hit or knocked out, on every device in the fight */
+  if (me && !me.cpu) {
+    if (me.dmg > (S.myDmg || 0) + 0.5) buzz(40);
+    if (me.ko > 0 && !S.myKO) buzz([60, 40, 90]);
+    S.myDmg = me.dmg; S.myKO = me.ko > 0;
+  }
   if (S.online && S.online.role === 'client') { smashClientTick(); return; }
+  if (S.rate < 1 && !paused) {   /* Relaxed and Normal: fewer fight steps a second; drawSmash draws the moments in between */
+    S.acc += S.rate;
+    if (S.acc < 1) { if (S.online) smashNetTick(); return; }
+    S.acc -= 1;
+    S.fighters.forEach((f) => { f.lx = f.x; f.ly = f.y; });
+    S.shots.forEach((s) => { s.lx = s.x; s.ly = s.y; });
+    S.camPrev = { left: S.cam.left, top: S.cam.top, z: S.cam.z };
+  }
   if (hitStop > 0) { hitStop--; updateFx(); smashCamera(); return; }
   if (paused) { updateFx(); return; }
   S.t++;
@@ -8737,6 +8755,7 @@ function smashHit(o, by, dmg, kx, ky, txt, opt) {
   o.vx = kx * k; o.vy = ky * k;
   o.stun = Math.round(Math.min(70, 12 + o.dmg * 0.22 * SMASH_CHARS[o.who].weight)); o.inv = 4; o.onGround = false; o.act = null; o.move = null; o.charge = 0; o.guard = false;   /* only a moment safe: combos can connect (each attack hits once anyway) */
   o.hitBy = by ? by.slot : null; o.lastHit = frame;
+  if (by && !by.cpu && by === myFighter()) buzz(16);   /* your hit landed */
   if (by) by.meter = Math.min(100, by.meter + dmg * 0.9);
   o.meter = Math.min(100, o.meter + dmg * 0.5);
   const label = (txt || 'BONK') + ' ' + dmg + '%';
@@ -8835,6 +8854,17 @@ function bindItemsRow(root) {
     b.textContent = on ? 'ON 🎁' : 'OFF'; b.setAttribute('aria-pressed', String(on));
   });
 }
+function speedRowHTML() {
+  const cur = SMASH_SPEEDS[progress.smashSpeed] ? progress.smashSpeed : 'normal';
+  return '<p class="tiny"><b>Speed</b> ' + [['relaxed', 'Relaxed'], ['normal', 'Normal'], ['fast', 'Fast']].map((s) => '<button class="btn small' + (cur === s[0] ? ' go' : ' ghost') + '" type="button" data-speed="' + s[0] + '">' + s[1] + '</button>').join(' ') + '</p>';
+}
+function bindSpeedRow(root) {
+  $$('[data-speed]', root).forEach((b) => b.addEventListener('click', () => {
+    SFX.click(); progress.smashSpeed = b.dataset.speed; save();
+    $$('[data-speed]', root).forEach((o) => { o.classList.toggle('go', o === b); o.classList.toggle('ghost', o !== b); });
+  }));
+}
+const smashSpeedPick = () => (SMASH_SPEEDS[progress.smashSpeed] ? progress.smashSpeed : 'normal');
 /* where an item dropped in column tx comes to rest: the first floor, brick or shelf below where it starts (over a gap it falls away) */
 function landYAt(tx, h, fromY) {
   for (let ty = Math.floor((fromY != null ? fromY : 32) / T); ty < ROWS; ty++) if (solid(tx, ty) || tileAt(tx, ty) === 7) return ty * T - h;
@@ -9202,6 +9232,19 @@ function drawFighter(f) {
   drawFighterItems(f, sx, sy, w, h);
 }
 /* a fighter's name tag, "reconnecting…" and popper shots left: drawn after every fighter, so no one stands in front of it */
+/* which fighter is you: a gold ring under your feet and a bouncing YOU over your name (P1 and P2 on one keyboard) */
+function youLabel(f) {
+  const S = smash;
+  if (!S || f.out || f.ko > 0 || f.cpu) return '';
+  if (S.local2) return f.input === input ? 'P1' : (f.input === input2 ? 'P2' : '');
+  return f === myFighter() ? 'YOU' : '';
+}
+function drawYouRing(f) {
+  const lab = youLabel(f); if (!lab) return;
+  const img = fighterImage(f), cx = Math.round(f.x + f.w / 2 - camX), by = Math.round(f.y + f.h);
+  ctx.save(); ctx.globalAlpha = 0.6 + 0.3 * Math.sin(frame / 8); ctx.strokeStyle = lab === 'P2' ? '#6fc8ff' : '#fff3b0'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.ellipse(cx, by - 1, Math.max(9, img.width / 2 + 3), 3.5, 0, 0, 6.284); ctx.stroke(); ctx.restore();
+}
 function drawFighterTag(f) {
   if (f.out || f.ko > 0) return;
   const c = SMASH_CHARS[f.who], img = fighterImage(f), w = img.width;
@@ -9210,6 +9253,15 @@ function drawFighterTag(f) {
   const tag = f.name + ' ' + f.dmg + '%', tagY = sy - 4 - (f.shield > 0 ? 5 : 0) - Math.round(f.tagLift || 0);
   ctx.fillStyle = '#1b1220'; ctx.fillText(tag, sx + w / 2 + 1, tagY + 1);
   ctx.fillStyle = f.team ? TEAM_COLORS[f.team] : c.color; ctx.fillText(tag, sx + w / 2, tagY);
+  const lab = youLabel(f);
+  if (lab) {
+    const ax = sx + w / 2, ay = tagY - (f.ammo ? 19 : 11) + Math.round(Math.sin(frame / 7) * 1.5), col = lab === 'P2' ? '#6fc8ff' : '#fff3b0';
+    ctx.font = 'bold 9px "Pixelify Sans",monospace';
+    ctx.fillStyle = '#1b1220'; ctx.fillText(lab, ax + 1, ay + 1);
+    ctx.fillStyle = col; ctx.fillText(lab, ax, ay);
+    ctx.beginPath(); ctx.moveTo(ax - 4, ay + 2); ctx.lineTo(ax + 4, ay + 2); ctx.lineTo(ax, ay + 6); ctx.closePath(); ctx.fill();
+    ctx.font = 'bold 8px "Pixelify Sans",monospace';
+  }
   if (f.away) { ctx.fillStyle = '#1b1220'; ctx.fillText('reconnecting…', sx + w / 2 + 1, tagY - 9); ctx.fillStyle = '#fff3b0'; ctx.fillText('reconnecting…', sx + w / 2, tagY - 10); }
   for (let k = 0; k < (f.ammo || 0); k++) { ctx.fillStyle = ['#ff6fae', '#f6c445', '#6fc8ff'][k % 3]; ctx.fillRect(Math.round(sx + w / 2 - 6 + k * 5), tagY - 13, 3, 3); }   /* popper shots left */
 }
@@ -9343,7 +9395,22 @@ function drawOffscreen() {
     ctx.fillStyle = '#1b1220'; ctx.fillText(f.name.charAt(0), lx + 1, ly + 1); ctx.fillStyle = '#fff'; ctx.fillText(f.name.charAt(0), lx, ly);
   }
 }
+/* a slower fight is drawn where everything is part of the way to its next step, so it moves smoothly instead of
+   stopping every few frames (a jump of more than 40 pixels, like coming back in, is drawn as it is) */
 function drawSmash() {
+  const S = smash, a = S.rate < 1 && S.camPrev && !paused && !(S.online && S.online.role === 'client') ? S.acc : null;
+  if (a == null) { drawSmashNow(); return; }
+  const keep = { f: S.fighters.map((f) => [f.x, f.y]), s: S.shots.map((s) => [s.x, s.y]), c: [S.cam.left, S.cam.top, S.cam.z] };
+  const mix = (o) => { if (o.lx == null) return; const dx = o.x - o.lx, dy = o.y - o.ly; if (Math.abs(dx) < 40 && Math.abs(dy) < 40) { o.x = o.lx + dx * a; o.y = o.ly + dy * a; } };
+  S.fighters.forEach(mix); S.shots.forEach(mix);
+  const p = S.camPrev; S.cam.left = p.left + (S.cam.left - p.left) * a; S.cam.top = p.top + (S.cam.top - p.top) * a; S.cam.z = p.z + (S.cam.z - p.z) * a;
+  try { drawSmashNow(); } finally {
+    S.fighters.forEach((f, k) => { if (keep.f[k]) { f.x = keep.f[k][0]; f.y = keep.f[k][1]; } });
+    S.shots.forEach((s, k) => { if (keep.s[k]) { s.x = keep.s[k][0]; s.y = keep.s[k][1]; } });
+    S.cam.left = keep.c[0]; S.cam.top = keep.c[1]; S.cam.z = keep.c[2];
+  }
+}
+function drawSmashNow() {
   const S = smash, th = LV[L.i], C = S.cam, z = C.z;
   const shx = shake > 0.2 ? Math.round(rand(-shake, shake)) : 0;
   const shy = shake > 0.2 ? Math.round(rand(-shake, shake)) : 0;
@@ -9368,6 +9435,7 @@ function drawSmash() {
   for (const d of S.drops) drawDrop(d);
   drawSmashShots();
   smashTagLift(S);
+  for (const f of S.fighters) drawYouRing(f);
   for (const f of S.fighters) drawFighter(f);
   for (const f of S.fighters) drawFighterTag(f);
   drawSuperFx();
@@ -9421,10 +9489,10 @@ function pickCard(who, sel, attr) {
 function smashMenu() {
   endSmash();
   Music.play('title');
-  el.stageLbl.textContent = 'FAMILY SMASH';
+  el.stageLbl.textContent = 'FAMILY BRAWL';
   showScreen(
-    '<p class="eyebrow">Family Smash · the whole family in one ring</p>' +
-    '<h1 class="title"><span class="t1">Family Smash</span><span class="t2">Knock everyone else off the stage.</span></h1>' +
+    '<p class="eyebrow">Family Brawl · the whole family in one ring</p>' +
+    '<h1 class="title"><span class="t1">Family Brawl</span><span class="t2">Knock everyone else off the stage.</span></h1>' +
     '<p class="lede">Everyone fights their own way: <b>Kinan</b> is quick and light, <b>Shad</b> a strong all-rounder, <b>Chenoa</b> has the longest reach, <b>Mom</b> is balanced and tricky, and <b>Dad</b> is slow and heavy with the biggest hits. 3 hearts each; last one standing wins.</p>' +
     '<ul class="smhow"><li>👊 <b>Attack</b> any time: tap for quick hits (tap again for a combo), hold for a big charged hit. With ▲ or ▼ it hits up or low.</li>' +
     '<li>✨ <b>Special</b>: three moves, each with a short wait: on its own or with ◀ ▶ (side), with ▲ (up: it lifts you back to the stage), with ▼ (down).</li>' +
@@ -9476,13 +9544,13 @@ function smashPickScreen(mode) {
   if (!arenaUnlocked(smashPicks.arena)) smashPicks.arena = newestArena();
   const cards = (sel, tag) => '<div class="pickgrid">' + SMASH_ORDER.map((w) => pickCard(w, sel, 'data-tag="' + tag + '"')).join('') + '</div>';
   showScreen(
-    '<p class="eyebrow">Family Smash · ' + (mode === 'local' ? 'two players, one keyboard' : 'you vs. the computer') + '</p>' +
+    '<p class="eyebrow">Family Brawl · ' + (mode === 'local' ? 'two players, one keyboard' : 'you vs. the computer') + '</p>' +
     '<h1 class="title"><span class="t2">Pick your fighters</span></h1>' +
     '<p class="tiny"><b>Player 1</b> ' + (mode === 'local' ? '(arrows · . attack · / special · Right Shift shield)' : '(you)') + '</p>' + cards(smashPicks.p1, 'p1') +
     (mode === 'local' ? '<p class="tiny"><b>Player 2</b> (A D W S · F attack · G special · H shield)</p>' + cards(smashPicks.p2, 'p2')
       : '<p class="tiny"><b>Computer players:</b> <button class="btn ghost small" type="button" id="cpuLess">−</button> <b id="cpuN">' + smashPicks.cpuN + '</b> <button class="btn ghost small" type="button" id="cpuMore">+</button> · they fight each other too</p>' +
         levelRowHTML(smashPicks.level) + teamsRowHTML(smashPicks.teams)) +
-    itemsRowHTML() +
+    itemsRowHTML() + speedRowHTML() +
     arenaRowHTML(smashPicks.arena) +
     '<div class="btnrow"><button class="btn go" id="smGo" type="button">FIGHT!</button><button class="btn" id="smBack" type="button">Back</button></div>'
   );
@@ -9491,7 +9559,7 @@ function smashPickScreen(mode) {
     $$('.pickbtn[data-tag="' + b.dataset.tag + '"]', el.screen).forEach((o) => o.classList.toggle('on', o === b));
   }));
   bindArenaRow(el.screen, (i) => { smashPicks.arena = i; });
-  bindItemsRow(el.screen);
+  bindItemsRow(el.screen); bindSpeedRow(el.screen);
   bindLevelTeams(el.screen, (l) => { smashPicks.level = l; }, (t) => { smashPicks.teams = t; });
   const less = $('#cpuLess'), more = $('#cpuMore');
   if (less) less.addEventListener('click', () => { smashPicks.cpuN = Math.max(1, smashPicks.cpuN - 1); $('#cpuN').textContent = smashPicks.cpuN; SFX.click(); });
@@ -9499,12 +9567,12 @@ function smashPickScreen(mode) {
   $('#smBack').addEventListener('click', () => { SFX.click(); smashMenu(); });
   $('#smGo').addEventListener('click', () => {
     AudioSys.init(); SFX.click();
-    if (mode === 'local') playSmash({ players: [{ who: smashPicks.p1, look: lookFor(smashPicks.p1) }, { who: smashPicks.p2, look: lookFor(smashPicks.p2) }], local2: true, arena: smashPicks.arena, items: progress.smashItems !== false });
+    if (mode === 'local') playSmash({ players: [{ who: smashPicks.p1, look: lookFor(smashPicks.p1) }, { who: smashPicks.p2, look: lookFor(smashPicks.p2) }], local2: true, arena: smashPicks.arena, items: progress.smashItems !== false, speed: smashSpeedPick() });
     else {
       const players = [{ who: smashPicks.p1, look: lookFor(smashPicks.p1) }];
       const pool = SMASH_ORDER.filter((w) => w !== smashPicks.p1);
       for (let k = 0; k < smashPicks.cpuN; k++) players.push({ who: pool[k % pool.length], cpu: true });
-      playSmash({ players: players, arena: smashPicks.arena, items: progress.smashItems !== false, level: smashPicks.level, teams: smashPicks.teams });
+      playSmash({ players: players, arena: smashPicks.arena, items: progress.smashItems !== false, level: smashPicks.level, teams: smashPicks.teams, speed: smashSpeedPick() });
     }
   });
 }
@@ -9518,7 +9586,7 @@ function playSmash(opts) {
   last = 0; acc = 0;
 }
 function smashAgainOpts(S) {
-  return { players: S.fighters.map((f) => ({ who: f.who, cpu: f.cpu, name: f.name, look: f.look, team: f.team })), local2: S.local2, arena: S.arena, items: S.itemsOn, level: S.level, teams: S.teams };
+  return { players: S.fighters.map((f) => ({ who: f.who, cpu: f.cpu, name: f.name, look: f.look, team: f.team })), local2: S.local2, arena: S.arena, items: S.itemsOn, level: S.level, teams: S.teams, speed: S.speed };
 }
 function smashRematch() {
   const S = smash || lastSmash;
@@ -9545,7 +9613,7 @@ function smashResults() {
   Music.play('title');
   const head = S.winTeam ? TEAM_NAMES[S.winTeam] + ' team wins!' : (win ? escAttr(win.name) + ' wins!' : 'Draw!');
   showScreen(
-    '<p class="eyebrow">Family Smash · fight over</p>' +
+    '<p class="eyebrow">Family Brawl · fight over</p>' +
     '<h1 class="title"><span class="t1">' + head + '</span><span class="t2">' + (win ? imgOf(fighterImage(Object.assign({}, win, { vx: 0, onGround: true, anim: 0 })), 4) : '') + '</span></h1>' +
     '<ul class="credits">' + rows + '</ul>' +
     (mine ? '<p class="wrapnote" id="smEarned"><i class="coin-ico"></i>+' + earned + ' coins for the Party Shop (5 for playing' + (kos ? ' + ' + 3 * kos + ' for ' + kos + ' knockout' + (kos === 1 ? '' : 's') : '') +
@@ -9562,7 +9630,7 @@ function smashResults() {
   $('#smLeave').addEventListener('click', () => { SFX.click(); netLeave(); smashMenu(); });
 }
 /* ============================================================
-   FAMILY SMASH ONLINE — peer-to-peer rooms by 4-letter code.
+   FAMILY BRAWL ONLINE — peer-to-peer rooms by 4-letter code.
    No game server: phones find each other through public Nostr relays
    (trystero) and then talk directly over WebRTC. The room's host runs
    the fight; everyone else sends their buttons and sees the host's picture.
@@ -9729,9 +9797,9 @@ function netStartFight() {
   if (players.length < 2) { toast('Need at least 2 players in the room (people or computers).', 1800); return; }
   if (!arenaUnlocked(NET.arena)) NET.arena = newestArena();
   const itemsOn = progress.smashItems !== false;
-  const msg = { players: players, arena: NET.arena, items: itemsOn, teams: !!NET.teams, level: NET.level || 'medium' };
+  const msg = { players: players, arena: NET.arena, items: itemsOn, teams: !!NET.teams, level: NET.level || 'medium', speed: smashSpeedPick() };
   NET.send.start(msg);
-  playSmash({ players: players, online: { role: 'host', me: 0 }, arena: NET.arena, items: itemsOn, teams: !!NET.teams, level: NET.level || 'medium' });
+  playSmash({ players: players, online: { role: 'host', me: 0 }, arena: NET.arena, items: itemsOn, teams: !!NET.teams, level: NET.level || 'medium', speed: msg.speed });
   smash.netStart = msg;
 }
 function netClientStart(d) {
@@ -9739,7 +9807,7 @@ function netClientStart(d) {
   if (me < 0) return;
   if (NET.reconnect) { clearTimeout(NET.reconnect.timer); NET.reconnect = null; toast('📶 Back in the game!', 1500); }
   NET.jp = 0; NET.fp = 0; NET.lastIn = '';
-  playSmash({ players: d.players, online: { role: 'client', me: me }, arena: ARENAS[d.arena] ? d.arena : 0, items: d.items !== false, teams: !!d.teams, level: d.level });   /* the host's unlocks and items choice count for everyone */
+  playSmash({ players: d.players, online: { role: 'client', me: me }, arena: ARENAS[d.arena] ? d.arena : 0, items: d.items !== false, teams: !!d.teams, level: d.level, speed: d.speed });   /* the host's unlocks, items and speed count for everyone */
 }
 function netApplyInput(d, id) {
   const f = smash.fighters.filter((o) => o.peer === id)[0];
@@ -9867,8 +9935,9 @@ function smashClientTick() {
   if (input.atkBuf > 0) { NET.ap = (NET.ap || 0) + 1; input.atkBuf = 0; }
   /* between pictures from the host, keep things moving smoothly */
   if (frame - S.lastSnap < 12) {
-    S.fighters.forEach((o) => { if (!o.out && o.ko === 0) { o.x += o.vx; o.y += o.vy; if (!o.onGround) o.vy = Math.min(MAX_FALL, o.vy + GRAV_FALL); if (Math.abs(o.vx) > 0.4 && o.onGround) o.anim += Math.abs(o.vx) * 0.045; } });
-    S.shots.forEach((s) => { s.x += s.vx; s.y += s.vy; });
+    const r = S.rate || 1;   /* at the host's speed */
+    S.fighters.forEach((o) => { if (!o.out && o.ko === 0) { o.x += o.vx * r; o.y += o.vy * r; if (!o.onGround) o.vy = Math.min(MAX_FALL, o.vy + GRAV_FALL * r); if (Math.abs(o.vx) > 0.4 && o.onGround) o.anim += Math.abs(o.vx) * 0.045 * r; } });
+    S.shots.forEach((s) => { s.x += s.vx * r; s.y += s.vy * r; });
   }
   smashFx();
   updateFx();
@@ -9906,7 +9975,7 @@ function smashClientEvent(m) {
 function smashOnlineScreen(prefill) {
   Music.play('title');
   showScreen(
-    '<p class="eyebrow">Family Smash · online</p>' +
+    '<p class="eyebrow">Family Brawl · online</p>' +
     '<h1 class="title"><span class="t2">Play with the family, anywhere</span></h1>' +
     '<p class="lede">One person taps <b>Make a room</b> and gets a 4-letter code. Everyone else taps <b>Join</b> and types it. Up to 5 in a fight. Everyone needs internet; the game\'s web address works on any phone, tablet or computer.</p>' +
     '<div class="btnrow"><button class="btn go" id="smMake" type="button">Make a room</button></div>' +
@@ -9943,7 +10012,7 @@ function refreshLobby() {
   if (NET.mode === 'kart') { refreshKartLobby(); return; }
   const box = $('#lobby');
   if (!box) return;
-  if (NET.status === 'error') { const code = NET.code, role = NET.role; lobbyErrorHTML(box, 'Family Smash', () => smashLobbyScreen(code, role), () => { netLeave(); smashMenu(); }); return; }
+  if (NET.status === 'error') { const code = NET.code, role = NET.role; lobbyErrorHTML(box, 'Family Brawl', () => smashLobbyScreen(code, role), () => { netLeave(); smashMenu(); }); return; }
   const link = location.origin + location.pathname + '?smash=' + (NET.code || '');
   const peers = netPeerList();
   const rows = ['<li><b style="color:' + SMASH_CHARS[NET.myWho].color + '">' + SMASH_CHARS[NET.myWho].name + '</b> · you' + (NET.role === 'host' ? ' · host' : '') + '</li>'].concat(peers.map((id) => {
@@ -9953,7 +10022,7 @@ function refreshLobby() {
   }));
   const n = peers.length + 1;
   box.innerHTML =
-    '<p class="eyebrow">Family Smash · ' + (NET.role === 'host' ? 'your room' : 'joined room') + '</p>' +
+    '<p class="eyebrow">Family Brawl · ' + (NET.role === 'host' ? 'your room' : 'joined room') + '</p>' +
     '<h1 class="title"><span class="t2">Room code</span><span class="t1 roomcode">' + (NET.code || '----').split('').join(' ') + '</span></h1>' +
     (NET.role === 'host' ? '<p class="tiny">Tell everyone the code, or send them the link:<br><span class="mono">' + escAttr(link) + '</span></p>' +
       '<div class="btnrow"><button class="btn" id="smShare" type="button">Share the link</button></div>' : '') +
@@ -9961,7 +10030,7 @@ function refreshLobby() {
     (NET.error ? '<p class="tiny" style="color:#ff6b6b">' + escAttr(NET.error) + '</p>' : '') +
     '<p class="eyebrow">In the room · ' + n + ' of ' + SMASH_MAX + '</p><ul class="credits" id="lobbyList">' + rows.join('') + '</ul>' +
     '<p class="tiny"><b>Your fighter</b></p><div class="pickgrid">' + SMASH_ORDER.map((w) => pickCard(w, NET.myWho, 'data-tag="net"')).join('') + '</div>' +
-    (NET.role === 'host' ? itemsRowHTML() +
+    (NET.role === 'host' ? itemsRowHTML() + speedRowHTML() +
       '<p class="tiny"><b>Computer players:</b> <button class="btn ghost small" type="button" id="netCpuLess">−</button> <b>' + (NET.cpuN || 0) + '</b> <button class="btn ghost small" type="button" id="netCpuMore">+</button></p>' +
       levelRowHTML(NET.level || 'medium') + teamsRowHTML(!!NET.teams) + arenaRowHTML(arenaUnlocked(NET.arena) ? NET.arena : (NET.arena = newestArena())) : '') +
     (NET.role === 'host' && startWhy(n + (NET.cpuN || 0)) ? '<p class="tiny why">' + startWhy(n + (NET.cpuN || 0)) + '</p>' : '') +
@@ -9974,7 +10043,7 @@ function refreshLobby() {
     refreshLobby();
   }));
   bindArenaRow(box, (i) => { NET.arena = i; });
-  bindItemsRow(box);
+  bindItemsRow(box); bindSpeedRow(box);
   bindLevelTeams(box, (l) => { NET.level = l; }, (t) => { NET.teams = t; });
   const cl = $('#netCpuLess', box), cm = $('#netCpuMore', box);
   if (cl) cl.addEventListener('click', () => { SFX.click(); NET.cpuN = Math.max(0, (NET.cpuN || 0) - 1); refreshLobby(); });
@@ -9982,9 +10051,9 @@ function refreshLobby() {
   const sh = $('#smShare');
   if (sh) sh.addEventListener('click', async () => {
     SFX.click();
-    const text = 'Family Smash! Join my room ' + NET.code + ': ' + link;
+    const text = 'Family Brawl! Join my room ' + NET.code + ': ' + link;
     try {
-      if (navigator.share) await navigator.share({ title: 'Family Smash', text: text, url: link });
+      if (navigator.share) await navigator.share({ title: 'Family Brawl', text: text, url: link });
       else { await navigator.clipboard.writeText(link); toast('Link copied! Paste it to the family.', 1800); }
     } catch (e) { /* cancelled */ }
   });
@@ -10921,7 +10990,7 @@ function kartUseItem(k) {
     if (K.online) kartNetEvent('item', { s: k.slot, it: it, x: Math.round(sh.x), y: Math.round(sh.y), a: Math.round(sh.a * 1000) / 1000, v: Math.round(sh.v * 100) / 100, tg: sh.target, id: sh.id });
   }
 }
-/* each family member's own special, like in Family Smash; candles fill the meter */
+/* each family member's own special, like in Family Brawl; candles fill the meter */
 const KART_SPECIALS = {
   kinan: { name: 'Party Popper Turbo', icon: '🎉' }, shad: { name: 'Construction Slam', icon: '🔨' }, chenoa: { name: 'Order Up!', icon: '🍽️' }, mom: { name: 'Laundry Lob', icon: '🧺' }, dad: { name: 'Hydro Vac', icon: '💨' }
 };
@@ -11440,7 +11509,7 @@ function kartResults(given) {
   const lb = $('#kLobby'); if (lb) lb.addEventListener('click', () => { SFX.click(); kartLobbyScreen(); });
   $('#kLeave').addEventListener('click', () => { SFX.click(); netLeave(); kartMenu(); });
 }
-/* ---- Family Kart online: the same rooms and codes as Family Smash (kept apart from Smash rooms).
+/* ---- Family Kart online: the same rooms and codes as Family Brawl (kept apart from Smash rooms).
    Every phone drives its own ride and tells the others where it is 20 times a second; the room's
    host also drives the computer racers, starts the race and decides when it is over. ---- */
 let kartFill = true;   /* the host fills the empty spots on the grid with computer drivers */
