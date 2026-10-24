@@ -753,9 +753,9 @@ const VO = {
     try {
       if (!VO.voices.length && window.speechSynthesis) VO.voices = speechSynthesis.getVoices() || [];
       const want = {
-        k: ['kid', 'junior', 'alex', 'daniel'], m: ['samantha', 'zira', 'victoria', 'female'],
-        c: ['karen', 'moira', 'samantha', 'female'], d: ['daniel', 'david', 'alex', 'male'],
-        s: ['alex', 'fred', 'daniel', 'male'], n: ['rishi', 'male'], b: ['male'], f: ['male'],
+        k: ['natural', 'kid', 'junior', 'alex', 'daniel'], m: ['natural', 'samantha', 'zira', 'victoria', 'female'],
+        c: ['natural', 'karen', 'moira', 'samantha', 'female'], d: ['natural', 'daniel', 'david', 'alex', 'male'],
+        s: ['natural', 'alex', 'fred', 'daniel', 'male'], n: ['natural', 'rishi', 'male'], b: ['male'], f: ['male'],
         lg: ['karen', 'female'], cd: ['daniel', 'male'], br: ['fred', 'male'], lj: ['male'],
         ps: ['david', 'male'], dz: ['rishi', 'male'], mech: ['fred', 'male']
       }[who] || ['male', 'female'];
@@ -770,9 +770,9 @@ const VO = {
     try {
       VO.loadClips();
       if (!AudioSys.on || !window.speechSynthesis) return;
-      const text = String(html || '').replace(/<[^>]+>/g, ' ').replace(/&[a-z#0-9]+;/gi, ' ').replace(/\s+/g, ' ').trim();
+      const text = String(html || '').replace(/<[^>]+>/g, ' ').replace(/&[a-z#0-9]+;/gi, ' ').replace(/[\uD83C-\uD83F][\uDC00-\uDFFF]/g, ' ').replace(/\s+/g, ' ').trim();
       if (!text) return;
-      const file = VO.clips && VO.clips[text];
+      const file = VO.clips && (VO.clips[html] || VO.clips[text]);
       if (file) {   /* the family's own recorded voice */
         if (!VO.audio) VO.audio = new Audio();
         VO.audio.src = 'vo/' + file;
