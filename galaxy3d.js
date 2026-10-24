@@ -695,11 +695,11 @@ function drawMike(m) {
     drawMesh(M.sph.spike, partAt(fr, Math.cos(a) * 2.6, 4.6 + Math.sin(k * 2.4) * 1.1, Math.sin(a) * 2.6, a, 1, 0.7), { tint: [0.32, 0.27, 0.38] });
   }
   for (let s = -1; s <= 1; s += 2) {
-    drawMesh(M.box.eyeW, partAt(fr, s * 1.15, 3.9 + bob, 2.75, 0, 1.7), { tint: [1, 1, 0.75] });
-    drawMesh(M.box.eyeB, partAt(fr, s * 1.2, 3.85 + bob, 2.95, 0, 1.2), { tint: [0.75, 0.1, 0.1] });
-    drawMesh(M.box.brow, partAt(fr, s * 1.2, 4.85 + bob, 2.7, s * -0.5, 1.5), { tint: [0.16, 0.12, 0.2] });
+    drawMesh(M.box.eyeW, partAt(fr, s * 1.15, 3.9 + bob, 3.15, 0, 1.7), { tint: [1, 1, 0.75] });
+    drawMesh(M.box.eyeB, partAt(fr, s * 1.2, 3.85 + bob, 3.38, 0, 1.2), { tint: [0.75, 0.1, 0.1] });
+    drawMesh(M.box.brow, partAt(fr, s * 1.2, 4.85 + bob, 3.1, s * -0.5, 1.5), { tint: [0.16, 0.12, 0.2] });
   }
-  drawMesh(M.box.mouth, partAt(fr, 0, 2.55 + bob, 2.85, 0, 1), { tint: [0.16, 0.1, 0.14] });
+  drawMesh(M.box.mouth, partAt(fr, 0, 2.55 + bob, 3.3, 0, 1), { tint: [0.16, 0.1, 0.14] });
 }
 /* ----------------------------------------------------------------------------
    particles + glow billboards
@@ -733,23 +733,28 @@ function billboardMat(pos, size) {
    ---------------------------------------------------------------------------- */
 const M = { sph: {}, box: {}, star: {}, ring: {}, quad: null };
 const TEX = {};
+function meshFromModel(name) {
+  const m = window.G3_MODELS && window.G3_MODELS[name];
+  return (m && m.v && m.v.length && m.i && m.i.length) ? uploadMesh(m.v, m.i) : null;
+}
 function buildMeshes() {
-  M.sph.head = meshSphere(1.02, 18, 12);
-  M.sph.hair = meshSphere(1.04, 16, 10);
-  M.sph.sprout = meshSphere(1.05, 14, 10);
-  M.sph.mike = meshSphere(3.3, 22, 14, (nx, ny) => { const v = 0.92 + 0.12 * Math.sin(nx * 7 + ny * 5); return [v, v, v]; });
-  M.sph.spike = meshSphere(0.85, 10, 8);
+  M.sph.head = meshFromModel('head') || meshSphere(1.02, 18, 12);
+  M.sph.hair = meshFromModel('hair') || meshSphere(1.04, 16, 10);
+  M.sph.sprout = meshFromModel('sproutBody') || meshSphere(1.05, 14, 10);
+  M.sph.mike = meshFromModel('mikeBody') || meshSphere(3.3, 22, 14, (nx, ny) => { const v = 0.92 + 0.12 * Math.sin(nx * 7 + ny * 5); return [v, v, v]; });
+  M.sph.spike = meshFromModel('rockSpike') || meshSphere(0.85, 10, 8);
   M.sph.leaves = meshSphere(2.3, 13, 9, (nx, ny) => { const v = 0.9 + 0.18 * Math.sin(nx * 5 + ny * 3); return [v, v, v]; });
   M.sph.moon = meshSphere(1, 22, 15);
-  M.box.leg = meshBox(0.55, 1.5, 0.6);
-  M.box.shoe = meshBox(0.62, 0.42, 1.0);
-  M.box.body = meshBox(1.5, 1.45, 0.95);
-  M.box.belt = meshBox(1.42, 0.3, 0.9);
-  M.box.arm = meshBox(0.42, 1.15, 0.5);
-  M.box.hand = meshBox(0.5, 0.5, 0.55);
-  M.box.eyeW = meshBox(0.34, 0.42, 0.16);
-  M.box.eyeB = meshBox(0.18, 0.22, 0.12);
-  M.box.smile = meshBox(0.5, 0.12, 0.1);
+  M.box.leg = meshFromModel('leg') || meshBox(0.55, 1.5, 0.6);
+  M.box.shoe = meshFromModel('shoe') || meshBox(0.62, 0.42, 1.0);
+  M.box.body = meshFromModel('torso') || meshBox(1.5, 1.45, 0.95);
+  M.box.belt = meshFromModel('belt') || meshBox(1.42, 0.3, 0.9);
+  M.box.arm = meshFromModel('arm') || meshBox(0.42, 1.15, 0.5);
+  M.box.hand = meshFromModel('hand') || meshBox(0.5, 0.5, 0.55);
+  M.box.eyeW = meshFromModel('eyeWhite') || meshBox(0.34, 0.42, 0.16);
+  M.box.eyeB = meshFromModel('eyePupil') || meshBox(0.18, 0.22, 0.12);
+  M.box.smile = meshFromModel('mouth') || meshBox(0.5, 0.12, 0.1);
+  M.box.leaf = meshFromModel('leaf') || meshBox(0.9, 0.22, 0.5);
   M.box.brow = meshBox(0.55, 0.16, 0.14);
   M.box.mouth = meshBox(1.1, 0.35, 0.12);
   M.box.leaf = meshBox(0.9, 0.22, 0.5);
@@ -767,7 +772,11 @@ function buildMeshes() {
   M.box.pillar = meshCylinder(0.85, 7, 12, [1, 1, 1]);
   M.sph.cap = meshSphere(1, 14, 9);
   M.sph.puff = meshSphere(1, 12, 8);
-  M.sph.canopy = meshSphere(1, 13, 9, (nx, ny) => { const v = 0.86 + 0.2 * Math.sin(nx * 5 + ny * 4); return [v, v, v]; });
+  M.sph.canopy = meshFromModel('canopy') || meshSphere(1, 13, 9, (nx, ny) => { const v = 0.86 + 0.2 * Math.sin(nx * 5 + ny * 4); return [v, v, v]; });
+  M.treeTrunk = meshFromModel('trunk') || M.box.pillar;
+  M.mushCap = meshFromModel('mushCap') || M.sph.cap;
+  M.boulder = meshFromModel('boulder') || M.sph.cap;
+  M.flowerHead = meshFromModel('flowerHead') || M.sph.cap;
 }
 function buildTextures() {
   const T2 = (size, fn, repeat) => {
@@ -1088,25 +1097,25 @@ function renderScene() {
     const fr = frameMat(p, up, Math.atan2(d.dir[0], d.dir[2]) + d.spin);
     const s = d.s;
     if (d.kind === 'tree') {
-      drawMesh(M.box.pillar, partAt(fr, 0, 3.5 * s, 0, 0, [1.15 * s, s, 1.15 * s]), { tex: TEX.wood });
+      drawMesh(M.treeTrunk, partAt(fr, 0, 3.5 * s, 0, 0, [1.15 * s, s, 1.15 * s]), { tex: TEX.wood });
       drawMesh(M.sph.canopy, partAt(fr, 0, 8.2 * s, 0, d.spin, [3.4 * s, 2.8 * s, 3.4 * s]), { tex: TEX.grass, tint: [0.62, 0.95, 0.7] });
       drawMesh(M.sph.canopy, partAt(fr, -2.2 * s, 6.6 * s, 1.4 * s, 0, [2.2 * s, 1.9 * s, 2.2 * s]), { tex: TEX.grass, tint: [0.55, 0.88, 0.62] });
       drawMesh(M.sph.canopy, partAt(fr, 2.4 * s, 6.9 * s, -1.3 * s, 0, [2.1 * s, 1.8 * s, 2.1 * s]), { tex: TEX.grass, tint: [0.7, 1, 0.78] });
     } else if (d.kind === 'flower') {
       drawMesh(M.box.stem, partAt(fr, 0, 0.8 * s, 0, 0, [0.8 * s, 1.1 * s, 0.8 * s]), { tint: [0.24, 0.55, 0.3] });
-      drawMesh(M.sph.cap, partAt(fr, 0, 1.75 * s, 0, SYS.time * 0.3, [0.72 * s, 0.45 * s, 0.72 * s]), { tint: d.tint || [1, 0.7, 0.8], emit: 0.08 });
+      drawMesh(M.flowerHead, partAt(fr, 0, 1.75 * s, 0, SYS.time * 0.3, [0.72 * s, 0.45 * s, 0.72 * s]), { tint: d.tint || [1, 0.7, 0.8], emit: 0.08 });
       drawMesh(M.sph.puff, partAt(fr, 0, 1.92 * s, 0, 0, [0.3 * s, 0.22 * s, 0.3 * s]), { tint: [1, 0.86, 0.35], emit: 0.15 });
     } else if (d.kind === 'tuft') {
       drawMesh(M.box.tuft, partAt(fr, 0, 0.55 * s, 0, d.spin, s), { tex: TEX.grass, tint: [0.85, 1.05, 0.85] });
     } else if (d.kind === 'mushroom') {
       drawMesh(M.box.stem, partAt(fr, 0, 0.75 * s, 0, 0, [1.1 * s, s, 1.1 * s]), { tint: [0.95, 0.88, 0.8] });
-      drawMesh(M.sph.cap, partAt(fr, 0, 1.8 * s, 0, d.spin, [1.55 * s, 0.85 * s, 1.55 * s]), { tint: d.tint || [1, 0.45, 0.42] });
+      drawMesh(M.mushCap, partAt(fr, 0, 1.8 * s, 0, d.spin, [1.55 * s, 0.85 * s, 1.55 * s]), { tint: d.tint || [1, 0.45, 0.42] });
       drawMesh(M.sph.puff, partAt(fr, 0, 2.1 * s, 0, 0, [0.55 * s, 0.3 * s, 0.55 * s]), { tint: [1, 0.93, 0.86] });
     } else if (d.kind === 'crystal') {
       drawMesh(M.crystal, partAt(fr, 0, 1.25 * s, 0, d.spin, [0.9 * s, 1.15 * s, 0.9 * s]), { tint: d.tint || [0.72, 0.88, 1], emit: 0.32 });
       drawSprite(M.quad, TEX.glow, billboardMat(V3.add(p, V3.scale(up, 1.5 * s)), 5.2 * s), { alpha: 0.28, tint: d.tint || [0.7, 0.85, 1] });
     } else {
-      drawMesh(M.sph.cap, partAt(fr, 0, 0.75 * s, 0, d.spin, [1.7 * s, 1.1 * s, 1.5 * s], 0.5), { tex: TEX.stone, tint: [0.85, 0.82, 0.95] });
+      drawMesh(M.boulder, partAt(fr, 0, 0.75 * s, 0, d.spin, [1.7 * s, 1.1 * s, 1.5 * s], 0.5), { tex: TEX.stone, tint: [0.85, 0.82, 0.95] });
     }
   }
   /* the built world: garden gate, Launch Star shrines, the pond, the old ruins, the stone path */
