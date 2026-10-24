@@ -1916,6 +1916,7 @@ function loadProgress() {
   out.buzz = p.buzz !== false; out.kartTilt = p.kartTilt === true;
   out.smashSpeed = ['relaxed', 'normal', 'fast'].indexOf(p.smashSpeed) >= 0 ? p.smashSpeed : 'normal';
   out.codes = Array.isArray(p.codes) ? p.codes.map(Number).filter((n) => n >= 2 && n <= 11) : [];
+  out.creatorUntil = Math.floor(Number(p.creatorUntil)) || 0;   /* the creator's one-hour pass */
   out.wonWorlds = Array.isArray(p.wonWorlds) ? p.wonWorlds.map(Number).filter((n) => n >= 2 && n <= 11) : [];
   out.builds = Array.isArray(p.builds) ? p.builds.filter(bNorm).slice(0, 50) : [];
   if (!out.mapSeen || typeof out.mapSeen !== 'object') out.mapSeen = {};
@@ -6017,14 +6018,27 @@ const CODE_SALT = '38c60e5665866a0e';
 const CODE_HASH = {'2': '9ad410626f9342abc9682aec5aa5e01d6092ccb2d00b216ca8e8e56f191acbdb', '3': '2cc4446b83762f35763d948917db7518994a710291fd78f559ffb370bb1fdf09', '4': 'cd961045d7d2a30a4e590a3f2998e9b52f7931c3822b33e4d56567ef6e4a8fae', '5': '26bb21be1bec703f8ac1e2cd2b273bcadfa35c2aadbe708b84c32be340d10dba', '6': '8a20c57f7f6150912709d8a4d745f4330114d60a01deacc4268bf201f777f6f9', '7': '99f2c87e392edb24489bcecc48a065cf857a70f7a7412410f00c1f72b0babbb2', '8': '42650263170026ab707abd47791545eb75ab75d832f45d42a3542b10db757560', '9': '8ca4b0034588262258e6209e44e9f3e5a7d6ec5cc581c01eac7d04f42c5c8512', '10': 'e91ae5fd91428cd7c323dd3481612276a7a26113fc9b5e128dec8cbb8da042bf', '11': 'e69c5eeadaa728ec6e6c67b9ec066aac7babfc18030d0f6e7b05291d67e0d282'};
 const worldOf = (i) => { let n = 1; for (const w of WORLDS) if (!w.soon && i >= w.from) n = w.n; return n; };
 const worldInfo = (i) => WORLDS[worldOf(i) - 1];
+/* the creator's pass: ?creator=SHAD unlocks every world and stage for one hour,
+   then the game quietly re-locks to what was actually earned. ?creator=off ends it early. */
+let creatorChecked = false;
+function creatorActive() {
+  if (!creatorChecked) {
+    creatorChecked = true;
+    if (/[?&]creator=off/i.test(location.search)) progress.creatorUntil = 0;
+    else if (/[?&]creator=shad/i.test(location.search)) progress.creatorUntil = Date.now() + 60 * 60 * 1000;
+    if (typeof save === 'function') save();
+  }
+  return (progress.creatorUntil || 0) > Date.now();
+}
 function worldBeaten(n) { return n === 1 ? !!progress.won : (progress.wonWorlds || []).indexOf(n) >= 0; }
 function worldOpen(n) {
+  if (creatorActive()) return true;
   const w = WORLDS[n - 1];
   if (!w || w.soon) return false;
   if (w.sneak) return worldBeaten(5);   /* the World 6 sneak peek opens by itself once World 5 is beaten */
   return n === 1 || ((progress.codes || []).indexOf(n) >= 0 && worldBeaten(n - 1));
 }
-function stageOpen(i) { return !!LV[i] && i < progress.unlocked && worldOpen(worldOf(i)); }
+function stageOpen(i) { return !!LV[i] && (creatorActive() || (i < progress.unlocked && worldOpen(worldOf(i)))); }
 /* a world that just opened: its first stage is ready to play */
 function refreshWorlds() { WORLDS.forEach((w) => { if (w.n > 1 && worldOpen(w.n)) progress.unlocked = Math.max(progress.unlocked, w.from + 1); }); }
 function stageNum(i) { return i - worldInfo(i).from + 1; }
