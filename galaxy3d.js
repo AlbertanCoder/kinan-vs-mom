@@ -740,7 +740,7 @@ function drawKinan3D(pos, up, face, o) {
   }
   /* head: hair, face, eyes, smile */
   drawMesh(M.sph.head, partAt(fr, 0, 3.86 * st + bob, 0, 0, [sq * 1.06, st, sq * 1.02]), { tint: skin });
-  drawMesh(M.sph.hair, partAt(fr, 0, 4.16 * st + bob, -0.06, 0, [sq * 1.1, 0.8, sq * 1.05]), { tint: hair });
+  drawMesh(M.sph.hair, partAt(fr, 0, 4.32 * st + bob, -0.08, 0, [sq * 1.2, 1.55, sq * 1.16]), { tint: hair });
   for (let s = -1; s <= 1; s += 2) {
     drawMesh(M.box.eyeW, partAt(fr, s * 0.30, 3.96 * st + bob, 0.86, 0, 1), { tint: [1, 1, 1] });
     drawMesh(M.box.eyeB, partAt(fr, s * 0.32, 3.95 * st + bob, 0.98, 0, 1), { tint: [0.1, 0.1, 0.14] });
