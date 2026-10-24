@@ -945,8 +945,16 @@ function buildTextures() {
   TEX.grass = T2(256, (x, s) => {
     const r = seeded(1234);
     const gg = x.createLinearGradient(0, 0, s, s);
-    gg.addColorStop(0, '#37c96e'); gg.addColorStop(0.5, '#2eb562'); gg.addColorStop(1, '#45d97c');
+    gg.addColorStop(0, '#43d97a'); gg.addColorStop(0.5, '#2fbb63'); gg.addColorStop(1, '#57e88c');
     x.fillStyle = gg; x.fillRect(0, 0, s, s);
+    for (let k = 0; k < 16; k++) {   /* big painted sun/shade patches — the Galaxy lawn look */
+      const px = r() * s, py = r() * s, pr = 26 + r() * 46;
+      const mg = x.createRadialGradient(px, py, 0, px, py, pr);
+      const light = k % 2 === 0;
+      mg.addColorStop(0, light ? 'rgba(150,240,170,0.5)' : 'rgba(20,120,70,0.42)');
+      mg.addColorStop(1, light ? 'rgba(150,240,170,0)' : 'rgba(20,120,70,0)');
+      x.fillStyle = mg; x.fillRect(px - pr, py - pr, pr * 2, pr * 2);
+    }
     strokes(x, s, ['#1c9450', '#63f0a2', '#2bb066', '#8cffb8'], 500, 11, r, 2.4);
     speckle(x, s, ['#eafbe9', '#2e8a52'], 240, r, 1.4);
     for (let k = 0; k < 26; k++) {   /* little flowers painted right into the turf */
@@ -1124,6 +1132,12 @@ function buildLevel() {
     const a = rnd() * Math.PI * 2, e = (rnd() - 0.4) * 1.35;
     dpush('tree', home, [Math.cos(a) * Math.cos(e), Math.sin(e), Math.sin(a) * Math.cos(e)], null, 0.85 + rnd() * 0.7);
   }
+  /* the flower beds: dense colorful drifts, like the real Galaxy gardens */
+  for (let k = 0; k < 34; k++) {
+    const a = rnd() * Math.PI * 2, e = (rnd() - 0.5) * 1.5;
+    const dir = V3.norm([Math.cos(a) * Math.cos(e), Math.sin(e), Math.sin(a) * Math.cos(e)]);
+    dpush('bed', home, dir, [[1, 0.85, 0.25], [1, 0.55, 0.7], [0.95, 0.95, 1], [0.75, 0.55, 1], [1, 0.6, 0.35]][k % 5], 0.8 + rnd() * 0.9);
+  }
   for (let k = 0; k < 26; k++) {
     const a = rnd() * Math.PI * 2, e = (rnd() - 0.45) * 1.55;
     dpush('mushroom', home, [Math.cos(a) * Math.cos(e), Math.sin(e), Math.sin(a) * Math.cos(e)], [1, 0.45, 0.42], 0.7 + rnd() * 0.8);
@@ -1257,9 +1271,26 @@ function renderScene() {
       drawMesh(M.sph.canopy, partAt(fr, 1.15 * s, 1.1 * s, 0.7 * s, 0, [1.05 * s, 0.82 * s, 1.05 * s]), { tex: TEX.grass, tint: [0.52, 0.92, 0.6] });
       drawMesh(M.sph.canopy, partAt(fr, -1.2 * s, 1.15 * s, -0.65 * s, 0, [0.95 * s, 0.78 * s, 0.95 * s]), { tex: TEX.grass, tint: [0.68, 1.05, 0.72] });
     } else if (d.kind === 'flower') {
+      drawShadow(p, up, 1.1 * s, 0.2);
       drawMesh(M.box.stem, partAt(fr, 0, 0.8 * s, 0, 0, [0.8 * s, 1.1 * s, 0.8 * s]), { tint: [0.24, 0.55, 0.3] });
       drawMesh(M.flowerHead, partAt(fr, 0, 1.75 * s, 0, SYS.time * 0.3, [0.72 * s, 0.45 * s, 0.72 * s]), { tint: d.tint || [1, 0.7, 0.8], emit: 0.08 });
       drawMesh(M.sph.puff, partAt(fr, 0, 1.92 * s, 0, 0, [0.3 * s, 0.22 * s, 0.3 * s]), { tint: [1, 0.86, 0.35], emit: 0.15 });
+    } else if (d.kind === 'bed') {
+      /* a dense drift of blossoms */
+      drawShadow(p, up, 2.1 * s, 0.2);
+      const sideW = V3.norm(V3.cross(up, d.dir));
+      const fwd2 = V3.norm(V3.cross(up, sideW));
+      for (let q = 0; q < 11; q++) {
+        const a = q * 2.4, r2 = (q % 4) * 0.62 * s;
+        const off = V3.add(V3.scale(sideW, Math.cos(a) * r2), V3.scale(fwd2, Math.sin(a) * r2));
+        const h = (0.55 + (q % 3) * 0.22) * s;
+        const fm = frameMat(V3.add(p, off), up, a);
+        drawMesh(M.box.stem, M4.mul(fm, M4.trs([0, h * 0.7, 0], 0, [0.3 * s, h, 0.3 * s])), { tint: [0.24, 0.55, 0.3] });
+        drawMesh(M.flowerHead, M4.mul(fm, M4.trs([0, h * 1.35, 0], SYS.time * 0.25 + q, [0.34 * s, 0.22 * s, 0.34 * s])), { tint: d.tint || [1, 0.75, 0.3], emit: 0.08 });
+      }
+      for (let q = 0; q < 3; q++) {
+        drawMesh(M.sph.canopy, M4.mul(fr, M4.trs([(q - 1) * 1.1 * s, 0.4 * s, ((q * 7) % 3 - 1) * 0.9 * s], 0, [0.7 * s, 0.38 * s, 0.7 * s])), { tex: TEX.grass, tint: [0.55, 0.95, 0.62] });
+      }
     } else if (d.kind === 'tuft') {
       drawMesh(M.box.tuft, partAt(fr, 0, 0.55 * s, 0, d.spin, s), { tex: TEX.grass, tint: [0.85, 1.05, 0.85] });
     } else if (d.kind === 'mushroom') {
@@ -1319,17 +1350,22 @@ function renderScene() {
       }
       drawMesh(M.box.body, partAt(fr, -0.4 * s, 7.3 * s, 0, 0, [7.4 * s, 1.05 * s, 1.9 * s], 0, 0.06), { tex: TEX.stone, tint: [0.95, 0.92, 1] });
     } else if (d.kind === 'tower') {
-      /* the white beacon tower from the concept art */
+      /* the white beacon tower: framed windows, base molding, gold beacon */
+      drawMesh(M.box.body, partAt(fr, 0, 1.1 * s, 0, 0, [3.6 * s, 0.55 * s, 3.6 * s]), { tex: TEX.stone, tint: [1.12, 1.12, 1.2] });
       drawMesh(M.box.pillar, partAt(fr, 0, 20 * s, 0, 0, [3.3 * s, 5.8 * s, 3.3 * s]), { tex: TEX.stone, tint: [1.1, 1.1, 1.16] });
       drawMesh(M.box.body, partAt(fr, 0, 41.5 * s, 0, 0, [3.9 * s, 1.1 * s, 3.9 * s]), { tex: TEX.stone, tint: [0.88, 0.9, 1] });
       for (let q = 0; q < 2; q++) {
-        drawMesh(M.box.eyeW, partAt(fr, 0, (16 + q * 15) * s, 2.85 * s, 0, [1.3 * s, 1.9 * s, 0.5 * s]), { tint: [0.36, 0.46, 0.72] });
+        /* white frame, blue pane, and the cross-bar muntins */
+        drawMesh(M.box.body, partAt(fr, 0, (16 + q * 15) * s, 2.72 * s, 0, [2.0 * s, 2.7 * s, 0.4 * s]), { tex: TEX.stone, tint: [1.14, 1.14, 1.22] });
+        drawMesh(M.box.eyeW, partAt(fr, 0, (16 + q * 15) * s, 2.95 * s, 0, [1.3 * s, 1.9 * s, 0.5 * s]), { tint: [0.3, 0.42, 0.68] });
+        drawMesh(M.box.eyeW, partAt(fr, 0, (16 + q * 15) * s, 3.12 * s, 0, [0.15 * s, 1.9 * s, 0.3 * s]), { tint: [1.15, 1.15, 1.22] });
+        drawMesh(M.box.eyeW, partAt(fr, 0, (16 + q * 15) * s, 3.12 * s, 0, [1.3 * s, 0.15 * s, 0.3 * s]), { tint: [1.15, 1.15, 1.22] });
       }
       drawMesh(M.ring.gold, M4.mul(fr, M4.trs([0, 45 * s, 0], 0, [1.7 * s, 1, 1.7 * s])), { emit: 0.4 });
       drawMesh(M.star.power, M4.mul(fr, M4.trs([0, 51 * s, 0], SYS.time * 0.7, [0.36 * s, 0.36 * s, 0.36 * s])), { emit: 0.6 });
       drawSprite(M.quad, TEX.glow, billboardMat(V3.add(p, V3.scale(up, 51 * s)), 22 * s), { alpha: 0.5, tint: [1, 0.92, 0.55] });
     } else if (d.kind === 'path') {
-      drawMesh(M.box.step, partAt(fr, 0, 0.26 * s, 0, d.spin * 4, [s, 0.8 * s, s]), { tex: TEX.stone, tint: [1.08, 1.04, 0.94] });
+      drawMesh(M.box.step, partAt(fr, 0, 0.26 * s, 0, d.spin * 4, [s, 0.8 * s, s]), { tex: TEX.stone, tint: [1.32, 1.0, 0.66] });
     }
   }
   /* Launch Stars: a golden pad and a floating, spinning star */
