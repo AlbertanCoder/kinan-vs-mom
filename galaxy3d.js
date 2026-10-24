@@ -461,6 +461,7 @@ function drawSprite(mesh, tex, model, opts) {
    ---------------------------------------------------------------------------- */
 const IN = {
   keys: {}, move: [0, 0], jump: false, jumpHeld: false, camX: 0,
+  spin: false, spinBuf: 0, crouch: false, crouchBuf: 0, camIdle: 0,
   touch: { stickId: -1, ox: 0, oy: 0, x: 0, y: 0, camId: -1, cx: 0, cy: 0 }
 };
 function inKey(e, down) {
@@ -468,6 +469,8 @@ function inKey(e, down) {
   IN.keys[k] = down;
   if (k === ' ' || k === 'arrowup' || k === 'arrowdown' || k === 'arrowleft' || k === 'arrowright') e.preventDefault();
   if (k === ' ') { IN.jump = down; IN.jumpHeld = down; }
+  if (k === 'shift') { IN.spin = down; if (down) IN.spinBuf = 8; }
+  if (k === 'c' || k === 'control') { IN.crouch = down; if (down) IN.crouchBuf = 8; }
 }
 function inTick() {
   const k = IN.keys;
@@ -476,8 +479,8 @@ function inTick() {
   if (k['d'] || k['arrowright']) x += 1;
   if (k['w'] || k['arrowup']) y += 1;
   if (k['s'] || k['arrowdown']) y -= 1;
-  if (k['q']) IN.camX -= 0.045;
-  if (k['e']) IN.camX += 0.045;
+  if (k['q']) { IN.camX -= 0.045; IN.camIdle = 0; }
+  if (k['e']) { IN.camX += 0.045; IN.camIdle = 0; }
   const t = IN.touch;
   if (t.stickId >= 0) {
     x += clamp((t.x - t.ox) / 44, -1, 1);
@@ -486,6 +489,9 @@ function inTick() {
   const l = Math.sqrt(x * x + y * y);
   if (l > 1) { x /= l; y /= l; }
   IN.move = [x, y];
+  if (IN.spinBuf > 0) IN.spinBuf--;
+  if (IN.crouchBuf > 0) IN.crouchBuf--;
+  IN.camIdle++;
 }
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 
@@ -514,9 +520,10 @@ function nearestPlanet(p, maxAdd) {
 const PLAYER = {
   pos: [0, 60, 0], vel: [0, 0, 0], up: [0, 1, 0], face: 0, faceTarget: 0,
   planet: null, grounded: false, coyote: 0, jumpT: 0, hp: 3, inv: 0,
-  anim: 0, squash: 0, stretch: 0, flight: null, deadT: 0, heartsLost: 0
+  anim: 0, squash: 0, stretch: 0, flight: null, deadT: 0, heartsLost: 0,
+  spinT: 0, spinCd: 0, poundT: 0, crouching: false, jumpBuf: 0, skid: 0
 };
-const GRAV3 = 42, JUMP3 = 21, RUN3 = 15;
+const GRAV3 = 38, JUMP3 = 23, RUN3 = 16.5;
 function playerPhysics(dt) {
   const P = PLAYER;
   if (P.flight) {   /* riding a Launch Star: a scripted arc to the target moonlet */
@@ -546,34 +553,68 @@ function playerPhysics(dt) {
   const toC = V3.sub(pl.c, P.pos), dist = V3.len(toC);
   P.up = V3.scale(toC, -1 / (dist || 1));
   P.vel = V3.add(P.vel, V3.scale(P.up, -GRAV3 * dt));
-  /* walk: input in the camera's tangent plane */
+  /* walk: input in the camera's tangent plane — snappy, like a console platformer */
   const fwd = V3.norm(V3.cross(P.up, V3.cross(camDir(), P.up)));
   const right = V3.norm(V3.cross(P.up, fwd));
   const wish = V3.add(V3.scale(right, IN.move[0]), V3.scale(fwd, IN.move[1]));
   const wishLen = V3.len(wish);
+  const crouching = P.grounded && (IN.crouch || IN.crouchBuf > 0) && !P.flight;
+  P.crouching = crouching && P.spinT <= 0;
   if (wishLen > 0.05) {
     P.faceTarget = Math.atan2(wish[0], wish[2]);
-    const accel = P.grounded ? 12 : 5;
+    const accel = P.grounded ? 18 : 9;
+    const max = RUN3 * (P.crouching ? 0.35 : 1);
     const tangentVel = V3.sub(P.vel, V3.scale(P.up, V3.dot(P.vel, P.up)));
-    const target = V3.scale(wish, RUN3);
+    const target = V3.scale(wish, Math.min(RUN3, max));
     let tv = V3.lerp(tangentVel, target, Math.min(1, accel * dt));
     if (V3.len(tv) > RUN3) tv = V3.scale(V3.norm(tv), RUN3);
+    /* a skid when turning hard at speed */
+    if (P.grounded && V3.len(tangentVel) > RUN3 * 0.7 && V3.dot(V3.norm(tangentVel), V3.norm(target)) < -0.25) {
+      if (P.skid <= 0) { P.skid = 8; if (G3.sfx) G3.sfx('skid'); dustBurst(P.pos, P.up, 3); }
+    }
     P.vel = V3.add(tv, V3.scale(P.up, V3.dot(P.vel, P.up)));
   } else if (P.grounded) {
     const tangentVel = V3.sub(P.vel, V3.scale(P.up, V3.dot(P.vel, P.up)));
-    P.vel = V3.add(V3.scale(tangentVel, Math.max(0, 1 - 9 * dt)), V3.scale(P.up, V3.dot(P.vel, P.up)));
+    P.vel = V3.add(V3.scale(tangentVel, Math.max(0, 1 - 11 * dt)), V3.scale(P.up, V3.dot(P.vel, P.up)));
   }
-  /* jump */
-  if (IN.jump && (P.grounded || P.coyote > 0)) {
-    P.vel = V3.add(V3.sub(P.vel, V3.scale(P.up, V3.dot(P.vel, P.up))), V3.scale(P.up, JUMP3));
-    P.grounded = false; P.coyote = 0; P.jumpT = 0; P.stretch = 8;
+  if (P.skid > 0) P.skid--;
+  /* jump: with buffering, coyote time, a crouch-leap and the ground pound */
+  if (IN.jump) P.jumpBuf = 8;
+  if (P.jumpBuf > 0) P.jumpBuf--;
+  if (IN.crouchBuf > 0 && !P.grounded && P.poundT <= 0 && P.jumpT > 6 && P.spinT <= 0) {
+    P.poundT = 1; IN.crouchBuf = 0;   /* tap crouch in the air: GROUND POUND */
+    P.vel = V3.add(V3.sub(P.vel, V3.scale(P.up, V3.dot(P.vel, P.up))), V3.scale(P.up, -22));
+    if (G3.sfx) G3.sfx('pound');
+  }
+  if (P.jumpBuf > 0 && (P.grounded || P.coyote > 0) && P.spinT <= 0) {
+    const jumpUp = crouching ? 15 : JUMP3;
+    P.vel = V3.add(V3.sub(P.vel, V3.scale(P.up, V3.dot(P.vel, P.up))), V3.scale(P.up, jumpUp));
+    if (crouching && wishLen > 0.05) {
+      /* the long leap: crouch + jump + a direction */
+      P.vel = V3.add(P.vel, V3.scale(V3.norm(wish), RUN3 * 1.15));
+      P.stretch = 12;
+    }
+    P.grounded = false; P.coyote = 0; P.jumpBuf = 0; P.jumpT = 0; P.poundT = 0;
+    if (!crouching) P.stretch = 8;
     if (G3.sfx) G3.sfx('jump');
-    burst(P.pos, '#ffffff', 6);
+    dustBurst(P.pos, P.up, 4);
   }
-  if (IN.jumpHeld && P.vel && V3.dot(P.vel, P.up) > 0 && P.jumpT < 0.22) {
-    P.vel = V3.add(P.vel, V3.scale(P.up, 26 * dt));   /* hold = higher */
+  if (IN.jumpHeld && P.vel && V3.dot(P.vel, P.up) > 0 && P.jumpT < 0.30) {
+    P.vel = V3.add(P.vel, V3.scale(P.up, 30 * dt));   /* hold = higher */
   }
   if (P.jumpT != null) P.jumpT += dt;
+  /* the SPIN — Galaxy's signature move: a burst of twirl on the ground or in the air */
+  if (P.spinCd > 0) P.spinCd -= dt;
+  if (IN.spinBuf > 0 && P.spinCd <= 0 && P.spinT <= 0 && P.poundT <= 0) {
+    IN.spinBuf = 0;
+    P.spinT = 0.42;
+    P.spinCd = 0.55;
+    if (!P.grounded) P.vel = V3.add(P.vel, V3.scale(P.up, 3.4));   /* a little mid-air lift */
+    if (G3.sfx) G3.sfx('spin');
+    burst(P.pos, '#ffe36b', 9);
+    dustBurst(P.pos, P.up, 3);
+  }
+  if (P.spinT > 0) P.spinT -= dt;
   /* fly */
   P.pos = V3.add(P.pos, V3.scale(P.vel, dt));
   /* land on the planet's surface */
@@ -586,7 +627,31 @@ function playerPhysics(dt) {
     if (radial < 0) P.vel = V3.sub(P.vel, V3.scale(n, radial));
     P.grounded = true;
     P.coyote = 0.12;
-    if (!wasGround) { P.squash = 6; burst(P.pos, 'rgba(255,255,255,.7)', 4); }
+    if (!wasGround) {
+      P.squash = 6; burst(P.pos, 'rgba(255,255,255,.7)', 4);
+      if (P.poundT > 0) {
+        /* the ground pound lands: a ring of dust, squashed sprouts, a stunned boss */
+        P.poundT = 0;
+        P.squash = 12;
+        G3.shake = 1;
+        if (G3.sfx) G3.sfx('pound');
+        dustBurst(P.pos, P.up, 14);
+        burst(P.pos, '#fff', 12);
+        for (const e of SYS.sprouts) {
+          if (!e.dead && V3.len(V3.sub(e.pos, P.pos)) < 9) {
+            e.dead = 0.001;
+            burst(e.pos, '#9ff08a', 10);
+            if (G3.sfx) G3.sfx('stomp');
+          }
+        }
+        const m = SYS.mike;
+        if (m && m.state !== 'gone' && m.state !== 'sleep' && V3.len(V3.sub(m.pos, P.pos)) < 14) {
+          m.state = 'rest'; m.t = -1; m.hurt = 0.6;
+          if (G3.sfx) G3.sfx('boom');
+          hudToast('BOOM! He is stunned — <b>stomp</b> him!');
+        }
+      }
+    }
   } else {
     P.grounded = false;
     P.coyote = Math.max(0, P.coyote - dt);
@@ -615,6 +680,17 @@ function camStep(dt) {
   if (V3.len(d) < 0.08) d = V3.cross(up, [0, 1, 0]);
   if (V3.len(d) < 0.08) d = V3.cross(up, [1, 0, 0]);
   CAM.dir = V3.norm(d);
+  /* when Kinan runs, the camera drifts behind him — the Galaxy follow */
+  const tv = V3.sub(P.vel, V3.scale(P.up, V3.dot(P.vel, P.up)));
+  const spd = V3.len(tv);
+  if (spd > 6 && IN.camIdle > 50 && P.grounded) {
+    const mv = V3.norm(tv);
+    const want = V3.norm(V3.lerp(CAM.dir, mv, Math.min(1, dt * 1.3)));
+    CAM.dir = V3.norm(V3.sub(want, V3.scale(up, V3.dot(want, up))));
+  }
+  /* speed makes the lens breathe wider — motion feels faster */
+  const fovT = 0.92 + Math.min(0.24, (spd / RUN3) * 0.24) + (P.poundT > 0 ? 0.1 : 0);
+  CAM.fov += (fovT - CAM.fov) * Math.min(1, dt * 3);
   const want = V3.add(V3.sub(P.pos, V3.scale(CAM.dir, 15)), V3.scale(up, 7.5));
   CAM.pos = V3.lerp(CAM.pos, want, Math.min(1, dt * 4.5));
   CAM.up = V3.norm(V3.lerp(CAM.up, up, Math.min(1, dt * 4.5)));
@@ -643,8 +719,8 @@ function partAt(frame, x, y, z, ry, s, rx, rz) {
 /* Kinan: big expressive head, red shirt, jeans — built to be read from far away */
 function drawKinan3D(pos, up, face, o) {
   o = o || {};
-  const fr = frameMat(pos, up, face);
-  const walk = o.walk || 0, air = o.air || 0, sq = 1 + (o.squash || 0) * 0.02, st = 1 + (o.stretch || 0) * 0.015;
+  const fr = frameMat(pos, up, face + (o.spin || 0));
+  const walk = o.walk || 0, air = o.air || 0, sq = 1 + (o.squash || 0) * 0.02, st = (1 + (o.stretch || 0) * 0.015) * (o.crouch ? 0.66 : 1);
   const swing = Math.sin(walk) * (air ? 0.2 : 0.65), bob = Math.abs(Math.sin(walk)) * (air ? 0 : 0.12);
   const skin = [1.0, 0.83, 0.66], shirt = [0.92, 0.26, 0.24], jeans = [0.24, 0.36, 0.66], hair = [0.28, 0.19, 0.12];
   /* shoes + legs */
@@ -710,6 +786,19 @@ function burst(pos, color, n) {
     SYS.particles.push({
       p: pos.slice(), v: V3.scale(V3.norm(v), 4 + Math.random() * 7),
       life: 0.55 + Math.random() * 0.45, size: 0.5 + Math.random() * 0.7, color: color
+    });
+  }
+}
+function dustBurst(pos, up, n) {
+  for (let k = 0; k < n; k++) {
+    const a = Math.random() * 6.28;
+    let t = V3.cross(up, [Math.cos(a), 0, Math.sin(a)]);
+    if (V3.len(t) < 0.1) t = V3.cross(up, [1, 0, 0]);
+    t = V3.norm(t);
+    SYS.particles.push({
+      p: pos.slice(),
+      v: V3.add(V3.scale(t, 1.6 + Math.random() * 2), V3.scale(V3.norm(up), 0.5 + Math.random())),
+      life: 0.35 + Math.random() * 0.3, size: 0.9 + Math.random() * 1.1, color: 'rgba(255,255,255,.85)'
     });
   }
 }
@@ -1208,7 +1297,8 @@ function renderScene() {
   if (!blink) {
     drawKinan3D(P.pos, P.up, P.face, {
       walk: P.anim, air: P.grounded ? 0 : 1,
-      squash: P.squash, stretch: P.stretch
+      squash: P.squash, stretch: P.stretch, crouch: P.crouching,
+      spin: P.spinT > 0 ? (0.42 - P.spinT) * 17 : 0
     });
   }
   /* particles as soft glows */
@@ -1261,6 +1351,12 @@ function levelTick(dt) {
     e.dir = rotAxis(e.dir, [0, 1, 0], 0.22 * dt);
     e.pos = onSphere(e.planet, e.dir, 0);
     e.face = Math.atan2(e.dir[0], e.dir[2]);
+    if (P.spinT > 0 && V3.len(V3.sub(e.pos, P.pos)) < 5.2) {   /* the spin flattens them */
+      e.dead = 0.001;
+      burst(e.pos, '#9ff08a', 12);
+      if (G3.sfx) G3.sfx('stomp');
+      continue;
+    }
     const d = V3.len(V3.sub(P.pos, e.pos));
     if (d < 3.1 && P.inv <= 0) {
       const upE = V3.norm(e.dir);
@@ -1298,7 +1394,9 @@ function levelTick(dt) {
   /* star bits */
   for (const b of SYS.bits) {
     if (b.taken) continue;
-    if (V3.len(V3.sub(P.pos, b.p)) < 3.2) {
+    const db = V3.len(V3.sub(P.pos, b.p));
+    if (db < 8) b.p = V3.lerp(b.p, P.pos, 0.14);   /* they drift in — star bits want to be caught */
+    if (db < 3.2) {
       b.taken = true;
       G3.bits += 1;
       burst(b.p, '#ffe36b', 5);
@@ -1625,21 +1723,29 @@ function bindControls() {
 }
 function buildJumpBtn() {
   if (G3.jumpBtn || !('ontouchstart' in window)) return;
-  const b = document.createElement('button');
-  b.type = 'button';
-  b.setAttribute('aria-label', 'Jump');
-  b.textContent = 'JUMP';
-  b.style.cssText = 'position:absolute;right:16px;bottom:16px;width:clamp(70px,13vmin,110px);height:clamp(70px,13vmin,110px);'
-    + 'border-radius:50%;border:3px solid #f4f1e8;background:#f6c445;color:#0b0d20;z-index:7;touch-action:none;'
-    + 'font:700 18px "Pixelify Sans",ui-monospace,monospace;box-shadow:0 3px 0 rgba(0,0,0,.4)';
-  const on = (e) => { e.preventDefault(); IN.jump = true; IN.jumpHeld = true; };
-  const off = (e) => { e.preventDefault(); IN.jump = false; IN.jumpHeld = false; };
-  b.addEventListener('touchstart', on, { passive: false });
-  b.addEventListener('touchend', off, { passive: false });
-  b.addEventListener('mousedown', on);
-  b.addEventListener('mouseup', off);
-  G3.host.appendChild(b);
-  G3.jumpBtn = b;
+  const wrap = document.createElement('div');
+  wrap.style.cssText = 'position:absolute;right:12px;bottom:12px;display:flex;gap:10px;align-items:flex-end;z-index:7;touch-action:none';
+  const mk = (label, size, bg, color, onDown, onUp) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.setAttribute('aria-label', label);
+    b.textContent = label;
+    b.style.cssText = 'width:clamp(' + size + 'px,' + Math.round(size / 5.2) + 'vmin,' + Math.round(size * 1.45) + 'px);height:clamp(' + size + 'px,' + Math.round(size / 5.2) + 'vmin,' + Math.round(size * 1.45) + 'px);'
+      + 'border-radius:50%;border:3px solid #f4f1e8;background:' + bg + ';color:' + color + ';touch-action:none;'
+      + 'font:700 ' + Math.round(size / 4.6) + 'px "Pixelify Sans",ui-monospace,monospace;box-shadow:0 3px 0 rgba(0,0,0,.4)';
+    b.addEventListener('touchstart', onDown, { passive: false });
+    b.addEventListener('touchend', onUp, { passive: false });
+    b.addEventListener('mousedown', onDown);
+    b.addEventListener('mouseup', onUp);
+    wrap.appendChild(b);
+    return b;
+  };
+  const no = (e) => { e.preventDefault(); };
+  mk('CROUCH', 52, '#3fa9f5', '#062033', (e) => { no(e); IN.crouch = true; IN.crouchBuf = 8; }, (e) => { no(e); IN.crouch = false; });
+  mk('SPIN', 62, '#ff6fae', '#33081c', (e) => { no(e); IN.spin = true; IN.spinBuf = 8; }, (e) => { no(e); IN.spin = false; });
+  mk('JUMP', 84, '#f6c445', '#0b0d20', (e) => { no(e); IN.jump = true; IN.jumpHeld = true; }, (e) => { no(e); IN.jump = false; IN.jumpHeld = false; });
+  G3.host.appendChild(wrap);
+  G3.jumpBtn = wrap;
 }
 function resizeNow() {
   if (!G3.host || !R.gl) return;
@@ -1730,7 +1836,7 @@ function start(opts) {
   startLoop();
   if (opts.intro !== false && G3.say) {
     G3.say('<b>KINAN:</b> Everything is ROUND! I can run all the way around the world!', 'k', 'h');
-    hudToast('Run around the planet! 🪐 Find the <b>Launch Stars</b>!');
+    hudToast('🪐 <b>WASD</b> run · <b>SPACE</b> jump · <b>SHIFT</b> spin · <b>C</b> crouch (hold + jump = long leap · tap in air = ground pound)');
   }
   return true;
 }

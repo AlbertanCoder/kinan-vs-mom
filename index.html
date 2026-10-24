@@ -8339,7 +8339,7 @@ async function playStage(i, opts) {
 /* World 6 · the 3D galaxy level (see galaxy3d.js): the 2D game hands the stage
    over to the WebGL engine and gets the results back when the Power Star is grabbed */
 function galaxySfx(name) {
-  const map = { jump: 'jump', stomp: 'stomp', hurt: 'hurt', win: 'win', boom: 'thud', launch: 'power', bit: 'candle', boss: 'boss' };
+  const map = { jump: 'jump', stomp: 'stomp', hurt: 'hurt', win: 'win', boom: 'thud', launch: 'power', bit: 'candle', boss: 'boss', spin: 'pew', pound: 'thud', skid: 'click' };
   const fn = SFX[map[name] || 'click'];
   if (fn) fn();
 }
