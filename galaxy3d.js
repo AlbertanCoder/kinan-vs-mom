@@ -1047,16 +1047,17 @@ function buildTextures() {
   s.width = 1024; s.height = 512;
   const sc = s.getContext('2d');
   const bg = sc.createLinearGradient(0, 0, 0, 512);
-  bg.addColorStop(0, '#04051a'); bg.addColorStop(0.55, '#0c1038'); bg.addColorStop(1, '#1a1244');
+  bg.addColorStop(0, '#050622'); bg.addColorStop(0.38, '#1b2474'); bg.addColorStop(0.62, '#4a49b8');
+  bg.addColorStop(0.82, '#c86fae'); bg.addColorStop(1, '#ffb36b');   /* the warm planetary horizon glow */
   sc.fillStyle = bg; sc.fillRect(0, 0, 1024, 512);
-  for (let k = 0; k < 7; k++) {   /* nebula clouds */
-    const x = (k * 197) % 1024, y = 60 + (k * 83) % 320, r = 90 + (k * 47) % 130;
+  for (let k = 0; k < 9; k++) {   /* colorful nebula clouds */
+    const x = (k * 197) % 1024, y = 40 + (k * 83) % 300, r = 95 + (k * 47) % 140;
     const ng = sc.createRadialGradient(x, y, 0, x, y, r);
-    const c = ['rgba(120,80,220,', 'rgba(255,110,190,', 'rgba(70,160,255,'][k % 3];
-    ng.addColorStop(0, c + '0.22)'); ng.addColorStop(1, c + '0)');
+    const c = ['rgba(130,90,235,', 'rgba(255,120,195,', 'rgba(80,175,255,', 'rgba(255,170,110,'][k % 4];
+    ng.addColorStop(0, c + '0.30)'); ng.addColorStop(1, c + '0)');
     sc.fillStyle = ng; sc.fillRect(x - r, y - r, r * 2, r * 2);
   }
-  for (let k = 0; k < 420; k++) {   /* stars */
+  for (let k = 0; k < 560; k++) {   /* stars */
     const x = (k * 251 + (k * k * 7)) % 1024, y = (k * 173 + (k * k * 3)) % 512;
     sc.globalAlpha = 0.35 + ((k * 37) % 65) / 100;
     sc.fillStyle = k % 9 === 0 ? '#ffd9a0' : '#eef4ff';
@@ -1081,7 +1082,7 @@ function sphereMesh(rad, colFn, ut, vt) { return meshSphere(rad, 32, 22, colFn, 
 function onSphere(pl, dir, h) { return V3.add(pl.c, V3.scale(V3.norm(dir), pl.r + (h || 0))); }
 function buildLevel() {
   SYS.planets = []; SYS.bits = []; SYS.sprouts = []; SYS.launches = []; SYS.particles = [];
-  SYS.mike = null; SYS.star = null;
+  SYS.mike = null; SYS.star = null; SYS.clouds = [];
   const rnd = (() => { let s = 777; return () => { s = (s * 16807) % 2147483647; return s / 2147483647; }; })();
   /* the home: a garden planet — painted grass skin over starlit purple rock */
   const home = {
@@ -1182,6 +1183,20 @@ function buildLevel() {
   st('pond', home, [0.55, 0.72, -0.42]);
   st('ruins', home, [-0.72, 0.55, 0.42]);
   st('tower', home, [-0.5, 0.78, 0.38]);
+  /* Gusty-Garden clouds: bright puffy clusters drifting around the planet */
+  for (let k = 0; k < 13; k++) {
+    const a = k * 0.483 + 0.31, e = -0.35 + (k % 6) * 0.19;
+    const dir = V3.norm([Math.cos(a) * Math.cos(e), Math.sin(e), Math.sin(a) * Math.cos(e)]);
+    const puffs = [];
+    for (let q = 0; q < 6; q++) {
+      const w = q - 2.5;
+      puffs.push({
+        o: [w * 2.5, Math.sin(q * 2.1) * 1.15, Math.cos(q * 1.7) * 1.6],
+        r: 2.5 - Math.abs(w) * 0.5
+      });
+    }
+    SYS.clouds.push({ p: V3.scale(dir, 43 + (k % 4) * 8), puffs: puffs, spin: k * 1.7 });
+  }
   for (let k = 0; k < 26; k++) {
     const a = k / 26 * Math.PI * 2;
     st('path', home, [Math.cos(a) * 0.82, 0.52, Math.sin(a) * 0.82], null, 1 + (k % 3) * 0.12);
@@ -1201,6 +1216,15 @@ function renderScene() {
   beginFrame(cm.proj, cm.view, {});
   /* deep space all around */
   drawSprite(M.quad, TEX.sky, billboardMat(V3.add(CAM.pos, V3.scale(CAM.dir, 720)), 1700), { alpha: 1 });
+  /* the clouds: bright puffs near the planet, drifting slowly */
+  for (const cl of SYS.clouds) {
+    const toC = V3.sub(cl.p, CAM.pos);
+    if (V3.dot(toC, toC) > 2200 * 2200) continue;
+    for (const pf of cl.puffs) {
+      drawMesh(M.sph.canopy, M4.trs(V3.add(cl.p, pf.o), cl.spin * 1.3 + SYS.time * 0.02, [pf.r, pf.r * 0.68, pf.r]),
+        { tint: [1.18, 1.18, 1.26], unlit: 0.5 });
+    }
+  }
   /* planets */
   for (const pl of SYS.planets) {
     drawMesh(pl.mesh, M4.trs(pl.c, SYS.time * 0.012, 1), { tex: pl.tex });
