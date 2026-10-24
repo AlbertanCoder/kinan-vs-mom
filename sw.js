@@ -1,8 +1,9 @@
 /* Kinan vs. Mom - offline cache */
-const CACHE = 'kinan-vs-mom-v11';
+const CACHE = 'kinan-vs-mom-v12';
 const ASSETS = [
   './',
   './index.html',
+  './galaxy3d.js',
   './manifest.webmanifest',
   './apple-touch-icon.png',
   './icons/icon-192.png',

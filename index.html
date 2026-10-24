@@ -605,6 +605,7 @@ html.sideways .stage{max-width:100%}
     <button class="btn go" id="sheetOk" type="button">GOT IT</button>
   </div>
 </div>
+<script src="galaxy3d.js"></script>
 <script>
 (() => {
 'use strict';
@@ -1517,7 +1518,7 @@ LV.push(
    and a Power Star at the end. */
 LV.push(
   {
-    place: 'Starlight Garden', bg: 'galaxy', world: 6, galaxy: true, floaty: true, umbrellas: true, umbrellaGift: true, song: 'space',
+    place: 'Starlight Garden', bg: 'galaxy', world: 6, galaxy: true, threeD: true, floaty: true, umbrellas: true, umbrellaGift: true, song: 'space',
     sky: ['#05061c', '#231a5e'], far: '#2a2f6e', mid: '#3d3168',
     ground: '#4a3d8f', top: '#7be3a3', brick: '#8a5a8a', accent: '#f6c445', foes: ['sparkler', 'ghost', 'ball'],
     intro: ['<b>WORLD 6 · SNEAK PEEK:</b> after the Big Storm, the whole world slowly turned 3D... and floated away into space.',
@@ -6520,7 +6521,13 @@ async function ending5() {
   delete progress.resume;
   refreshWorlds();
   save();
-  await galaxyMorph();   /* the world slowly turns 3D and drifts up among the stars... */
+  if (window.GALAXY3D && GALAXY3D.available) {
+    running = false;
+    await GALAXY3D.cutscene({ host: el.stage, say: (h, w, m) => say(h, w, m), sfx: galaxySfx });   /* the world turns 3D, in 3D */
+    GALAXY3D.stop();
+  } else {
+    await galaxyMorph();   /* the old canvas cutscene, for browsers without WebGL */
+  }
   Music.play('title');
   let stars = 0, gold = 0;
   for (let k = WORLDS[4].from; k <= WORLDS[4].to; k++) { stars += progress.stars[k] || 0; gold += goldCount(k); }
@@ -8245,6 +8252,7 @@ function mapScreen() {
 async function playStage(i, opts) {
   opts = opts || {};
   AudioSys.init();
+  if (LV[i] && LV[i].threeD) { playGalaxy3D(); return; }   /* World 6 lives in real 3D */
   showGame(true);
   const rs = opts.resume && progress.resume && progress.resume.i === i ? progress.resume : null;
   if (!rs) dropSave(i);   /* a fresh start of the saved stage drops that save */
@@ -8260,6 +8268,40 @@ async function playStage(i, opts) {
   draw();
 }
 
+/* World 6 · the 3D galaxy level (see galaxy3d.js): the 2D game hands the stage
+   over to the WebGL engine and gets the results back when the Power Star is grabbed */
+function galaxySfx(name) {
+  const map = { jump: 'jump', stomp: 'stomp', hurt: 'hurt', win: 'win', boom: 'thud', launch: 'power', bit: 'candle', boss: 'boss' };
+  const fn = SFX[map[name] || 'click'];
+  if (fn) fn();
+}
+function playGalaxy3D() {
+  AudioSys.init();
+  showGame(true);
+  running = false;
+  Music.play('title');
+  el.stageLbl.textContent = 'WORLD 6 · KINAN IN THE STARS';
+  const ok = window.GALAXY3D && GALAXY3D.start({
+    host: el.stage,
+    say: (h, w, m) => say(h, w, m),
+    sfx: galaxySfx,
+    onFinish: (r) => galaxy3DResults(r)
+  });
+  if (!ok) { toast('😢 This browser cannot open the 3D world yet.', 3200); mapScreen(); }
+}
+function galaxy3DResults(r) {
+  got = r.bits; totalCandles = r.total || 1;
+  score = r.bits * 15 + (r.heartsLost === 0 ? 500 : 0);
+  stageTime = r.time; heartsLost = r.heartsLost; bestCombo = 0;
+  firstClear = !progress.beaten.includes(51);
+  if (firstClear) progress.beaten.push(51);
+  progress.wonWorlds = progress.wonWorlds || [];
+  if (progress.wonWorlds.indexOf(6) < 0) progress.wonWorlds.push(6);
+  progress.unlocked = Math.max(progress.unlocked, 52);
+  save();
+  if (window.GALAXY3D) GALAXY3D.stop();
+  resultsScreen(51);
+}
 function resultsScreen(i) {
   const th = LV[i], wi = worldInfo(i);
   const pct = totalCandles ? got / totalCandles : 1;
@@ -13681,6 +13723,23 @@ const SMASH_LINK = (new URLSearchParams(location.search).get('smash') || '').toU
 if (SMASH_LINK.length === 4) smashOnlineScreen(SMASH_LINK);
 const KART_LINK = (new URLSearchParams(location.search).get('kart') || '').toUpperCase().replace(/[^A-Z]/g, '');
 if (KART_LINK.length === 4) kartOnlineScreen(KART_LINK);
+/* a preview link for the World 6 sneak peek: ?w6=play runs the galaxy level right away; ?w6=cutscene plays the
+   "the world goes 3D" cutscene first and drops into the level right after it (no need to beat World 5 first) */
+const W6_LINK = (new URLSearchParams(location.search).get('w6') || '').toLowerCase();
+if (W6_LINK === 'play' || W6_LINK === 'cutscene') {
+  setTimeout(async () => {
+    try {
+      AudioSys.init();
+      if (W6_LINK === 'cutscene' && window.GALAXY3D && GALAXY3D.available) {
+        showGame(true);
+        running = false;
+        await GALAXY3D.cutscene({ host: el.stage, say: (h, w, m) => say(h, w, m), sfx: galaxySfx });
+        GALAXY3D.stop();
+      }
+      playGalaxy3D();
+    } catch (e) { toast('Preview hiccup: ' + e, 4000); }
+  }, 500);
+}
 
 /* test hooks — used by the automated smoke test, harmless otherwise */
 window.__k11 = {
