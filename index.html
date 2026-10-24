@@ -311,11 +311,11 @@ html.sideways .pause .btn{min-height:38px;font-size:14px;padding:5px 10px}
 html.sideways .pause .tiny{display:none}
 /* held upright during play: draw the game view turned 90° so turning the device gives the big picture
    (iPhones/iPads cannot be forced into landscape by a web app) */
-html.rotated{--vh:100vw}
-@supports (width:100dvw){html.rotated{--vh:100dvw}}
+html.rotated{--vh:100vh}
+@supports (height:100dvh){html.rotated{--vh:100dvh}}
 html.rotated,html.rotated body{height:100%;overflow:hidden}
 html.rotated body{padding:0;display:block}
-html.rotated .app{position:fixed;top:0;left:0;width:100vh;width:100dvh;height:100vw;height:100dvw;max-width:none;overflow:hidden;transform-origin:0 0;transform:rotate(90deg) translate(0,-100%);padding:max(5px,env(safe-area-inset-right,0px)) max(6px,env(safe-area-inset-bottom,0px)) max(5px,env(safe-area-inset-left,0px)) max(6px,env(safe-area-inset-top,0px))}
+html.rotated .app{position:fixed;top:0;left:0;width:100vw;height:100vh;width:100dvw;height:100dvh;max-width:none;overflow:hidden;padding:max(5px,env(safe-area-inset-top,0px)) max(6px,env(safe-area-inset-right,0px)) max(5px,env(safe-area-inset-bottom,0px)) max(6px,env(safe-area-inset-left,0px))}
 html.rotated .turnhint{display:block}
 .lvbtn .gold{display:block;font-size:10.5px;color:var(--gold);letter-spacing:0;margin-top:2px;text-align:right}
 .kartrow{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin:4px 0 8px}.kartrow img{width:88px;height:auto;image-rendering:pixelated}

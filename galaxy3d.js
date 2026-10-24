@@ -98,11 +98,15 @@ const TOON_FS = [
   'uniform float uEmit; uniform float uUnlit; uniform float uAlpha; uniform vec3 uTint;',
   'void main() {',
   '  vec3 n = normalize(vNrm);',
-  '  float d = max(dot(n, normalize(uLight)), 0.0);',
-  '  float band = smoothstep(0.18, 0.30, d) * 0.28 + smoothstep(0.52, 0.66, d) * 0.30 + smoothstep(0.80, 0.92, d) * 0.20;',
-  '  float rim = pow(1.0 - abs(dot(n, vec3(0.0, 0.0, 1.0))), 2.0) * 0.16;',
+  '  vec3 L = normalize(uLight);',
+  '  float d = max(dot(n, L), 0.0);',
+  '  float band = smoothstep(0.16, 0.28, d) * 0.26 + smoothstep(0.5, 0.62, d) * 0.28 + smoothstep(0.78, 0.9, d) * 0.22;',
+  '  float rim = pow(1.0 - abs(dot(n, vec3(0.0, 0.0, 1.0))), 2.6) * 0.22;',
   '  vec3 base = mix(vCol, texture2D(uTex, vUv).rgb * vCol, uUseTex);',
-  '  vec3 lit = base * uTint * (uAmbient + band) + rim * vec3(0.9, 0.95, 1.0);',
+  '  vec3 lit = base * uTint * (uAmbient + band) + rim * vec3(0.92, 0.96, 1.0);',
+  '  vec3 hv = normalize(L + vec3(0.0, 0.0, 1.0));',
+  '  float spec = pow(max(dot(n, hv), 0.0), 22.0) * 0.16;   /* the anime shine */',
+  '  lit += spec * vec3(1.0, 0.98, 0.9);',
   '  vec3 col = mix(lit, base * uTint, uUnlit) + base * uTint * uEmit;',
   '  float fog = clamp((vDepth - uFogRange.x) / (uFogRange.y - uFogRange.x), 0.0, 1.0);',
   '  col = mix(col, uFog, fog * 0.9);',
@@ -738,14 +742,16 @@ function drawKinan3D(pos, up, face, o) {
     drawMesh(M.box.arm, partAt(fr, s * 0.78, 2.72 * st + bob + lift * 0.35, sw2 * 0.5, 0, [sq, st, sq], sw2 * 0.7), { tint: shirt });
     drawMesh(M.box.hand, partAt(fr, s * 0.82, 2.02 * st + bob + lift * 0.55, sw2 * 0.75, 0, 1, sw2 * 0.7), { tint: skin });
   }
-  /* head: hair, face, eyes, smile */
-  drawMesh(M.sph.head, partAt(fr, 0, 3.86 * st + bob, 0, 0, [sq * 1.06, st, sq * 1.02]), { tint: skin });
-  drawMesh(M.sph.hair, partAt(fr, 0, 4.32 * st + bob, -0.08, 0, [sq * 1.2, 1.55, sq * 1.16]), { tint: hair });
-  for (let s = -1; s <= 1; s += 2) {
-    drawMesh(M.box.eyeW, partAt(fr, s * 0.30, 3.96 * st + bob, 0.86, 0, 1), { tint: [1, 1, 1] });
-    drawMesh(M.box.eyeB, partAt(fr, s * 0.32, 3.95 * st + bob, 0.98, 0, 1), { tint: [0.1, 0.1, 0.14] });
+  /* head: the painted anime face, hair, and (as a fallback) drawn-on eyes */
+  drawMesh(M.sph.head, partAt(fr, 0, 3.86 * st + bob, 0, 0, [sq * 1.06, st, sq * 1.02]), TEX.face ? { tex: TEX.face, tint: [1, 1, 1] } : { tint: skin });
+  drawMesh(M.sph.hair, partAt(fr, 0, 4.3 * st + bob, -0.05, 0, [sq * 1.15, 0.8, sq * 0.82]), { tint: hair });
+  if (!TEX.face) {
+    for (let s = -1; s <= 1; s += 2) {
+      drawMesh(M.box.eyeW, partAt(fr, s * 0.30, 3.96 * st + bob, 0.86, 0, 1), { tint: [1, 1, 1] });
+      drawMesh(M.box.eyeB, partAt(fr, s * 0.32, 3.95 * st + bob, 0.98, 0, 1), { tint: [0.1, 0.1, 0.14] });
+    }
+    drawMesh(M.box.smile, partAt(fr, 0, 3.58 * st + bob, 0.9, 0, 1), { tint: [0.62, 0.26, 0.22] });
   }
-  drawMesh(M.box.smile, partAt(fr, 0, 3.58 * st + bob, 0.9, 0, 1), { tint: [0.62, 0.26, 0.22] });
 }
 /* a space sprout: a hoppy little plant creature you can stomp */
 function drawSprout(e) {
@@ -885,6 +891,32 @@ function buildTextures() {
   gc.fillStyle = rg; gc.fillRect(0, 0, 64, 64);
   TEX.glow = makeTexture(g);
   TEX.white = T2(4, (x, s) => { x.fillStyle = '#fff'; x.fillRect(0, 0, s, s); });
+  /* Kinan's anime face — big shining eyes, brows, blush and a smile, painted once
+     and mapped onto the front of the head model */
+  TEX.face = T2(256, (x, s) => {
+    x.fillStyle = '#ffe8d2'; x.fillRect(0, 0, s, s);
+    const eg = x.createRadialGradient(128, 128, 60, 128, 128, 150);
+    eg.addColorStop(0, 'rgba(255,222,192,0)'); eg.addColorStop(1, 'rgba(185,135,105,0.4)');
+    x.fillStyle = eg; x.fillRect(0, 0, s, s);
+    const eye = (cx, sgn) => {
+      x.fillStyle = '#fff';
+      x.beginPath(); x.ellipse(cx, 112, 21, 25, sgn * 0.08, 0, 6.284); x.fill();
+      x.fillStyle = '#2f5fb3'; x.beginPath(); x.arc(cx + sgn * 1.5, 114, 10.5, 0, 6.284); x.fill();
+      x.fillStyle = '#12203d'; x.beginPath(); x.arc(cx + sgn * 1.5, 115, 5.2, 0, 6.284); x.fill();
+      x.fillStyle = '#fff'; x.beginPath(); x.arc(cx - 3, 107, 3.4, 0, 6.284); x.fill();
+      x.beginPath(); x.arc(cx + 4, 120, 1.8, 0, 6.284); x.fill();
+      x.strokeStyle = '#4a3521'; x.lineWidth = 4; x.lineCap = 'round';
+      x.beginPath(); x.moveTo(cx - 12, 80); x.quadraticCurveTo(cx, 74, cx + 12, 79); x.stroke();
+    };
+    eye(84, -1); eye(172, 1);
+    x.strokeStyle = 'rgba(180,110,80,.7)'; x.lineWidth = 3; x.lineCap = 'round';
+    x.beginPath(); x.moveTo(127, 132); x.lineTo(130, 143); x.stroke();
+    x.strokeStyle = '#b25a4a'; x.lineWidth = 4;
+    x.beginPath(); x.arc(128, 150, 12, 0.18 * Math.PI, 0.82 * Math.PI); x.stroke();
+    x.fillStyle = 'rgba(255,130,120,.35)';
+    x.beginPath(); x.ellipse(52, 140, 13, 8, 0, 0, 6.284); x.fill();
+    x.beginPath(); x.ellipse(204, 140, 13, 8, 0, 0, 6.284); x.fill();
+  });
   const strokes = (x, s, colors, n, len, rng, w) => {
     for (let k = 0; k < n; k++) {
       x.globalAlpha = 0.14 + rng() * 0.3;
@@ -1892,7 +1924,7 @@ window.GALAXY3D = {
   }),
   /* small hooks the smoke test uses */
   test: {
-    player: PLAYER, sys: SYS, tick: (dt) => { levelTick(dt == null ? 0.016 : dt); renderScene(); },
+    player: PLAYER, sys: SYS, cam: CAM, tick: (dt) => { levelTick(dt == null ? 0.016 : dt); renderScene(); },
     cutTick: (dt) => { cutTick(dt == null ? 0.016 : dt); renderScene(); },
     render: () => renderScene(),
     teleport: (planetIdx, dir) => {
