@@ -733,6 +733,72 @@ const SFX = {
 };
 /* ---------- procedural soundtrack ---------- */
 const MIDI = (m) => 440 * Math.pow(2, (m - 69) / 12);
+/* ============================================================
+   VOICE-OVER — story lines are spoken aloud. A recorded clip
+   always wins when one exists (vo/clips.json maps a line to a
+   file, see "Kinan vs Mom - Voice Recording Sheet.md"); when
+   there is no clip, the device's own voices speak, one voice
+   per character. Follows the ♪ mute switch.
+   ============================================================ */
+const VO = {
+  clips: null, voices: [], tried: false,
+  loadClips() {
+    if (VO.tried) return;
+    VO.tried = true;
+    try {
+      fetch('vo/clips.json').then((r) => (r && r.ok) ? r.json() : null).then((j) => { if (j) VO.clips = j; }).catch(() => {});
+    } catch (e) {}
+  },
+  pick(who) {
+    try {
+      if (!VO.voices.length && window.speechSynthesis) VO.voices = speechSynthesis.getVoices() || [];
+      const want = {
+        k: ['kid', 'junior', 'alex', 'daniel'], m: ['samantha', 'zira', 'victoria', 'female'],
+        c: ['karen', 'moira', 'samantha', 'female'], d: ['daniel', 'david', 'alex', 'male'],
+        s: ['alex', 'fred', 'daniel', 'male'], n: ['rishi', 'male'], b: ['male'], f: ['male'],
+        lg: ['karen', 'female'], cd: ['daniel', 'male'], br: ['fred', 'male'], lj: ['male'],
+        ps: ['david', 'male'], dz: ['rishi', 'male'], mech: ['fred', 'male']
+      }[who] || ['male', 'female'];
+      for (const w of want) {
+        const hit = VO.voices.find((x) => (x.name || '').toLowerCase().indexOf(w) >= 0);
+        if (hit) return hit;
+      }
+      return VO.voices[0] || null;
+    } catch (e) { return null; }
+  },
+  speak(html, who) {
+    try {
+      VO.loadClips();
+      if (!AudioSys.on || !window.speechSynthesis) return;
+      const text = String(html || '').replace(/<[^>]+>/g, ' ').replace(/&[a-z#0-9]+;/gi, ' ').replace(/\s+/g, ' ').trim();
+      if (!text) return;
+      const file = VO.clips && VO.clips[text];
+      if (file) {   /* the family's own recorded voice */
+        if (!VO.audio) VO.audio = new Audio();
+        VO.audio.src = 'vo/' + file;
+        VO.audio.play().catch(() => {});
+        return;
+      }
+      speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      const v = VO.pick(who);
+      if (v) u.voice = v;
+      const tune = {
+        k: [1.35, 1.06], m: [1.04, 1.0], c: [0.94, 1.04], d: [0.8, 0.98], s: [1.12, 1.02],
+        n: [0.9, 0.95], b: [0.7, 0.95], f: [0.85, 0.95], lg: [1.1, 1.02], cd: [0.8, 0.95],
+        br: [1.05, 1.05], lj: [0.75, 0.92], ps: [1.15, 1.05], dz: [0.6, 0.88], mech: [0.65, 0.9]
+      }[who] || [1, 1];
+      u.pitch = tune[0];
+      u.rate = tune[1];
+      speechSynthesis.speak(u);
+    } catch (e) {}
+  },
+  stop() { try { if (window.speechSynthesis) speechSynthesis.cancel(); if (VO.audio) VO.audio.pause(); } catch (e) {} }
+};
+if (window.speechSynthesis) {
+  try { speechSynthesis.onvoiceschanged = () => { VO.voices = speechSynthesis.getVoices() || []; }; } catch (e) {}
+}
+
 const Music = {
   name: null, step: 0, next: 0, ducked: false,
   tracks: {
@@ -2319,6 +2385,7 @@ function say(html, who, mood) {
   el.dialog.hidden = false;
   el.dtext.dataset.full = html;
   const spk = speakerOf(html, who);
+  VO.speak(html, spk);   /* read the line aloud (recorded clip if we have one) */
   el.portrait.src = portraitFor(spk || 'k', moodOf(html, mood));
   el.portrait.style.visibility = 'visible';
   typeLine(html, spk);
