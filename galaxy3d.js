@@ -77,13 +77,13 @@ const M4 = {
    the flat "2D phase" of the cutscene
    ---------------------------------------------------------------------------- */
 const TOON_VS = [
-  'attribute vec3 aPos; attribute vec3 aNrm; attribute vec3 aCol;',
+  'attribute vec3 aPos; attribute vec3 aNrm; attribute vec2 aUv; attribute vec3 aCol;',
   'uniform mat4 uProj, uView, uModel;',
-  'varying vec3 vNrm; varying vec3 vCol; varying vec3 vWorld; varying float vDepth;',
+  'varying vec3 vNrm; varying vec3 vCol; varying vec2 vUv; varying float vDepth;',
   'void main() {',
   '  vec4 w = uModel * vec4(aPos, 1.0);',
-  '  vWorld = w.xyz;',
   '  vNrm = mat3(uModel) * aNrm;',
+  '  vUv = aUv;',
   '  vCol = aCol;',
   '  vec4 v = uView * w;',
   '  vDepth = -v.z;',
@@ -92,7 +92,8 @@ const TOON_VS = [
 ].join('\n');
 const TOON_FS = [
   'precision mediump float;',
-  'varying vec3 vNrm; varying vec3 vCol; varying vec3 vWorld; varying float vDepth;',
+  'varying vec3 vNrm; varying vec3 vCol; varying vec2 vUv; varying float vDepth;',
+  'uniform sampler2D uTex; uniform float uUseTex;',
   'uniform vec3 uLight; uniform vec3 uAmbient; uniform vec3 uFog; uniform vec2 uFogRange;',
   'uniform float uEmit; uniform float uUnlit; uniform float uAlpha; uniform vec3 uTint;',
   'void main() {',
@@ -100,8 +101,9 @@ const TOON_FS = [
   '  float d = max(dot(n, normalize(uLight)), 0.0);',
   '  float band = smoothstep(0.18, 0.30, d) * 0.28 + smoothstep(0.52, 0.66, d) * 0.30 + smoothstep(0.80, 0.92, d) * 0.20;',
   '  float rim = pow(1.0 - abs(dot(n, vec3(0.0, 0.0, 1.0))), 2.0) * 0.16;',
-  '  vec3 lit = vCol * uTint * (uAmbient + band) + rim * vec3(0.9, 0.95, 1.0);',
-  '  vec3 col = mix(lit, vCol * uTint, uUnlit) + vCol * uTint * uEmit;',
+  '  vec3 base = mix(vCol, texture2D(uTex, vUv).rgb * vCol, uUseTex);',
+  '  vec3 lit = base * uTint * (uAmbient + band) + rim * vec3(0.9, 0.95, 1.0);',
+  '  vec3 col = mix(lit, base * uTint, uUnlit) + base * uTint * uEmit;',
   '  float fog = clamp((vDepth - uFogRange.x) / (uFogRange.y - uFogRange.x), 0.0, 1.0);',
   '  col = mix(col, uFog, fog * 0.9);',
   '  gl_FragColor = vec4(col, uAlpha);',
@@ -189,15 +191,15 @@ function glSize(w, h, dpr) {
   R.canvas.style.height = h + 'px';
   gl.viewport(0, 0, R.canvas.width, R.canvas.height);
 }
-function makeTexture(canvasOrImg) {
+function makeTexture(canvasOrImg, repeat) {
   const gl = R.gl, t = gl.createTexture();
   gl.bindTexture(gl.TEXTURE_2D, t);
   gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
   gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, canvasOrImg);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, repeat ? gl.REPEAT : gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, repeat ? gl.REPEAT : gl.CLAMP_TO_EDGE);
   return t;
 }
 
@@ -215,16 +217,17 @@ function uploadMesh(verts, idx) {
   gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(idx), gl.STATIC_DRAW);
   return { buf: buf, ibuf: ibuf, count: idx.length };
 }
-/* verts: [px,py,pz, nx,ny,nz, r,g,b] per vertex — 9 floats */
-function meshSphere(rad, seg, rings, colFn) {
+/* verts: [px,py,pz, nx,ny,nz, u,v, r,g,b] per vertex — 11 floats */
+function meshSphere(rad, seg, rings, colFn, uTile, vTile) {
   const verts = [], idx = [];
+  const ut = uTile == null ? 3 : uTile, vt = vTile == null ? 3 : vTile;
   for (let y = 0; y <= rings; y++) {
     const v = y / rings, phi = v * Math.PI;
     for (let x = 0; x <= seg; x++) {
       const u = x / seg, th = u * Math.PI * 2;
       const nx = Math.sin(phi) * Math.cos(th), ny = Math.cos(phi), nz = Math.sin(phi) * Math.sin(th);
       const c = colFn ? colFn(nx, ny, nz) : [1, 1, 1];
-      verts.push(nx * rad, ny * rad, nz * rad, nx, ny, nz, c[0], c[1], c[2]);
+      verts.push(nx * rad, ny * rad, nz * rad, nx, ny, nz, u * ut, v * vt, c[0], c[1], c[2]);
     }
   }
   for (let y = 0; y < rings; y++) for (let x = 0; x < seg; x++) {
@@ -243,10 +246,14 @@ function meshBox(w, h, d, col) {
     [[-x, y, z], [x, y, z], [x, y, -z], [-x, y, -z], [0, 1, 0]],
     [[-x, -y, -z], [x, -y, -z], [x, -y, z], [-x, -y, z], [0, -1, 0]]
   ];
+  const uvs = [[0, 1], [1, 1], [1, 0], [0, 0]];
   const verts = [], idx = [];
   faces.forEach((f, k) => {
     const n = f[4];
-    for (let i = 0; i < 4; i++) verts.push(f[i][0], f[i][1], f[i][2], n[0], n[1], n[2], c[0], c[1], c[2]);
+    for (let i = 0; i < 4; i++) {
+      const uu = uvs[i][0] * Math.max(1, Math.round(w / 6)), vv = uvs[i][1] * Math.max(1, Math.round(h / 6));
+      verts.push(f[i][0], f[i][1], f[i][2], n[0], n[1], n[2], uu, vv, c[0], c[1], c[2]);
+    }
     const o = k * 4;
     idx.push(o, o + 1, o + 2, o, o + 2, o + 3);
   });
@@ -256,20 +263,20 @@ function meshCylinder(rad, h, seg, col, capCol) {
   const verts = [], idx = [], c = col || [1, 1, 1], cc = capCol || c;
   for (let k = 0; k <= seg; k++) {
     const th = k / seg * Math.PI * 2, nx = Math.cos(th), nz = Math.sin(th);
-    verts.push(nx * rad, -h / 2, nz * rad, nx, 0, nz, c[0], c[1], c[2]);
-    verts.push(nx * rad, h / 2, nz * rad, nx, 0, nz, c[0], c[1], c[2]);
+    verts.push(nx * rad, -h / 2, nz * rad, nx, 0, nz, k / seg * Math.max(1, Math.round(rad / 3)), 0, c[0], c[1], c[2]);
+    verts.push(nx * rad, h / 2, nz * rad, nx, 0, nz, k / seg * Math.max(1, Math.round(rad / 3)), 1, c[0], c[1], c[2]);
   }
   for (let k = 0; k < seg; k++) {
     const a = k * 2;
     idx.push(a, a + 2, a + 1, a + 1, a + 2, a + 3);
   }
-  const base = verts.length / 9;
-  verts.push(0, h / 2, 0, 0, 1, 0, cc[0], cc[1], cc[2]);     /* top cap center */
-  verts.push(0, -h / 2, 0, 0, -1, 0, cc[0], cc[1], cc[2]);   /* bottom cap center */
+  const base = verts.length / 11;
+  verts.push(0, h / 2, 0, 0, 1, 0, 0.5, 0.5, cc[0], cc[1], cc[2]);     /* top cap center */
+  verts.push(0, -h / 2, 0, 0, -1, 0, 0.5, 0.5, cc[0], cc[1], cc[2]);   /* bottom cap center */
   for (let k = 0; k <= seg; k++) {
     const th = k / seg * Math.PI * 2, nx = Math.cos(th), nz = Math.sin(th);
-    verts.push(nx * rad, h / 2, nz * rad, 0, 1, 0, cc[0], cc[1], cc[2]);
-    verts.push(nx * rad, -h / 2, nz * rad, 0, -1, 0, cc[0], cc[1], cc[2]);
+    verts.push(nx * rad, h / 2, nz * rad, 0, 1, 0, 0.5 + nx * 0.5, 0.5 + nz * 0.5, cc[0], cc[1], cc[2]);
+    verts.push(nx * rad, -h / 2, nz * rad, 0, -1, 0, 0.5 + nx * 0.5, 0.5 + nz * 0.5, cc[0], cc[1], cc[2]);
   }
   const topC = base, botC = base + 1, ring0 = base + 2;
   for (let k = 0; k < seg; k++) {
@@ -284,11 +291,12 @@ function meshStar(outer, inner, depth, col) {
   const verts = [], idx = [], c = col || [1, 0.9, 0.4];
   for (let side = 0; side < 2; side++) {
     const y = side ? depth / 2 : -depth / 2, ny = side ? 1 : -1;
-    const centerIdx = verts.length / 9;
-    verts.push(0, y, 0, 0, ny, 0, c[0], c[1], c[2]);
+    const centerIdx = verts.length / 11;
+    verts.push(0, y, 0, 0, ny, 0, 0.5, 0.5, c[0], c[1], c[2]);
     for (let k = 0; k < 10; k++) {
       const a = -Math.PI / 2 + k * Math.PI / 5, r = k % 2 ? inner : outer;
-      verts.push(Math.cos(a) * r, y, Math.sin(a) * r, 0, ny, 0, c[0], c[1], c[2]);
+      const px = Math.cos(a) * r, pz = Math.sin(a) * r;
+      verts.push(px, y, pz, 0, ny, 0, 0.5 + px / (outer * 2), 0.5 + pz / (outer * 2), c[0], c[1], c[2]);
     }
     for (let k = 0; k < 10; k++) {
       const a = centerIdx + 1 + k, b = centerIdx + 1 + ((k + 1) % 10);
@@ -305,14 +313,49 @@ function meshRing(r0, r1, seg, col) {
   const verts = [], idx = [], c = col || [1, 0.85, 0.4];
   for (let k = 0; k <= seg; k++) {
     const th = k / seg * Math.PI * 2, cx = Math.cos(th), cz = Math.sin(th);
-    verts.push(cx * r0, 0, cz * r0, 0, 1, 0, c[0], c[1], c[2]);
-    verts.push(cx * r1, 0, cz * r1, 0, 1, 0, c[0], c[1], c[2]);
+    verts.push(cx * r0, 0, cz * r0, 0, 1, 0, 0.5 + cx * 0.45, 0.5 + cz * 0.45, c[0], c[1], c[2]);
+    verts.push(cx * r1, 0, cz * r1, 0, 1, 0, 0.5 + cx * 0.5, 0.5 + cz * 0.5, c[0], c[1], c[2]);
   }
   for (let k = 0; k < seg; k++) {
     const a = k * 2;
     idx.push(a, a + 1, a + 2, a + 1, a + 3, a + 2);
   }
   return uploadMesh(verts, idx);
+}
+function meshCrystal(col) {
+  /* a faceted gem: hexagonal bipyramid with flat per-face normals */
+  const verts = [], idx = [], c = col || [0.72, 0.88, 1];
+  const ring = [];
+  for (let k = 0; k < 6; k++) {
+    const a = k / 6 * Math.PI * 2;
+    ring.push([Math.cos(a) * 0.8, 0.12, Math.sin(a) * 0.8]);
+  }
+  const pushFace = (a, b, cc) => {
+    const n = V3.norm(V3.cross(V3.sub(b, a), V3.sub(cc, a)));
+    for (const p of [a, b, cc]) verts.push(p[0], p[1], p[2], n[0], n[1], n[2], 0.5 + p[0] * 0.4, 0.5 + p[2] * 0.4, c[0], c[1], c[2]);
+  };
+  const top = [0, 1.7, 0], bot = [0, -1.25, 0];
+  for (let k = 0; k < 6; k++) {
+    const a = ring[k], b = ring[(k + 1) % 6];
+    pushFace(a, b, top);
+    pushFace(b, a, bot);
+    pushFace(a, b, [0, 0.12, 0]);   /* the belt, so it reads solid from above */
+  }
+  for (let k = 0; k < verts.length / 11; k++) idx.push(k);
+  return uploadMesh(verts, idx);
+}
+function decalMat(pos, up, size) {
+  /* a flat quad lying on a surface (the meshQuad spans XY facing Z: map Z to the surface normal) */
+  const n = V3.norm(up);
+  let f = V3.cross(n, [0, 0, 1]);
+  if (V3.len(f) < 0.1) f = V3.cross(n, [1, 0, 0]);
+  f = V3.norm(f);
+  const r = V3.norm(V3.cross(n, f));
+  return [r[0] * size, r[1] * size, r[2] * size, 0, f[0] * size, f[1] * size, f[2] * size, 0, n[0], n[1], n[2], 0, pos[0], pos[1], pos[2], 1];
+}
+function drawShadow(pos, up, size, alpha) {
+  const p = V3.add(pos, V3.scale(V3.norm(up), 0.12));
+  drawSprite(M.quad, TEX.glow, decalMat(p, up, size), { alpha: alpha == null ? 0.34 : alpha, tint: [0.05, 0.06, 0.16] });
 }
 /* a unit quad (XY plane, facing +Z) with uv — for textured sprites. 8 floats per vertex */
 function meshQuad() {
@@ -358,11 +401,13 @@ function bindMeshAttrs(prog, mesh) {
     gl.vertexAttribPointer(prog.a.aCol, 3, gl.FLOAT, false, 32, 20);
   } else {
     gl.enableVertexAttribArray(prog.a.aPos);
-    gl.vertexAttribPointer(prog.a.aPos, 3, gl.FLOAT, false, 36, 0);
+    gl.vertexAttribPointer(prog.a.aPos, 3, gl.FLOAT, false, 44, 0);
     gl.enableVertexAttribArray(prog.a.aNrm);
-    gl.vertexAttribPointer(prog.a.aNrm, 3, gl.FLOAT, false, 36, 12);
+    gl.vertexAttribPointer(prog.a.aNrm, 3, gl.FLOAT, false, 44, 12);
+    gl.enableVertexAttribArray(prog.a.aUv);
+    gl.vertexAttribPointer(prog.a.aUv, 2, gl.FLOAT, false, 44, 24);
     gl.enableVertexAttribArray(prog.a.aCol);
-    gl.vertexAttribPointer(prog.a.aCol, 3, gl.FLOAT, false, 36, 24);
+    gl.vertexAttribPointer(prog.a.aCol, 3, gl.FLOAT, false, 44, 32);
   }
 }
 function drawMesh(mesh, model, opts) {
@@ -380,6 +425,10 @@ function drawMesh(mesh, model, opts) {
   gl.uniform1f(p.u.uUnlit, opts.unlit || R.forceUnlit || 0);
   gl.uniform1f(p.u.uAlpha, opts.alpha == null ? 1 : opts.alpha);
   gl.uniform3fv(p.u.uTint, opts.tint || [1, 1, 1]);
+  gl.activeTexture(gl.TEXTURE0);
+  gl.bindTexture(gl.TEXTURE_2D, opts.tex || TEX.white);
+  gl.uniform1i(p.u.uTex, 0);
+  gl.uniform1f(p.u.uUseTex, opts.tex ? 1 : 0);
   if ((opts.alpha == null ? 1 : opts.alpha) < 1) { gl.enable(gl.BLEND); gl.depthMask(false); } else { gl.disable(gl.BLEND); gl.depthMask(true); }
   bindMeshAttrs(p, mesh);
   gl.drawElements(gl.TRIANGLES, mesh.count, gl.UNSIGNED_SHORT, 0);
@@ -711,8 +760,22 @@ function buildMeshes() {
   M.star.launch = meshStar(1.7, 0.8, 0.5, [1, 0.95, 0.55]);
   M.ring.gold = meshRing(2.1, 2.55, 26, [1, 0.82, 0.35]);
   M.quad = meshQuad();
+  M.crystal = meshCrystal();
+  M.box.stem = meshBox(0.24, 1.5, 0.24);
+  M.box.tuft = meshBox(0.55, 1.15, 0.55);
+  M.box.step = meshBox(2.6, 0.55, 2.6);
+  M.box.pillar = meshCylinder(0.85, 7, 12, [1, 1, 1]);
+  M.sph.cap = meshSphere(1, 14, 9);
+  M.sph.puff = meshSphere(1, 12, 8);
+  M.sph.canopy = meshSphere(1, 13, 9, (nx, ny) => { const v = 0.86 + 0.2 * Math.sin(nx * 5 + ny * 4); return [v, v, v]; });
 }
 function buildTextures() {
+  const T2 = (size, fn, repeat) => {
+    const c = document.createElement('canvas');
+    c.width = c.height = size;
+    fn(c.getContext('2d'), size);
+    return makeTexture(c, repeat);
+  };
   /* a soft round glow */
   const g = document.createElement('canvas');
   g.width = g.height = 64;
@@ -723,6 +786,129 @@ function buildTextures() {
   rg.addColorStop(1, 'rgba(255,255,255,0)');
   gc.fillStyle = rg; gc.fillRect(0, 0, 64, 64);
   TEX.glow = makeTexture(g);
+  TEX.white = T2(4, (x, s) => { x.fillStyle = '#fff'; x.fillRect(0, 0, s, s); });
+  const strokes = (x, s, colors, n, len, rng, w) => {
+    for (let k = 0; k < n; k++) {
+      x.globalAlpha = 0.14 + rng() * 0.3;
+      x.fillStyle = colors[Math.floor(rng() * colors.length)];
+      const px = rng() * s, py = rng() * s, a = rng() * Math.PI, L = len * (0.4 + rng());
+      x.save(); x.translate(px, py); x.rotate(a);
+      x.fillRect(-L / 2, -(w || 2) / 2, L, w || 2);
+      x.restore();
+    }
+    x.globalAlpha = 1;
+  };
+  const speckle = (x, s, colors, n, rng, size) => {
+    for (let k = 0; k < n; k++) {
+      x.globalAlpha = 0.2 + rng() * 0.5;
+      x.fillStyle = colors[Math.floor(rng() * colors.length)];
+      const z = (size || 1.6) * (0.5 + rng());
+      x.fillRect(rng() * s, rng() * s, z, z);
+    }
+    x.globalAlpha = 1;
+  };
+  const seeded = (a) => () => { a = (a * 16807) % 2147483647; return a / 2147483647; };
+  /* grass: warm green wash + blades + clover + tiny flowers */
+  TEX.grass = T2(256, (x, s) => {
+    const r = seeded(1234);
+    const gg = x.createLinearGradient(0, 0, s, s);
+    gg.addColorStop(0, '#57c47e'); gg.addColorStop(0.5, '#46a86c'); gg.addColorStop(1, '#63cf8b');
+    x.fillStyle = gg; x.fillRect(0, 0, s, s);
+    strokes(x, s, ['#2e8a52', '#7fe3a4', '#3fa86a', '#8ef0b4'], 500, 11, r, 2.4);
+    speckle(x, s, ['#eafbe9', '#2e8a52'], 240, r, 1.4);
+    for (let k = 0; k < 26; k++) {   /* little flowers painted right into the turf */
+      x.globalAlpha = 0.85;
+      x.fillStyle = ['#fff6c9', '#ffd3e2', '#e8d9ff', '#ffedb0'][k % 4];
+      const px = r() * s, py = r() * s, z = 2 + r() * 2.4;
+      x.beginPath(); x.arc(px, py, z, 0, 6.284); x.fill();
+      x.fillStyle = '#f7b23c'; x.beginPath(); x.arc(px, py, z * 0.38, 0, 6.284); x.fill();
+    }
+    x.globalAlpha = 1;
+  }, true);
+  /* stone: cool gray + cracks + mossy speckles */
+  TEX.stone = T2(256, (x, s) => {
+    const r = seeded(777);
+    x.fillStyle = '#9aa3b4'; x.fillRect(0, 0, s, s);
+    strokes(x, s, ['#7d8698', '#b7bfcd', '#69738a', '#c6cdd9'], 420, 16, r, 4);
+    speckle(x, s, ['#5c6478', '#d3d9e4', '#7fae72'], 320, r, 2);
+    x.strokeStyle = 'rgba(70,80,100,.5)'; x.lineWidth = 2;
+    for (let k = 0; k < 9; k++) {
+      x.beginPath();
+      let px = r() * s, py = r() * s;
+      x.moveTo(px, py);
+      for (let j = 0; j < 6; j++) { px += (r() - 0.5) * 46; py += (r() - 0.5) * 46; x.lineTo(px, py); }
+      x.stroke();
+    }
+  }, true);
+  /* wood: warm planks with grain and knots */
+  TEX.wood = T2(256, (x, s) => {
+    const r = seeded(4242);
+    x.fillStyle = '#a9713d'; x.fillRect(0, 0, s, s);
+    for (let k = 0; k < 6; k++) {
+      x.fillStyle = ['#b57c46', '#9c6535', '#c08a52'][k % 3];
+      x.fillRect(0, k * 43, s, 41);
+      x.fillStyle = 'rgba(80,45,20,.55)'; x.fillRect(0, k * 43, s, 2.4);
+    }
+    strokes(x, s, ['#8a5628', '#c9915a', '#7c4c22'], 300, 24, r, 2.2);
+    for (let k = 0; k < 12; k++) {
+      x.strokeStyle = 'rgba(90,52,22,.5)'; x.lineWidth = 1.6;
+      x.beginPath(); x.ellipse(r() * s, r() * s, 4 + r() * 6, 2 + r() * 3, r() * 3, 0, 6.284); x.stroke();
+    }
+  }, true);
+  /* moon soil: dusty with craters */
+  TEX.dust = T2(256, (x, s) => {
+    const r = seeded(9090);
+    x.fillStyle = '#b9a9d6'; x.fillRect(0, 0, s, s);
+    strokes(x, s, ['#a291c6', '#cbbde6', '#8f7db8'], 300, 14, r, 4);
+    speckle(x, s, ['#8f7db8', '#e2d8f5'], 300, r, 2);
+    for (let k = 0; k < 14; k++) {
+      const px = r() * s, py = r() * s, z = 6 + r() * 13;
+      x.fillStyle = 'rgba(120,100,170,.5)';
+      x.beginPath(); x.arc(px, py, z, 0, 6.284); x.fill();
+      x.fillStyle = 'rgba(230,220,250,.5)';
+      x.beginPath(); x.arc(px - z * 0.2, py - z * 0.25, z * 0.8, 0, 6.284); x.fill();
+      x.fillStyle = 'rgba(120,100,170,.42)';
+      x.beginPath(); x.arc(px + z * 0.12, py + z * 0.1, z * 0.62, 0, 6.284); x.fill();
+    }
+  }, true);
+  /* water: layered blues with light caustics */
+  TEX.water = T2(256, (x, s) => {
+    const r = seeded(5150);
+    const wg = x.createLinearGradient(0, 0, 0, s);
+    wg.addColorStop(0, '#4fc7e8'); wg.addColorStop(1, '#2f7fd0');
+    x.fillStyle = wg; x.fillRect(0, 0, s, s);
+    for (let k = 0; k < 40; k++) {
+      x.globalAlpha = 0.16 + r() * 0.22;
+      x.fillStyle = r() < 0.5 ? '#bff0ff' : '#2a6db8';
+      x.beginPath();
+      x.ellipse(r() * s, r() * s, 20 + r() * 42, 4 + r() * 8, r() * 0.6 - 0.3, 0, 6.284);
+      x.fill();
+    }
+    x.globalAlpha = 1;
+    speckle(x, s, ['#eafcff'], 160, r, 1.6);
+  }, true);
+  /* the home planet's own skin: grass on top, warm soil, starlit purple rock below
+     (the sphere's v coordinate runs pole to pole, so this is painted as a band) */
+  TEX.home = T2(256, (x, s) => {
+    const r = seeded(3131);
+    const bg = x.createLinearGradient(0, 0, 0, s);
+    bg.addColorStop(0, '#63cf8b'); bg.addColorStop(0.28, '#4db477');
+    bg.addColorStop(0.42, '#8a7a5e'); bg.addColorStop(0.55, '#6b5a8f');
+    bg.addColorStop(0.8, '#4a3d80'); bg.addColorStop(1, '#3b2f6e');
+    x.fillStyle = bg; x.fillRect(0, 0, s, s);
+    strokes(x, s, ['#2e8a52', '#7fe3a4', '#8ef0b4'], 260, 10, r, 2.4);
+    strokes(x, s, ['#7c68a8', '#5a4a92', '#9a86c8'], 300, 13, r, 3);
+    speckle(x, s, ['#eafbe9', '#2e8a52'], 160, r, 1.4);
+    speckle(x, s, ['#d9c8ff', '#fff'], 220, r, 1.6);   /* star dust in the rock */
+    for (let k = 0; k < 22; k++) {
+      x.globalAlpha = 0.85;
+      x.fillStyle = ['#fff6c9', '#ffd3e2', '#e8d9ff', '#ffedb0'][k % 4];
+      const px = r() * s, py = r() * s * 0.3, z = 2 + r() * 2.2;
+      x.beginPath(); x.arc(px, py, z, 0, 6.284); x.fill();
+      x.fillStyle = '#f7b23c'; x.beginPath(); x.arc(px, py, z * 0.38, 0, 6.284); x.fill();
+    }
+    x.globalAlpha = 1;
+  }, true);
   /* the deep-space sky: stars, nebula clouds and a ringed planet, painted once */
   const s = document.createElement('canvas');
   s.width = 1024; s.height = 512;
@@ -758,40 +944,70 @@ function buildTextures() {
    the level: one round garden planet, three moonlets, Launch Stars between
    them, star bits, space sprouts, and Meteor Mike's arena
    ---------------------------------------------------------------------------- */
-function sphereMesh(rad, colFn) { return meshSphere(rad, 26, 18, colFn); }
+function sphereMesh(rad, colFn, ut, vt) { return meshSphere(rad, 32, 22, colFn, ut, vt); }
 function onSphere(pl, dir, h) { return V3.add(pl.c, V3.scale(V3.norm(dir), pl.r + (h || 0))); }
 function buildLevel() {
   SYS.planets = []; SYS.bits = []; SYS.sprouts = []; SYS.launches = []; SYS.particles = [];
   SYS.mike = null; SYS.star = null;
   const rnd = (() => { let s = 777; return () => { s = (s * 16807) % 2147483647; return s / 2147483647; }; })();
-  /* the home: a garden planet with mint grass over purple starlit soil */
+  /* the home: a garden planet — painted grass skin over starlit purple rock */
   const home = {
-    c: [0, 0, 0], r: 30, kind: 'home',
+    c: [0, 0, 0], r: 30, kind: 'home', tex: TEX.home,
     mesh: sphereMesh(30, (nx, ny, nz) => {
-      const g = 0.82 + 0.18 * Math.sin(nx * 9 + nz * 7);
-      if (ny > 0.22) return [0.36 * g, 0.75 * g, 0.5 * g];
-      if (ny > 0.02) return [0.3 * g, 0.55 * g, 0.42 * g];
-      const p = 0.86 + 0.2 * Math.sin(nx * 6 + ny * 8 + nz * 5);
-      return [0.29 * p, 0.24 * p, 0.56 * p];
-    })
+      const v = 0.92 + 0.12 * Math.sin(nx * 9 + nz * 7);
+      return [v, v, v];
+    }, 8, 1)
   };
-  const moonA = { c: [76, 34, -26], r: 9.5, kind: 'moon', mesh: sphereMesh(9.5, (nx, ny) => { const v = 0.88 + 0.16 * Math.sin(nx * 6 + ny * 4); return [0.42 * v, 0.85 * v, 0.62 * v]; }) };
-  const moonB = { c: [-62, 48, -52], r: 12, kind: 'moon', mesh: sphereMesh(12, (nx, ny) => { const v = 0.88 + 0.16 * Math.sin(nx * 5 + ny * 6); return [1.0 * v, 0.62 * v, 0.32 * v]; }) };
-  const moonC = { c: [26, -52, 62], r: 8, kind: 'hidden', mesh: sphereMesh(8, (nx, ny) => { const v = 0.88 + 0.16 * Math.sin(nx * 7 + ny * 3); return [0.5 * v, 0.62 * v, 1.0 * v]; }) };
-  const arena = { c: [-6, 92, -104], r: 18, kind: 'arena', mesh: sphereMesh(18, (nx, ny, nz) => { const v = 0.85 + 0.22 * Math.sin(nx * 8 + ny * 6 + nz * 8); return [0.36 * v, 0.31 * v, 0.44 * v]; }) };
+  const moonA = {
+    c: [76, 34, -26], r: 9.5, kind: 'moon', tex: TEX.grass,
+    mesh: sphereMesh(9.5, (nx, ny) => { const v = 0.86 + 0.16 * Math.sin(nx * 6 + ny * 4); return [v * 0.62, v, v * 0.8]; }, 3, 2)
+  };
+  const moonB = {
+    c: [-62, 48, -52], r: 12, kind: 'moon', tex: TEX.dust,
+    mesh: sphereMesh(12, (nx, ny) => { const v = 0.86 + 0.16 * Math.sin(nx * 5 + ny * 6); return [v, v * 0.66, v * 0.42]; }, 3, 2)
+  };
+  const moonC = {
+    c: [26, -52, 62], r: 8, kind: 'hidden', tex: TEX.dust,
+    mesh: sphereMesh(8, (nx, ny) => { const v = 0.86 + 0.16 * Math.sin(nx * 7 + ny * 3); return [v * 0.52, v * 0.66, v]; }, 3, 2)
+  };
+  const arena = {
+    c: [-6, 92, -104], r: 18, kind: 'arena', tex: TEX.stone,
+    mesh: sphereMesh(18, (nx, ny, nz) => { const v = 0.8 + 0.22 * Math.sin(nx * 8 + ny * 6 + nz * 8); return [v * 0.82, v * 0.72, v]; }, 5, 3)
+  };
   SYS.planets.push(home, moonA, moonB, moonC, arena);
-  /* flowers and trees on the home planet, rocks on the moonlets */
+  /* ---- the living world: a dense meadow, forests, mushroom rings, crystal fields ---- */
   SYS.deco = [];
-  for (let k = 0; k < 34; k++) {
-    const a = rnd() * Math.PI * 2, e = (rnd() - 0.35) * 1.25;
+  const dpush = (kind, planet, dir, tint, s) => SYS.deco.push({ kind: kind, planet: planet, dir: V3.norm(dir), tint: tint || null, s: s || 1, spin: rnd() * 6 });
+  for (let k = 0; k < 130; k++) {   /* grass tufts and wildflowers everywhere */
+    const a = rnd() * Math.PI * 2, e = (rnd() - 0.42) * 1.55;
     const dir = [Math.cos(a) * Math.cos(e), Math.sin(e), Math.sin(a) * Math.cos(e)];
-    const tree = rnd() < 0.3;
-    SYS.deco.push({ kind: tree ? 'tree' : 'flower', planet: home, dir: dir, tint: tree ? null : [[1, 0.62, 0.72], [1, 0.88, 0.4], [0.95, 0.95, 1]][k % 3] });
+    if (rnd() < 0.55) dpush('tuft', home, dir, null, 0.8 + rnd() * 0.8);
+    else dpush('flower', home, dir, [[1, 0.62, 0.72], [1, 0.88, 0.4], [0.95, 0.95, 1], [1, 0.5, 0.5], [0.8, 0.6, 1]][k % 5], 0.8 + rnd() * 0.7);
+  }
+  for (let k = 0; k < 18; k++) {
+    const a = rnd() * Math.PI * 2, e = (rnd() - 0.4) * 1.35;
+    dpush('tree', home, [Math.cos(a) * Math.cos(e), Math.sin(e), Math.sin(a) * Math.cos(e)], null, 0.85 + rnd() * 0.7);
+  }
+  for (let k = 0; k < 26; k++) {
+    const a = rnd() * Math.PI * 2, e = (rnd() - 0.45) * 1.55;
+    dpush('mushroom', home, [Math.cos(a) * Math.cos(e), Math.sin(e), Math.sin(a) * Math.cos(e)], [1, 0.45, 0.42], 0.7 + rnd() * 0.8);
+  }
+  for (let k = 0; k < 18; k++) {
+    const a = rnd() * Math.PI * 2, e = (rnd() - 0.5) * 1.55;
+    dpush('rock', home, [Math.cos(a) * Math.cos(e), Math.sin(e), Math.sin(a) * Math.cos(e)], null, 0.6 + rnd() * 1);
+  }
+  for (let k = 0; k < 14; k++) {
+    const a = rnd() * Math.PI * 2, e = (rnd() - 0.5) * 1.55;
+    dpush('crystal', home, [Math.cos(a) * Math.cos(e), Math.sin(e), Math.sin(a) * Math.cos(e)], [[0.62, 0.88, 1], [1, 0.82, 0.4], [1, 0.62, 0.83]][k % 3], 0.7 + rnd() * 0.8);
   }
   for (const pl of [moonA, moonB, moonC, arena]) {
-    for (let k = 0; k < 7; k++) {
+    for (let k = 0; k < 11; k++) {
       const a = rnd() * Math.PI * 2, e = (rnd() - 0.5) * 1.6;
-      SYS.deco.push({ kind: 'rock', planet: pl, dir: [Math.cos(a) * Math.cos(e), Math.sin(e), Math.sin(a) * Math.cos(e)] });
+      const dir = [Math.cos(a) * Math.cos(e), Math.sin(e), Math.sin(a) * Math.cos(e)];
+      const q = rnd();
+      if (q < 0.4) dpush('crystal', pl, dir, [[0.62, 0.88, 1], [1, 0.82, 0.4], [0.79, 0.64, 1]][k % 3], 0.5 + rnd() * 0.7);
+      else if (q < 0.72) dpush('rock', pl, dir, null, 0.5 + rnd() * 0.9);
+      else dpush('mushroom', pl, dir, [0.85, 0.55, 1], 0.5 + rnd() * 0.6);
     }
   }
   /* star bits: rings of them around the planets and long trails between them */
@@ -821,6 +1037,19 @@ function buildLevel() {
     { dir: [0.1, 0.5, 0.85], planet: moonA, target: arena, arc: 34 },
     { dir: [-0.3, 0.85, 0.4], planet: moonB, target: arena, arc: 34 }
   );
+  /* ---- the built world: a garden gate, shrines at every Launch Star, a stone path
+     around the planet, a lily pond and an old arch on the far side ---- */
+  SYS.structures = [];
+  const st = (kind, planet, dir, tint, s) => SYS.structures.push({ kind: kind, planet: planet, dir: V3.norm(dir), tint: tint || null, s: s || 1 });
+  st('plaza', home, [0, 1, 0]);
+  st('gate', home, [0, 1, 0]);
+  for (const l of SYS.launches) st('shrine', l.planet, l.dir);
+  st('pond', home, [0.55, 0.72, -0.42]);
+  st('ruins', home, [-0.72, 0.55, 0.42]);
+  for (let k = 0; k < 26; k++) {
+    const a = k / 26 * Math.PI * 2;
+    st('path', home, [Math.cos(a) * 0.82, 0.52, Math.sin(a) * 0.82], null, 1 + (k % 3) * 0.12);
+  }
   /* Meteor Mike, napping on his arena moonlet */
   SYS.mike = {
     planet: arena, dir: [0, 0.35, 1], face: 0, hp: 3, state: 'sleep', t: 0,
@@ -838,20 +1067,95 @@ function renderScene() {
   drawSprite(M.quad, TEX.sky, billboardMat(V3.add(CAM.pos, V3.scale(CAM.dir, 720)), 1700), { alpha: 1 });
   /* planets */
   for (const pl of SYS.planets) {
-    drawMesh(pl.mesh, M4.trs(pl.c, SYS.time * 0.012, 1), {});
+    drawMesh(pl.mesh, M4.trs(pl.c, SYS.time * 0.012, 1), { tex: pl.tex });
   }
-  /* flowers, trees and rocks, each standing on its own patch of planet */
+  const near = (p, d) => V3.len(V3.sub(p, CAM.pos)) < (d || 170);
+  /* soft blob shadows first — everything that stands, grounds */
+  for (const d of SYS.deco) {
+    if (d.kind !== 'tree' && d.kind !== 'mushroom' && d.kind !== 'rock') continue;
+    const p = onSphere(d.planet, d.dir, 0);
+    if (!near(p, 130)) continue;
+    drawShadow(p, d.dir, (d.kind === 'tree' ? 7 : 3.2) * d.s, 0.28);
+  }
+  for (const e of SYS.sprouts) if (near(e.pos, 130)) drawShadow(e.pos, e.dir, 3.2, 0.3);
+  if (SYS.mike && SYS.mike.state !== 'gone') drawShadow(SYS.mike.pos, SYS.mike.dir, 11, 0.32);
+  drawShadow(PLAYER.pos, PLAYER.up, 3.4, 0.34);
+  /* the meadow: grass tufts, wildflowers, trees, mushrooms, rocks, glowing crystals */
   for (const d of SYS.deco) {
     const up = V3.norm(d.dir);
     const p = onSphere(d.planet, d.dir, 0);
-    const fr = frameMat(p, up, Math.atan2(d.dir[0], d.dir[2]));
+    if (!near(p, 140)) continue;
+    const fr = frameMat(p, up, Math.atan2(d.dir[0], d.dir[2]) + d.spin);
+    const s = d.s;
     if (d.kind === 'tree') {
-      drawMesh(M.box.trunk, partAt(fr, 0, 1.6, 0, 0, 1), { tint: [0.52, 0.36, 0.24] });
-      drawMesh(M.sph.leaves, partAt(fr, 0, 4.6, 0, SYS.time * 0.1, 1), { tint: [0.3, 0.68, 0.38] });
+      drawMesh(M.box.pillar, partAt(fr, 0, 3.5 * s, 0, 0, [1.15 * s, s, 1.15 * s]), { tex: TEX.wood });
+      drawMesh(M.sph.canopy, partAt(fr, 0, 8.2 * s, 0, d.spin, [3.4 * s, 2.8 * s, 3.4 * s]), { tex: TEX.grass, tint: [0.62, 0.95, 0.7] });
+      drawMesh(M.sph.canopy, partAt(fr, -2.2 * s, 6.6 * s, 1.4 * s, 0, [2.2 * s, 1.9 * s, 2.2 * s]), { tex: TEX.grass, tint: [0.55, 0.88, 0.62] });
+      drawMesh(M.sph.canopy, partAt(fr, 2.4 * s, 6.9 * s, -1.3 * s, 0, [2.1 * s, 1.8 * s, 2.1 * s]), { tex: TEX.grass, tint: [0.7, 1, 0.78] });
     } else if (d.kind === 'flower') {
-      drawMesh(M.box.flower, partAt(fr, 0, 0.7, 0, SYS.time * 0.4, 1), { tint: d.tint || [1, 0.7, 0.8] });
+      drawMesh(M.box.stem, partAt(fr, 0, 0.8 * s, 0, 0, [0.8 * s, 1.1 * s, 0.8 * s]), { tint: [0.24, 0.55, 0.3] });
+      drawMesh(M.sph.cap, partAt(fr, 0, 1.75 * s, 0, SYS.time * 0.3, [0.72 * s, 0.45 * s, 0.72 * s]), { tint: d.tint || [1, 0.7, 0.8], emit: 0.08 });
+      drawMesh(M.sph.puff, partAt(fr, 0, 1.92 * s, 0, 0, [0.3 * s, 0.22 * s, 0.3 * s]), { tint: [1, 0.86, 0.35], emit: 0.15 });
+    } else if (d.kind === 'tuft') {
+      drawMesh(M.box.tuft, partAt(fr, 0, 0.55 * s, 0, d.spin, s), { tex: TEX.grass, tint: [0.85, 1.05, 0.85] });
+    } else if (d.kind === 'mushroom') {
+      drawMesh(M.box.stem, partAt(fr, 0, 0.75 * s, 0, 0, [1.1 * s, s, 1.1 * s]), { tint: [0.95, 0.88, 0.8] });
+      drawMesh(M.sph.cap, partAt(fr, 0, 1.8 * s, 0, d.spin, [1.55 * s, 0.85 * s, 1.55 * s]), { tint: d.tint || [1, 0.45, 0.42] });
+      drawMesh(M.sph.puff, partAt(fr, 0, 2.1 * s, 0, 0, [0.55 * s, 0.3 * s, 0.55 * s]), { tint: [1, 0.93, 0.86] });
+    } else if (d.kind === 'crystal') {
+      drawMesh(M.crystal, partAt(fr, 0, 1.25 * s, 0, d.spin, [0.9 * s, 1.15 * s, 0.9 * s]), { tint: d.tint || [0.72, 0.88, 1], emit: 0.32 });
+      drawSprite(M.quad, TEX.glow, billboardMat(V3.add(p, V3.scale(up, 1.5 * s)), 5.2 * s), { alpha: 0.28, tint: d.tint || [0.7, 0.85, 1] });
     } else {
-      drawMesh(M.sph.spike, partAt(fr, 0, 0.6, 0, 0, 1.1 + (d.dir[0] + 1) * 0.35, 0.5), { tint: [0.62, 0.58, 0.72] });
+      drawMesh(M.sph.cap, partAt(fr, 0, 0.75 * s, 0, d.spin, [1.7 * s, 1.1 * s, 1.5 * s], 0.5), { tex: TEX.stone, tint: [0.85, 0.82, 0.95] });
+    }
+  }
+  /* the built world: garden gate, Launch Star shrines, the pond, the old ruins, the stone path */
+  for (const d of SYS.structures) {
+    const up = V3.norm(d.dir);
+    const p = onSphere(d.planet, d.dir, 0);
+    if (!near(p, 190)) continue;
+    const fr = frameMat(p, up, Math.atan2(d.dir[0], d.dir[2]));
+    const s = d.s;
+    if (d.kind === 'plaza') {
+      /* a gentle stone dome at the top of the world — also hides the texture pinch at the pole */
+      drawMesh(M.sph.moon, partAt(fr, 0, -3.1 * s, 0, 0, [9.8 * s, 3.4 * s, 9.8 * s]), { tex: TEX.stone, tint: [1.04, 1, 0.92] });
+      drawMesh(M.ring.gold, M4.mul(fr, M4.trs([0, 0.32 * s, 0], 0, [3.6 * s, 1, 3.6 * s])), { tex: TEX.stone, tint: [0.82, 0.78, 0.95] });
+    } else if (d.kind === 'gate') {
+      const sideW = V3.norm(V3.cross(up, d.dir));
+      for (let q = -1; q <= 1; q += 2) {
+        drawShadow(V3.add(p, V3.scale(sideW, q * 5.4 * s)), up, 4.5, 0.26);
+        drawMesh(M.box.pillar, partAt(fr, q * 5.4 * s, 3.9 * s, 0, 0, [1.5 * s, 1.15 * s, 1.5 * s]), { tex: TEX.stone });
+        drawMesh(M.sph.puff, partAt(fr, q * 5.4 * s, 8 * s, 0, 0, [0.95 * s, 0.95 * s, 0.95 * s]), { tint: [1, 0.85, 0.4], emit: 0.5 });
+        drawSprite(M.quad, TEX.glow, billboardMat(V3.add(V3.add(p, V3.scale(up, 8 * s)), V3.scale(sideW, q * 5.4 * s)), 6 * s), { alpha: 0.4, tint: [1, 0.88, 0.5] });
+      }
+      drawMesh(M.box.body, partAt(fr, 0, 8.5 * s, 0, 0, [9 * s, 1.15 * s, 2.2 * s]), { tex: TEX.stone });
+    } else if (d.kind === 'shrine') {
+      let side = V3.norm(V3.cross(up, [0, 1, 0]));
+      if (V3.len(side) < 0.1) side = [1, 0, 0];
+      const fwd = V3.norm(V3.cross(up, side));
+      for (let q = 0; q < 4; q++) {
+        const a = q / 4 * Math.PI * 2 + 0.4;
+        const off = V3.add(V3.scale(side, Math.cos(a) * 3.6 * s), V3.scale(fwd, Math.sin(a) * 3.6 * s));
+        drawMesh(M.box.pillar, M4.mul(frameMat(V3.add(p, off), up, 0), M4.trs([0, 1.7 * s, 0], 0, [0.72 * s, 0.48 * s, 0.72 * s])), { tex: TEX.stone });
+      }
+      drawMesh(M.crystal, partAt(fr, 0, 3.6 * s + Math.sin(SYS.time * 1.8) * 0.4, 0, SYS.time * 0.8, 0.75 * s), { tint: [1, 0.88, 0.5], emit: 0.5 });
+      drawSprite(M.quad, TEX.glow, billboardMat(V3.add(p, V3.scale(up, 3.6 * s)), 6 * s), { alpha: 0.35, tint: [1, 0.9, 0.55] });
+    } else if (d.kind === 'pond') {
+      drawMesh(M.sph.moon, partAt(fr, 0, -0.5 * s, 0, 0, [7.6 * s, 1.15 * s, 7.6 * s]), { tex: TEX.water, emit: 0.1 });
+      drawMesh(M.ring.gold, M4.mul(fr, M4.trs([0, 0.3 * s, 0], 0, [3.3 * s, 1, 3.3 * s])), { tex: TEX.stone, tint: [0.9, 0.88, 1] });
+      for (let q = 0; q < 2; q++) {
+        const a = SYS.time * 0.5 + q * 3.1;
+        const glint = V3.add(V3.add(p, V3.scale(up, 0.6)), V3.scale(V3.norm(V3.cross(up, d.dir)), Math.cos(a) * 4.2 * s));
+        drawSprite(M.quad, TEX.glow, billboardMat(glint, 2.6), { alpha: 0.5, tint: [1, 1, 1] });
+      }
+    } else if (d.kind === 'ruins') {
+      for (let q = -1; q <= 1; q++) {
+        const h = q === 0 ? 0.62 : 1;
+        drawMesh(M.box.pillar, partAt(fr, q * 4.6 * s, 3.5 * s * h, 0, q * 0.2, [1.35 * s, h * s, 1.35 * s]), { tex: TEX.stone, tint: [0.92, 0.88, 1] });
+      }
+      drawMesh(M.box.body, partAt(fr, -0.4 * s, 7.3 * s, 0, 0, [7.4 * s, 1.05 * s, 1.9 * s], 0, 0.06), { tex: TEX.stone, tint: [0.95, 0.92, 1] });
+    } else if (d.kind === 'path') {
+      drawMesh(M.box.step, partAt(fr, 0, 0.26 * s, 0, d.spin * 4, [s, 0.8 * s, s]), { tex: TEX.stone, tint: [1.08, 1.04, 0.94] });
     }
   }
   /* Launch Stars: a golden pad and a floating, spinning star */
@@ -1473,8 +1777,8 @@ window.GALAXY3D = {
   }),
   /* small hooks the smoke test uses */
   test: {
-    player: PLAYER, sys: SYS, tick: (dt) => { levelTick(dt || 0.016); renderScene(); },
-    cutTick: (dt) => { cutTick(dt || 0.016); renderScene(); },
+    player: PLAYER, sys: SYS, tick: (dt) => { levelTick(dt == null ? 0.016 : dt); renderScene(); },
+    cutTick: (dt) => { cutTick(dt == null ? 0.016 : dt); renderScene(); },
     render: () => renderScene(),
     teleport: (planetIdx, dir) => {
       const pl = SYS.planets[planetIdx] || SYS.planets[0];
