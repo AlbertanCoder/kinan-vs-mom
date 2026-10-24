@@ -143,8 +143,8 @@ const TEX_FS = [
    ---------------------------------------------------------------------------- */
 const R = {
   gl: null, canvas: null, toon: null, tex: null, lost: false,
-  fog: [0.03, 0.05, 0.12], fogRange: [220, 900], light: V3.norm([0.45, 0.85, 0.5]),
-  ambient: [0.52, 0.52, 0.58], proj: null, view: null, width: 0, height: 0, dpr: 1, forceUnlit: 0
+  fog: [0.03, 0.05, 0.12], fogRange: [220, 900], light: V3.norm([0.5, 0.82, 0.55]),
+  ambient: [0.62, 0.62, 0.68], proj: null, view: null, width: 0, height: 0, dpr: 1, forceUnlit: 0
 };
 function compile(gl, vsSrc, fsSrc) {
   const mk = (type, src) => {
@@ -1108,13 +1108,15 @@ function buildLevel() {
   /* ---- the living world: a dense meadow, forests, mushroom rings, crystal fields ---- */
   SYS.deco = [];
   const dpush = (kind, planet, dir, tint, s) => SYS.deco.push({ kind: kind, planet: planet, dir: V3.norm(dir), tint: tint || null, s: s || 1, spin: rnd() * 6 });
-  for (let k = 0; k < 130; k++) {   /* grass tufts and wildflowers everywhere */
+  for (let k = 0; k < 220; k++) {   /* grass tufts and wildflowers everywhere */
     const a = rnd() * Math.PI * 2, e = (rnd() - 0.42) * 1.55;
     const dir = [Math.cos(a) * Math.cos(e), Math.sin(e), Math.sin(a) * Math.cos(e)];
-    if (rnd() < 0.55) dpush('tuft', home, dir, null, 0.8 + rnd() * 0.8);
-    else dpush('flower', home, dir, [[1, 0.62, 0.72], [1, 0.88, 0.4], [0.95, 0.95, 1], [1, 0.5, 0.5], [0.8, 0.6, 1]][k % 5], 0.8 + rnd() * 0.7);
+    const q = rnd();
+    if (q < 0.42) dpush('tuft', home, dir, null, 0.8 + rnd() * 0.9);
+    else if (q < 0.82) dpush('flower', home, dir, [[1, 0.62, 0.72], [1, 0.88, 0.4], [0.95, 0.95, 1], [1, 0.5, 0.5], [0.8, 0.6, 1]][k % 5], 0.85 + rnd() * 0.8);
+    else dpush('bush', home, dir, null, 0.7 + rnd() * 0.7);
   }
-  for (let k = 0; k < 18; k++) {
+  for (let k = 0; k < 24; k++) {
     const a = rnd() * Math.PI * 2, e = (rnd() - 0.4) * 1.35;
     dpush('tree', home, [Math.cos(a) * Math.cos(e), Math.sin(e), Math.sin(a) * Math.cos(e)], null, 0.85 + rnd() * 0.7);
   }
@@ -1176,6 +1178,7 @@ function buildLevel() {
   for (const l of SYS.launches) st('shrine', l.planet, l.dir);
   st('pond', home, [0.55, 0.72, -0.42]);
   st('ruins', home, [-0.72, 0.55, 0.42]);
+  st('tower', home, [-0.5, 0.78, 0.38]);
   for (let k = 0; k < 26; k++) {
     const a = k / 26 * Math.PI * 2;
     st('path', home, [Math.cos(a) * 0.82, 0.52, Math.sin(a) * 0.82], null, 1 + (k % 3) * 0.12);
@@ -1202,7 +1205,7 @@ function renderScene() {
   const near = (p, d) => V3.len(V3.sub(p, CAM.pos)) < (d || 170);
   /* soft blob shadows first — everything that stands, grounds */
   for (const d of SYS.deco) {
-    if (d.kind !== 'tree' && d.kind !== 'mushroom' && d.kind !== 'rock') continue;
+    if (d.kind !== 'tree' && d.kind !== 'mushroom' && d.kind !== 'rock' && d.kind !== 'bush') continue;
     const p = onSphere(d.planet, d.dir, 0);
     if (!near(p, 130)) continue;
     drawShadow(p, d.dir, (d.kind === 'tree' ? 7 : 3.2) * d.s, 0.28);
@@ -1222,6 +1225,10 @@ function renderScene() {
       drawMesh(M.sph.canopy, partAt(fr, 0, 8.2 * s, 0, d.spin, [3.4 * s, 2.8 * s, 3.4 * s]), { tex: TEX.grass, tint: [0.62, 0.95, 0.7] });
       drawMesh(M.sph.canopy, partAt(fr, -2.2 * s, 6.6 * s, 1.4 * s, 0, [2.2 * s, 1.9 * s, 2.2 * s]), { tex: TEX.grass, tint: [0.55, 0.88, 0.62] });
       drawMesh(M.sph.canopy, partAt(fr, 2.4 * s, 6.9 * s, -1.3 * s, 0, [2.1 * s, 1.8 * s, 2.1 * s]), { tex: TEX.grass, tint: [0.7, 1, 0.78] });
+    } else if (d.kind === 'bush') {
+      drawMesh(M.sph.canopy, partAt(fr, 0, 1.6 * s, 0, d.spin, [1.5 * s, 1.15 * s, 1.5 * s]), { tex: TEX.grass, tint: [0.6, 1.0, 0.68] });
+      drawMesh(M.sph.canopy, partAt(fr, 1.15 * s, 1.1 * s, 0.7 * s, 0, [1.05 * s, 0.82 * s, 1.05 * s]), { tex: TEX.grass, tint: [0.52, 0.92, 0.6] });
+      drawMesh(M.sph.canopy, partAt(fr, -1.2 * s, 1.15 * s, -0.65 * s, 0, [0.95 * s, 0.78 * s, 0.95 * s]), { tex: TEX.grass, tint: [0.68, 1.05, 0.72] });
     } else if (d.kind === 'flower') {
       drawMesh(M.box.stem, partAt(fr, 0, 0.8 * s, 0, 0, [0.8 * s, 1.1 * s, 0.8 * s]), { tint: [0.24, 0.55, 0.3] });
       drawMesh(M.flowerHead, partAt(fr, 0, 1.75 * s, 0, SYS.time * 0.3, [0.72 * s, 0.45 * s, 0.72 * s]), { tint: d.tint || [1, 0.7, 0.8], emit: 0.08 });
@@ -1284,6 +1291,16 @@ function renderScene() {
         drawMesh(M.box.pillar, partAt(fr, q * 4.6 * s, 3.5 * s * h, 0, q * 0.2, [1.35 * s, h * s, 1.35 * s]), { tex: TEX.stone, tint: [0.92, 0.88, 1] });
       }
       drawMesh(M.box.body, partAt(fr, -0.4 * s, 7.3 * s, 0, 0, [7.4 * s, 1.05 * s, 1.9 * s], 0, 0.06), { tex: TEX.stone, tint: [0.95, 0.92, 1] });
+    } else if (d.kind === 'tower') {
+      /* the white beacon tower from the concept art */
+      drawMesh(M.box.pillar, partAt(fr, 0, 20 * s, 0, 0, [3.3 * s, 5.8 * s, 3.3 * s]), { tex: TEX.stone, tint: [1.1, 1.1, 1.16] });
+      drawMesh(M.box.body, partAt(fr, 0, 41.5 * s, 0, 0, [3.9 * s, 1.1 * s, 3.9 * s]), { tex: TEX.stone, tint: [0.88, 0.9, 1] });
+      for (let q = 0; q < 2; q++) {
+        drawMesh(M.box.eyeW, partAt(fr, 0, (16 + q * 15) * s, 2.85 * s, 0, [1.3 * s, 1.9 * s, 0.5 * s]), { tint: [0.36, 0.46, 0.72] });
+      }
+      drawMesh(M.ring.gold, M4.mul(fr, M4.trs([0, 45 * s, 0], 0, [1.7 * s, 1, 1.7 * s])), { emit: 0.4 });
+      drawMesh(M.star.power, M4.mul(fr, M4.trs([0, 51 * s, 0], SYS.time * 0.7, [0.36 * s, 0.36 * s, 0.36 * s])), { emit: 0.6 });
+      drawSprite(M.quad, TEX.glow, billboardMat(V3.add(p, V3.scale(up, 51 * s)), 22 * s), { alpha: 0.5, tint: [1, 0.92, 0.55] });
     } else if (d.kind === 'path') {
       drawMesh(M.box.step, partAt(fr, 0, 0.26 * s, 0, d.spin * 4, [s, 0.8 * s, s]), { tex: TEX.stone, tint: [1.08, 1.04, 0.94] });
     }
