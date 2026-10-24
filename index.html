@@ -13705,6 +13705,7 @@ window.__k11 = {
   teleport: (x) => { P.x = x; P.y = (GROUND - 1) * T; camX = Math.max(0, x - W * 0.42); },
   morph: () => (morph ? morph.t : null),   /* the "world goes 3D" cutscene */
   morphDraw: (t) => { morph = { t: t, wait: null }; drawMorph(); morph = null; },
+  morphFreeze: (t) => { morph = { t: t, wait: { n: 1e9, res: () => {} } }; paused = true; },   /* hold one frame, for screenshots */
   morphRun: () => galaxyMorph(),
   grantPets: () => { progress.pets.ids = PET_DEFS.map((d) => d.id); save(); return progress.pets.ids.slice(); },
   petInfo: () => ({ ids: progress.pets.ids.slice(), names: Object.assign({}, progress.pets.names), liveCats: pets.cats.length, liveDogs: pets.dogs.length }),
