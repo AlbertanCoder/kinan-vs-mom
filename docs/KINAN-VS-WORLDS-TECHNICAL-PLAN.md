@@ -26,7 +26,15 @@
 - **Spherical gravity v2**: quaternion slerp of Kinan's up-vector; camera up slerp (no gimbal); auto-follow camera with swipe orbit + snap-back (per interview).
 - **Cutscene state machine** `CUT[5]`: (1) False Victory 2D → (2) Dimensional Tremor (screen shake, cosmic rifts) → (3) 2D→3D morph (ortho→perspective, ground curls into sphere) → (4) "Hands" close-up (3D hands turn over) → (5) Title drop KINAN VS. WORLDS + launch into W6-1. Tap-through dialog + VO clips + Skip button after 3 s. Fixed deterministic timeline for testing.
 - **World 6-1**: garden planetoid (instanced flowers/grass, trees, bridge, pond, ruins) + 2 moonlets + ringed planet; **3 stars** (main = post-boss; hidden Comet Star behind the pond; 100-Star-Bit rush) with a star-select menu.
-- **GRAVITOR** (3 phases): orbiting boulder fists (spin-deflect) → local gravity flips on the arena sphere → exposed core + Launch-Star slam + triple stomp. Max 4 projectiles alive; blob shadows only in boss arena on MED/LOW.
+- **BRICK-REX, THE TURBO T-REX** (3 phases) — a Lego-brick T-Rex robot who **stole the Power Star and fused it into his chest** as the golden "Heart of the Blocks".
+  LOOK: glossy primary-colored bricks with visible studs, mech joints, glowing red eye-visor, tiny T-Rex arms,
+  rocket boosters, and a glowing red **energy-blade tail** (lightsaber sweep). Arena: the "Block Star" brick
+  battle-station moonlet. STORY: the fight is to win the star back — bricks tumble apart on defeat (googly eyes
+  blink in the pile). THE BLEND: Lego + dinosaurs + robots + Star Wars (blade tail, Force-pull) + Mario
+  (Bob-omb brick bombs, shockwave rings) + rockets — Kinan's loves (Lego, Mario, Star Wars) in one villain.
+  PHASES: (1) tail sweep + turbo stomp, dodge rings, head-stomp; (2) Bob-omb barrage — SPIN-deflect the bombs
+  back at him, dodge rocket charges; (3) "Heart of the Blocks" — golden core exposed, Force-pull shockwaves,
+  Launch-Star slam + triple stomp. Max 4 projectiles alive.
 - **Controls**: desktop WASD/Space/Shift(+E/Click)=Spin, C=crouch/pound; mobile thumbstick + JUMP/SPIN/CROUCH buttons + swipe camera; auto-detected.
 
 ## TEST PLAN
