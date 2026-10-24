@@ -110,6 +110,9 @@ const TOON_FS = [
   '  vec3 col = mix(lit, base * uTint, uUnlit) + base * uTint * uEmit;',
   '  float fog = clamp((vDepth - uFogRange.x) / (uFogRange.y - uFogRange.x), 0.0, 1.0);',
   '  col = mix(col, uFog, fog * 0.9);',
+  '  float lum = dot(col, vec3(0.299, 0.587, 0.114));',
+  '  col = mix(vec3(lum), col, 1.32) * 1.06;',   /* the Nintendo color pop: saturated and bright */
+  '  col = clamp((col - 0.5) * 1.07 + 0.5, 0.0, 1.0);',
   '  gl_FragColor = vec4(col, uAlpha);',
   '}'
 ].join('\n');
@@ -942,9 +945,9 @@ function buildTextures() {
   TEX.grass = T2(256, (x, s) => {
     const r = seeded(1234);
     const gg = x.createLinearGradient(0, 0, s, s);
-    gg.addColorStop(0, '#57c47e'); gg.addColorStop(0.5, '#46a86c'); gg.addColorStop(1, '#63cf8b');
+    gg.addColorStop(0, '#37c96e'); gg.addColorStop(0.5, '#2eb562'); gg.addColorStop(1, '#45d97c');
     x.fillStyle = gg; x.fillRect(0, 0, s, s);
-    strokes(x, s, ['#2e8a52', '#7fe3a4', '#3fa86a', '#8ef0b4'], 500, 11, r, 2.4);
+    strokes(x, s, ['#1c9450', '#63f0a2', '#2bb066', '#8cffb8'], 500, 11, r, 2.4);
     speckle(x, s, ['#eafbe9', '#2e8a52'], 240, r, 1.4);
     for (let k = 0; k < 26; k++) {   /* little flowers painted right into the turf */
       x.globalAlpha = 0.85;
@@ -1022,12 +1025,12 @@ function buildTextures() {
   TEX.home = T2(256, (x, s) => {
     const r = seeded(3131);
     const bg = x.createLinearGradient(0, 0, 0, s);
-    bg.addColorStop(0, '#63cf8b'); bg.addColorStop(0.28, '#4db477');
-    bg.addColorStop(0.42, '#8a7a5e'); bg.addColorStop(0.55, '#6b5a8f');
-    bg.addColorStop(0.8, '#4a3d80'); bg.addColorStop(1, '#3b2f6e');
+    bg.addColorStop(0, '#42d97c'); bg.addColorStop(0.28, '#2fb566');
+    bg.addColorStop(0.42, '#8a7a5e'); bg.addColorStop(0.55, '#7260a2');
+    bg.addColorStop(0.8, '#52438e'); bg.addColorStop(1, '#42347c');
     x.fillStyle = bg; x.fillRect(0, 0, s, s);
-    strokes(x, s, ['#2e8a52', '#7fe3a4', '#8ef0b4'], 260, 10, r, 2.4);
-    strokes(x, s, ['#7c68a8', '#5a4a92', '#9a86c8'], 300, 13, r, 3);
+    strokes(x, s, ['#1c9450', '#63f0a2', '#8cffb8'], 260, 10, r, 2.4);
+    strokes(x, s, ['#8472b4', '#62529e', '#a692d6'], 300, 13, r, 3);
     speckle(x, s, ['#eafbe9', '#2e8a52'], 160, r, 1.4);
     speckle(x, s, ['#d9c8ff', '#fff'], 220, r, 1.6);   /* star dust in the rock */
     for (let k = 0; k < 22; k++) {
