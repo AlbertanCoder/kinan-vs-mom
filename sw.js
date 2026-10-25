@@ -1,5 +1,5 @@
 /* Kinan vs. Mom - offline cache */
-const CACHE = 'kinan-vs-mom-v14';
+const CACHE = 'kinan-vs-mom-v15';
 const ASSETS = [
   './',
   './index.html',
@@ -50,7 +50,23 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  /* everything else: cache first */
+  /* code, data and voices: network first, so updates always land (cached copy only when offline) */
+  const path = new URL(req.url).pathname;
+  const fresh = /\.(js|json|mp3)$/.test(path) || ['script', 'audio', 'json', 'worker'].indexOf(req.destination) >= 0;
+  if (fresh) {
+    event.respondWith(
+      fetch(req).then((res) => {
+        if (res && res.ok && new URL(req.url).origin === location.origin) {
+          const copy = res.clone();
+          caches.open(CACHE).then((cache) => cache.put(req, copy));
+        }
+        return res;
+      }).catch(() => caches.match(req))
+    );
+    return;
+  }
+
+  /* images and icons: cache first */
   event.respondWith(
     caches.match(req).then((hit) => {
       if (hit) return hit;

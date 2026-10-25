@@ -6025,7 +6025,11 @@ function creatorActive() {
   if (!creatorChecked) {
     creatorChecked = true;
     if (/[?&]creator=off/i.test(location.search)) progress.creatorUntil = 0;
-    else if (/[?&]creator=shad/i.test(location.search)) progress.creatorUntil = Date.now() + 60 * 60 * 1000;
+    else if (/[?&]creator=shad/i.test(location.search)) {
+      progress.creatorUntil = Date.now() + 60 * 60 * 1000;
+      progress.mapWorld = 6;   /* land the creator right on World 6 */
+      setTimeout(() => { try { toast('🔓 <b>Creator pass!</b> Everything unlocked for 1 hour — World 6 is open on the map.', 5200); } catch (e) {} }, 900);
+    }
     if (typeof save === 'function') save();
   }
   return (progress.creatorUntil || 0) > Date.now();
@@ -8369,7 +8373,7 @@ function playGalaxy3D() {
     sfx: galaxySfx,
     onFinish: (r) => galaxy3DResults(r)
   });
-  if (!ok) { toast('😢 This browser cannot open the 3D world yet.', 3200); mapScreen(); }
+  if (!ok) { toast('😢 World 6 needs <b>WebGL</b>. Update your browser (Chrome or Safari work best), then tap World 6 again.', 5200); mapScreen(); }
 }
 function galaxy3DResults(r) {
   got = r.bits; totalCandles = r.total || 1;
