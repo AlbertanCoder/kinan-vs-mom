@@ -1,8 +1,8 @@
 import Phaser from 'phaser';
 
 /**
- * Boot placeholder scene. Real art/animation arrive in later milestones;
- * this scene only proves the engine boots and renders deterministically.
+ * Boot: start the title menu. Placeholder art; real animation arrives
+ * with the art milestones.
  */
 export class BootScene extends Phaser.Scene {
   constructor() {
@@ -11,13 +11,14 @@ export class BootScene extends Phaser.Scene {
 
   create(): void {
     const { width, height } = this.scale;
+    this.add.rectangle(width / 2, height / 2, width, height, 0x14162b);
     this.add
-      .rectangle(width / 2, height / 2, width, height, 0x14162b)
-      .setDepth(0);
-    this.add
-      .rectangle(width / 2, height / 2, width * 0.8, height * 0.12, 0x0b0d20)
-      .setStrokeStyle(4, 0xf4f1e8)
-      .setDepth(1);
+      .text(width / 2, height / 2, 'KINAN VS. WORLDS', {
+        fontFamily: 'system-ui, sans-serif',
+        fontSize: '48px',
+        color: '#f4f1e8',
+      })
+      .setOrigin(0.5);
     this.scene.start('title');
   }
 }

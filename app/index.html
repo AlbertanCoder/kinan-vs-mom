@@ -4,19 +4,55 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <link rel="icon" href="data:," />
-  <title>Kinan vs. Worlds — Overhaul Shell</title>
+  <title>Kinan vs. Worlds</title>
   <style>
     :root { color-scheme: dark; }
     html, body { margin: 0; height: 100%; background: #0b0d20; color: #f4f1e8; font-family: system-ui, sans-serif; }
     #game-root { position: fixed; inset: 0; }
     #game-root canvas { width: 100%; height: 100%; object-fit: contain; }
+
+    /* Portrait: upright rotate prompt only — the DOM is never rotated. */
+    #portrait-prompt {
+      position: fixed; inset: 0; display: none; z-index: 40;
+      align-items: center; justify-content: center; text-align: center;
+      background: #0b0d20; padding: max(24px, env(safe-area-inset-top)) 24px;
+    }
+    @media (orientation: portrait) { #portrait-prompt { display: flex; } }
+    #portrait-prompt .icon { font-size: 64px; }
+
+    /* Touch controls: adjustable size, safe areas, multitouch. */
+    #touch-controls {
+      position: fixed; inset: 0; z-index: 30; pointer-events: none;
+      display: none; --touch-scale: 1;
+      padding: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right))
+               max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+    }
+    body.touch-enabled #touch-controls { display: block; }
+    .touch-btn {
+      pointer-events: auto; position: absolute; font: inherit; color: #f4f1e8;
+      background: #14162bcc; border: 2px solid #f4f1e8aa; border-radius: 16px;
+      user-select: none; -webkit-user-select: none; touch-action: none;
+      width: calc(64px * var(--touch-scale)); height: calc(64px * var(--touch-scale));
+      font-size: calc(14px * var(--touch-scale));
+    }
+    .touch-btn.dpad { bottom: calc(24px + env(safe-area-inset-bottom)); }
+    .touch-btn.dpad:nth-of-type(1) { left: calc(24px + env(safe-area-inset-left)); }
+    .touch-btn.dpad:nth-of-type(2) { left: calc(104px + env(safe-area-inset-left)); }
+    .touch-btn.dpad:nth-of-type(3) { left: calc(184px + env(safe-area-inset-left)); }
+    .touch-btn.btn { right: calc(24px + env(safe-area-inset-right)); }
+    .touch-btn.btn:nth-of-type(4) { bottom: calc(24px + env(safe-area-inset-bottom)); height: calc(88px * var(--touch-scale)); }
+    .touch-btn.btn:nth-of-type(5) { bottom: calc(124px + env(safe-area-inset-bottom)); }
+    .touch-btn.btn:nth-of-type(6) { bottom: calc(224px + env(safe-area-inset-bottom)); }
+    .touch-btn.btn:nth-of-type(7) { top: calc(16px + env(safe-area-inset-top)); bottom: auto; }
+
     #shell-ui {
       position: fixed; inset: 0; display: flex; flex-direction: column;
       align-items: center; justify-content: center; gap: 14px; text-align: center;
       padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right))
                max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
-      pointer-events: none;
+      pointer-events: none; z-index: 20;
     }
+    #shell-ui.hidden { display: none; }
     #shell-ui h1 { font-size: clamp(22px, 5vw, 44px); margin: 0; letter-spacing: 0.05em; }
     #shell-ui p { margin: 0; opacity: 0.85; max-width: 46ch; }
     #startBtn {
@@ -28,9 +64,17 @@
 </head>
 <body>
   <div id="game-root"></div>
+  <div id="portrait-prompt" role="alertdialog" aria-label="Rotate your device">
+    <div>
+      <div class="icon" aria-hidden="true">🔄</div>
+      <h1>Please rotate your device</h1>
+      <p>Kinan vs. Worlds plays in landscape. Turn your device sideways to continue.</p>
+    </div>
+  </div>
+  <div id="touch-controls" aria-label="Touch controls"></div>
   <div id="shell-ui">
     <h1>KINAN VS. WORLDS</h1>
-    <p>Milestone 1 foundation shell — placeholder visuals only. No gameplay has been built yet.</p>
+    <p>Ten 2D worlds of birthday adventure. Loadout, saves, and settings are on the world map.</p>
     <button id="startBtn" type="button">START</button>
     <p id="shellStatus" role="status">Waiting for input</p>
   </div>
