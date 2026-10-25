@@ -500,6 +500,30 @@ html.sideways .stage{max-width:100%}
   .gphead b{font-size:22px}
 }
 
+
+/* ============================================================
+   THE PHONE-FIRST UI PASS — big game view, big thumbs, no dead air
+   ============================================================ */
+@media (max-width:1100px) and (orientation:portrait){
+  .stage{width:118%;margin-left:-9%;max-width:none}   /* a bigger game with a gentle side-crop */
+  .pad{margin-top:0;grid-template-columns:1fr 1fr;gap:12px;align-items:stretch;
+    min-height:54vh;
+    background:linear-gradient(180deg,#151a3a,#0c0f26);border-top:3px solid var(--edge);
+    border-radius:16px 16px 0 0;padding:16px 10px calc(14px + env(safe-area-inset-bottom,0px))}
+  .pad .dpad,.pad .acts{display:flex;align-items:center;justify-content:space-around;gap:10px}
+  .pad .dpad button,.pad .acts button{flex:1 1 0;min-width:0;max-width:none;min-height:172px;font-size:26px;
+    box-shadow:0 6px 0 rgba(0,0,0,.35)}
+  .pad .acts button.jump{font-size:30px}
+  .keys{display:none!important}                        /* keyboard hints never belong on a phone */
+  .modebtn small{white-space:normal;overflow:visible;text-overflow:clip}
+  .rotatehint{opacity:.7;font-size:11px;margin:2px 0 6px}
+}
+@media (hover:none){ .keys{display:none!important} }   /* touch devices: no keyboard legend */
+@media (max-width:1100px){
+  .btn,.iconbtn,.worldtab,.lvbtn,.mtool,.hatbtn{min-height:44px}   /* thumb-friendly tap targets */
+  .iconbtn{min-width:44px}
+}
+
 </style>
 </head>
 <body>
