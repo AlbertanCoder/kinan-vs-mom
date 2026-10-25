@@ -1,3 +1,4 @@
+import type { GameRuntime } from './state';
 import { createDefaultSave, type GameSave } from '../shared/save';
 
 export interface ShellTestHooks {
@@ -17,11 +18,11 @@ declare global {
  * Read-only by design: no unlock or debug capabilities (master design
  * document section 2 — no public unlock shortcuts in the production runtime).
  */
-export function installShellTestHooks(): void {
+export function installShellTestHooks(runtime?: GameRuntime): void {
   window.__kvShell = {
     ready: false,
-    milestone: 1,
-    save: () => createDefaultSave(),
+    milestone: 2,
+    save: () => (runtime === undefined ? createDefaultSave() : runtime.save),
   };
 }
 

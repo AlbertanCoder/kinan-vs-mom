@@ -53,6 +53,15 @@ export const PET_IDS: readonly PetId[] = [
   'pet-tuxedo',
 ];
 
+/** Species split for the loadout rule (one cat AND one dog) — master doc 6.1. */
+export const CAT_IDS: readonly PetId[] = [
+  'pet-garfield',
+  'pet-vader',
+  'pet-duchess',
+  'pet-tuxedo',
+];
+export const DOG_IDS: readonly PetId[] = ['pet-chikastino', 'pet-hunter'];
+
 export const FRIEND_IDS: readonly FriendId[] = ['friend-milo', 'friend-aiden'];
 
 /** Lowercase kebab-case slugs that start with a letter — readable, stable,

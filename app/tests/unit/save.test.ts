@@ -30,14 +30,23 @@ describe('new save schema scaffolding', () => {
     expect(save.pets.equippedDog).toBeNull();
   });
 
-  it('enforces one cat and one dog, or solo', () => {
+  it('enforces one cat and one dog, or solo (master doc 6.1)', () => {
     const pets = createDefaultSave().pets;
     expect(isLoadoutValid(pets)).toBe(true);
 
+    /* equipped pets must be owned */
     pets.equippedCat = 'pet-garfield';
+    expect(isLoadoutValid(pets)).toBe(false);
+
+    pets.owned.push('pet-garfield', 'pet-chikastino');
     expect(isLoadoutValid(pets)).toBe(true);
 
+    /* Tuxedo is a black cat (master doc 6.1) — he cannot fill the dog slot */
+    pets.owned.push('pet-tuxedo');
     pets.equippedDog = 'pet-tuxedo';
+    expect(isLoadoutValid(pets)).toBe(false);
+
+    pets.equippedDog = 'pet-chikastino';
     expect(isLoadoutValid(pets)).toBe(true);
 
     (pets as { equippedCat: unknown }).equippedCat = 'not-a-pet';

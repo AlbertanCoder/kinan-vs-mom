@@ -37,7 +37,7 @@ test.describe('M1 shell smoke', () => {
     await expect(page.locator('#shellStatus')).toHaveText('Waiting for input');
     await page.locator('#startBtn').click();
     await expect(page.locator('#shellStatus')).toHaveText(
-      'Shell interaction OK — full input mapping arrives in M2.',
+      'Game ready — use the map to pick a stage.',
     );
 
     expect(errors).toEqual([]);

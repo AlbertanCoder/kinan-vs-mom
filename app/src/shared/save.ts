@@ -7,7 +7,7 @@
  * backup succeeds (master design document section 11.1).
  */
 
-import { PET_IDS, FRIEND_IDS, type PetId, type FriendId } from './ids';
+import { PET_IDS, CAT_IDS, DOG_IDS, FRIEND_IDS, type PetId, type FriendId } from './ids';
 
 export const SAVE_SCHEMA_VERSION = 1;
 
@@ -19,6 +19,27 @@ export const SAVE_KEY = 'kinan-worlds-v1';
  * before a validated migration is a bug.
  */
 export const LEGACY_KEYS = ['kinan-remaster-v1', 'k11v3', 'k11v3-sound'] as const;
+
+export interface AccessibilitySettings {
+  musicVolume: number;
+  sfxVolume: number;
+  voiceVolume: number;
+  captions: boolean;
+  reducedMotion: boolean;
+  screenShake: boolean;
+  /** Touch control scale 0.8 – 1.4. */
+  touchScale: number;
+}
+
+export const DEFAULT_SETTINGS: AccessibilitySettings = {
+  musicVolume: 0.8,
+  sfxVolume: 0.8,
+  voiceVolume: 0.9,
+  captions: true,
+  reducedMotion: false,
+  screenShake: true,
+  touchScale: 1,
+};
 
 export interface StageProgress {
   cleared: boolean;
@@ -46,6 +67,9 @@ export interface GameSave {
   world11Unlocked: boolean;
   pendingDimensionCutscene: boolean;
   dimensionCutsceneSeen: boolean;
+  /** Lifetime coins (legacy "candles" migrate here). */
+  coins: number;
+  settings: AccessibilitySettings;
 }
 
 export function createDefaultSave(): GameSave {
@@ -63,14 +87,22 @@ export function createDefaultSave(): GameSave {
     world11Unlocked: false,
     pendingDimensionCutscene: false,
     dimensionCutsceneSeen: false,
+    coins: 0,
+    settings: { ...DEFAULT_SETTINGS },
   };
 }
 
-/** Loadout rule: one cat AND one dog, or solo. */
+/** Loadout rule: one cat AND one dog, or solo (master doc section 6). */
 export function isLoadoutValid(pets: PetState): boolean {
-  const { equippedCat, equippedDog } = pets;
-  if (equippedCat !== null && !PET_IDS.includes(equippedCat)) return false;
-  if (equippedDog !== null && !PET_IDS.includes(equippedDog)) return false;
+  const { owned, equippedCat, equippedDog } = pets;
+  if (equippedCat !== null) {
+    if (!CAT_IDS.includes(equippedCat)) return false;
+    if (!owned.includes(equippedCat)) return false;
+  }
+  if (equippedDog !== null) {
+    if (!DOG_IDS.includes(equippedDog)) return false;
+    if (!owned.includes(equippedDog)) return false;
+  }
   return true;
 }
 
@@ -78,9 +110,14 @@ export function isFriendAssistValid(friend: FriendId | null): boolean {
   return friend === null || FRIEND_IDS.includes(friend);
 }
 
+export function isPetRosterValid(pets: PetState): boolean {
+  return pets.owned.every((id) => PET_IDS.includes(id));
+}
+
 export function isSaveShapeValid(save: GameSave): boolean {
   return (
     save.schemaVersion === SAVE_SCHEMA_VERSION &&
+    isPetRosterValid(save.pets) &&
     isLoadoutValid(save.pets) &&
     isFriendAssistValid(save.friendAssist)
   );
