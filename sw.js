@@ -1,5 +1,5 @@
 /* Kinan vs. Mom - offline cache */
-const CACHE = 'kinan-vs-mom-v16';   /* v16: M1 quarantine — galaxy3d*.js removed from precache */
+const CACHE = 'kinan-vs-mom-v17';   /* v17: verified last-known-good save backup and recovery */
 const ASSETS = [
   './',
   './index.html',

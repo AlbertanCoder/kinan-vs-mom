@@ -27,10 +27,17 @@ Developer tooling stays explicit, local, and non-production.
 ## What is preserved (never deleted)
 
 - `index.html`, `galaxy3d.js`, `galaxy3d-models.js` — the reference build itself.
-- Player saves: `localStorage["kinan-remaster-v1"]`, `localStorage["k11v3"]`,
-  `localStorage["k11v3-sound"]`. The new runtime may read these only through the
-  read-only adapters in `app/src/shared/save.ts`; migration lands in M2 only
-  after fixtures validate and a last-known-good backup succeeds.
+- Original player saves: `localStorage["kinan-remaster-v1"]`,
+  `localStorage["k11v3"]`, `localStorage["k11v3-sound"]`. The legacy `k11v3`
+  keys stay read-only during migration; no original key is deleted by recovery.
+- `localStorage["kinan-remaster-v1-backup"]`: the root game's new verified
+  last-known-good copy. Each save commit writes and re-read verifies the previous
+  valid current record before replacing current. If the backup cannot be
+  written, current is left untouched; if the current write fails, the backup
+  remains available. A damaged current record is restored from this backup.
+- The root game keeps its existing v1 save shape. It does not adopt the shelved
+  skeleton's incompatible stage mapping; `k11v3` is used only when neither a
+  valid current record nor a valid backup exists.
 - The archived 26/26 mocked 3D smoke harness on `archive/world6-experiment`.
   It is **historical context only** — mocked DOM/WebGL is not proof of rendering,
   touch, frame rate, or physics quality.
@@ -49,3 +56,6 @@ node tools/preview-server.mjs --root . --port 8080
 - `app/tests/e2e/legacy-quarantine.spec.ts` — real-browser checks against this
   exact `index.html`: no eager 3D scripts, `?w6`/`?creator=SHAD` blocked,
   `window.__k11` absent, legacy save keys preserved, dev gate still works locally.
+- `app/tests/e2e/legacy-save-recovery.spec.ts` — backup-first commits, damaged
+  current recovery, read-only `k11v3` migration, older sparse v1 records, and
+  simulated backup/current storage failures with console/page-error checks.

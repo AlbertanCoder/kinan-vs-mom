@@ -16,6 +16,14 @@
 > The save-migration and platformer modules in `src/` are kept as tested
 > reference code to salvage into the real game where useful.
 >
+> **Legacy save recovery:** the root game now writes and re-read verifies a
+> last-known-good `kinan-remaster-v1-backup` before replacing the current save.
+> A damaged current record recovers from that backup; `k11v3` and its sound key
+> remain read-only migration sources. The root keeps its existing save format
+> rather than adopting the skeleton's incompatible stage mapping.
+> `tests/e2e/legacy-save-recovery.spec.ts` covers backup order, recovery,
+> migration, older sparse saves, and simulated storage failures.
+>
 > The original skeleton notes are kept below for history.
 
 ---

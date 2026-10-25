@@ -32,6 +32,6 @@ Open `index.html` directly, or serve this folder with any static server
 
 ## Notes
 
-- Progress is saved on the device (stars, pets, names, hats, best scores).
+- Progress is saved on the device (stars, pets, names, hats, best scores), with a verified last-known-good backup and automatic recovery from a damaged current save.
 - `robots.txt` and a `noindex` meta tag keep the page out of search engines.
 - No analytics, no ads, no network calls at runtime.

@@ -677,6 +677,37 @@ const T = 16, ROWS = 15, H = 240, W = 432, GROUND = 11;
 const RUN_MAX = 3.0, JUMP_V = -8.2, AIR_JUMP_V = -7.4, MAX_FALL = 8.6;
 const GRAV_HOLD = 0.38, GRAV_TAP = 0.48, GRAV_FALL = 0.62;
 const SAVE_KEY = 'kinan-remaster-v1';
+const SAVE_BACKUP_KEY = SAVE_KEY + '-backup';
+
+/* Last-known-good saves: accept older sparse v1 records, but reject broken
+   containers so a damaged current record can fall back to its verified backup.
+   k11v3 remains a separate, read-only migration source below. */
+function validProgressRecord(p) {
+  if (!p || typeof p !== 'object' || Array.isArray(p)) return false;
+  if (!Number.isFinite(Number(p.unlocked)) || !Array.isArray(p.beaten)) return false;
+  if (p.pets !== undefined) {
+    if (!p.pets || typeof p.pets !== 'object' || Array.isArray(p.pets)) return false;
+    if (p.pets.ids !== undefined && !Array.isArray(p.pets.ids)) return false;
+    if (p.pets.names !== undefined && (!p.pets.names || typeof p.pets.names !== 'object' || Array.isArray(p.pets.names))) return false;
+  }
+  return true;
+}
+function readProgressRecord(key) {
+  try {
+    const raw = localStorage.getItem(key);
+    if (raw === null) return null;
+    const value = JSON.parse(raw);
+    return validProgressRecord(value) ? value : null;
+  } catch (e) { return null; }
+}
+function writeProgressRecord(key, value) {
+  if (!validProgressRecord(value)) return false;
+  try {
+    const raw = JSON.stringify(value);
+    localStorage.setItem(key, raw);
+    return localStorage.getItem(key) === raw;
+  } catch (e) { return false; }
+}
 
 const cv = $('#cv');
 const ctx = cv.getContext('2d');
@@ -1920,7 +1951,11 @@ function buildGalaxy(i) {
 const DEFAULT_PROGRESS = { unlocked: 1, beaten: [], stars: {}, bestScore: {}, totalCandles: 0, pets: { ids: [], names: {} }, hat: 'none', won: false, sound: true, lite: false,
   wallet: 0, owned: [], outfit: 'classic', trail: 'none', costumes: {}, gold: {}, smashItems: true, codes: [], wonWorlds: [], builds: [], bossLosses: {} };
 function loadProgress() {
-  let p = store.get(SAVE_KEY, null);
+  let p = readProgressRecord(SAVE_KEY), recovered = false;
+  if (!p) {
+    p = readProgressRecord(SAVE_BACKUP_KEY);
+    recovered = !!p;
+  }
   if (!p) {
     /* carry over progress from the original game (save key "k11v3") */
     const old = store.get('k11v3', null);
@@ -1975,14 +2010,27 @@ function loadProgress() {
   out.won = !!out.won; out.sound = out.sound !== false; out.lite = !!out.lite;
   out.wallet = Math.max(0, Math.floor(Number(out.wallet) || 0)); out.totalCandles = Math.max(0, Math.floor(Number(out.totalCandles) || 0));
   for (const k of ['hat', 'outfit', 'trail']) if (typeof out[k] !== 'string') out[k] = DEFAULT_PROGRESS[k];
+  if (recovered) {
+    const restored = writeProgressRecord(SAVE_KEY, out);
+    setTimeout(() => toast(restored
+      ? '💾 <b>Backup save recovered.</b> Your damaged current save was replaced with the last good copy.'
+      : '⚠️ Your backup was loaded, but the damaged current save could not be replaced yet.', 5200), 800);
+  }
   return out;
 }
 let progress = loadProgress();
 let saveWarnAt = 0;
-/* a save that doesn't fit (the device is out of room) says so, at most every 30 s, instead of failing quietly */
+/* Backup the previous valid current record and verify it BEFORE replacing current.
+   A failed backup aborts the commit; a failed current write leaves that backup intact. */
 const save = (loud) => {   /* loud: a save the player asked for always says when it didn't work */
-  if (store.set(SAVE_KEY, progress)) return true;
-  if (loud || Date.now() - saveWarnAt > 30000) { saveWarnAt = Date.now(); toast('This device is out of room, so the game could not save! Delete a homemade level or two to make room.', 4200); }
+  const current = readProgressRecord(SAVE_KEY), backup = readProgressRecord(SAVE_BACKUP_KEY);
+  const previous = current || backup || progress;
+  const committed = writeProgressRecord(SAVE_BACKUP_KEY, previous) && writeProgressRecord(SAVE_KEY, progress);
+  if (committed) return true;
+  if (loud || Date.now() - saveWarnAt > 30000) {
+    saveWarnAt = Date.now();
+    toast('The game could not safely save. Your existing save was not replaced. Free some device space and try again.', 4200);
+  }
   return false;
 };
 
