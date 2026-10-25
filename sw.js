@@ -1,10 +1,8 @@
 /* Kinan vs. Mom - offline cache */
-const CACHE = 'kinan-vs-mom-v15';
+const CACHE = 'kinan-vs-mom-v16';   /* v16: M1 quarantine — galaxy3d*.js removed from precache */
 const ASSETS = [
   './',
   './index.html',
-  './galaxy3d.js',
-  './galaxy3d-models.js',
   './manifest.webmanifest',
   './apple-touch-icon.png',
   './icons/icon-192.png',

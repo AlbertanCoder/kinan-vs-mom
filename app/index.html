@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <link rel="icon" href="data:," />
+  <title>Kinan vs. Worlds — Overhaul Shell</title>
+  <style>
+    :root { color-scheme: dark; }
+    html, body { margin: 0; height: 100%; background: #0b0d20; color: #f4f1e8; font-family: system-ui, sans-serif; }
+    #game-root { position: fixed; inset: 0; }
+    #game-root canvas { width: 100%; height: 100%; object-fit: contain; }
+    #shell-ui {
+      position: fixed; inset: 0; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 14px; text-align: center;
+      padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right))
+               max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+      pointer-events: none;
+    }
+    #shell-ui h1 { font-size: clamp(22px, 5vw, 44px); margin: 0; letter-spacing: 0.05em; }
+    #shell-ui p { margin: 0; opacity: 0.85; max-width: 46ch; }
+    #startBtn {
+      pointer-events: auto; font: inherit; font-size: 18px; padding: 12px 32px;
+      border-radius: 12px; border: 2px solid #f4f1e8; background: #14162b; color: inherit; cursor: pointer;
+    }
+    #startBtn:focus-visible { outline: 3px solid #ffd34d; outline-offset: 2px; }
+  </style>
+</head>
+<body>
+  <div id="game-root"></div>
+  <div id="shell-ui">
+    <h1>KINAN VS. WORLDS</h1>
+    <p>Milestone 1 foundation shell — placeholder visuals only. No gameplay has been built yet.</p>
+    <button id="startBtn" type="button">START</button>
+    <p id="shellStatus" role="status">Waiting for input</p>
+  </div>
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>

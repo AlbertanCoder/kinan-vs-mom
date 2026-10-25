@@ -1,0 +1,27 @@
+{
+  "unlocked": 12,
+  "beaten": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+  "stars": { "0": 3, "1": 2, "2": 3, "11": 1 },
+  "bestScore": { "0": 18400, "1": 12200 },
+  "bestTime": { "0": 95, "1": 140 },
+  "totalCandles": 214,
+  "pets": {
+    "ids": ["cat1", "cat2", "dog1"],
+    "names": { "cat1": "Garfield", "dog1": "Chikastino" }
+  },
+  "hat": "party",
+  "won": true,
+  "sound": true,
+  "lite": false,
+  "wallet": 214,
+  "owned": ["hat-party"],
+  "outfit": "classic",
+  "trail": "none",
+  "costumes": {},
+  "gold": {},
+  "smashItems": true,
+  "codes": [2, 3],
+  "wonWorlds": [2, 3],
+  "builds": [],
+  "bossLosses": { "12": 2 }
+}
