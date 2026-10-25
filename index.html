@@ -629,8 +629,26 @@ html.sideways .stage{max-width:100%}
     <button class="btn go" id="sheetOk" type="button">GOT IT</button>
   </div>
 </div>
-<script src="galaxy3d-models.js"></script>
-<script src="galaxy3d.js"></script>
+<script>
+/* ============================================================
+   M1 QUARANTINE — legacy 3D experiment (reference only)
+   The old galaxy3d*.js experiment is NOT loaded eagerly any more.
+   It loads only for explicit local development: ?devtools=1 AND a
+   localhost/127.0.0.1/[::1] host. Shared links and production
+   (GitHub Pages) can never reach it. See docs/LEGACY-BOUNDARY.md.
+   ============================================================ */
+window.__k11DevOnly = function () {
+  var local = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
+  return local && new URLSearchParams(location.search).get('devtools') === '1';
+};
+if (window.__k11DevOnly()) {
+  ['galaxy3d-models.js', 'galaxy3d.js'].forEach(function (src) {
+    var s = document.createElement('script');
+    s.src = src;
+    document.body.appendChild(s);
+  });
+}
+</script>
 <script>
 (() => {
 'use strict';
@@ -6046,6 +6064,9 @@ const worldInfo = (i) => WORLDS[worldOf(i) - 1];
    then the game quietly re-locks to what was actually earned. ?creator=off ends it early. */
 let creatorChecked = false;
 function creatorActive() {
+  /* M1 QUARANTINE: the creator pass is developer-only (explicit ?devtools=1 + localhost).
+     In production it never grants anything, even if a save still holds creatorUntil. */
+  if (!window.__k11DevOnly()) return false;
   if (!creatorChecked) {
     creatorChecked = true;
     if (/[?&]creator=off/i.test(location.search)) progress.creatorUntil = 0;
@@ -8386,6 +8407,12 @@ function galaxySfx(name) {
   if (fn) fn();
 }
 function playGalaxy3D() {
+  /* M1 QUARANTINE: the 3D handoff runs only for explicit local development. */
+  if (!window.__k11DevOnly()) {
+    toast('🌟 <b>World 6 3D</b> is archived in this build (developer-only). The story continues in 2D.', 4200);
+    mapScreen();
+    return;
+  }
   AudioSys.init();
   showGame(true);
   running = false;
@@ -13834,9 +13861,10 @@ if (SMASH_LINK.length === 4) smashOnlineScreen(SMASH_LINK);
 const KART_LINK = (new URLSearchParams(location.search).get('kart') || '').toUpperCase().replace(/[^A-Z]/g, '');
 if (KART_LINK.length === 4) kartOnlineScreen(KART_LINK);
 /* a preview link for the World 6 sneak peek: ?w6=play runs the galaxy level right away; ?w6=cutscene plays the
-   "the world goes 3D" cutscene first and drops into the level right after it (no need to beat World 5 first) */
+   "the world goes 3D" cutscene first and drops into the level right after it (no need to beat World 5 first).
+   M1 QUARANTINE: developer-only (explicit ?devtools=1 + localhost); inert in production and shared links. */
 const W6_LINK = (new URLSearchParams(location.search).get('w6') || '').toLowerCase();
-if (W6_LINK === 'play' || W6_LINK === 'cutscene') {
+if (window.__k11DevOnly() && (W6_LINK === 'play' || W6_LINK === 'cutscene')) {
   setTimeout(async () => {
     try {
       AudioSys.init();
@@ -13851,8 +13879,10 @@ if (W6_LINK === 'play' || W6_LINK === 'cutscene') {
   }, 500);
 }
 
-/* test hooks — used by the automated smoke test, harmless otherwise */
-window.__k11 = {
+/* test hooks — used by the automated smoke test, harmless otherwise.
+   M1 QUARANTINE: developer-only (explicit ?devtools=1 + localhost). These hooks
+   include godMode/killBosses/grantPets, so they must never ship enabled. */
+window.__k11 = window.__k11DevOnly() ? {
   build: build,
   startStage: startStage,
   playStage: playStage,
@@ -14040,7 +14070,7 @@ window.__k11 = {
     });
     return c.toDataURL();
   },
-};
+} : undefined;
 
 })();
 </script>
