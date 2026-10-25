@@ -10,6 +10,9 @@ export default defineConfig({
   testDir: './tests/e2e',
   timeout: 60_000,
   fullyParallel: true,
+  /* Bound concurrent software-WebGL contexts. A 10-worker local run left a
+     Firefox renderer unresponsive; the identical test passed in isolation. */
+  workers: process.env.CI ? 2 : 4,
   forbidOnly: !!process.env.CI,
   retries: 0,
   reporter: [['list']],

@@ -9,7 +9,12 @@ import {
   importSave,
   type StorageLike,
 } from '../../src/shared/migration';
-import { SAVE_KEY, LEGACY_KEYS, isSaveShapeValid } from '../../src/shared/save';
+import {
+  SAVE_KEY,
+  LEGACY_KEYS,
+  createDefaultSave,
+  isSaveShapeValid,
+} from '../../src/shared/save';
 
 const fixture = (name: string): string =>
   readFileSync(
@@ -131,5 +136,67 @@ describe('legacy save migration (master doc 11.1)', () => {
     expect(imported?.coins).toBe(save.coins);
     expect(importSave('{corrupt')).toBeNull();
     expect(importSave('{"schemaVersion":1}')).toBeNull();
+  });
+
+  it('never throws or accepts malformed current-schema records', () => {
+    const malformed = [
+      '{corrupt',
+      '{"schemaVersion":1}',
+      '{"schemaVersion":1,"pets":null}',
+      JSON.stringify({ ...createDefaultSave(), settings: undefined }),
+      JSON.stringify({ ...createDefaultSave(), coins: -1 }),
+    ];
+
+    for (const raw of malformed) {
+      const s = new MemoryStorage();
+      s.setItem(SAVE_KEY, raw);
+      expect(() => loadSave(s)).not.toThrow();
+      const result = loadSave(s);
+      expect(isSaveShapeValid(result.save)).toBe(true);
+      expect(result.save.coins).toBe(0);
+    }
+  });
+
+  it('keeps the previous valid save as the last-known-good backup', () => {
+    const s = new MemoryStorage();
+    const first = createDefaultSave();
+    const second = { ...first, coins: 10 };
+    const third = { ...second, coins: 20 };
+
+    expect(commitMigratedSave(s, first)).toBe(true);
+    expect(commitMigratedSave(s, second)).toBe(true);
+    expect(commitMigratedSave(s, third)).toBe(true);
+
+    expect(JSON.parse(s.getItem(SAVE_KEY) as string).coins).toBe(20);
+    expect(JSON.parse(s.getItem(`${SAVE_KEY}-backup`) as string).coins).toBe(10);
+  });
+
+  it('recovers and restores a valid backup when the current record is damaged', () => {
+    const s = new MemoryStorage();
+    const original = createDefaultSave();
+    const latest = { ...original, coins: 42 };
+    commitMigratedSave(s, original);
+    commitMigratedSave(s, latest);
+    commitMigratedSave(s, { ...latest, coins: 43 });
+    s.setItem(SAVE_KEY, '{"schemaVersion":1,"pets":null}');
+
+    const recovered = loadSave(s);
+    expect(recovered.save.coins).toBe(42);
+    expect(recovered.report.warnings.join(' ')).toMatch(/recovered/i);
+    expect(JSON.parse(s.getItem(SAVE_KEY) as string).coins).toBe(42);
+  });
+
+  it('returns false instead of committing when the backup cannot be written', () => {
+    class FailingBackupStorage extends MemoryStorage {
+      override setItem(key: string, value: string): void {
+        if (key === `${SAVE_KEY}-backup`) throw new Error('quota exhausted');
+        super.setItem(key, value);
+      }
+    }
+
+    const s = new FailingBackupStorage();
+    expect(() => commitMigratedSave(s, createDefaultSave())).not.toThrow();
+    expect(commitMigratedSave(s, createDefaultSave())).toBe(false);
+    expect(s.getItem(SAVE_KEY)).toBeNull();
   });
 });

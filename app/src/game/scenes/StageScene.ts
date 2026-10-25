@@ -462,20 +462,28 @@ export class StageScene extends Phaser.Scene {
     this.finished = true;
     audio.stopMusic();
     audio.sfx('goal');
-    runtime.recordStageClear(this.stageId, this.starsCollected, Math.round(this.elapsedMs));
     runtime.addCoins(this.coinsCollected);
+    const clearCommitted = runtime.recordStageClear(
+      this.stageId,
+      this.starsCollected,
+      Math.round(this.elapsedMs),
+    );
     const isFinal = this.stageId === 'w10-mom-finale';
     if (isFinal) {
-      /* Master doc 11.2: the unlock transaction already committed inside
-         recordStageClear BEFORE any cinematic. The cinematic lands with the
-         World 10 milestone; skipping just marks it seen. */
-      runtime.markDimensionCutsceneSeen();
+      /* The unlock is committed before any cinematic. The actual cinematic is
+         later-milestone scope, so keep the recovery flag pending until an
+         explicit completion or skip action exists. */
       this.overlayText.setText(
-        'WORLD 10 COMPLETE!\nDimension 11 unlocked — happy birthday, Kinan!',
+        clearCommitted
+          ? 'WORLD 10 COMPLETE!\nDimension 11 unlocked — cinematic pending.'
+          : 'WORLD 10 FINISHED\nSave failed — the Dimension 11 unlock is not committed yet.',
       );
     } else {
+      const saveWarning = clearCommitted
+        ? ''
+        : '\nSAVE FAILED — progress may be lost on reload.';
       this.overlayText.setText(
-        `STAGE CLEAR!\n★ ${this.starsCollected}/3 · coins +${this.coinsCollected}\nEnter: continue`,
+        `STAGE CLEAR!\n★ ${this.starsCollected}/3 · coins +${this.coinsCollected}${saveWarning}\nEnter: continue`,
       );
     }
     const continueToMap = (): void => {

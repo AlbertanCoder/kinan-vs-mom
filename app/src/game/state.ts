@@ -38,9 +38,10 @@ class GameRuntime {
     this.listeners.add(listener);
   }
 
-  private notify(): void {
+  private notify(): boolean {
+    const committed = persistSave(this.storage, this.save);
     for (const listener of this.listeners) listener();
-    persistSave(this.storage, this.save);
+    return committed;
   }
 
   /* ---------- progression ---------- */
@@ -73,9 +74,9 @@ class GameRuntime {
    * pendingDimensionCutscene immediately when Mom is defeated — BEFORE any
    * cinematic runs. A crash afterwards resumes from the pending event.
    */
-  recordStageClear(stageId: string, stars: number, timeMs: number): void {
+  recordStageClear(stageId: string, stars: number, timeMs: number): boolean {
     const found = findStage(stageId);
-    if (found === null) return;
+    if (found === null) return false;
     const { world, stage } = found;
     const record = this.save.worlds[world.id] ?? {};
     const prev = record[stageId];
@@ -92,7 +93,7 @@ class GameRuntime {
       this.save.world11Unlocked = true;
       this.save.pendingDimensionCutscene = true;
     }
-    this.notify();
+    return this.notify();
   }
 
   /** Call when the dimension cinematic completes or is skipped. */

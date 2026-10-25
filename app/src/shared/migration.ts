@@ -16,7 +16,6 @@
 
 import {
   SAVE_KEY,
-  SAVE_SCHEMA_VERSION,
   createDefaultSave,
   isSaveShapeValid,
   parseLegacyK11v3,
@@ -150,32 +149,79 @@ export function migrateFromLegacy(storage: StorageLike): LoadResult {
   return { save, report };
 }
 
-/** Commit order per master doc 11.1: backup + validate first, then write. */
+function parseValidSave(raw: string | null): GameSave | null {
+  const parsed = safeParse(raw);
+  return isSaveShapeValid(parsed) ? parsed : null;
+}
+
+/** Write an exact serialized record, then read and fully validate the copy. */
+function writeAndVerify(
+  storage: StorageLike,
+  key: string,
+  serialized: string,
+): boolean {
+  try {
+    storage.setItem(key, serialized);
+    const stored = storage.getItem(key);
+    return stored === serialized && parseValidSave(stored) !== null;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Commit order per master doc 11.1: preserve and verify a last-known-good
+ * backup first, then write and verify the new current record. On first
+ * migration, the validated migrated record is also the initial backup.
+ */
 export function commitMigratedSave(
   storage: StorageLike,
   save: GameSave,
 ): boolean {
   if (!isSaveShapeValid(save)) return false;
   const serialized = JSON.stringify(save);
-  storage.setItem(`${SAVE_KEY}-backup`, serialized);
-  const verified = safeParse(storage.getItem(`${SAVE_KEY}-backup`));
-  if (verified === null || (verified as GameSave).schemaVersion !== SAVE_SCHEMA_VERSION) {
-    return false; /* backup failed validation — do not commit */
+
+  try {
+    const current = parseValidSave(storage.getItem(SAVE_KEY));
+    const existingBackup = parseValidSave(storage.getItem(`${SAVE_KEY}-backup`));
+    const backup = current ?? existingBackup ?? save;
+    if (!writeAndVerify(storage, `${SAVE_KEY}-backup`, JSON.stringify(backup))) {
+      return false;
+    }
+    return writeAndVerify(storage, SAVE_KEY, serialized);
+  } catch {
+    return false;
   }
-  storage.setItem(SAVE_KEY, serialized);
-  return true;
 }
 
 /**
- * Load the new save, migrating legacy data when the new record is absent.
- * Legacy keys are left untouched in every path.
+ * Load the new save, recover its verified backup when necessary, and migrate
+ * legacy data only when neither current-schema record is usable. Legacy keys
+ * are left untouched in every path.
  */
 export function loadSave(storage: StorageLike): LoadResult {
-  const rawNew = safeParse(storage.getItem(SAVE_KEY));
-  if (rawNew !== null && isSaveShapeValid(rawNew as GameSave)) {
+  const current = parseValidSave(storage.getItem(SAVE_KEY));
+  if (current !== null) {
     return {
-      save: rawNew as GameSave,
+      save: current,
       report: { migrated: false, sources: [], warnings: [] },
+    };
+  }
+
+  const backup = parseValidSave(storage.getItem(`${SAVE_KEY}-backup`));
+  if (backup !== null) {
+    const restored = writeAndVerify(storage, SAVE_KEY, JSON.stringify(backup));
+    return {
+      save: backup,
+      report: {
+        migrated: false,
+        sources: [],
+        warnings: [
+          restored
+            ? 'Recovered a valid backup and restored the current save.'
+            : 'Recovered a valid backup, but the current save could not be restored.',
+        ],
+      },
     };
   }
 

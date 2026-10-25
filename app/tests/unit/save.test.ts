@@ -64,6 +64,40 @@ describe('new save schema scaffolding', () => {
     expect([...LEGACY_KEYS]).toEqual(['kinan-remaster-v1', 'k11v3', 'k11v3-sound']);
     expect(SAVE_KEY).not.toBe('kinan-remaster-v1');
   });
+
+  it('rejects malformed nested data without throwing', () => {
+    const valid = createDefaultSave();
+    const sparsePets = createDefaultSave();
+    sparsePets.pets.owned = new Array(1);
+    const invalid: unknown[] = [
+      null,
+      [],
+      { ...valid, worlds: null },
+      { ...valid, worlds: { 'Invalid ID': {} } },
+      {
+        ...valid,
+        worlds: {
+          'world-01-saskatoon-home': {
+            'w01-bedroom-chaos': { cleared: true, stars: 4 },
+          },
+        },
+      },
+      { ...valid, settings: { ...valid.settings, touchScale: 2 } },
+      {
+        ...valid,
+        pets: { ...valid.pets, owned: ['pet-garfield', 'pet-garfield'] },
+      },
+      { ...valid, pets: { ...valid.pets, customNames: { unknown: 'name' } } },
+      { ...valid, friendAssist: 'friend-nobody' },
+      { ...valid, world11Unlocked: 'true' },
+      sparsePets,
+    ];
+
+    for (const candidate of invalid) {
+      expect(() => isSaveShapeValid(candidate)).not.toThrow();
+      expect(isSaveShapeValid(candidate)).toBe(false);
+    }
+  });
 });
 
 describe('legacy read-only adapters', () => {

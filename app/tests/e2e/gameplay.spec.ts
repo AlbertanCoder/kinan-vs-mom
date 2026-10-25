@@ -1,4 +1,5 @@
 import { expect, test, type ConsoleMessage, type Page } from '@playwright/test';
+import { createDefaultSave, SAVE_KEY } from '../../src/shared/save';
 
 const APP_URL = 'http://127.0.0.1:4173';
 
@@ -60,7 +61,7 @@ test.describe('gameplay journey (2D kernel)', () => {
     expect(errors).toEqual([]);
   });
 
-  test('save progression persists stages and survives reload', async ({ page }) => {
+  test('current save schema and settings survive reload', async ({ page }) => {
     const errors = watchErrors(page);
     await bootGame(page);
 
@@ -85,6 +86,31 @@ test.describe('gameplay journey (2D kernel)', () => {
 
     const afterReload = await page.evaluate(() => window.__kvShell?.save()?.schemaVersion);
     expect(afterReload).toBe(1);
+    expect(errors).toEqual([]);
+  });
+
+  test('damaged current save boots from a verified backup without errors', async ({ page }) => {
+    const errors = watchErrors(page);
+    const backup = JSON.stringify({ ...createDefaultSave(), coins: 42 });
+    await page.addInitScript(
+      ({ key, backupRaw }) => {
+        window.localStorage.setItem(`${key}-backup`, backupRaw);
+        window.localStorage.setItem(key, '{"schemaVersion":1,"pets":null}');
+      },
+      { key: SAVE_KEY, backupRaw: backup },
+    );
+
+    await page.goto(APP_URL);
+    await expect.poll(
+      async () => page.evaluate(() => window.__kvShell?.ready === true),
+      { timeout: 15_000 },
+    ).toBe(true);
+
+    const recovered = await page.evaluate((key) => ({
+      coins: window.__kvShell?.save().coins,
+      persistedCoins: JSON.parse(window.localStorage.getItem(key) as string).coins,
+    }), SAVE_KEY);
+    expect(recovered).toEqual({ coins: 42, persistedCoins: 42 });
     expect(errors).toEqual([]);
   });
 
