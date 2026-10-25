@@ -1,6 +1,26 @@
-# Kinan vs. Worlds — Overhaul App (Phaser 3 + TypeScript + Vite)
+# Kinan vs. Worlds — Overhaul Tooling
 
-The new, testable game runtime for the overhaul (`MASTER_GAME_DESIGN_DOC.md`).
+> **Legacy-first decision (2026-10-25, Shad):** the Phaser skeleton below was a
+> visual and feature downgrade: no pixel art, no Family Brawl, Kart, Builder,
+> Party Shop or world map. It is **shelved**. The overhaul now builds on the
+> real game in the repository root (`../index.html`) and improves it step by
+> step. Every change must pass `tests/e2e/legacy-regression.spec.ts` (title,
+> Story, Brawl, Kart, Builder, Shop, How to play, zero console errors).
+>
+> | Command | What it does now |
+> |---|---|
+> | `npm run preview` / `npm start` | Serve the **real game** at http://127.0.0.1:4173 |
+> | `npm run check` | Typecheck + unit tests + legacy regression/quarantine browser gate |
+> | `npm run preview:skeleton`, `build:skeleton`, `test:e2e:skeleton` | Shelved Phaser skeleton (port 4175), reference only |
+>
+> The save-migration and platformer modules in `src/` are kept as tested
+> reference code to salvage into the real game where useful.
+>
+> The original skeleton notes are kept below for history.
+
+---
+
+The shelved Phaser runtime prototype for the overhaul (`MASTER_GAME_DESIGN_DOC.md`).
 Worlds 1–10 are 2D Phaser content; World 11 alone will use Three.js behind
 `src/engine/boundary.ts` after its unlock. All dependencies are pinned in
 `package.json` and bundled offline — no runtime CDN, no trackers, no accounts.

@@ -33,11 +33,8 @@ jobs:
       - name: Unit tests
         run: npm run test:unit
 
-      - name: Build
-        run: npm run build
-
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium firefox webkit
 
-      - name: Browser smoke + legacy quarantine (console/page errors fail)
+      - name: Real-game regression + legacy quarantine (console/page errors fail)
         run: npm run test:e2e

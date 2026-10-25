@@ -3,16 +3,20 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "Kinan vs. Worlds overhaul - Phaser 3 + TypeScript + Vite shell (Milestone 1 foundation).",
+  "description": "Kinan vs. Worlds overhaul tooling. The real game is the legacy build in the repository root (legacy-first decision); the Phaser skeleton in src/ is shelved.",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview",
+    "start": "node ../tools/preview-server.mjs --root .. --port 4173",
+    "preview": "node ../tools/preview-server.mjs --root .. --port 4173",
     "preview:legacy": "node ../tools/preview-server.mjs --root .. --port 8080",
+    "dev:skeleton": "vite",
+    "build:skeleton": "vite build",
+    "preview:skeleton": "vite preview --port 4175",
+    "build": "vite build",
     "typecheck": "tsc --noEmit",
     "test:unit": "vitest run",
     "test:e2e": "playwright test",
-    "check": "npm run typecheck && npm run test:unit && npm run build && npm run test:e2e"
+    "test:e2e:skeleton": "node -e \"process.env.KV_SKELETON='1';require('child_process').execSync('npx playwright test',{stdio:'inherit',env:process.env})\"",
+    "check": "npm run typecheck && npm run test:unit && npm run test:e2e"
   },
   "dependencies": {
     "phaser": "3.90.0"

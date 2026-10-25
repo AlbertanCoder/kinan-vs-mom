@@ -1,7 +1,7 @@
-import { expect, test, type ConsoleMessage, type Page } from '@playwright/test';
+﻿import { expect, test, type ConsoleMessage, type Page } from '@playwright/test';
 import { createDefaultSave, SAVE_KEY } from '../../src/shared/save';
 
-const APP_URL = 'http://127.0.0.1:4173';
+const APP_URL = 'http://127.0.0.1:4175';
 
 function watchErrors(page: Page): string[] {
   const errors: string[] = [];
@@ -23,15 +23,15 @@ async function bootGame(page: Page): Promise<void> {
 }
 
 test.describe('gameplay journey (2D kernel)', () => {
-  test('title → map → stage 1-1 → movement and jump with zero errors', async ({ page }) => {
+  test('title â†’ map â†’ stage 1-1 â†’ movement and jump with zero errors', async ({ page }) => {
     const errors = watchErrors(page);
     await bootGame(page);
 
-    /* Title menu: PLAY is selected first — Enter opens the world map. */
+    /* Title menu: PLAY is selected first â€” Enter opens the world map. */
     await page.keyboard.press('Enter');
     await page.waitForTimeout(400);
 
-    /* Map: first entry is World 1 → Enter, then first stage → Enter. */
+    /* Map: first entry is World 1 â†’ Enter, then first stage â†’ Enter. */
     await page.keyboard.press('Enter');
     await page.waitForTimeout(300);
     await page.keyboard.press('Enter');
@@ -117,7 +117,7 @@ test.describe('gameplay journey (2D kernel)', () => {
   test('touch controls appear and respond on touch-emulated devices', async ({ page }, testInfo) => {
     const errors = watchErrors(page);
     /* tap() requires Playwright's hasTouch context option (touch-tablet project). */
-    test.skip(testInfo.project.use.hasTouch !== true, 'tap needs hasTouch context — covered by the touch-tablet project');
+    test.skip(testInfo.project.use.hasTouch !== true, 'tap needs hasTouch context â€” covered by the touch-tablet project');
 
     await bootGame(page);
     const jump = page.locator('.touch-btn', { hasText: 'JUMP' });

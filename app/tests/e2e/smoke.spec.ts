@@ -1,6 +1,6 @@
-import { expect, test, type ConsoleMessage, type Page } from '@playwright/test';
+﻿import { expect, test, type ConsoleMessage, type Page } from '@playwright/test';
 
-const APP_URL = 'http://127.0.0.1:4173';
+const APP_URL = 'http://127.0.0.1:4175';
 
 /** Collects console/page errors; any entry fails the test. */
 function watchErrors(page: Page): string[] {
@@ -37,7 +37,7 @@ test.describe('M1 shell smoke', () => {
     await expect(page.locator('#shellStatus')).toHaveText('Waiting for input');
     await page.locator('#startBtn').click();
     await expect(page.locator('#shellStatus')).toHaveText(
-      'Game ready — use the map to pick a stage.',
+      'Game ready â€” use the map to pick a stage.',
     );
 
     expect(errors).toEqual([]);
