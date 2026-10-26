@@ -51,6 +51,12 @@
 > handoff. `tests/e2e/legacy-world6.spec.ts` covers map access, every stage, and
 > completion without a 3D morph.
 >
+> **World 7 — LEGO Brick Realms:** five real 2D stages add build-pad recipes,
+> bounded temporary platforms, and a capped-projectile BRICK-REX encounter with
+> Heart extraction and a nonlethal ending. Sequential unlocks and map stops are
+> preserved. `tests/e2e/legacy-world7.spec.ts` covers recipes, all stages, the
+> four-projectile cap, and completion without a 3D morph.
+>
 > The original skeleton notes are kept below for history.
 
 ---
