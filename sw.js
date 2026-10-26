@@ -1,5 +1,5 @@
 /* Kinan vs. Mom - offline cache */
-const CACHE = 'kinan-vs-mom-v19';   /* v19: companion collection/loadout and initial locked pet abilities */
+const CACHE = 'kinan-vs-mom-v20';   /* v20: all six companion abilities and checkpoint-safe usage persistence */
 const ASSETS = [
   './',
   './index.html',

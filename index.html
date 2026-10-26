@@ -1109,10 +1109,10 @@ SP.mechStand = bake(MECH);
 const PET_DEFS = [
   { id: 'cat1', kind: 'cat', label: 'Garfield', perk: 'Kitten Zoomies · double jump + 3-landing boost', color: '#d98a3d', shade: '#a85f22' },
   { id: 'dog1', kind: 'dog', label: 'Chikastino', perk: 'Neighbourhood Watch · warning + 14s bark stun', color: '#f0e2c8', shade: '#a8692e' },
-  { id: 'cat2', kind: 'cat', label: 'Vader', perk: 'Coin magnet', color: '#9a9aa6', shade: '#5e5e6a' },
-  { id: 'dog2', kind: 'dog', label: 'Hunter', perk: 'Power stomp', color: '#4a4a58', shade: '#26262f' },
-  { id: 'cat3', kind: 'cat', label: 'Duchess', perk: 'Extra heart', color: '#f0e2c8', shade: '#c4ad84' },
-  { id: 'cat4', kind: 'cat', label: 'Tuxedo', perk: 'Faster POW', color: '#6b6f7a', shade: '#3b3f4a' }
+  { id: 'cat2', kind: 'cat', label: 'Vader', perk: 'Curious Force · secret scout + 8s coin pull', color: '#9a9aa6', shade: '#5e5e6a' },
+  { id: 'dog2', kind: 'dog', label: 'Hunter', perk: 'Courage Fetch · healing drops + one-heart rescue', color: '#4a4a58', shade: '#26262f' },
+  { id: 'cat3', kind: 'cat', label: 'Duchess', perk: 'Royal Snack Break · bonus food heal + checkpoint rest', color: '#f0e2c8', shade: '#c4ad84' },
+  { id: 'cat4', kind: 'cat', label: 'Tuxedo', perk: 'Senior Glare · 20% less knockback + 16s interrupt', color: '#6b6f7a', shade: '#3b3f4a' }
 ];
 /* one rescue per stage — 4 cats and 2 dogs across the house */
 const PET_STAGE = { 0: 'cat1', 1: 'dog1', 2: 'cat2', 4: 'dog2', 6: 'cat3', 8: 'cat4' };
@@ -1145,7 +1145,7 @@ function clearPetLoadout() {
   progress.pets.equippedDog = null;
   save();
 }
-const maxHearts = () => 3 + (hasPet('cat3') ? 1 : 0);
+const maxHearts = () => 3;
 const imgOf = (c, scale) => '<img alt="" width="' + c.width * (scale || 4) + '" src="' + c.toDataURL() + '">';
 /* ============================================================
    WORLDS — same story, brighter paint
@@ -2368,7 +2368,7 @@ function addScore(n) {
   el.scoreEl.innerHTML = '★ <b>' + score.toLocaleString() + '</b>';
 }
 function bumpCombo() {
-  combo++; comboT = hasPet('dog2') ? 150 : 110;  if (combo > bestCombo) bestCombo = combo;
+  combo++; comboT = 110;  if (combo > bestCombo) bestCombo = combo;
   const mult = Math.min(6, 1 + Math.floor(combo / 4));
   if (combo >= 2) {
     el.comboEl.hidden = false;
@@ -2655,6 +2655,7 @@ function startStage(i, silent, custom) {
     x: spawn.x, y: spawn.y, w: 10, h: 16, vx: 0, vy: 0, onGround: false, face: 1,
     coyote: 0, inv: 0, hp: 3, max: 3, dead: 0, power: null, rush: 0, airJumps: 0,
     cleanLandings: 0, zoomiesT: 0, zoomiesCd: 0,
+    vaderCd: 0, tuxCd: 0, tuxBossN: 0, hunterUsed: false, hunterT: 0, duchessUsed: false,
     fireCd: 0, hat: false, squash: 0, stretch: 0, landT: 0, anim: 0, skid: 0, jumpT: null, prevBottom: 0
   };
   const owned = progress.pets.ids, active = activePetIds();
@@ -2664,7 +2665,7 @@ function startStage(i, silent, custom) {
     if (def.kind === 'cat') pets.cats.push({ id: id, def: def, x: P.x + 16 + idx * 14, y: P.y + 7, face: 1 });
     else pets.dogs.push({ id: id, def: def, x: P.x + 66 + idx * 18, y: P.y + 6, t: ri(0, 120), warn: 0, dash: null, face: 1 });
   });
-  P.max = 3 + (active.indexOf('cat3') >= 0 ? 1 : 0);
+  P.max = 3;
   P.hp = P.max;
   P.airJumps = hasPet('cat1') ? 1 : 0;
   const nextPet = !custom && PET_STAGE[i] && owned.indexOf(PET_STAGE[i]) < 0 ? PET_STAGE[i] : null;
@@ -2692,7 +2693,7 @@ function snapshotStage() {
   return {
     i: SL.i, x: Math.round(onGround ? P.x : safe.x), y: Math.round(onGround ? P.y : safe.y),
     hp: P.hp, max: P.max, got: got, score: score, stageTime: stageTime, deaths: deaths, heartsLost: heartsLost, bestCombo: bestCombo,
-    power: P.power, hat: !!P.hat, lasso: !!P.lasso, umbrella: !!P.umbrella, cpHit: cpHit, spawn: { x: spawn.x, y: spawn.y }, nextHeartAt: nextHeartAt, dadUsedStage: dadUsedStage,
+    power: P.power, hat: !!P.hat, lasso: !!P.lasso, umbrella: !!P.umbrella, cpHit: cpHit, spawn: { x: spawn.x, y: spawn.y }, nextHeartAt: nextHeartAt, dadUsedStage: dadUsedStage, hunterUsed: !!P.hunterUsed, hunterT: P.hunterT || 0, duchessUsed: !!P.duchessUsed,
     candles: candles.map((c, k) => (c.got ? k : -1)).filter((k) => k >= 0),
     gifts: Object.keys(SL.gifts).filter((k) => SL.g[Number(k)] === 4),
     foesDead: SL.foes.map((f, k) => k).filter((k) => !foes.some((f) => f.idx === k && f.alive)),
@@ -2706,6 +2707,7 @@ function restoreStage(s) {
   foes = foes.filter((f) => s.foesDead.indexOf(f.idx) < 0);
   got = s.got; score = s.score; stageTime = s.stageTime; deaths = s.deaths; heartsLost = s.heartsLost; bestCombo = s.bestCombo;
   nextHeartAt = s.nextHeartAt; dadUsedStage = !!s.dadUsedStage; cpHit = !!s.cpHit;
+  P.hunterUsed = !!s.hunterUsed; P.hunterT = Number(s.hunterT) || 0; P.duchessUsed = !!s.duchessUsed;
   if (s.cpHit && s.spawn) spawn = { x: s.spawn.x, y: s.spawn.y };
   P.hp = s.hp; P.max = s.max; P.power = s.power || null; P.hat = !!s.hat;
   if (s.bagOpen && bag) bag.open = true;
@@ -2747,6 +2749,8 @@ function tickCompanionTimers() {
     if (P.zoomiesT === 0) P.cleanLandings = 0;
   }
   if (P.zoomiesCd > 0) P.zoomiesCd--;
+  if (P.vaderCd > 0) P.vaderCd--;
+  if (P.tuxCd > 0) P.tuxCd--;
 }
 function noteCleanLanding() {
   if (!P || !hasPet('cat1') || P.zoomiesT > 0 || P.zoomiesCd > 0) return;
@@ -2840,7 +2844,7 @@ function updatePlayer() {
   if (input.fireBuf > 0) input.fireBuf--;
   if (input.fireBuf > 0 && P.power === 'popper' && P.fireCd === 0 && blasts.length < 4) {
     blasts.push({ x: P.x + (P.face > 0 ? P.w : -6), y: P.y + 6, w: 6, h: 6, vx: P.face * 4.4, life: 55 });
-    P.fireCd = hasPet('cat4') ? 8 : 11; input.fireBuf = 0; SFX.pew();
+    P.fireCd = 11; input.fireBuf = 0; SFX.pew();
     part(P.x + (P.face > 0 ? 12 : -2), P.y + 9, { vx: P.face * 1.2, vy: -0.4, life: 12, size: 2, color: '#ff6fae', glow: true });
   }
 
@@ -2853,10 +2857,20 @@ function updatePlayer() {
     P.vx = P.vy = 0; P.inv = 100; trail = []; breakCombo();
     camX = clamp(Math.round(P.x - W * 0.42), 0, Math.min(L.w * T - W, (L.arenaX + L.arenaW + 1) * T - W));
     updHud();
-    if (P.hp === 1) callDad('heal');
+    if (P.hp === 1 && !startHunterRescue()) callDad('heal');
   }
 }
 
+function startHunterRescue() {
+  if (!hasPet('dog2')) return false;
+  if (P.hunterUsed) return true;
+  P.hunterUsed = true; P.hunterT = 360;
+  const d = pets.dogs.find((v) => v.id === 'dog2');
+  if (d) d.mission = 'out';
+  toast('<b>HUNTER:</b> is going for a snack. Hold on for six seconds!', 2200);
+  SFX.woof();
+  return true;
+}
 function hurt(from) {
   if (P.inv > 0 || P.dead || P.rush > 0 || paused || L.noHurt) return;
   P.cleanLandings = 0;
@@ -2872,13 +2886,13 @@ function hurt(from) {
     sparks(P.x + 5, P.y + 8, 10, ['#ff6fae', '#f6c445']);
     return;
   }
-  P.hp -= 1; heartsLost++; P.inv = 100; P.vy = -3.4; buzz(45);
-  P.vx = from != null ? (P.x < from ? -2.2 : 2.2) : 0;
+  P.hp -= 1; heartsLost++; P.inv = 100; P.vy = -3.4 * (hasPet('cat4') ? 0.8 : 1); buzz(45);
+  P.vx = (from != null ? (P.x < from ? -2.2 : 2.2) : 0) * (hasPet('cat4') ? 0.8 : 1);
   SFX.hurt(); flashScreen(); breakCombo();   /* no screen shake when Kinan is hurt (Shad: "violently shakes, stop that") */
   sparks(P.x + 5, P.y + 8, 8, ['#ff6b6b', '#fff']);
   updHud();
   if (P.hp <= 0) { P.dead = 1; P.vy = -5; return; }
-  if (P.hp === 1) callDad('heal');
+  if (P.hp === 1 && !startHunterRescue()) callDad('heal');
 }
 
 function die() {
@@ -2945,7 +2959,12 @@ function giveItem(kind) {
   else if (kind === 'heart') {
     P.max = Math.min(5, Math.max(P.max, P.hp + 1));
     P.hp = Math.min(P.max, P.hp + 1);
-    SFX.heart(); toast('❤ <b>Extra heart!</b>', 1300);
+    if (hasPet('cat3')) {
+      P.max = Math.min(5, Math.max(P.max, P.hp + 1));
+      P.hp = Math.min(P.max, P.hp + 1);
+      toast('❤ <b>ROYAL SNACK BREAK!</b> Duchess adds one more heart.', 1600);
+    } else toast('❤ <b>Extra heart!</b>', 1300);
+    SFX.heart();
   }
   else if (kind === 'hat') { P.hat = true; SFX.power(); toast("⛑️ <b>SHAD'S HARD HAT!</b> It takes one hit for you.", 2400); }
   else if (kind === 'lasso') { P.lasso = true; SFX.power(); toast('🤠 <b>LASSO!</b> Coins fly to you from far away. YEEHAW!', 2400); }
@@ -2972,11 +2991,22 @@ function updateWorld() {
     spawn = { x: L.checkpoint.x, y: (L.checkpoint.ty - 1) * T };
     SFX.flag(); toast('<b>CHECKPOINT!</b> 🚩 Saved.', 1300); if (!LV[L.i].final3) callBro();   /* not on the bridge: Shad is waiting there */
     sparks(L.checkpoint.tx * T + 6, (L.checkpoint.ty - 1) * T, 12, ['#44c55a', '#fff', '#f6c445']);
+    if (hasPet('cat3') && !P.duchessUsed && P.hp < P.max && boss !== 'fight' && !L.custom && !LV[L.i].challenge) {
+      const snack = Math.min(2, P.max - P.hp);
+      P.duchessUsed = true; P.hp += snack;
+      toast('<b>DUCHESS:</b> Royal snack break! +' + snack + ' ❤', 1800);
+      SFX.heart(); updHud();
+    }
     autoSave();
   }
-  const magnet = (P.rush > 0 ? 34 : 24) + (hasPet('cat2') ? 18 : 0) + (P.lasso ? 70 : 0);
+  const magnet = (P.rush > 0 ? 34 : 24) + (P.lasso ? 70 : 0);
   for (const c of candles) {
     if (c.got) continue;
+    if (c.vader > 0) {
+      c.vader--;
+      c.x += clamp(P.x - c.x, -3, 3);
+      c.y += clamp(P.y - c.y, -3, 3);
+    }
     const ccx = c.x + 3, ccy = c.y + 5;
     if (overlap(P, c) || dist(ccx, ccy, P.x + 5, P.y + 8) < magnet) {
       c.got = true;
@@ -2985,6 +3015,11 @@ function updateWorld() {
     }
   }
   for (const it of items) {
+    if (it.vader > 0) {
+      it.vader--;
+      it.x += clamp(P.x - it.x, -3, 3);
+      it.y += clamp(P.y - it.y, -3, 3);
+    }
     if (it.rise > 0) { it.y -= 0.9; it.rise--; }
     if (!it.got && overlap(P, it)) {
       it.got = true; giveItem(it.kind);
@@ -3006,7 +3041,6 @@ function updateWorld() {
         else pets.dogs.push({ id: def.id, def: def, x: crate.x, y: crate.y + 6, t: 0, warn: 0, dash: null, face: 1 });
       }
       if (def.id === 'cat1' && hasPet(def.id)) P.airJumps = 1;
-      if (def.id === 'cat3' && hasPet(def.id)) { P.max = Math.min(5, P.max + 1); P.hp = P.max; }
       if (def.kind === 'cat') SFX.meow(); else SFX.woof();
       toast((def.kind === 'cat' ? '🐱 ' : '🐶 ') + '<b>' + escAttr(petName(def.id)) + '</b> joined your collection! <b>' + def.perk + '</b>' + (hasPet(def.id) ? ' · equipped now.' : ' · choose them in Pets.'), 3000);
       pop(crate.x, crate.y - 10, def.perk.toUpperCase(), 50, '#f6c445');
@@ -3047,6 +3081,37 @@ function updatePets() {
     c.y = p.y - 10 - (i % 2);
     c.face = p.face;
     if (Math.random() < 0.006) part(c.x + 5, c.y + 8, { vx: 0, vy: -0.2, life: 16, size: 1, color: c.def.color, glow: true });
+    if (c.id === 'cat2' && P.vaderCd <= 0) {
+      /* Vader pulls only visible pickups. Puzzle pieces, keys and objectives
+         never enter this list; his next pulse waits exactly eight seconds. */
+      const coins = candles.filter((v) => !v.got && v.x > camX && v.x < camX + W && Math.abs(v.x - P.x) > 60);
+      const drops = items.filter((v) => !v.got && v.x > camX && v.x < camX + W && Math.abs(v.x - P.x) > 60);
+      if (coins.length || drops.length) {
+        P.vaderCd = 480;
+        coins.forEach((v) => { v.vader = 180; });
+        drops.forEach((v) => { v.vader = 180; });
+        pop(c.x, c.y - 12, 'CURIOUS FORCE!', 34, '#9fe0ff');
+        SFX.meow();
+      }
+    }
+    if (c.id === 'cat4' && P.tuxCd <= 0) {
+      const charging = foes.find((f) => f.alive && f.charge > 0 && Math.abs(f.x - P.x) < 220);
+      if (charging) {
+        charging.stun = Math.max(charging.stun || 0, 120);
+        charging.charge = 0; charging.vx = 0; P.tuxCd = 960;
+        pop(charging.x, charging.y - 12, 'SENIOR GLARE!', 42, '#c9c9cf');
+        SFX.meow();
+      } else if (boss === 'fight') {
+        const b = bosses.find((v) => !v.out && (v.tele > 0 || v.charge > 0 || v.state === 'charge') && Math.abs(v.x - P.x) < 220);
+        if (b) {
+          const n = P.tuxBossN || 0;
+          b.stun = Math.max(b.stun, Math.max(8, 24 - n * 6));
+          P.tuxBossN = n + 1; P.tuxCd = 960;
+          pop(b.x, b.y - 12, 'SENIOR GLARE!', 34, '#c9c9cf');
+          SFX.meow();
+        }
+      }
+    }
   });
   pets.dogs.forEach((d, i) => {
     d.t++;
@@ -3087,41 +3152,38 @@ function updatePets() {
       }
       return;
     }
-    if (d.dash) {
-      const tgt = d.dash;
-      d.x = lerp(d.x, tgt.x, 0.3);
-      d.y = lerp(d.y, tgt.y + tgt.h - 12, 0.3);
-      d.face = sign(tgt.x - d.x) || 1;
-      if (Math.random() < 0.5) part(d.x + 5, d.y + 9, { vx: -d.face * 0.6, vy: 0, life: 12, size: 1, color: '#fff' });
-      if (Math.abs(tgt.x - d.x) < 7 || !(tgt.alive || tgt.isBoss)) {
-        if (tgt.isBoss) {
-          if (!tgt.out) { tgt.stun = Math.max(tgt.stun, 70 + i * 20); pop(tgt.x, tgt.y - 10, 'WOOF! 💫', 40, '#ff6fae'); }
-          d.t = -240;
-        } else { killFoe(tgt, 'WOOF!'); d.t = 0; }
-        SFX.woof(); d.dash = null;
+    if (d.id === 'dog2') {
+      /* Hunter retrieves nearby healing drops and performs one six-second
+         one-heart rescue per level instead of the old combat dash. */
+      if (P.hunterT > 0) {
+        P.hunterT--;
+        d.mission = 'out';
+        d.x = lerp(d.x, camX - 55, 0.08);
+        d.y = lerp(d.y, P.y + 6, 0.12);
+        if (P.hunterT === 0) {
+          d.mission = null; d.x = P.x - 40; d.y = P.y + 6;
+          giveItem('heart');
+          pop(P.x, P.y - 16, 'HUNTER FOUND A SNACK!', 52, '#7be3a3');
+          toast('<b>HUNTER:</b> came back with a one-heart snack!', 2000);
+        }
+        return;
       }
-    } else {
+      d.mission = null;
+      for (const it of items) {
+        if (it.got || it.kind !== 'heart') continue;
+        const range = dist(it.x, it.y, P.x, P.y);
+        if (range < 180) {
+          it.x += clamp(P.x - it.x, -3, 3);
+          it.y += clamp(P.y - it.y, -3, 3);
+        }
+      }
       const p = at(34 + i * 10);
       if (p) {
         d.x = lerp(d.x, p.x - (80 + i * 20) * p.face, 0.16);
         d.y = p.y - 11;
         d.face = p.face;
       }
-      const cd = (hasPet('dog2') ? 130 : 165) + i * 40;
-      if (d.t > cd) {
-        const taken = pets.dogs.filter((o) => o !== d && o.dash).map((o) => o.dash);
-        let tgt = null;
-        if (boss === 'fight') {
-          const list = bosses.filter((b) => !b.out && b.stun === 0);
-          tgt = list.filter((b) => taken.indexOf(b) < 0)[0] || null;
-          if (tgt) tgt.isBoss = true;
-        } else {
-          const list = foes.filter((f) => f.alive && !f.hidden && !f.def.tough && Math.abs(f.x - P.x) < 130 && f.x > camX - 20 && f.x < camX + W + 20 && f.def.beh !== 'flyer');
-          tgt = list.filter((f) => taken.indexOf(f) < 0)[0] || null;
-        }
-        if (tgt) { d.dash = tgt; SFX.woof(); }
-        else d.t = 110;
-      }
+      return;
     }
   });
 }
@@ -3338,7 +3400,7 @@ function updateFoes() {
     }
     if (stomp) {
       killFoe(f);
-      P.vy = (input.jump || padIn.jump) ? -7.8 - (hasPet('dog2') ? 0.5 : 0) : -6.0 - (hasPet('dog2') ? 0.3 : 0);
+      P.vy = (input.jump || padIn.jump) ? -7.8 : -6.0;
       P.squash = 4; P.y = f.y - P.h + 1;
       SFX.stomp(); shakeIt(1.5);
     } else if (f.def.thief) {   /* a magpie grabs a coin and flies off with it: stomp it to get the coin back */
@@ -4783,6 +4845,29 @@ function drawTiles(th) {
   dg.addColorStop(0, 'rgba(0,0,0,.02)'); dg.addColorStop(1, 'rgba(0,0,0,.45)');
   ctx.fillStyle = dg; ctx.fillRect(0, GROUND * T, viewW, H - GROUND * T);
 }
+function vaderScoutTargets() {
+  const out = [];
+  if (!hasPet('cat2')) return out;
+  const up = L.up | 0, x0 = Math.floor(camX / T) - 1, x1 = Math.ceil((camX + viewW) / T) + 1;
+  const y0 = up ? Math.max(-up, Math.floor(camY / T)) : 0, y1 = up ? Math.min(ROWS - 1, Math.floor((camY + viewH) / T)) : ROWS - 1;
+  for (let ty = y0; ty <= y1; ty++) for (let tx = Math.max(0, x0); tx <= Math.min(L.w - 1, x1); tx++) {
+    if (L.g[(ty + up) * L.w + tx] === 3) out.push({ x: tx * T - Math.round(camX), y: ty * T, w: T, h: T });
+  }
+  for (const pc of pieces) {
+    if (hasGold(L.i, pc.j) || pc.x < camX - 12 || pc.x > camX + W + 12) continue;
+    out.push({ x: pc.x - camX - 4, y: pc.y - 4, w: 20, h: 20 });
+  }
+  if (crate && !crate.open && crate.x > camX - 16 && crate.x < camX + W + 16) out.push({ x: crate.x - camX - 3, y: crate.y - 3, w: 22, h: 22 });
+  return out;
+}
+function drawVaderScout() {
+  const targets = vaderScoutTargets();
+  if (!targets.length) return;
+  ctx.save();
+  ctx.strokeStyle = 'rgba(246,196,69,.72)'; ctx.lineWidth = 1; ctx.setLineDash([3, 3]);
+  for (const r of targets) ctx.strokeRect(r.x, r.y, r.w, r.h);
+  ctx.restore();
+}
 function drawProps(th) {
   for (const pc of pieces) if (!hasGold(L.i, pc.j)) drawPiece(Math.round(pc.x - camX), pc.y, frame + pc.j * 30);
   if (L.checkpoint) {
@@ -5769,6 +5854,7 @@ function draw() {
   if (cy) { ctx.save(); ctx.translate(0, -cy); }
   drawTiles(th);
   drawProps(th);
+  drawVaderScout();
   drawGoal();
   for (const f of foes) drawFoe(f);
   for (const b of bosses) drawBoss(b);
@@ -14122,7 +14208,12 @@ window.__k11 = window.__k11DevOnly() ? {
     liveCats: pets.cats.length, liveDogs: pets.dogs.length,
     cleanLandings: P ? P.cleanLandings : 0, zoomies: P ? P.zoomiesT : 0, zoomiesCooldown: P ? P.zoomiesCd : 0,
     dogs: pets.dogs.map((d) => ({ id: d.id, cooldown: d.t, warning: d.warn || 0 })),
-    stunnedFoes: foes.filter((f) => f.alive && f.stun > 0).map((f) => f.idx)
+    stunnedFoes: foes.filter((f) => f.alive && f.stun > 0).map((f) => f.idx),
+    vaderCooldown: P ? P.vaderCd : 0, tuxCooldown: P ? P.tuxCd : 0,
+    hunterUsed: P ? !!P.hunterUsed : false, hunterT: P ? P.hunterT : 0,
+    duchessUsed: P ? !!P.duchessUsed : false, hp: P ? P.hp : 0, maxHp: P ? P.max : 0,
+    pulledCoins: candles.filter((c) => c.vader > 0).length,
+    scoutTargets: L ? vaderScoutTargets().length : 0
   }),
   petLand: () => { noteCleanLanding(); return window.__k11.petInfo(); },
   petAbilityTick: (n) => { for (let k = 0; k < n; k++) tickCompanionTimers(); return window.__k11.petInfo(); },
@@ -14134,6 +14225,35 @@ window.__k11 = window.__k11DevOnly() ? {
     if (offscreen) { d.t = 0; d.warn = 0; } else { d.t = 840; }
     updatePets();
     return { alive: f.alive, stun: f.stun || 0, cooldown: d.t, warning: d.warn || 0, info: window.__k11.petInfo() };
+  },
+  petEquip: (cat, dog) => {
+    const valid = (id, kind) => id === null || (ownsPet(id) && petDef(id).kind === kind);
+    if (!valid(cat, 'cat') || !valid(dog, 'dog')) return null;
+    progress.pets.equippedCat = cat; progress.pets.equippedDog = dog;
+    startStage(L ? L.i : 0, true);
+    return window.__k11.petInfo();
+  },
+  petFreeze: () => { paused = true; pausedByUser = true; return true; },
+  petVader: () => { P.vaderCd = 0; updatePets(); return window.__k11.petInfo(); },
+  petHunter: () => { P.hp = 1; const started = startHunterRescue(); return { started, info: window.__k11.petInfo() }; },
+  petSave: () => { autoSave(); return progress.resume; },
+  petFood: () => { P.hp = 1; giveItem('heart'); return window.__k11.petInfo(); },
+  petCheckpoint: (reset) => {
+    P.hp = 1; if (reset !== false) P.duchessUsed = false; P.x = L.checkpoint.x + 1; cpHit = false; boss = 'off';
+    updateWorld();
+    return window.__k11.petInfo();
+  },
+  petTux: () => {
+    const f = foes.filter((v) => v.alive)[0];
+    if (!f) return null;
+    f.x = P.x + 30; f.charge = 30; P.tuxCd = 0;
+    updatePets();
+    return { stun: f.stun || 0, charge: f.charge, info: window.__k11.petInfo() };
+  },
+  petHurt: () => {
+    P.hp = 3; P.inv = 0; P.rush = 0; P.hat = false; P.power = null;
+    hurt(P.x + 1);
+    return { vx: P.vx, vy: P.vy, hp: P.hp };
   },
   progress: () => JSON.parse(JSON.stringify(progress)),
   defaults: () => JSON.parse(JSON.stringify(DEFAULT_PROGRESS)),

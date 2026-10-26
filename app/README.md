@@ -30,11 +30,12 @@
 > `tests/e2e/legacy-orientation.spec.ts` covers layout, desktop exclusion, and
 > automatic/manual pause behavior with touch emulation.
 >
-> **Companion collection/loadout:** the real root game now has named pets,
+> **Companion collection/loadout:** the real root game has named pets,
 > title/map loadout menus, one-cat/one-dog or Solo selection, equipped-only
-> followers, legacy-save defaults, and the initial locked Garfield/Chikastino
-> abilities. `tests/e2e/legacy-companions.spec.ts` covers migration, menu rules,
-> follower counts, Zoomies timing, and Neighbourhood Watch warning/stun/cooldowns.
+> followers, legacy-save defaults, and all six locked pet abilities.
+> `tests/e2e/legacy-companions.spec.ts` covers migration, menu rules, follower
+> counts, Zoomies, Neighbourhood Watch, Curious Force, Courage Fetch, Royal Snack
+> Break, Senior Glare, cooldowns, and checkpoint/resume usage persistence.
 >
 > The original skeleton notes are kept below for history.
 

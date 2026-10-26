@@ -11,9 +11,12 @@ type PetInfo = {
   zoomies: number; zoomiesCooldown: number;
   dogs: { id: string; cooldown: number; warning: number }[];
   stunnedFoes: number[];
+  vaderCooldown: number; tuxCooldown: number;
+  hunterUsed: boolean; hunterT: number; duchessUsed: boolean;
+  hp: number; maxHp: number; pulledCoins: number; scoutTargets: number;
 };
 type Dev = {
-  progress: () => { pets: { ids: string[]; equippedCat: string | null; equippedDog: string | null } };
+  progress: () => { pets: { ids: string[]; equippedCat: string | null; equippedDog: string | null }; resume?: { hunterUsed?: boolean; duchessUsed?: boolean } };
   grantPets: () => string[];
   jumpToStage: (index: number) => void;
   petInfo: () => PetInfo;
@@ -21,6 +24,18 @@ type Dev = {
   petAbilityTick: (frames: number) => PetInfo;
   petTickPets: (frames: number) => PetInfo;
   petBark: (offscreen: boolean) => { alive: boolean; stun: number; cooldown: number; warning: number } | null;
+  petEquip: (cat: string | null, dog: string | null) => PetInfo | null;
+  petFreeze: () => boolean;
+  petVader: () => PetInfo;
+  petHunter: () => { started: boolean; info: PetInfo };
+  petSave: () => { hunterT: number };
+  petFood: () => PetInfo;
+  petCheckpoint: (reset?: boolean) => PetInfo;
+  petTux: () => { stun: number; charge: number; info: PetInfo } | null;
+  petHurt: () => { vx: number; vy: number; hp: number };
+  petSpot: () => { x: number; y: number; pet: string } | null;
+  pieces: () => { x: number; y: number }[];
+  teleport: (x: number) => void;
 };
 
 const fixture = (name: string): string =>
@@ -136,6 +151,80 @@ test.describe('companion collection and loadout', () => {
     expect(warning?.stun).toBe(0);
     expect(warning?.alive).toBe(true);
     expect((await info(page)).stunnedFoes).toHaveLength(0);
+    expect(errors).toEqual([]);
+  });
+
+  test('Vader scouts interactables and pulses pickup-only attraction every eight seconds', async ({ page }) => {
+    const errors = watchErrors(page);
+    await openDev(page);
+    await page.evaluate(() => (window as unknown as { __k11: Dev }).__k11.grantPets());
+    await startStage(page);
+    await page.evaluate(() => (window as unknown as { __k11: Dev }).__k11.petEquip('cat2', 'dog1'));
+    const pieces = await page.evaluate(() => (window as unknown as { __k11: Dev }).__k11.pieces());
+    expect(pieces.length).toBeGreaterThan(0);
+    await page.evaluate((x) => (window as unknown as { __k11: Dev }).__k11.teleport(x), pieces[0].x);
+    const pulse = await page.evaluate(() => (window as unknown as { __k11: Dev }).__k11.petVader());
+    expect(pulse.vaderCooldown).toBe(480);
+    expect(pulse.pulledCoins).toBeGreaterThan(0);
+    expect(pulse.scoutTargets).toBeGreaterThan(0);
+    expect((await page.evaluate(() => (window as unknown as { __k11: Dev }).__k11.petAbilityTick(480))).vaderCooldown).toBe(0);
+    expect(errors).toEqual([]);
+  });
+
+  test('Hunter returns with exactly one heart after six seconds and consumes the level rescue', async ({ page }) => {
+    const errors = watchErrors(page);
+    await openDev(page);
+    await page.evaluate(() => (window as unknown as { __k11: Dev }).__k11.grantPets());
+    await startStage(page);
+    await page.evaluate(() => (window as unknown as { __k11: Dev }).__k11.petEquip(null, 'dog2'));
+    await page.evaluate(() => (window as unknown as { __k11: Dev }).__k11.petFreeze());
+    const started = await page.evaluate(() => (window as unknown as { __k11: Dev }).__k11.petHunter());
+    expect(started.started).toBe(true);
+    expect(started.info.hunterT).toBe(360);
+    expect((await page.evaluate(() => (window as unknown as { __k11: Dev }).__k11.petSave())).hunterT).toBe(360);
+    const almost = await page.evaluate(() => (window as unknown as { __k11: Dev }).__k11.petTickPets(359));
+    expect(almost.hunterT).toBe(1);
+    expect(almost.hp).toBe(1);
+    const finished = await page.evaluate(() => (window as unknown as { __k11: Dev }).__k11.petTickPets(1));
+    expect(finished.hunterT).toBe(0);
+    expect(finished.hp).toBe(2);
+    expect(finished.hunterUsed).toBe(true);
+    const again = await page.evaluate(() => (window as unknown as { __k11: Dev }).__k11.petHunter());
+    expect(again.info.hunterT).toBe(0);
+    expect(errors).toEqual([]);
+  });
+
+  test('Duchess adds food healing and one checkpoint snack that is saved', async ({ page }) => {
+    const errors = watchErrors(page);
+    await openDev(page);
+    await page.evaluate(() => (window as unknown as { __k11: Dev }).__k11.grantPets());
+    await startStage(page);
+    await page.evaluate(() => (window as unknown as { __k11: Dev }).__k11.petEquip('cat3', 'dog1'));
+    expect((await page.evaluate(() => (window as unknown as { __k11: Dev }).__k11.petFood())).hp).toBe(3);
+    const rested = await page.evaluate(() => (window as unknown as { __k11: Dev }).__k11.petCheckpoint());
+    expect(rested.hp).toBe(3);
+    expect(rested.duchessUsed).toBe(true);
+    expect((await progress(page)).resume?.duchessUsed).toBe(true);
+    const again = await page.evaluate(() => (window as unknown as { __k11: Dev }).__k11.petCheckpoint(false));
+    expect(again.hp).toBe(1);
+    expect(again.duchessUsed).toBe(true);
+    expect(errors).toEqual([]);
+  });
+
+  test('Tuxedo interrupts for two seconds and reduces knockback by twenty percent', async ({ page }) => {
+    const errors = watchErrors(page);
+    await openDev(page);
+    await page.evaluate(() => (window as unknown as { __k11: Dev }).__k11.grantPets());
+    await startStage(page);
+    await page.evaluate(() => (window as unknown as { __k11: Dev }).__k11.petEquip('cat4', 'dog1'));
+    const glare = await page.evaluate(() => (window as unknown as { __k11: Dev }).__k11.petTux());
+    expect(glare?.stun).toBe(120);
+    expect(glare?.charge).toBe(0);
+    expect(glare?.info.tuxCooldown).toBe(960);
+    expect((await page.evaluate(() => (window as unknown as { __k11: Dev }).__k11.petAbilityTick(960))).tuxCooldown).toBe(0);
+    const hit = await page.evaluate(() => (window as unknown as { __k11: Dev }).__k11.petHurt());
+    expect(hit.vx).toBeCloseTo(-1.76, 2);
+    expect(hit.vy).toBeCloseTo(-2.72, 2);
     expect(errors).toEqual([]);
   });
 });
