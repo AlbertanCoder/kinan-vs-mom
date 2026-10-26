@@ -1726,6 +1726,61 @@ const GRADE = { dawn: 'rgba(255,150,110,.10)', morning: 'rgba(255,236,190,.05)',
 /* ============================================================
    ENEMY TABLE
    ============================================================ */
+const expandedStage = (o) => Object.assign({ clock: '2D', goalRide: 'dad' }, o);
+LV.push(
+  expandedStage({
+    place: 'Sea-to-Sky Suspension Bridge', bg: 'outdoor', world: 6, rain: 1, umbrellas: true,
+    sky: ['#6f91b5', '#d8ecfa'], far: '#7896ad', mid: '#527765', ground: '#4a3c32', top: '#69a96a', brick: '#a0703a', accent: '#6fc8ff',
+    foes: ['seagull', 'raincloud', 'puddlefrog'],
+    intro: ['Back in Vancouver, the bridge sways above the trees. This time the rain has its own route.', 'Use an umbrella, watch the wind, and take the dry boards before hopping the puddles.'],
+    boss: null,
+    win: ['The bridge is behind you. Drizzle follows at a distance, trying very hard not to look curious.'],
+    meanwhile: 'Dad takes exactly seventeen photos of the exact same mountain.'
+  }),
+  expandedStage({
+    place: 'Stanley Park & Seawall', bg: 'outdoor', world: 6, rain: 1, umbrellas: true,
+    sky: ['#557f9d', '#d1e5e8'], far: '#688d88', mid: '#3f6f5d', ground: '#4b3b2d', top: '#4f9b62', brick: '#8a6a48', accent: '#f6c445',
+    foes: ['raccoon', 'seagull', 'slug'],
+    intro: ['Stanley Park is huge: tall trees, curvy seawall paths, and raccoons supervising every snack.', 'Rain makes puddles, not invisible hazards. Read the platforms and keep moving.'],
+    boss: null,
+    win: ['You made it around the seawall without feeding a single raccoon. They seem mildly disappointed.'],
+    meanwhile: 'Mom spots an orca. Dad insists it is a very big fish.'
+  }),
+  expandedStage({
+    place: 'Granville Science World', bg: 'sciencedome', world: 6, rain: 0, umbrellas: true,
+    sky: ['#2a3a5a', '#5a6a8a'], far: '#3a4a6a', mid: '#4a3a6a', ground: '#3a3f52', top: '#9aa1ab', brick: '#6fc8ff', accent: '#f6c445',
+    foes: ['umbrellabat', 'puddlefrog', 'raincloud'],
+    intro: ['Inside the giant silver dome: magnets, pulleys, and a big PLEASE TOUCH sign.', 'Magnet pads lift you over the experiments. Vader can outline the interactive gift blocks if he is equipped.'],
+    boss: null,
+    win: ['The rain stops at the door. The magnets keep working, which is much more convenient.'],
+    meanwhile: 'Dad reads a vacuum exhibit label out loud. Twice.'
+  })
+);
+
+LV.push(
+  expandedStage({
+    place: 'SkyTrain — Big Storm', bg: 'skytrain', world: 6, rain: 1, signs: true, umbrellas: true,
+    sky: ['#657d98', '#e0d4c8'], far: '#5a6a7e', mid: '#4a5a6e', ground: '#4a4f57', top: '#c9c9cf', brick: '#2f5fb3', accent: '#f6c445',
+    foes: ['seagull', 'rollerblader', 'raincloud'],
+    intro: ['The SkyTrain rattles into the biggest cloud you have ever seen. (Game rule only: safe fictional roof route.)', 'Read the signs, use the dry platforms, and do not let the storm rush you.'],
+    boss: null,
+    win: ['The train doors open. Sunlight leaks through the clouds. Drizzle is still making a dramatic rumble.'],
+    meanwhile: 'Mom asks everyone to stop standing so close to the edge. She is right, as usual.'
+  }),
+  expandedStage({
+    place: 'Rainbow Observatory', bg: 'skytrain', world: 6, rain: 1, signs: true, umbrellas: true,
+    sky: ['#566f91', '#e1d4c8'], far: '#5a6a7e', mid: '#4a5a6e', ground: '#4a4f57', top: '#c9c9cf', brick: '#f6c445', accent: '#ff6fae',
+    foes: ['raincloud', 'umbrellabat', 'puddlefrog'],
+    intro: ['At the observatory, Drizzle blocks the view with one enormous storm cloud.', 'Dodge the telegraphed rain, use umbrellas and platforms, and show Drizzle that storms can be fun.'],
+    boss: { kind: 'drizzle', title: 'Drizzle, the Big Storm', prop: '🌈', hp: 6, face: 'dz' },
+    bossIntro: ['<b>DRIZZLE:</b> RUMBLE. Nobody likes rain. Prove it is fun or I keep the storm.', '<b>KINAN:</b> Rain makes the gardens grow. Let us show you!'],
+    taunts: ['RUMBLE. Rain is annoying.', 'Try staying dry now.', 'This is only a little drizzle.'],
+    win: ['<b>KINAN:</b> See? Rain helped the trees, the flowers, and the whole city.', 'Drizzle stops rumbling, makes one tiny rainbow, then a huge one over Vancouver.'],
+    finalWorld: 6,
+    meanwhile: 'Dad asks whether the rainbow is also available as a postcard.'
+  })
+);
+
 const FOE = {
   sock: { beh: 'walker', kind: 'sock', color: '#c9c2d8' },
   teddy: { beh: 'walker', kind: 'teddy', color: '#b07a4a', spd: 0.5 },
@@ -3716,6 +3771,7 @@ async function bossDefeated() {
   updateBossHud();
   SFX.win();
   const i = L.i;
+  if (LV[i].finalWorld) return endingWorld(LV[i].finalWorld);
   if (LV[i].final) return ending();
   if (LV[i].final2) return ending2();
   if (LV[i].final3) return ending3();
@@ -6411,12 +6467,12 @@ const WORLDS = [
   { n: 3, name: 'Kinan vs. Shad & Chenoa', where: 'a weekend in Edmonton', from: 21, to: 30 },
   { n: 4, name: 'Kinan vs. the Stampede', where: 'the Calgary Stampede', from: 31, to: 40 },
   { n: 5, name: 'Kinan vs. the Rain', where: 'a rainy day in Vancouver', from: 41, to: 50 },
-  { n: 6, name: 'Kinan vs. the Cosmos', where: 'a little galaxy past the moon', from: 51, to: 51, sneak: true }
+  { n: 6, name: 'Kinan vs. the Rain Returns', where: 'Vancouver and the rain, expanded in 2D', from: 52, to: 56 }
 ];
 for (let n = 7; n <= 11; n++) WORLDS.push({ n: n, name: 'World ' + n, where: 'being built', from: -1, to: -1, soon: true });
 const CODE_SALT = '38c60e5665866a0e';
 const CODE_HASH = {'2': '9ad410626f9342abc9682aec5aa5e01d6092ccb2d00b216ca8e8e56f191acbdb', '3': '2cc4446b83762f35763d948917db7518994a710291fd78f559ffb370bb1fdf09', '4': 'cd961045d7d2a30a4e590a3f2998e9b52f7931c3822b33e4d56567ef6e4a8fae', '5': '26bb21be1bec703f8ac1e2cd2b273bcadfa35c2aadbe708b84c32be340d10dba', '6': '8a20c57f7f6150912709d8a4d745f4330114d60a01deacc4268bf201f777f6f9', '7': '99f2c87e392edb24489bcecc48a065cf857a70f7a7412410f00c1f72b0babbb2', '8': '42650263170026ab707abd47791545eb75ab75d832f45d42a3542b10db757560', '9': '8ca4b0034588262258e6209e44e9f3e5a7d6ec5cc581c01eac7d04f42c5c8512', '10': 'e91ae5fd91428cd7c323dd3481612276a7a26113fc9b5e128dec8cbb8da042bf', '11': 'e69c5eeadaa728ec6e6c67b9ec066aac7babfc18030d0f6e7b05291d67e0d282'};
-const worldOf = (i) => { let n = 1; for (const w of WORLDS) if (!w.soon && i >= w.from) n = w.n; return n; };
+const worldOf = (i) => { if (i === 51) return 6; let n = 1; for (const w of WORLDS) if (!w.soon && i >= w.from) n = w.n; return n; };
 const worldInfo = (i) => WORLDS[worldOf(i) - 1];
 /* the creator's pass: ?creator=SHAD unlocks every world and stage for one hour,
    then the game quietly re-locks to what was actually earned. ?creator=off ends it early. */
@@ -6442,7 +6498,8 @@ function worldOpen(n) {
   if (creatorActive()) return true;
   const w = WORLDS[n - 1];
   if (!w || w.soon) return false;
-  if (w.sneak) return worldBeaten(5);   /* the World 6 sneak peek opens by itself once World 5 is beaten */
+  if (w.sneak) return worldBeaten(5);   /* archived World 6 experiment: developer-only */
+  if (n >= 6) return worldBeaten(n - 1);  /* expanded 2D worlds progress sequentially, with no new code requirement */
   return n === 1 || ((progress.codes || []).indexOf(n) >= 0 && worldBeaten(n - 1));
 }
 function stageOpen(i) { return !!LV[i] && (creatorActive() || (i < progress.unlocked && worldOpen(worldOf(i)))); }
@@ -6510,6 +6567,7 @@ async function useCode(text) {
 function worldStatus(w) {
   if (w.n === 1) return worldBeaten(1) ? '✅ beaten' : '✅ open';
   if (w.sneak) return worldOpen(w.n) ? (worldBeaten(w.n) ? '🌌 sneak peek · ✅ beaten' : '🌌 sneak peek · ✅ open') : '🌌 sneak peek · beat World 5 first';
+  if (w.n >= 6) return worldOpen(w.n) ? (worldBeaten(w.n) ? '✅ beaten' : '✅ open') : '🔒 beat World ' + (w.n - 1) + ' first';
   const coded = (progress.codes || []).indexOf(w.n) >= 0;
   if (w.soon) return coded ? '🎁 code saved · being built' : '🔒 being built';
   if (worldOpen(w.n)) return worldBeaten(w.n) ? '✅ beaten' : '✅ open';
@@ -6539,6 +6597,20 @@ function codeScreen(back) {
   $('#rcodeGo').addEventListener('click', () => { AudioSys.init(); go(); });
   $('#rcode').addEventListener('keydown', (e) => { if (e.key === 'Enter') go(); });
   $('#rcodeBack').addEventListener('click', () => { SFX.click(); if (back === 'map') mapScreen(); else titleScreen(); });
+}
+/* Expanded-world finale: record the win and open the next 2D world without
+   invoking the archived early-3D cutscene or changing the existing save schema. */
+async function endingWorld(n) {
+  progress.wonWorlds = progress.wonWorlds || [];
+  if (progress.wonWorlds.indexOf(n) < 0) progress.wonWorlds.push(n);
+  const i = L.i;
+  await story(LV[i].win, LV[i].boss.face || 'm', 'h');
+  firstClear = !progress.beaten.includes(i);
+  if (firstClear) progress.beaten.push(i);
+  progress.unlocked = Math.max(progress.unlocked, i + 2);
+  refreshWorlds();
+  save();
+  resultsScreen(i);
 }
 /* a stage with no boss ends at Dad's truck */
 async function goalReached() {
@@ -7010,13 +7082,8 @@ async function ending5() {
   delete progress.resume;
   refreshWorlds();
   save();
-  if (window.GALAXY3D && GALAXY3D.available) {
-    running = false;
-    await GALAXY3D.cutscene({ host: el.stage, say: (h, w, m) => say(h, w, m), sfx: galaxySfx });   /* the world turns 3D, in 3D */
-    GALAXY3D.stop();
-  } else {
-    await galaxyMorph();   /* the old canvas cutscene, for browsers without WebGL */
-  }
+  /* World 5 ends with Drizzle's 2D rainbow friendship. The archived early-3D
+     handoff is no longer part of normal progression; World 11 owns the 3D shift. */
   Music.play('title');
   let stars = 0, gold = 0;
   for (let k = WORLDS[4].from; k <= WORLDS[4].to; k++) { stars += progress.stars[k] || 0; gold += goldCount(k); }
@@ -7031,7 +7098,7 @@ async function ending5() {
     '<p class="lede"><b>DAD:</b> That\'s one ocean, bud. Want to see the other one?</p>' +
     '<div class="postcard"><b>Rain, rain, go away. (It did.)</b><span>Love, Kinan, Vancouver 🌈</span></div>' +
     '<p class="wrapnote"><i class="coin-ico"></i>Golden coins in World 5: <b>' + gold + '</b> / 30 · ⭐ ' + stars + ' / 30 stars</p>' +
-    '<p class="wrapnote">🌌 <b>World 6: Kinan vs. the Cosmos</b> is a <b>sneak peek</b> — a whole new kind of level, up among the stars. Tell a grown-up if you want more worlds like it!</p>' +
+    '<p class="wrapnote">🌧️ <b>World 6: Vancouver & the Rain</b> continues with new 2D stages. The old 3D experiment stays archived for developers.</p>' +
     '<ul class="credits">' +
     '<li><b>Kinan</b> as The Hero (and the Rainbow Maker)</li>' +
     '<li><b>Drizzle</b> as a little rain cloud, a big thunderstorm, and a rainbow</li>' +
@@ -7039,13 +7106,13 @@ async function ending5() {
     '<li><b>Mom</b>, <b>Dad</b>, <b>Shad</b> and <b>Chenoa</b> as the soggy cheering section</li>' +
     '<li><b>An orca</b> as the best surprise of the trip</li>' +
     '</ul>' +
-    '<div class="btnrow"><button class="btn go" type="button" id="galaxyBtn">▶ Warp to the stars</button>' +
+    '<div class="btnrow"><button class="btn go" type="button" id="galaxyBtn">▶ Continue to World 6</button>' +
     '<button class="btn" type="button" id="mapBtn">Stage map</button>' +
     '<button class="btn" type="button" id="titleBtn">Title screen</button>' +
     '<button class="btn ghost" type="button" id="againBtn">Face the storm again</button></div>'
   );
   el.stageLbl.textContent = 'KINAN · LV 11';
-  $('#galaxyBtn').addEventListener('click', () => { SFX.click(); playStage(WORLDS[5].from); });
+  $('#galaxyBtn').addEventListener('click', () => { SFX.click(); playStage(52); });
   $('#mapBtn').addEventListener('click', () => { SFX.click(); mapScreen(); });
   $('#titleBtn').addEventListener('click', () => { SFX.click(); titleScreen(); });
   $('#againBtn').addEventListener('click', () => { SFX.click(); playStage(WORLDS[4].to); });
@@ -13666,6 +13733,13 @@ const WM_PATHS = {
     { at: [330, 142], via: [[290, 152]] },                                      /* up onto the SkyTrain */
     { at: [232, 100], via: [[300, 126], [256, 112]] },                          /* down to the harbour */
     { at: [192, 126], via: [[214, 112]] }                                       /* the Big Storm over downtown */
+  ],
+  6: [
+    { at: [60, 70] },                                         /* Sea-to-Sky bridge */
+    { at: [120, 132], via: [[92, 104]] },                     /* Stanley Park and the seawall */
+    { at: [210, 92], via: [[164, 116]] },                     /* Granville Science World */
+    { at: [300, 78], via: [[250, 70]] },                      /* SkyTrain */
+    { at: [360, 152], via: [[334, 112]] }                     /* Rainbow Observatory */
   ]
 };
 /* the road trip: the 11 cities on a map of Canada (Worlds 3-11 are planned, not built yet) */

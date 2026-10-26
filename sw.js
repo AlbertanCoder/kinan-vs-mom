@@ -1,5 +1,5 @@
 /* Kinan vs. Mom - offline cache */
-const CACHE = 'kinan-vs-mom-v21';   /* v21: Milo/Aiden Friend Assist and checkpoint loadout swapping */
+const CACHE = 'kinan-vs-mom-v22';   /* v22: World 6 Vancouver expansion and 2D Drizzle finale */
 const ASSETS = [
   './',
   './index.html',

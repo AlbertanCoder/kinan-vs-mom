@@ -1,10 +1,10 @@
 # Kinan vs. Mom — Birthday Remaster
 
-An 11-stage birthday platformer made by Shad for Kinan.
+An expanding birthday platformer made by Shad for Kinan.
 
 **Play online:** https://albertancoder.github.io/kinan-vs-mom/
 
-- 11 stages, 11 family bosses, one birthday ending
+- Original five worlds plus five new 2D Vancouver stages and Drizzle’s rainbow finale; more worlds in active development
 - 4 cats and 2 dogs to rescue — equip one cat and one dog, or go solo; only equipped pets follow and grant their perks.
 - Stars, hats, best times, combo scoring, touch + keyboard + gamepad
 - Installable on iPhone, iPad, Android and tablets; works offline after the first load

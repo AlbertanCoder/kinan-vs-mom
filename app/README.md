@@ -44,6 +44,13 @@
 > paused stage and lock during bosses/challenges. `tests/e2e/legacy-friends.spec.ts`
 > covers unlocks, expiry, cooldowns, assist limits, and resume restrictions.
 >
+> **World 6 — Vancouver & the Rain:** five real 2D stages now extend the root
+> game: Sea-to-Sky, Stanley Park, Granville Science World, SkyTrain, and Drizzle's
+> Rainbow Observatory. Sequential unlocks use existing saves, the illustrated map
+> has five authored stops, and the finale records the win without an early-3D
+> handoff. `tests/e2e/legacy-world6.spec.ts` covers map access, every stage, and
+> completion without a 3D morph.
+>
 > The original skeleton notes are kept below for history.
 
 ---
