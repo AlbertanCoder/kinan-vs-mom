@@ -613,12 +613,12 @@ html.tier2 .iconbtn{border-color:var(--gold)}
         <p class="eyebrow">Paused</p>
         <h2>Take a breather</h2>
         <div class="btncol">
-          <button class="btn go" id="resumeBtn" type="button">RESUME</button>
-          <button class="btn" id="saveBtn" type="button">Save game</button>
-          <button class="btn" id="petsBtnP" type="button">Pets</button>
-          <button class="btn" id="restartBtn" type="button">Restart stage</button>
-          <button class="btn" id="mapBtnP" type="button">Stage map</button>
-          <button class="btn" id="fullBtn" type="button">Fullscreen</button>
+          <button class="btn go" id="resumeBtn" type="button">▶ RESUME</button>
+          <button class="btn" id="mapBtnP" type="button">🗺️ World map</button>
+          <button class="btn" id="saveBtn" type="button">💾 Save game</button>
+          <button class="btn" id="petsBtnP" type="button">🐾 Pet loadout</button>
+          <button class="btn" id="restartBtn" type="button">🔄 Restart stage</button>
+          <button class="btn" id="fullBtn" type="button">⛶ Fullscreen</button>
           <button class="btn" id="fxBtn" type="button">Effects: FULL</button>
           <button class="btn" id="buzzBtn" type="button" hidden>Vibration: ON</button>
           <button class="btn" id="tiltBtnP" type="button" hidden>Tilt to steer: OFF</button>
@@ -2496,6 +2496,8 @@ function loadProgress() {
   if (!out.mapSeen || typeof out.mapSeen !== 'object') out.mapSeen = {};
   if (!out.mapSel || typeof out.mapSel !== 'object') out.mapSel = {};   /* where the player was on each world's map */
   out.pendingCutscene = typeof out.pendingCutscene === 'string' ? out.pendingCutscene : null;   /* finale mid-cutscene resume */
+  out.explorer = (p.explorer && typeof p.explorer === 'object' && Number(p.explorer.world) >= 1 && Number(p.explorer.world) <= 11)
+    ? { world: Math.floor(Number(p.explorer.world)), x: Number(p.explorer.x) || 0, y: Number(p.explorer.y) || 0 } : null;
   const vol100 = (x) => { const n = Math.floor(Number(x)); return Number.isFinite(n) ? clamp(n, 0, 100) : 100; };
   out.vol = { music: vol100(p.vol && p.vol.music), sfx: vol100(p.vol && p.vol.sfx), vo: vol100(p.vol && p.vol.vo) };
   out.narration = p.narration !== false;
@@ -4901,6 +4903,7 @@ function update() {
   if (smash) { updateSmash(); return; }
   frame++;
   pollGamepad();
+  if (L && L.explorer) { updateExplorer(); return; }   /* the world map runs its own top-down show */
   if (morph) {   /* the world goes 3D: the cutscene runs its own show */
     if (!paused) {
       morph.t++;
@@ -6517,6 +6520,39 @@ function drawParticles() {
 }
 const vignettes = [null, null];
 /* the darker corners and the faint lines over the picture; light = the clearer one (story, Smash, Builder: 2026-10-21) */
+/* stage-side world weather: the same identity follows you into the levels */
+function drawStageWeather() {
+  if (!L || L.explorer) return;
+  const w = worldOf(L.i);
+  if (w === 5 || w === 6) {
+    ctx.strokeStyle = 'rgba(180,210,255,.38)'; ctx.lineWidth = 1;
+    for (let k = 0; k < 26; k++) {
+      const x = ((k * 61 + frame * 3.2) % (W + 40)) - 20, y = ((k * 97 + frame * 6.4) % (H + 40)) - 20;
+      ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x - 3, y + 9); ctx.stroke();
+    }
+  } else if (w === 7) {
+    for (let k = 0; k < 14; k++) {
+      const x = (k * 97 + Math.sin((frame + k * 26) / 30) * 18) % W, y = ((k * 61 - frame * 0.8) % H + H) % H;
+      ctx.fillStyle = 'rgba(255,' + (90 + (k * 13) % 90) + ',40,.5)'; ctx.fillRect(x, y, 2, 3);
+    }
+  } else if (w === 9 || w === 10) {
+    for (let k = 0; k < 18; k++) {
+      const x = (k * 149) % W, y = (k * 83) % Math.floor(H * 0.7);
+      const tw = 0.3 + 0.6 * Math.abs(Math.sin((frame + k * 21) / 32));
+      ctx.fillStyle = 'rgba(255,255,255,' + tw.toFixed(2) + ')'; ctx.fillRect(x, y, 2, 2);
+    }
+  } else if (w === 11) {
+    if ((frame >> 4) % 3 === 0) {
+      const y = (frame * 3) % H;
+      ctx.fillStyle = 'rgba(255,111,174,.12)'; ctx.fillRect(0, y, W, 5);
+    }
+  } else if (w === 4) {
+    for (let k = 0; k < 12; k++) {
+      const x = ((k * 83 + frame * 0.6) % (W + 20)) - 10, y = (k * 47 + frame * 0.3) % H;
+      ctx.fillStyle = 'rgba(255,200,120,.3)'; ctx.fillRect(x, y, 2, 2);
+    }
+  }
+}
 function drawVignette(light) {
   const k = light ? 1 : 0;
   if (!vignettes[k]) {
@@ -6561,6 +6597,7 @@ function draw() {
   if (builder) { drawBuilder(); return; }
   if (kart) { drawKart(); return; }
   if (smash) { drawSmash(); return; }
+  if (L && L.explorer) { drawExplorer(); return; }   /* the world map draws itself */
   if (morph) { drawMorph(); return; }   /* the 3D cutscene draws over everything */
   if (puzzle) { drawPuzzle(); return; }
   if (!L || !P) return;
@@ -6600,6 +6637,7 @@ function draw() {
   drawPlayer();
   drawShots();
   drawWorld5Fx();
+  drawStageWeather();
   if (cy) ctx.restore();
   drawDaylight(th);
   if (cy) { ctx.save(); ctx.translate(0, -cy); }
@@ -9244,7 +9282,7 @@ function shopTap(id, from) {
   else if (shopConfirm !== id) { shopConfirm = id; SFX.click(); }
   else { progress.wallet -= it.price; progress.owned.push(id); shopConfirm = null; equip(it, true); const kept = save(true); SFX.power(); shopMsg = '🛍️ <b>' + it.name + '</b> is yours!' + (kept ? '' : ' This device is out of room, so it will be gone next time.'); }
   const msg = shopMsg;
-  shopScreen(from);
+  if (from === 'backpack') backpackScreen('backpack'); else shopScreen(from);
   screenPage(pg);   /* stay on the same page of the shop */
   if (msg) toast(msg, 2600);   /* on any page, the message is seen */
 }
@@ -9277,7 +9315,7 @@ function titleScreen() {
     '<div class="cast titlecast">' + castHTML() + '</div>' +
     '<div class="btnrow tools">' +
     (cont ? '<button class="mtool" id="mapBtn" type="button"><span class="ti">🗺️</span><span class="tl">Stage map</span></button>' : '') +
-    '<button class="mtool" id="petsBtnT" type="button"><span class="ti">🐾</span><span class="tl">Pets</span></button>' +
+    '<button class="mtool" id="petsBtnT" type="button"><span class="ti">🎒</span><span class="tl">Backpack</span></button>' +
     '<button class="mtool" id="howBtn" type="button"><span class="ti">❓</span><span class="tl">How to play</span></button>' +
     '<button class="mtool" id="shopBtn" type="button"><span class="ti">🛍️</span><span class="tl">Party Shop</span></button>' +
     '<button class="mtool" id="codeBtn" type="button"><span class="ti">🎁</span><span class="tl">Reward code</span></button>' +
@@ -9289,11 +9327,11 @@ function titleScreen() {
   $('#startBtn').addEventListener('click', () => {
     AudioSys.init(); SFX.click();
     if (rs) playStage(rs.i, { resume: true });
-    else playStage(cont ? next : 0);
+    else startExplorer(cont ? worldOf(next) : 1);
   });
   $('#howBtn').addEventListener('click', () => { AudioSys.init(); SFX.click(); howToScreen(); });
-  $('#shopBtn').addEventListener('click', () => { AudioSys.init(); SFX.click(); shopScreen('title'); });
-  $('#petsBtnT').addEventListener('click', () => { AudioSys.init(); SFX.click(); petLoadoutScreen(); });
+  $('#shopBtn').addEventListener('click', () => { AudioSys.init(); SFX.click(); backpackScreen('title'); });
+  $('#petsBtnT').addEventListener('click', () => { AudioSys.init(); SFX.click(); backpackScreen('title'); });
   $('#codeBtn').addEventListener('click', () => { AudioSys.init(); SFX.click(); codeScreen('title'); });
   const mb = $('#mapBtn'); if (mb) mb.addEventListener('click', () => { AudioSys.init(); SFX.click(); mapScreen(); });
   const nb = $('#newBtn');
@@ -9418,6 +9456,43 @@ function bindPetLoadout(root, refresh) {
     });
   });
 }
+/* THE BACKPACK — the one simple place for pets, hats and the Party Shop */
+function backpackScreen(from) {
+  Music.play('title');
+  const stars = totalStars();
+  const hats = HATS.filter((h) => !h.shop || ownsItem('hat:' + h.id)).map((h) => {
+    const unlocked = h.shop ? true : stars >= h.need;
+    const on = progress.hat === h.id;
+    return '<button class="hatbtn' + (on ? ' on' : '') + '" type="button" data-hat="' + h.id + '"' + (unlocked ? '' : ' disabled') + ' title="' + (unlocked ? h.name : 'Earn ' + h.need + ' stars to unlock') + '">' +
+      '<span style="font-size:20px">' + (unlocked ? h.icon : '🔒') + '</span><span>' + h.name + '</span></button>';
+  }).join('');
+  const card = (it) => {
+    const own = ownsItem(it.id), on = own && isEquipped(it);
+    const label = on ? 'Wearing ✓' : (own ? 'Tap to wear' : (shopConfirm === it.id ? 'Tap again: buy for ' + it.price + ' <i class="coin-ico"></i>' : it.price + ' <i class="coin-ico"></i>'));
+    return '<button type="button" class="shopcard' + (on ? ' on' : '') + (own ? ' own' : '') + '" data-item="' + it.id + '">' + shopPreview(it) + '<b>' + it.name + '</b><small>' + label + '</small></button>';
+  };
+  const cats = [['outfit', "Kinan's outfits"], ['hat', 'Hats'], ['trail', 'Sparkle trails (when he runs and jumps)'], ['costume', 'Family Brawl costumes']];
+  showScreen(
+    '<p class="eyebrow">Your backpack · pets, hats and party stuff</p>' +
+    '<h1 class="title"><span class="t2">Backpack · Party Shop</span></h1>' +
+    '<p class="loadout-status" id="petLoadoutStatus">' + petLoadoutSummary() + '</p>' +
+    '<p class="tiny">Equip up to one cat AND one dog, or go solo. Tap a name to rename it.</p>' +
+    '<div class="petedit">' + petLoadoutHTML() + '</div>' +
+    '<p class="eyebrow">Friend Assist · choose at most one</p><div class="btnrow">' + friendLoadoutHTML() + '</div>' +
+    '<div class="btnrow"><button class="btn" id="soloPets" type="button" aria-pressed="' + (!progress.pets.equippedCat && !progress.pets.equippedDog) + '">Go solo</button></div>' +
+    '<p class="eyebrow">Hat locker · stars unlock hats · you have ' + stars + ' ★</p><div class="hatrow">' + hats + '</div>' +
+    '<p class="wallet"><i class="coin-ico"></i><b id="walletN">' + (progress.wallet || 0) + '</b> coins to spend</p>' +
+    '<p class="tiny" id="shopMsg">' + shopMsg + '</p>' +
+    cats.map((c) => '<p class="eyebrow">' + c[1] + '</p><div class="shopgrid">' + SHOP.filter((it) => it.cat === c[0]).map(card).join('') + '</div>').join('') +
+    '<div class="btnrow"><button class="btn go" id="petsBack" type="button">Done</button></div>'
+  );
+  shopMsg = '';
+  bindPetLoadout(el.screen, () => backpackScreen(from));
+  $$('.hatbtn', el.screen).forEach((b) => b.addEventListener('click', () => { if (b.disabled) return; progress.hat = b.dataset.hat; save(); SFX.save(); backpackScreen(from); }));
+  $$('.shopcard', el.screen).forEach((b) => b.addEventListener('click', () => shopTap(b.dataset.item, 'backpack')));
+  const done = from === 'map' ? mapScreen : titleScreen;
+  $('#petsBack').addEventListener('click', () => { SFX.click(); shopConfirm = null; done(); });
+}
 function petLoadoutScreen(back) {
   Music.play('title');
   showScreen(
@@ -9435,7 +9510,379 @@ function petLoadoutScreen(back) {
   $('#petsBack').addEventListener('click', () => { SFX.click(); done(); });
 }
 const WORLD_ICONS = { 1: '🎂', 2: '🛢️', 3: '🎢', 4: '🤠', 5: '☔', 6: '🌧️', 7: '🧱', 8: '🦖', 9: '🚀', 10: '🎉', 11: '🌀' };
+/* ============================================================
+   WORLD EXPLORER v2 — Super Mario World style overworld maps.
+   Each world is one big SCENIC MAP seen from above: winding
+   paths connect numbered level dots across a themed landscape
+   (grass, oilfield, rain city, LEGO, volcano, starbase...), the
+   world's boss lives in a castle node, and little Kinan walks
+   the map while the whole screen scrolls with him.
+   ============================================================ */
+const OVER_THEMES = {
+  1: { grass: '#59b04a', grass2: '#6fc45c', path: '#d8b46a', water: '#3f8fe8', rock: '#9a8f7a', tree: '#2f8a3c', trunk: '#7a4f2f', sky: ['#8fd4ff', '#cdefff'], deco: '#ff6fae' },
+  2: { grass: '#c9a05a', grass2: '#d8b46a', path: '#e8cf90', water: '#3a6fd8', rock: '#6a5f52', tree: '#3a7a4a', trunk: '#5a4632', sky: ['#2b2f5e', '#8a6fd8'], deco: '#ff9a3f' },
+  3: { grass: '#4aa05a', grass2: '#5cb46c', path: '#c8c8d8', water: '#3f7fe8', rock: '#7a7f9a', tree: '#2f7a4c', trunk: '#6a4f2f', sky: ['#241f52', '#7a5fd8'], deco: '#f6c445' },
+  4: { grass: '#d8a848', grass2: '#e8bc5c', path: '#f0d890', water: '#4f9fe8', rock: '#a8824a', tree: '#6a9a3c', trunk: '#7a5628', sky: ['#e58a3f', '#ffd9a0'], deco: '#e0562c' },
+  5: { grass: '#3f9a5c', grass2: '#4fae6c', path: '#b8c4cf', water: '#2f6fd8', rock: '#6a7a86', tree: '#2a7a44', trunk: '#5a4a3a', sky: ['#4a5f9a', '#9ab4e8'], deco: '#7fd8ff' },
+  6: { grass: '#55b85a', grass2: '#68cc6e', path: '#f4f1e8', water: '#3f8fe8', rock: '#9a9aa6', tree: '#3a9a4c', trunk: '#7a4f2f', sky: ['#7fc4ff', '#d8f0ff'], deco: '#ff6fae' },
+  7: { grass: '#4f9e4a', grass2: '#62b25c', path: '#c8a45a', water: '#2f7fd8', rock: '#8a6f4a', tree: '#2c8a3c', trunk: '#6a4628', sky: ['#3a2f6e', '#c86fd8'], deco: '#f6c445' },
+  8: { grass: '#59b04a', grass2: '#72c45e', path: '#d8b46a', water: '#3a7fe8', rock: '#8a7f6a', tree: '#2f8a3c', trunk: '#7a4f2f', sky: ['#5a3a9a', '#e88a5a'], deco: '#7be3a3' },
+  9: { grass: '#3f7a6e', grass2: '#4f8a7e', path: '#8aa1c8', water: '#2f4fd8', rock: '#5a6a8a', tree: '#2a6a5c', trunk: '#4a5a7a', sky: ['#141232', '#4a3f8a'], deco: '#7be3a3' },
+  10: { grass: '#7a5fc0', grass2: '#8a6fd0', path: '#f0c0e0', water: '#4f3fd8', rock: '#5a4a9a', tree: '#6a4fae', trunk: '#4a3a7a', sky: ['#5b3c8a', '#c86fd8'], deco: '#f6c445' },
+  11: { grass: '#4a3f8a', grass2: '#5a4f9a', path: '#8a7fd8', water: '#3f2fc8', rock: '#3a2f6e', tree: '#5a4aae', trunk: '#3a2f6e', sky: ['#141232', '#4a2f8a'], deco: '#7be3a3' }
+};
+/* per-world scene props and weather — the "every world looks different" skin */
+const OVER_SKINS = {
+  1: { scene: ['house', 'balloon'], weather: 'fireflies', sun: '#ffd76a' },
+  2: { scene: ['derrick'], weather: 'dust', sun: '#ff9a3f' },
+  3: { scene: ['tower'], weather: 'stars', sun: '#c8b4ff' },
+  4: { scene: ['tent', 'cactus'], weather: 'fireworks', sun: '#ffb84a' },
+  5: { scene: ['pine'], weather: 'rain', sun: '#9ab4e8' },
+  6: { scene: ['stud', 'pine'], weather: 'balloons', sun: '#fff3c4' },
+  7: { scene: ['palm', 'volcano'], weather: 'embers', sun: '#ff8a5a' },
+  8: { scene: ['pylon'], weather: 'ships', sun: '#7be3a3' },
+  9: { scene: ['portal'], weather: 'stars', sun: '#f6c445' },
+  10: { scene: ['glitch'], weather: 'glitch', sun: '#ff6fae' },
+  11: { scene: ['glitch', 'portal'], weather: 'glitch', sun: '#8a7fd8' }
+};
+function overBuild(world) {
+  const w = WORLDS[world - 1], th = Object.assign({}, OVER_THEMES[world] || OVER_THEMES[1], OVER_SKINS[world] || OVER_SKINS[1]);
+  const rng = kSeed(world * 131 + 7);
+  const cols = 88, rows = 48;   /* ~3.3 x 3.2 screens: a real map to roam */
+  const tiles = new Uint8Array(cols * rows);   /* 0 grass, 1 grass2, 2 water, 3 path, 4 rock */
+  for (let y = 0; y < rows; y++) {
+    for (let x = 0; x < cols; x++) {
+      const r = rng();
+      tiles[y * cols + x] = r < 0.10 ? 1 : r > 0.985 ? 4 : 0;
+    }
+  }
+  for (let lake = 0; lake < 3; lake++) {   /* ponds and a river bend */
+    const cx = 10 + Math.floor(rng() * (cols - 20)), cy = 8 + Math.floor(rng() * (rows - 16)), rad = 3 + Math.floor(rng() * 4);
+    for (let y = cy - rad; y <= cy + rad; y++) for (let x = cx - rad; x <= cx + rad; x++) {
+      if (x >= 0 && x < cols && y >= 0 && y < rows && Math.hypot(x - cx, y - cy) < rad) tiles[y * cols + x] = 2;
+    }
+  }
+  /* the stage dots sit on a serpentine route across the map */
+  const n = w.to - w.from + 1;
+  const nodes = [];
+  for (let k = 0; k < n; k++) {
+    const t = (k + 0.5) / n;
+    const x = Math.round(8 + t * (cols - 18) + Math.sin(k * 2.1 + world) * 3.5);
+    const y = Math.round(rows * 0.52 + Math.sin(t * Math.PI * 2.3 + world * 0.7) * rows * 0.30);
+    nodes.push({ x: x, y: y, stage: w.from + k, k: k, kind: LV[w.to] && LV[w.to].boss && k === n - 1 ? 'castle' : 'level' });
+  }
+  /* carve the winding road: a 3-tile-wide path between every pair of dots */
+  const carve = (a, b) => {
+    const steps = Math.ceil(Math.hypot(b.x - a.x, b.y - a.y) * 2);
+    for (let s = 0; s <= steps; s++) {
+      const x = Math.round(a.x + (b.x - a.x) * s / steps + Math.sin(s * 0.35) * 1.2);
+      const y = Math.round(a.y + (b.y - a.y) * s / steps + Math.cos(s * 0.3) * 1.2);
+      for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+        const px = x + dx, py = y + dy;
+        if (px >= 0 && px < cols && py >= 0 && py < rows && tiles[py * cols + px] !== 2) tiles[py * cols + px] = 3;
+      }
+    }
+  };
+  for (let k = 0; k < n - 1; k++) carve(nodes[k], nodes[k + 1]);
+  for (const nd of nodes) {   /* a clear plaza under every dot */
+    for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+      const px = nd.x + dx, py = nd.y + dy;
+      if (px >= 0 && px < cols && py >= 0 && py < rows) tiles[py * cols + px] = 3;
+    }
+  }
+  return { world: world, cols: cols, rows: rows, tiles: tiles, nodes: nodes, th: th };
+}
+function startExplorer(world, resume) {
+  world = clamp(Math.floor(world) || 1, 1, 11);
+  showGame(true);   /* the map IS the game picture: reveal it like playStage does */
+  const ov = overBuild(world);
+  const stub = {
+    i: WORLDS[world - 1].from, explorer: world, custom: true, th: LV[WORLDS[world - 1].from],
+    g: new Array(450).fill(0), w: 30, up: 0, foes: [], candles: [], gifts: {}, petSpot: null, ice: false, wind: false,
+    arenaX: 20, arenaW: 5, startT: [2, 12], src: { name: 'World map' }, opts: {}, song: 'title',
+    cols: ov.cols, rows: ov.rows, tiles: ov.tiles, nodes: ov.nodes, oth: ov.th
+  };
+  startStage(stub.i, true, stub);
+  const ex = resume && progress.explorer && progress.explorer.world === world ? progress.explorer : null;
+  if (ex) { P.x = ex.x; P.y = ex.y; P.vx = 0; P.vy = 0; }
+  P.x = clamp(P.x, T, ov.cols * T - 2 * T); P.y = clamp(P.y, T, ov.rows * T - 2 * T);
+  camX = clamp(Math.round(P.x + P.w / 2 - W / 2), 0, ov.cols * T - W);
+  camY = clamp(Math.round(P.y + P.h / 2 - H / 2), 0, ov.rows * T - H);
+  el.stageLbl.textContent = 'WORLD ' + world + ' · ' + WORLDS[world - 1].name.toUpperCase();
+  const mbp = $('#mapBtnP'); if (mbp) mbp.textContent = 'World map';
+  progress.explorer = { world: world, x: Math.round(P.x), y: Math.round(P.y) };
+  save();
+  Music.play('title');
+  running = true; paused = false; last = 0; acc = 0;
+  run();
+  if (!ex) toast('<b>WORLD ' + world + '</b> · ' + escAttr(WORLDS[world - 1].name) + ' — walk the path to a stage dot!', 2600);
+}
+function explorerWarp(world, side) {
+  startExplorer(world);
+  P.x = side === 'right' ? (L.cols - 3) * T : 3 * T;
+  P.y = Math.round(L.rows * T * 0.5);
+  camX = clamp(Math.round(P.x + P.w / 2 - W / 2), 0, L.cols * T - W);
+  camY = clamp(Math.round(P.y + P.h / 2 - H / 2), 0, L.rows * T - H);
+}
+function overWalk(x, y) {
+  const ok = (tx, ty) => {
+    if (tx < 0 || ty < 0 || tx >= L.cols || ty >= L.rows) return false;
+    const t = L.tiles[ty * L.cols + tx];
+    return t !== 2 && t !== 4;   /* water and rocks block the way */
+  };
+  const x0 = Math.floor(x / T), x1 = Math.floor((x + P.w - 1) / T), y0 = Math.floor(y / T), y1 = Math.floor((y + P.h - 1) / T);
+  return ok(x0, y0) && ok(x1, y0) && ok(x0, y1) && ok(x1, y1);
+}
+function updateExplorer() {
+  if (!L || !L.explorer || paused || P.dead) return;
+  const sp = 1.55;
+  const dx = ((input.right || padIn.right) ? 1 : 0) - ((input.left || padIn.left) ? 1 : 0);
+  const dy = ((input.down || padIn.down) ? 1 : 0) - ((input.up || padIn.up) ? 1 : 0);
+  let mx = dx, my = dy;
+  if (dx && dy) { mx *= 0.72; my *= 0.72; }
+  if (mx && overWalk(P.x + mx * sp, P.y)) P.x += mx * sp;
+  if (my && overWalk(P.x, P.y + my * sp)) P.y += my * sp;
+  if (dx) P.face = dx > 0 ? 1 : -1;
+  P.x = clamp(P.x, T * 0.5, L.cols * T - T * 1.5);
+  P.y = clamp(P.y, T * 0.5, L.rows * T - T * 1.5);
+  camX = clamp(Math.round(P.x + P.w / 2 - W / 2), 0, L.cols * T - W);
+  camY = clamp(Math.round(P.y + P.h / 2 - H / 2), 0, L.rows * T - H);
+  let at = null;
+  for (const e of L.nodes) {
+    const cx = e.x * T + T / 2, cy = e.y * T + T / 2;
+    if (Math.hypot(P.x + P.w / 2 - cx, P.y + P.h / 2 - cy) < 15) { at = e; break; }
+  }
+  if (at) {
+    L.enterT = (L.enterT || 0) + 1;
+    if (L.enterT > 34) {   /* stand on the dot: walking past never traps you */
+      progress.explorer = { world: L.explorer, x: Math.round(P.x), y: Math.round(P.y) };
+      save();
+      playStage(at.stage);
+      return;
+    }
+  } else L.enterT = 0;
+  if (P.x < T * 1.2 && worldOpen(L.explorer - 1)) { explorerWarp(L.explorer - 1, 'right'); return; }
+  if (P.x > L.cols * T - T * 2.2 && worldOpen(L.explorer + 1)) { explorerWarp(L.explorer + 1, 'left'); return; }
+  progress.explorer = { world: L.explorer, x: Math.round(P.x), y: Math.round(P.y) };
+}
+function drawSceneProp(kind, sx, sy, th, tx, ty) {
+  if (kind === 'house') {
+    ctx.fillStyle = '#e8d8c8'; ctx.fillRect(sx + 2, sy + 4, 12, 10);
+    ctx.fillStyle = th.deco; ctx.fillRect(sx, sy + 1, 16, 5);
+    ctx.fillStyle = '#7a4f2f'; ctx.fillRect(sx + 7, sy + 9, 4, 5);
+  } else if (kind === 'balloon') {
+    ctx.fillStyle = th.deco; ctx.beginPath(); ctx.arc(sx + 8, sy + 5, 4, 0, 6.284); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,.4)'; ctx.fillRect(sx + 6, sy + 3, 2, 2);
+    ctx.fillStyle = '#f4f1e8'; ctx.fillRect(sx + 8, sy + 9, 1, 4);
+  } else if (kind === 'derrick') {
+    ctx.fillStyle = '#5a4632'; ctx.fillRect(sx + 3, sy - 8, 10, 18);
+    ctx.fillStyle = '#3a2f22'; for (let k = 0; k < 4; k++) ctx.fillRect(sx + 4, sy - 6 + k * 4, 8, 1);
+    const fl = Math.round(Math.sin((frame + tx * 11) / 8) * 2);
+    ctx.fillStyle = '#ff9a3f'; ctx.fillRect(sx + 7, sy - 13 + fl, 3, 5);
+    ctx.fillStyle = '#ffd76a'; ctx.fillRect(sx + 7, sy - 11 + fl, 2, 2);
+  } else if (kind === 'tower') {
+    ctx.fillStyle = '#4a4f8a'; ctx.fillRect(sx + 2, sy - 14, 12, 26);
+    ctx.fillStyle = '#f6c445';
+    for (let r = 0; r < 4; r++) for (let c = 0; c < 2; c++) if ((tx + ty + r + c) % 3) ctx.fillRect(sx + 4 + c * 5, sy - 12 + r * 5, 3, 3);
+  } else if (kind === 'tent') {
+    ctx.fillStyle = '#e0562c'; ctx.beginPath(); ctx.moveTo(sx + 8, sy - 6); ctx.lineTo(sx + 1, sy + 11); ctx.lineTo(sx + 15, sy + 11); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#f4f1e8'; ctx.fillRect(sx + 7, sy - 2, 2, 6);
+  } else if (kind === 'cactus') {
+    ctx.fillStyle = '#3a9a4c'; ctx.fillRect(sx + 6, sy - 4, 4, 16);
+    ctx.fillRect(sx + 2, sy + 1, 4, 3); ctx.fillRect(sx + 10, sy - 1, 4, 3);
+  } else if (kind === 'pine') {
+    ctx.fillStyle = th.trunk; ctx.fillRect(sx + 7, sy + 9, 3, 6);
+    ctx.fillStyle = th.tree; for (let k = 0; k < 3; k++) ctx.fillRect(sx + 7 - k * 3, sy + 8 - k * 5, 3 + k * 6, 5);
+  } else if (kind === 'stud') {
+    ctx.fillStyle = th.tree; ctx.beginPath(); ctx.arc(sx + 8, sy + 8, 6, 0, 6.284); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,.35)'; ctx.beginPath(); ctx.arc(sx + 8, sy + 6, 3, 0, 6.284); ctx.fill();
+  } else if (kind === 'palm') {
+    ctx.fillStyle = '#7a5628'; ctx.fillRect(sx + 7, sy, 3, 13);
+    ctx.fillStyle = '#2c8a3c'; for (let k = 0; k < 4; k++) ctx.fillRect(sx + 6 + Math.cos(k * 1.57) * 6, sy - 3 + Math.sin(k * 1.57) * 3, 6, 3);
+  } else if (kind === 'volcano') {
+    ctx.fillStyle = '#5a4a4a'; ctx.beginPath(); ctx.moveTo(sx + 8, sy - 16); ctx.lineTo(sx - 8, sy + 12); ctx.lineTo(sx + 24, sy + 12); ctx.closePath(); ctx.fill();
+    const gl = Math.round(Math.sin(frame / 18 + tx) * 2);
+    ctx.fillStyle = '#ff6a2c'; ctx.fillRect(sx + 5, sy - 16 + gl, 6, 5);
+    ctx.fillStyle = '#ffd76a'; ctx.fillRect(sx + 6, sy - 15 + gl, 3, 2);
+  } else if (kind === 'pylon') {
+    ctx.fillStyle = '#2a3f6e'; ctx.fillRect(sx + 6, sy - 10, 4, 22);
+    ctx.fillStyle = th.deco; ctx.fillRect(sx + 3, sy - 12, 10, 3);
+    ctx.fillStyle = 'rgba(123,227,163,.35)'; ctx.beginPath(); ctx.arc(sx + 8, sy - 11, 8, 0, 6.284); ctx.fill();
+  } else if (kind === 'portal') {
+    const sp = frame / 12 + tx;
+    ctx.strokeStyle = th.deco; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.ellipse(sx + 8, sy + 4, 10, 13, Math.sin(sp / 3) * 0.3, 0, 6.284); ctx.stroke();
+    ctx.strokeStyle = 'rgba(255,255,255,.5)';
+    ctx.beginPath(); ctx.ellipse(sx + 8, sy + 4, 6, 9, -Math.sin(sp / 3) * 0.3, 0, 6.284); ctx.stroke();
+  } else if (kind === 'glitch') {
+    const jx = ((frame >> 3) + tx * 5 + ty * 3) % 5 - 2;
+    ctx.fillStyle = 'rgba(255,111,174,.8)'; ctx.fillRect(sx + 1 + jx, sy + 2, 12, 4);
+    ctx.fillStyle = 'rgba(123,227,163,.8)'; ctx.fillRect(sx + 3 - jx, sy + 8, 12, 4);
+    ctx.fillStyle = '#4a3f8a'; ctx.fillRect(sx + 4, sy + 4, 8, 6);
+  }
+}
+function drawExplorer() {
+  const th = L.oth || OVER_THEMES[1];
+  const g = ctx.createLinearGradient(0, 0, 0, H);
+  g.addColorStop(0, th.sky[0]); g.addColorStop(1, th.sky[1]);
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  if (th.sun) {
+    ctx.globalAlpha = 0.9; ctx.fillStyle = th.sun;
+    ctx.beginPath(); ctx.arc(W - 64, 44, 18, 0, 6.284); ctx.fill();
+    ctx.globalAlpha = 0.22;
+    ctx.beginPath(); ctx.arc(W - 64, 44, 30, 0, 6.284); ctx.fill();
+    ctx.globalAlpha = 1;
+  }
+  const x0 = Math.max(0, Math.floor(camX / T)), x1 = Math.min(L.cols - 1, Math.ceil((camX + W) / T));
+  const y0 = Math.max(0, Math.floor(camY / T)), y1 = Math.min(L.rows - 1, Math.ceil((camY + H) / T));
+  for (let ty = y0; ty <= y1; ty++) {
+    for (let tx = x0; tx <= x1; tx++) {
+      const t = L.tiles[ty * L.cols + tx];
+      const sx = tx * T - camX, sy = ty * T - camY;
+      const h = (tx * 7 + ty * 13) % 5;
+      if (t === 2) {
+        ctx.fillStyle = th.water; ctx.fillRect(sx, sy, T, T);
+        ctx.fillStyle = 'rgba(255,255,255,.22)';
+        const wob = Math.round(Math.sin((frame + tx * 9 + ty * 5) / 22) * 2);
+        ctx.fillRect(sx + 2 + wob, sy + 5, 7, 1); ctx.fillRect(sx + 8 - wob, sy + 11, 6, 1);
+        ctx.fillStyle = 'rgba(0,0,0,.12)'; ctx.fillRect(sx, sy + T - 2, T, 2);
+      } else {
+        ctx.fillStyle = t === 3 ? th.path : (t === 4 ? th.rock : (h % 2 ? th.grass : th.grass2));
+        ctx.fillRect(sx, sy, T, T);
+        if (t === 3) {
+          ctx.fillStyle = 'rgba(255,255,255,.30)'; ctx.fillRect(sx + 3, sy + 3, 2, 2);
+          ctx.fillStyle = 'rgba(0,0,0,.08)'; ctx.fillRect(sx, sy + T - 2, T, 2);
+        } else if (t === 4) {
+          ctx.fillStyle = 'rgba(255,255,255,.18)'; ctx.fillRect(sx + 2, sy + 1, 8, 3);
+          ctx.fillStyle = 'rgba(0,0,0,.22)'; ctx.fillRect(sx + 2, sy + 9, 10, 5);
+        } else {
+          ctx.fillStyle = 'rgba(255,255,255,.10)'; ctx.fillRect(sx + 2, sy + 2, 6, 1);
+          if (h === 0) { ctx.fillStyle = th.deco; ctx.fillRect(sx + 6, sy + 9, 2, 2); ctx.fillRect(sx + 11, sy + 4, 2, 2); }
+          if (h === 3) {
+            ctx.fillStyle = th.trunk; ctx.fillRect(sx + 7, sy + 9, 3, 6);
+            ctx.fillStyle = th.tree; ctx.fillRect(sx + 3, sy + 1, 11, 9);
+            ctx.fillStyle = 'rgba(255,255,255,.18)'; ctx.fillRect(sx + 5, sy + 2, 5, 2);
+          }
+        }
+        ctx.fillStyle = 'rgba(255,255,255,.07)'; ctx.fillRect(sx, sy, T, 1);
+        ctx.fillStyle = 'rgba(0,0,0,.07)'; ctx.fillRect(sx, sy + T - 1, T, 1);
+      }
+    }
+  }
+  /* per-world scenery: the landmarks that make every map unmistakable */
+  const scenes = th.scene || [];
+  if (scenes.length) {
+    for (let ty = y0; ty <= y1; ty++) {
+      for (let tx = x0; tx <= x1; tx++) {
+        const t = L.tiles[ty * L.cols + tx];
+        if (t === 2 || t === 3) continue;
+        const hh = (tx * 31 + ty * 17) % 23;
+        if (hh % 7 !== 3) continue;
+        drawSceneProp(scenes[hh % scenes.length], tx * T - camX, ty * T - camY, th, tx, ty);
+      }
+    }
+  }
+  for (const nd of L.nodes) {
+    const sx = nd.x * T + T / 2 - camX, sy = nd.y * T + T / 2 - camY;
+    if (sx < -50 || sx > W + 50 || sy < -50 || sy > H + 50) continue;
+    const open = stageOpen(nd.stage), done = progress.beaten.includes(nd.stage);
+    const pulse = 0.5 + 0.5 * Math.sin((frame + nd.k * 30) / 26);
+    ctx.fillStyle = 'rgba(0,0,0,.28)';
+    ctx.beginPath(); ctx.ellipse(sx, sy + 12, 15, 6, 0, 0, 6.284); ctx.fill();
+    if (nd.kind === 'castle') {
+      ctx.fillStyle = '#6a5f8a'; ctx.fillRect(Math.round(sx - 15), Math.round(sy - 22), 30, 30);
+      ctx.fillStyle = '#8a7fb8'; ctx.fillRect(Math.round(sx - 15), Math.round(sy - 22), 30, 5);
+      ctx.fillStyle = '#4a3f6a'; ctx.fillRect(Math.round(sx - 5), Math.round(sy - 2), 10, 16);
+      ctx.fillStyle = th.deco; ctx.fillRect(Math.round(sx - 2), Math.round(sy - 30), 3, 9);
+    }
+    ctx.fillStyle = open ? (done ? '#f6c445' : '#f4f1e8') : '#6a6f9a';
+    ctx.beginPath(); ctx.ellipse(sx, sy, 13, 11, 0, 0, 6.284); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,.35)';
+    ctx.beginPath(); ctx.ellipse(sx, sy - 3, 10, 6, 0, 0, 6.284); ctx.fill();
+    if (open && !done) {
+      ctx.strokeStyle = 'rgba(255,255,255,' + (0.35 + pulse * 0.5).toFixed(2) + ')';
+      ctx.lineWidth = 2; ctx.beginPath(); ctx.ellipse(sx, sy, 16 + pulse * 2, 13 + pulse * 2, 0, 0, 6.284); ctx.stroke();
+    }
+    ctx.fillStyle = '#241a05'; ctx.font = 'bold 10px monospace'; ctx.textAlign = 'center';
+    ctx.fillText(open ? (done ? '✓' : String(nd.k + 1)) : '🔒', sx, sy + 4);
+  }
+  const px = P.x + P.w / 2 - camX, py = P.y + P.h - camY;
+  const moving = input.left || input.right || input.up || input.down || padIn.left || padIn.right || padIn.up || padIn.down;
+  ctx.fillStyle = 'rgba(0,0,0,.3)';
+  ctx.beginPath(); ctx.ellipse(px, py + 2, 8, 3, 0, 0, 6.284); ctx.fill();
+  drawBig(moving && Math.floor(frame / 10) % 2 ? SP.sWalk : SP.sStand, px, py, P.face, 1);
+  if (L.enterT > 0) {
+    ctx.strokeStyle = '#f6c445'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.arc(px, py - 20, 7, -1.57, -1.57 + 6.284 * Math.min(1, L.enterT / 34)); ctx.stroke();
+  }
+  /* every world has its own air: rain, dust, embers, stars, ships... */
+  const wx = th.weather;
+  if (wx === 'rain') {
+    ctx.strokeStyle = 'rgba(180,210,255,.5)'; ctx.lineWidth = 1;
+    for (let k = 0; k < 34; k++) {
+      const x = ((k * 61 + frame * 3.5) % (W + 40)) - 20, y = ((k * 97 + frame * 7) % (H + 40)) - 20;
+      ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x - 3, y + 9); ctx.stroke();
+    }
+  } else if (wx === 'dust') {
+    for (let k = 0; k < 22; k++) {
+      const x = ((k * 83 + frame * 0.7) % (W + 20)) - 10, y = (k * 47 + frame * 0.35 + Math.sin((frame + k * 20) / 40) * 8) % H;
+      ctx.fillStyle = 'rgba(255,200,120,.4)'; ctx.fillRect(x, y, 2, 2);
+    }
+  } else if (wx === 'stars') {
+    for (let k = 0; k < 26; k++) {
+      const x = (k * 149) % W, y = (k * 83) % Math.floor(H * 0.6);
+      const tw = 0.35 + 0.65 * Math.abs(Math.sin((frame + k * 21) / 34));
+      ctx.fillStyle = 'rgba(255,255,255,' + tw.toFixed(2) + ')'; ctx.fillRect(x, y, 2, 2);
+    }
+  } else if (wx === 'fireflies') {
+    for (let k = 0; k < 16; k++) {
+      const x = (k * 127 + Math.sin((frame + k * 33) / 46) * 22) % W, y = (k * 71 + Math.cos((frame + k * 17) / 38) * 14 + H * 0.3) % H;
+      const tw = 0.25 + 0.75 * Math.abs(Math.sin((frame + k * 29) / 30));
+      ctx.fillStyle = 'rgba(255,231,120,' + tw.toFixed(2) + ')'; ctx.fillRect(x, y, 2, 2);
+    }
+  } else if (wx === 'fireworks') {
+    const t = frame % 180;
+    if (t < 60) {
+      const fx = W * 0.3 + ((Math.floor(frame / 180) * 137) % Math.floor(W * 0.5)), fy = H * 0.22;
+      for (let k = 0; k < 12; k++) {
+        const a = k * 0.524 + t / 30, r = t * 0.55;
+        ctx.fillStyle = 'rgba(255,' + (140 + k * 8) + ',90,.85)';
+        ctx.fillRect(fx + Math.cos(a) * r, fy + Math.sin(a) * r, 2, 2);
+      }
+    }
+  } else if (wx === 'embers') {
+    for (let k = 0; k < 20; k++) {
+      const x = (k * 97 + Math.sin((frame + k * 26) / 30) * 18) % W, y = ((k * 61 - frame * 0.9) % H + H) % H;
+      ctx.fillStyle = 'rgba(255,' + (90 + (k * 13) % 90) + ',40,.65)'; ctx.fillRect(x, y, 2, 3);
+    }
+  } else if (wx === 'ships') {
+    for (let k = 0; k < 3; k++) {
+      const x = ((frame * (0.5 + k * 0.22) + k * 260) % (W + 120)) - 60, y = 24 + k * 30;
+      ctx.fillStyle = 'rgba(123,227,163,.75)'; ctx.fillRect(x, y, 18, 3);
+      ctx.fillStyle = 'rgba(123,227,163,.3)'; ctx.fillRect(x - 8, y + 1, 8, 1);
+    }
+  } else if (wx === 'balloons') {
+    for (let k = 0; k < 6; k++) {
+      const x = (k * 103 + Math.sin((frame + k * 40) / 60) * 16) % W, y = ((k * 89 - frame * 0.45) % H + H) % H;
+      ctx.fillStyle = ['#ff6fae', '#f6c445', '#7be3a3', '#7fd8ff'][k % 4];
+      ctx.beginPath(); ctx.arc(x, y, 4, 0, 6.284); ctx.fill();
+    }
+  } else if (wx === 'glitch') {
+    if ((frame >> 4) % 4 === 0) {
+      const y = (frame * 3) % H;
+      ctx.fillStyle = 'rgba(255,111,174,.14)'; ctx.fillRect(0, y, W, 6);
+      ctx.fillStyle = 'rgba(123,227,163,.12)'; ctx.fillRect(0, y + 8, W, 3);
+    }
+    for (let k = 0; k < 14; k++) {
+      const x = (k * 113) % W, y = (k * 67 + frame * 0.5) % H;
+      ctx.fillStyle = 'rgba(255,255,255,.28)'; ctx.fillRect(x, y, 2, 2);
+    }
+  }
+}
 function mapScreen() {
+  /* once the Explorer exists, the world map IS the map: the old screen only
+     serves fresh test saves and the developer tools */
+  if (progress.explorer && progress.explorer.world) { startExplorer(progress.explorer.world, true); return; }
   Music.play('title');
   const stars = totalStars();
   const want = progress.mapWorld || worldOf(nextStage());
@@ -15223,6 +15670,12 @@ window.__k11 = window.__k11DevOnly() ? {
   world11Info: () => ({ stage: L && L.i, world: L ? worldOf(L.i) : null, place: L ? LV[L.i].place : null,
     look3d: L ? !!LV[L.i].look3d : false, glitchy: L && LV[L.i].boss ? !!LV[L.i].boss.glitchy : false,
     finalWorld: L ? (LV[L.i].finalWorld || 0) : 0, tier2: progress.wonWorlds.indexOf(10) >= 0, pending: progress.pendingCutscene || null }),
+  explorerInfo: () => ({ world: L && L.explorer ? L.explorer : 0, onMap: !!(L && L.explorer), x: P ? Math.round(P.x) : 0, y: P ? Math.round(P.y) : 0,
+    camX: Math.round(camX), camY: Math.round(camY), entrances: L && L.nodes ? L.nodes.length : 0 }),
+  explorerTeleport: (x, y) => { if (L && L.explorer && P) { P.x = x; P.y = y; P.vx = 0; P.vy = 0; } return { x: P.x, y: P.y }; },
+  explorerGo: (w) => { startExplorer(w); return { world: L.explorer }; },
+  explorerDoor: (k) => (L && L.nodes && L.nodes[k] ? { x: L.nodes[k].x * T + T / 2, y: L.nodes[k].y * T + T / 2, stage: L.nodes[k].stage } : null),
+  overThemes: () => Object.keys(OVER_THEMES).map((n) => ({ world: Number(n), grass: OVER_THEMES[n].grass, sky: OVER_THEMES[n].sky[0], weather: (OVER_SKINS[n] || {}).weather, scene: ((OVER_SKINS[n] || {}).scene || []).join(',') })),
   defaults: () => JSON.parse(JSON.stringify(DEFAULT_PROGRESS)),
   petSpot: () => (crate ? { x: crate.x, y: crate.y, pet: crate.pet } : null),
   toPet: () => { if (crate) { P.x = crate.x; P.y = crate.y; P.vx = 0; P.vy = 0; } },

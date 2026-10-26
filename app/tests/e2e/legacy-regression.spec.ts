@@ -49,22 +49,24 @@ test.describe('legacy game regression (real game, no downgrade)', () => {
     await page.locator('#startBtn').click({ force: true });
     await expect(page.locator('#stage')).toBeVisible();
     await expect(page.locator('#cv')).toBeVisible();
-    await expect(page.locator('#dialog')).toBeVisible();
-    await expect(page.locator('#dtext')).not.toBeEmpty();
+    /* Story mode opens the World Explorer — a big scrolling world with stage
+       doors (the story dialog appears when a stage is actually entered) */
+    await expect(page.locator('#pauseBtn')).toBeVisible();
 
-    /* the game canvas is actually drawn (not a blank/single-colour frame) */
-    const colours = await page.evaluate(() => {
+    /* the game canvas is actually drawn (not a blank/single-colour frame);
+       poll because the first painted frame can lag behind the click on WebKit */
+    const colourCount = () => page.evaluate(() => {
       const cv = document.getElementById('cv') as HTMLCanvasElement;
       const ctx = cv.getContext('2d');
       if (ctx === null) return 0;
       const data = ctx.getImageData(0, 0, cv.width, cv.height).data;
       const seen = new Set<number>();
-      for (let i = 0; i < data.length; i += 4 * 97) {
+      for (let i = 0; i < data.length; i += 4 * 13) {
         seen.add((data[i] << 16) | (data[i + 1] << 8) | data[i + 2]);
       }
       return seen.size;
     });
-    expect(colours, 'stage canvas should render detailed art').toBeGreaterThan(20);
+    await expect.poll(colourCount, { timeout: 5000 }).toBeGreaterThan(20);
     expect(errors).toEqual([]);
   });
 
