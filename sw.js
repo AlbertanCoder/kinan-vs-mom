@@ -1,5 +1,5 @@
 /* Kinan vs. Mom - offline cache */
-const CACHE = 'kinan-vs-mom-v20';   /* v20: all six companion abilities and checkpoint-safe usage persistence */
+const CACHE = 'kinan-vs-mom-v21';   /* v21: Milo/Aiden Friend Assist and checkpoint loadout swapping */
 const ASSETS = [
   './',
   './index.html',

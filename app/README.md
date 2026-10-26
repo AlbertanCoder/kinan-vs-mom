@@ -37,6 +37,13 @@
 > counts, Zoomies, Neighbourhood Watch, Curious Force, Courage Fetch, Royal Snack
 > Break, Senior Glare, cooldowns, and checkpoint/resume usage persistence.
 >
+> **Friend Assist and checkpoint swapping:** Milo and Aiden unlock in World 2
+> as one optional assist slot. Milo builds eight-second brick staircases with a
+> 25-second cooldown; Aiden provides a checkpoint snack and a three-second
+> distraction. Title/map selection and checkpoint loadout swapping preserve the
+> paused stage and lock during bosses/challenges. `tests/e2e/legacy-friends.spec.ts`
+> covers unlocks, expiry, cooldowns, assist limits, and resume restrictions.
+>
 > The original skeleton notes are kept below for history.
 
 ---

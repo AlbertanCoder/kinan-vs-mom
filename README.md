@@ -23,6 +23,7 @@ It then opens full-screen and runs offline.
 | Move | ← → / A D | ◀ ▶ |
 | Jump | Space / ↑ / W (hold = higher) | JUMP |
 | Pow | X / J | POW |
+| Friend Assist | E | FRIEND |
 | Pause | P / Esc | ⏸ |
 
 Phones and tablets use landscape gameplay. Portrait shows an upright rotate-device prompt and pauses play; the page itself never rotates.

@@ -205,6 +205,8 @@ h1.title .t2{display:block;font-size:clamp(24px,6.4vw,40px);color:var(--edge)}
 .petname.equipped .equipbtn{border-color:var(--gold);color:var(--gold)}
 .petname .equipbtn:disabled{opacity:.45;cursor:default}
 .loadout-status{margin:0;color:var(--edge);font-size:13px;font-weight:700}
+.friendbtn small{display:block;font-size:10px;color:var(--dim);margin-top:2px}
+.friendbtn[aria-pressed="true"]{border-color:var(--gold);color:var(--gold)}
 /* results */
 .starline{display:flex;gap:10px;font-size:36px;line-height:1;filter:drop-shadow(0 3px 0 rgba(0,0,0,.4))}
 .starline .off{color:#2f3363;text-shadow:0 0 0 #000}
@@ -574,6 +576,7 @@ html.sideways .stage{max-width:100%}
         <div class="btncol">
           <button class="btn go" id="resumeBtn" type="button">RESUME</button>
           <button class="btn" id="saveBtn" type="button">Save game</button>
+          <button class="btn" id="petsBtnP" type="button">Pets</button>
           <button class="btn" id="restartBtn" type="button">Restart stage</button>
           <button class="btn" id="mapBtnP" type="button">Stage map</button>
           <button class="btn" id="fullBtn" type="button">Fullscreen</button>
@@ -599,6 +602,7 @@ html.sideways .stage{max-width:100%}
     </div>
     <div class="acts">
       <button class="win spec" type="button" data-k="special" id="specBtn" aria-label="Special move" hidden disabled>★</button>
+      <button class="win spec" type="button" data-k="friend" id="friendBtn" aria-label="Friend Assist" hidden disabled>FRIEND</button>
       <button class="win shieldb smashonly" type="button" data-k="shield" aria-label="Shield">🛡</button>
       <button class="win atk smashonly" type="button" data-k="attack" aria-label="Attack">👊</button>
       <button class="win pow" type="button" data-k="fire" id="powBtn" aria-label="Superpower" disabled>POW</button>
@@ -1980,7 +1984,7 @@ function buildGalaxy(i) {
 /* ============================================================
    STATE
    ============================================================ */
-const DEFAULT_PROGRESS = { unlocked: 1, beaten: [], stars: {}, bestScore: {}, totalCandles: 0, pets: { ids: [], names: {}, equippedCat: null, equippedDog: null }, hat: 'none', won: false, sound: true, lite: false,
+const DEFAULT_PROGRESS = { unlocked: 1, beaten: [], stars: {}, bestScore: {}, totalCandles: 0, pets: { ids: [], names: {}, equippedCat: null, equippedDog: null }, friendAssist: null, friendsUnlocked: [], hat: 'none', won: false, sound: true, lite: false,
   wallet: 0, owned: [], outfit: 'classic', trail: 'none', costumes: {}, gold: {}, smashItems: true, codes: [], wonWorlds: [], builds: [], bossLosses: {} };
 function loadProgress() {
   let p = readProgressRecord(SAVE_KEY), recovered = false;
@@ -2027,6 +2031,8 @@ function loadProgress() {
     equippedCat: equipChoice(oldPets.equippedCat, 'cat'),
     equippedDog: equipChoice(oldPets.equippedDog, 'dog')
   };
+  out.friendsUnlocked = Array.isArray(p.friendsUnlocked) ? p.friendsUnlocked.filter((id, k, a) => (id === 'milo' || id === 'aiden') && a.indexOf(id) === k) : [];
+  out.friendAssist = out.friendsUnlocked.indexOf(p.friendAssist) >= 0 ? p.friendAssist : null;
   if (out.resume && !(typeof out.resume === 'object' && out.resume.i >= 0 && out.resume.i < LV.length)) delete out.resume;
   /* Party Shop: the candles already collected become the first spending money */
   if (typeof p.wallet !== 'number') out.wallet = Math.max(0, Math.floor(Number(out.totalCandles) || 0));
@@ -2081,7 +2087,7 @@ const save = (loud) => {   /* loud: a save the player asked for always says when
 let L = null, P = null;
 let foes = [], shots = [], blasts = [], allyShots = [], bosses = [], allies = [], items = [];
 let candles = [], pops = [], parts = [], rings = [], trail = [];
-let pets = { cats: [], dogs: [] }, dad = null, bro = null, crate = null;
+let pets = { cats: [], dogs: [] }, dad = null, bro = null, crate = null, friendPlatforms = [];
 let camX = 0, camY = 0, viewW = W, viewH = H, shake = 0, hitStop = 0, frame = 0, running = false, paused = false, pausedByUser = false;
 let boss = 'off', got = 0, totalCandles = 0, nextHeartAt = 25;
 let score = 0, combo = 0, comboT = 0, bestCombo = 0, deaths = 0, heartsLost = 0, stageTime = 0;
@@ -2111,6 +2117,7 @@ function pressInto(inp, k) {
   else if (k === 'shield') inp.shield = true;
   else if (k === 'gas') inp.gas = true;
   else if (k === 'special') inp.specBuf = 10;
+  else if (k === 'friend') callFriendAssist();
 }
 function releaseInto(inp, k) {
   if (k === 'left') inp.left = false;
@@ -2165,6 +2172,7 @@ window.addEventListener('keydown', (e) => {
   else if (k === 'Space' || k === 'ArrowUp' || k === 'KeyW' || k === 'KeyZ') actionDown('jump');
   else if (k === 'ArrowDown' || k === 'KeyS') input.down = true;
   else if (k === 'KeyC' || k === 'KeyV') actionDown('special');
+  else if (k === 'KeyE') actionDown('friend');
   else if (k === 'KeyX' || k === 'KeyJ' || k === 'ShiftLeft' || k === 'ShiftRight') actionDown('fire');
   else if (k === 'Enter') advanceDialog();
   else if (k === 'KeyP' || k === 'Escape') togglePause();
@@ -2406,6 +2414,7 @@ function updHud() {
   el.pow.disabled = !(P.power === 'popper');
   el.pow.textContent = P.power === 'popper' ? 'POW' : (P.rush > 0 ? 'RUSH' : 'POW');
   renderPetStat();
+  updateFriendButton();
 }
 /* ============================================================
    DIALOGUE · TOASTS · PAUSE
@@ -2554,6 +2563,7 @@ function setPaused(on, showMenu) {
   paused = on || !!advance;   /* a story box still on screen keeps the game frozen until it is tapped */
   pausedByUser = on;
   el.pause.hidden = !(on && showMenu !== false);
+  const pb = $('#petsBtnP'); if (pb) pb.disabled = !(cpHit && boss !== 'fight' && !L.custom && !LV[L.i].challenge);
   if (on) { input.left = input.right = input.jump = input.gas = false; }
   if (on && running) autoSave();   /* pause, app switch or screen off: the spot is kept */
   if (on) {   /* the pause menu's Vibration switch (phones that can) and, in a race, Tilt to steer */
@@ -2596,6 +2606,7 @@ $('#restartBtn').addEventListener('click', () => {
   startStage(L ? L.i : 0, true);
 });
 $('#saveBtn').addEventListener('click', manualSave);
+$('#petsBtnP').addEventListener('click', openCheckpointLoadout);
 $('#mapBtnP').addEventListener('click', () => {
   setPaused(false); running = false; Music.stop();
   if (smash) { const online = smash.online; endSmash(); if (online) netLeave(); smashMenu(); return; }
@@ -2637,6 +2648,8 @@ function startStage(i, silent, custom) {
   if (advance) { advance = null; el.dialog.hidden = true; el.portrait.style.visibility = 'hidden'; Music.duck(false); paused = false; }
   puzzle = null;
   L = custom || build(i);
+  friendPlatforms = [];
+  unlockFriendsForStage(i);
   pieces = custom ? [] : findPieces(L); pieceCool = pieces.map(() => 0);
   stageTime = 0; score = 0; combo = 0; comboT = 0; bestCombo = 0; deaths = 0; heartsLost = 0;
   foes = L.foes.map((f, k) => Object.assign(makeFoe(f), { idx: k }));   /* idx: which stage enemy this is, for saves */
@@ -2655,7 +2668,7 @@ function startStage(i, silent, custom) {
     x: spawn.x, y: spawn.y, w: 10, h: 16, vx: 0, vy: 0, onGround: false, face: 1,
     coyote: 0, inv: 0, hp: 3, max: 3, dead: 0, power: null, rush: 0, airJumps: 0,
     cleanLandings: 0, zoomiesT: 0, zoomiesCd: 0,
-    vaderCd: 0, tuxCd: 0, tuxBossN: 0, hunterUsed: false, hunterT: 0, duchessUsed: false,
+    vaderCd: 0, tuxCd: 0, tuxBossN: 0, hunterUsed: false, hunterT: 0, duchessUsed: false, friendCd: 0, aidenUsed: false, aidenT: 0,
     fireCd: 0, hat: false, squash: 0, stretch: 0, landT: 0, anim: 0, skid: 0, jumpT: null, prevBottom: 0
   };
   const owned = progress.pets.ids, active = activePetIds();
@@ -2693,7 +2706,7 @@ function snapshotStage() {
   return {
     i: SL.i, x: Math.round(onGround ? P.x : safe.x), y: Math.round(onGround ? P.y : safe.y),
     hp: P.hp, max: P.max, got: got, score: score, stageTime: stageTime, deaths: deaths, heartsLost: heartsLost, bestCombo: bestCombo,
-    power: P.power, hat: !!P.hat, lasso: !!P.lasso, umbrella: !!P.umbrella, cpHit: cpHit, spawn: { x: spawn.x, y: spawn.y }, nextHeartAt: nextHeartAt, dadUsedStage: dadUsedStage, hunterUsed: !!P.hunterUsed, hunterT: P.hunterT || 0, duchessUsed: !!P.duchessUsed,
+    power: P.power, hat: !!P.hat, lasso: !!P.lasso, umbrella: !!P.umbrella, cpHit: cpHit, spawn: { x: spawn.x, y: spawn.y }, nextHeartAt: nextHeartAt, dadUsedStage: dadUsedStage, hunterUsed: !!P.hunterUsed, hunterT: P.hunterT || 0, duchessUsed: !!P.duchessUsed, aidenUsed: !!P.aidenUsed,
     candles: candles.map((c, k) => (c.got ? k : -1)).filter((k) => k >= 0),
     gifts: Object.keys(SL.gifts).filter((k) => SL.g[Number(k)] === 4),
     foesDead: SL.foes.map((f, k) => k).filter((k) => !foes.some((f) => f.idx === k && f.alive)),
@@ -2707,7 +2720,7 @@ function restoreStage(s) {
   foes = foes.filter((f) => s.foesDead.indexOf(f.idx) < 0);
   got = s.got; score = s.score; stageTime = s.stageTime; deaths = s.deaths; heartsLost = s.heartsLost; bestCombo = s.bestCombo;
   nextHeartAt = s.nextHeartAt; dadUsedStage = !!s.dadUsedStage; cpHit = !!s.cpHit;
-  P.hunterUsed = !!s.hunterUsed; P.hunterT = Number(s.hunterT) || 0; P.duchessUsed = !!s.duchessUsed;
+  P.hunterUsed = !!s.hunterUsed; P.hunterT = Number(s.hunterT) || 0; P.duchessUsed = !!s.duchessUsed; P.aidenUsed = !!s.aidenUsed;
   if (s.cpHit && s.spawn) spawn = { x: s.spawn.x, y: s.spawn.y };
   P.hp = s.hp; P.max = s.max; P.power = s.power || null; P.hat = !!s.hat;
   if (s.bagOpen && bag) bag.open = true;
@@ -2751,6 +2764,14 @@ function tickCompanionTimers() {
   if (P.zoomiesCd > 0) P.zoomiesCd--;
   if (P.vaderCd > 0) P.vaderCd--;
   if (P.tuxCd > 0) P.tuxCd--;
+  if (P.friendCd > 0) P.friendCd--;
+  if (P.aidenT > 0) P.aidenT--;
+  for (const fp of friendPlatforms) {
+    fp.t--;
+    if (fp.t <= 0 && L && L.g[fp.idx] === 7) L.g[fp.idx] = fp.old;
+  }
+  friendPlatforms = friendPlatforms.filter((fp) => fp.t > 0);
+  if (frame % 15 === 0) updateFriendButton();
 }
 function noteCleanLanding() {
   if (!P || !hasPet('cat1') || P.zoomiesT > 0 || P.zoomiesCd > 0) return;
@@ -2997,6 +3018,7 @@ function updateWorld() {
       toast('<b>DUCHESS:</b> Royal snack break! +' + snack + ' ❤', 1800);
       SFX.heart(); updHud();
     }
+    if (progress.friendAssist === 'aiden') callAidenSupport();
     autoSave();
   }
   const magnet = (P.rush > 0 ? 34 : 24) + (P.lasso ? 70 : 0);
@@ -3066,6 +3088,81 @@ function updateWorld() {
   for (const r of rings) { r.r += 6; r.t--; }
   rings = rings.filter((r) => r.t > 0);
   if (comboT > 0) { comboT--; if (comboT === 0) breakCombo(); }
+}
+/* ============================================================
+   FRIEND ASSIST + CHECKPOINT LOADOUT
+   ============================================================ */
+const friendUnlocked = (id) => progress.friendsUnlocked.indexOf(id) >= 0;
+const friendName = (id) => id === 'milo' ? 'Milo' : 'Aiden';
+function unlockFriendsForStage(i) {
+  if (worldOf(i) !== 2) return;
+  const added = ['milo', 'aiden'].filter((id) => !friendUnlocked(id));
+  if (!added.length) return;
+  progress.friendsUnlocked.push(...added);
+  save();
+  toast('<b>MILO & AIDEN</b> joined as Friend Assists! Choose one in Pets.', 3000);
+}
+function callMilo() {
+  const tx0 = Math.floor(P.x / T), ty0 = Math.floor((P.y + P.h) / T), span = worldOf(L.i) === 7 ? 7 : 5;
+  let made = 0;
+  for (let k = 0; k < span; k++) {
+    const tx = tx0 + (P.face > 0 ? k + 1 : -k - 1), ty = ty0 - 1 - k;
+    if (tx < 1 || tx >= L.w - 1 || ty < 1 || ty >= ROWS) continue;
+    const idx = ty * L.w + tx;
+    if (L.g[idx] || friendPlatforms.some((fp) => fp.idx === idx)) continue;
+    L.g[idx] = 7;
+    friendPlatforms.push({ idx, old: 0, t: 480 });
+    made++;
+  }
+  if (!made) { toast('Milo needs a clear spot for a brick staircase.', 1300); return false; }
+  P.friendCd = 1500;
+  pop(P.x, P.y - 14, 'MILO BUILT ' + made + ' BRICKS!', 42, '#f6c445');
+  toast('<b>MILO:</b> Brick staircase ready for eight seconds!', 1700);
+  SFX.power();
+  return true;
+}
+function callAidenSupport() {
+  if (P.aidenUsed) return false;
+  P.aidenUsed = true; P.friendCd = 1500; P.aidenT = 180;
+  giveItem('heart');
+  for (const f of foes) if (f.alive && Math.abs(f.x - P.x) < 220) f.distract = 180;
+  toast('<b>AIDEN:</b> Snack break! Nearby enemies are distracted for three seconds.', 1800);
+  return true;
+}
+function callFriendAssist() {
+  if (paused || !running || !progress.friendAssist || P.friendCd > 0) return false;
+  if (progress.friendAssist === 'milo') return callMilo();
+  if (progress.friendAssist === 'aiden') return callAidenSupport();
+  return false;
+}
+function updateFriendButton() {
+  const b = $('#friendBtn');
+  if (!b) return;
+  const show = !!(P && progress.friendAssist && !smash && !kart && !builder);
+  b.hidden = !show;
+  if (!show) return;
+  const id = progress.friendAssist;
+  b.textContent = id === 'milo' ? 'MILO' : 'AIDEN';
+  b.disabled = P.friendCd > 0 || (id === 'aiden' && P.aidenUsed);
+  b.title = id === 'milo' ? 'Build a temporary brick staircase (25s cooldown)' : 'Healing snack and a three-second distraction (once per checkpoint)';
+}
+function applyPetLoadout() {
+  const active = activePetIds();
+  pets = { cats: [], dogs: [] };
+  active.forEach((id, idx) => {
+    const def = petDef(id);
+    if (def.kind === 'cat') pets.cats.push({ id, def, x: P.x + 16 + idx * 14, y: P.y + 7, face: 1 });
+    else pets.dogs.push({ id, def, x: P.x + 66 + idx * 18, y: P.y + 6, t: 0, warn: 0, dash: null, face: 1 });
+  });
+  P.airJumps = hasPet('cat1') ? 1 : 0;
+  updHud();
+}
+function openCheckpointLoadout() {
+  const allowed = cpHit && boss !== 'fight' && !L.custom && !LV[L.i].challenge;
+  if (!allowed) { toast('Pets can be changed at activated checkpoints outside bosses and challenges.', 1900); return false; }
+  autoSave();
+  petLoadoutScreen(() => { showGame(true); applyPetLoadout(); setPaused(true, true); });
+  return true;
 }
 /* ============================================================
    PETS · DAD · BIG BRO
@@ -3323,6 +3420,7 @@ function updateFoes() {
     f.t++;
     if (f.hurtT > 0) f.hurtT--;
     if (f.stun > 0) { f.stun--; f.vx = 0; f.charge = 0; continue; }
+    if (f.distract > 0) { f.distract--; f.vx = 0; continue; }
     const beh = f.def.beh;
     if (beh === 'flyer') {
       if (f.flee) {   /* a magpie getting away (with a coin, if it got one) */
@@ -5883,6 +5981,7 @@ function showGame(on) {
   if (rh) rh.hidden = !on;
   if (mf) mf.hidden = !on;
   el.pauseBtn.hidden = !on;
+  const fb = $('#friendBtn'); if (fb) fb.hidden = true;
   setOrientationUI();
 }
 /* Landscape uses the existing thumb deck. Portrait shows an upright gate;
@@ -8547,6 +8646,14 @@ function starHTML(n, animate) {
   return h + '</span>';
 }
 
+function friendLoadoutHTML() {
+  const current = progress.friendAssist;
+  return ['milo', 'aiden'].map((id) => {
+    const open = friendUnlocked(id), on = current === id;
+    const about = id === 'milo' ? '8s brick staircase · 25s cooldown' : 'Checkpoint snack · 3s distraction';
+    return '<button type="button" class="btn friendbtn" data-friend="' + id + '" aria-pressed="' + on + '"' + (open ? '' : ' disabled') + '>' + friendName(id) + (on ? ' ✓' : '') + '<small>' + (open ? about : 'Unlock in World 2') + '</small></button>';
+  }).join('') + '<button type="button" class="btn friendbtn" data-friend="" aria-pressed="' + (!current) + '">No assist</button>';
+}
 function petLoadoutSummary() {
   const cat = progress.pets.equippedCat, dog = progress.pets.equippedDog;
   return cat || dog ? 'Following: ' + (cat ? escAttr(petName(cat)) : 'No cat') + ' + ' + (dog ? escAttr(petName(dog)) : 'No dog') : 'Solo — no pets following';
@@ -8571,6 +8678,11 @@ function bindPetLoadout(root, refresh) {
   }));
   const solo = $('#soloPets', root);
   if (solo) solo.addEventListener('click', () => { clearPetLoadout(); SFX.save(); refresh(); });
+  $$('.friendbtn[data-friend]', root).forEach((b) => b.addEventListener('click', () => {
+    if (b.disabled) return;
+    progress.friendAssist = b.dataset.friend || null;
+    save(); SFX.save(); refresh();
+  }));
   $$('.petname input', root).forEach((inp) => {
     inp.addEventListener('focus', () => { try { inp.select(); } catch (e) { /* ignore */ } });
     inp.addEventListener('change', () => {
@@ -8580,7 +8692,7 @@ function bindPetLoadout(root, refresh) {
     });
   });
 }
-function petLoadoutScreen() {
+function petLoadoutScreen(back) {
   Music.play('title');
   showScreen(
     '<p class="eyebrow">Collection & loadout</p>' +
@@ -8588,11 +8700,13 @@ function petLoadoutScreen() {
     '<p class="loadout-status" id="petLoadoutStatus">' + petLoadoutSummary() + '</p>' +
     '<p class="tiny">Equip up to one cat AND one dog, or go solo. Only equipped pets follow and grant their stage perks. Tap a name to rename it.</p>' +
     '<div class="petedit">' + petLoadoutHTML() + '</div>' +
+    '<p class="eyebrow">Friend Assist · choose at most one</p><div class="btnrow">' + friendLoadoutHTML() + '</div>' +
     '<div class="btnrow"><button class="btn" id="soloPets" type="button" aria-pressed="' + (!progress.pets.equippedCat && !progress.pets.equippedDog) + '">Go solo</button>' +
     '<button class="btn go" id="petsBack" type="button">Done</button></div>'
   );
-  bindPetLoadout(el.screen, petLoadoutScreen);
-  $('#petsBack').addEventListener('click', () => { SFX.click(); titleScreen(); });
+  bindPetLoadout(el.screen, () => petLoadoutScreen(back));
+  const done = back || titleScreen;
+  $('#petsBack').addEventListener('click', () => { SFX.click(); done(); });
 }
 function mapScreen() {
   Music.play('title');
@@ -8642,7 +8756,7 @@ function mapScreen() {
       '<div class="btnrow"><button class="btn go" type="button" id="playNext">' + (progress.beaten.indexOf(nextStage()) >= 0 ? 'Replay final stage' : 'Play next stage') + '</button></div>') +
     panel('panHats', '', 'Hat locker', 'Stars unlock hats · you have ' + stars + ' ★', '<div class="hatrow">' + hats + '</div>', '') +
     panel('panPets', '', 'The pet pack', progress.pets.ids.length + ' of 6 rescued · equip 1 cat + 1 dog or go solo',
-      '<p class="loadout-status" id="petLoadoutStatus">' + petLoadoutSummary() + '</p><p class="tiny">Only equipped pets follow and grant stage perks. Tap a name to rename it.</p><div class="petedit">' + petEditor + '</div>',
+      '<p class="loadout-status" id="petLoadoutStatus">' + petLoadoutSummary() + '</p><p class="tiny">Only equipped pets follow and grant stage perks. Tap a name to rename it.</p><div class="petedit">' + petEditor + '</div><p class="eyebrow">Friend Assist · choose at most one</p><div class="btnrow">' + friendLoadoutHTML() + '</div>',
       '<button class="btn" id="soloPets" type="button" aria-pressed="' + (!progress.pets.equippedCat && !progress.pets.equippedDog) + '">Go solo</button>')
   );
   el.screen.classList.add('mapmode'); screenPage(0);
@@ -14213,7 +14327,12 @@ window.__k11 = window.__k11DevOnly() ? {
     hunterUsed: P ? !!P.hunterUsed : false, hunterT: P ? P.hunterT : 0,
     duchessUsed: P ? !!P.duchessUsed : false, hp: P ? P.hp : 0, maxHp: P ? P.max : 0,
     pulledCoins: candles.filter((c) => c.vader > 0).length,
-    scoutTargets: L ? vaderScoutTargets().length : 0
+    scoutTargets: L ? vaderScoutTargets().length : 0,
+    friendAssist: progress.friendAssist, friendsUnlocked: progress.friendsUnlocked.slice(),
+    friendCooldown: P ? P.friendCd : 0, aidenUsed: P ? !!P.aidenUsed : false, aidenT: P ? P.aidenT : 0,
+    platforms: friendPlatforms.length, platformTiles: friendPlatforms.map((fp) => fp.idx),
+    distractedFoes: foes.filter((f) => f.alive && f.distract > 0).map((f) => f.idx),
+    checkpoint: cpHit, boss: boss
   }),
   petLand: () => { noteCleanLanding(); return window.__k11.petInfo(); },
   petAbilityTick: (n) => { for (let k = 0; k < n; k++) tickCompanionTimers(); return window.__k11.petInfo(); },
@@ -14237,6 +14356,16 @@ window.__k11 = window.__k11DevOnly() ? {
   petVader: () => { P.vaderCd = 0; updatePets(); return window.__k11.petInfo(); },
   petHunter: () => { P.hp = 1; const started = startHunterRescue(); return { started, info: window.__k11.petInfo() }; },
   petSave: () => { autoSave(); return progress.resume; },
+  friendSet: (id) => {
+    if (id !== null && id !== 'milo' && id !== 'aiden') return null;
+    if (id && !friendUnlocked(id)) return null;
+    progress.friendAssist = id; updateFriendButton();
+    return window.__k11.petInfo();
+  },
+  friendCall: () => { paused = false; running = true; const result = callFriendAssist(); paused = true; pausedByUser = true; return { result, info: window.__k11.petInfo() }; },
+  friendTickFoes: (n) => { for (let k = 0; k < n; k++) updateFoes(); return window.__k11.petInfo(); },
+  petSetBoss: (mode) => { boss = mode; setPaused(true, true); return window.__k11.petInfo(); },
+  goHome: () => { titleScreen(); return true; },
   petFood: () => { P.hp = 1; giveItem('heart'); return window.__k11.petInfo(); },
   petCheckpoint: (reset) => {
     P.hp = 1; if (reset !== false) P.duchessUsed = false; P.x = L.checkpoint.x + 1; cpHit = false; boss = 'off';
