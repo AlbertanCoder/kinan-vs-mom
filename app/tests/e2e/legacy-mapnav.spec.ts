@@ -105,4 +105,16 @@ test.describe('Map navigation — world cards, stage chips and the stage card', 
     await expect(page.locator('.lvchip').nth(2)).toHaveClass(/on/);
     expect(errors).toEqual([]);
   });
+
+  test('every world card opens a map with exactly one stage chip per stage', async ({ page }) => {
+    const errors = watchErrors(page);
+    await seed(page, { unlocked: 82, beatenTo: 77, wonWorlds: [2, 3, 4, 5, 6, 7, 8, 9, 10] }); await openMap(page);
+    const sizes = [11, 10, 10, 10, 10, 5, 5, 5, 5, 5, 5];   /* worlds 1-11: keep in sync when adding stages */
+    for (let w = 1; w <= 11; w++) {
+      await page.locator(`.worldtab[data-world="${w}"]`).click();
+      await expect(page.locator('.maptitle')).toContainText('World ' + w);
+      await expect(page.locator('.lvchip')).toHaveCount(sizes[w - 1]);
+    }
+    expect(errors).toEqual([]);
+  });
 });
