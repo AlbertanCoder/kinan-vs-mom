@@ -258,13 +258,9 @@ h1.title .t2{display:block;font-size:clamp(24px,6.4vw,40px);color:var(--edge)}
   .pad{margin-top:auto}
   .rotatehint{display:block;margin-top:6px}
 }
-/* phones and tablets (touch, no mouse) play sideways: the picture takes the whole height and the see-through
-   buttons float over it, left/right on the left, JUMP + the special power (POW) on the right.
-   setOrientationUI() puts html.sideways on a touch device in landscape (and a short window), and html.rotated + html.sideways
-   on a phone or tablet held upright WHILE A STAGE OR FIGHT IS ON: then only the game view is drawn turned 90°.
-   Menus, results, the map and the online room always stay upright: a turned page cannot be scrolled with a finger. */
-.turnhint{display:none;position:absolute;right:8px;top:44px;z-index:70;margin:0;background:rgba(17,19,43,.92);border:2px solid var(--edge);border-radius:6px;padding:4px 9px;font-size:12px;color:var(--gold);pointer-events:none;animation:fadeaway 1s 7s forwards}
-@keyframes fadeaway{to{opacity:0;visibility:hidden}}
+/* Phones and tablets play in landscape with thumb controls over the picture.
+   Portrait gameplay never rotates the DOM: setOrientationUI() shows an upright,
+   safe-area-aware rotate gate and pauses play until landscape returns. */
 html.sideways{--vh:100vh}
 @supports (height:100dvh){html.sideways{--vh:100dvh}}
 html.sideways body{padding:max(5px,env(safe-area-inset-top,0px)) max(10px,env(safe-area-inset-right,0px)) max(5px,env(safe-area-inset-bottom,0px)) max(10px,env(safe-area-inset-left,0px))}
@@ -309,14 +305,16 @@ html.sideways .pausebox h2{font-size:24px}
 html.sideways .btncol{grid-template-columns:1fr 1fr;gap:6px}
 html.sideways .pause .btn{min-height:38px;font-size:14px;padding:5px 10px}
 html.sideways .pause .tiny{display:none}
-/* held upright during play: draw the game view turned 90° so turning the device gives the big picture
-   (iPhones/iPads cannot be forced into landscape by a web app) */
-html.rotated{--vh:100vw}
-@supports (width:100dvw){html.rotated{--vh:100dvw}}
-html.rotated,html.rotated body{height:100%;overflow:hidden}
-html.rotated body{padding:0;display:block}
-html.rotated .app{position:fixed;top:0;left:0;width:100vh;width:100dvh;height:100vw;height:100dvw;max-width:none;overflow:hidden;transform-origin:0 0;transform:rotate(90deg) translate(0,-100%);padding:max(5px,env(safe-area-inset-right,0px)) max(6px,env(safe-area-inset-bottom,0px)) max(5px,env(safe-area-inset-left,0px)) max(6px,env(safe-area-inset-top,0px))}
-html.rotated .turnhint{display:block}
+/* Upright portrait gate: no transform, no sideways page, no hidden live gameplay. */
+.portraitgate{position:fixed;inset:0;z-index:120;display:grid;place-items:center;padding:max(20px,env(safe-area-inset-top,0px)) max(20px,env(safe-area-inset-right,0px)) max(20px,env(safe-area-inset-bottom,0px)) max(20px,env(safe-area-inset-left,0px));background:radial-gradient(circle at 50% 35%,#29346a 0,#11152f 58%,#080a19 100%);color:var(--edge);text-align:center;touch-action:none;overscroll-behavior:none}
+.portraitgate[hidden]{display:none}
+.portraitgatebox{display:grid;justify-items:center;gap:13px;width:min(340px,100%);padding:26px 22px;background:rgba(17,19,43,.94);border:3px solid var(--gold);border-radius:18px;box-shadow:0 12px 40px rgba(0,0,0,.45)}
+.portraitphone{font-size:64px;line-height:1;animation:portraitpulse 1.6s ease-in-out infinite}
+.portraitgate h2{margin:0;font-family:var(--display);font-size:36px;line-height:1;color:var(--gold);font-weight:400}
+.portraitgate p{margin:0;font-size:16px;line-height:1.45;color:var(--edge)}
+.portraitgate small{font-size:12px;color:var(--dim)}
+@keyframes portraitpulse{50%{opacity:.45;transform:scale(1.06)}}
+@media (prefers-reduced-motion:reduce){.portraitphone{animation:none}}
 .lvbtn .gold{display:block;font-size:10.5px;color:var(--gold);letter-spacing:0;margin-top:2px;text-align:right}
 .kartrow{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin:4px 0 8px}.kartrow img{width:88px;height:auto;image-rendering:pixelated}
 .kartpick img{width:74px;height:auto;image-rendering:pixelated}
@@ -542,7 +540,6 @@ html.sideways .stage{max-width:100%}
       <button class="iconbtn" id="installBtn" type="button" aria-label="Install app" hidden>📲</button>
     </div>
   </header>
-  <p class="turnhint" id="turnHint" aria-hidden="true">↻ Turn the screen sideways</p>
 
   <div class="stage" id="stage" hidden>
     <canvas id="cv" width="432" height="240" aria-label="Game screen"></canvas>
@@ -618,6 +615,15 @@ html.sideways .stage{max-width:100%}
       <form class="chatform" id="chatForm"><input id="chatIn" maxlength="100" autocomplete="off" placeholder="Say something nice…" aria-label="Chat message"><button type="submit">Send</button></form>
     </div>
   </aside>
+</div>
+
+<div class="portraitgate win" id="portraitGate" role="dialog" aria-modal="true" aria-labelledby="portraitGateTitle" hidden>
+  <div class="portraitgatebox">
+    <div class="portraitphone" aria-hidden="true">📱↻</div>
+    <h2 id="portraitGateTitle">Rotate to landscape</h2>
+    <p>Turn your device sideways to keep playing.</p>
+    <small>Your game is paused. Kinan will wait right here.</small>
+  </div>
 </div>
 
 <div class="sheet" id="sheet" hidden>
@@ -4025,6 +4031,7 @@ function updateFx() {
   if (shake > 0.05) shake *= 0.86; else shake = 0;
 }
 function update() {
+  if (portraitBlocked && !paused) setOrientationUI();
   if (builder) { updateBuilder(); return; }
   if (kart) { kartUpdate(); return; }
   if (smash) { updateSmash(); return; }
@@ -4087,6 +4094,7 @@ function loop(t) {
 }
 function run() {
   if (!running) running = true;
+  setOrientationUI();
   if (!runningRAF) { runningRAF = true; last = 0; acc = 0; requestAnimationFrame(loop); }
 }
 /* ============================================================
@@ -5686,16 +5694,28 @@ function showGame(on) {
   el.pauseBtn.hidden = !on;
   setOrientationUI();
 }
-/* see the html.sideways / html.rotated CSS: only a stage or fight on an upright phone/tablet is drawn turned */
+/* Landscape uses the existing thumb deck. Portrait shows an upright gate;
+   only the pause caused by that gate is automatically undone on return. */
 const MQ_LAND = window.matchMedia ? matchMedia('(hover: none) and (orientation: landscape), (orientation: landscape) and (max-height: 560px)') : null;
 const MQ_PORT = window.matchMedia ? matchMedia('(hover: none) and (orientation: portrait) and (max-width: 1100px)') : null;
+let portraitBlocked = false, orientationPaused = false;
 function setOrientationUI() {
-  const root = document.documentElement, app = $('#app');
-  const rot = !!(MQ_PORT && MQ_PORT.matches) && !el.stage.hidden;
-  const was = root.classList.contains('rotated');
-  root.classList.toggle('sideways', !!(MQ_LAND && MQ_LAND.matches) || rot);
-  root.classList.toggle('rotated', rot);
-  if (was !== rot && app) { app.scrollTop = 0; app.scrollLeft = 0; window.scrollTo(0, 0); }
+  const root = document.documentElement, app = $('#app'), gate = $('#portraitGate');
+  const block = !!(MQ_PORT && MQ_PORT.matches) && !el.stage.hidden;
+  const changed = block !== portraitBlocked;
+  portraitBlocked = block;
+  root.classList.toggle('sideways', !!(MQ_LAND && MQ_LAND.matches));
+  root.classList.remove('rotated');
+  root.classList.toggle('portraitBlocked', block);
+  if (gate) gate.hidden = !block;
+  if (block && running && !paused) {
+    orientationPaused = true;
+    setPaused(true, false);
+  } else if (!block && orientationPaused) {
+    orientationPaused = false;
+    setPaused(false);
+  }
+  if (changed && app) { app.scrollTop = 0; app.scrollLeft = 0; window.scrollTo(0, 0); }
 }
 [MQ_LAND, MQ_PORT].forEach((mq) => {
   if (!mq) return;
@@ -12383,13 +12403,13 @@ function bindWheel() {
   const w = $('#kwheel');
   if (!w) return;
   const set = (v) => { kWheel.v = clamp(v, -1, 1); w.firstElementChild.style.transform = 'rotate(' + Math.round(kWheel.v * 110) + 'deg)'; };
-  /* on an upright phone the race is drawn turned a quarter clockwise, so the wheel's left-right runs down the screen */
-  const at = (e) => (document.documentElement.classList.contains('rotated') ? e.clientY : e.clientX);
+  /* The game is never CSS-rotated; steering always uses normal screen coordinates. */
+  const at = (e) => e.clientX;
   w.addEventListener('pointerdown', (e) => {
     e.preventDefault(); AudioSys.init();
     try { w.setPointerCapture(e.pointerId); } catch (er) { /* ignore */ }
-    const r = w.getBoundingClientRect(), rot = document.documentElement.classList.contains('rotated');
-    kWheel.id = e.pointerId; kWheel.cx = rot ? r.top + r.height / 2 : r.left + r.width / 2; kWheel.span = (rot ? r.height : r.width) * 0.38;
+    const r = w.getBoundingClientRect();
+    kWheel.id = e.pointerId; kWheel.cx = r.left + r.width / 2; kWheel.span = r.width * 0.38;
     set((at(e) - kWheel.cx) / kWheel.span);
   });
   w.addEventListener('pointermove', (e) => { if (e.pointerId !== kWheel.id) return; e.preventDefault(); set((at(e) - kWheel.cx) / kWheel.span); });
@@ -12912,11 +12932,11 @@ function bHereSpot() {
   }
   return null;
 }
-/* where on the level a finger or mouse is (the race and builder are drawn turned on upright phones) */
+/* Where on the level a finger or mouse is, in normal unrotated coordinates. */
 function builderTile(e) {
-  const r = cv.getBoundingClientRect(), rot = document.documentElement.classList.contains('rotated'), z = builder.zoom;
-  const lx = rot ? (e.clientY - r.top) / r.height * W : (e.clientX - r.left) / r.width * W;
-  const ly = rot ? (r.right - e.clientX) / r.width * H : (e.clientY - r.top) / r.height * H;
+  const r = cv.getBoundingClientRect(), z = builder.zoom;
+  const lx = (e.clientX - r.left) / r.width * W;
+  const ly = (e.clientY - r.top) / r.height * H;
   return { tx: Math.floor((lx / z + builder.cam) / T), ty: Math.floor((ly / z + builder.camY) / T), lx: lx, ly: ly };
 }
 function builderApply(t, first) {

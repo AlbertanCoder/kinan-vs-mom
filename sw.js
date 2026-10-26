@@ -1,5 +1,5 @@
 /* Kinan vs. Mom - offline cache */
-const CACHE = 'kinan-vs-mom-v17';   /* v17: verified last-known-good save backup and recovery */
+const CACHE = 'kinan-vs-mom-v18';   /* v18: upright portrait rotate gate; no CSS-rotated gameplay */
 const ASSETS = [
   './',
   './index.html',

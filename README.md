@@ -25,6 +25,8 @@ It then opens full-screen and runs offline.
 | Pow | X / J | POW |
 | Pause | P / Esc | ⏸ |
 
+Phones and tablets use landscape gameplay. Portrait shows an upright rotate-device prompt and pauses play; the page itself never rotates.
+
 ## Run it locally
 
 Open `index.html` directly, or serve this folder with any static server

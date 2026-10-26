@@ -24,6 +24,12 @@
 > `tests/e2e/legacy-save-recovery.spec.ts` covers backup order, recovery,
 > migration, older sparse saves, and simulated storage failures.
 >
+> **Portrait orientation:** touch gameplay now shows an upright rotate-to-
+> landscape gate instead of rotating the app 90°. Orientation pauses play and
+> returning to landscape clears only that automatic pause, never a manual one.
+> `tests/e2e/legacy-orientation.spec.ts` covers layout, desktop exclusion, and
+> automatic/manual pause behavior with touch emulation.
+>
 > The original skeleton notes are kept below for history.
 
 ---
