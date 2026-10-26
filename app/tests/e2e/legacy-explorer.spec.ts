@@ -71,7 +71,7 @@ test.describe('World Explorer — big scrolling worlds with doors', () => {
     const errors = watchErrors(page);
     await seedOpen(page); await devReady(page);
     await page.evaluate(() => (window as unknown as { __k11: Dev }).__k11.explorerGo(1));
-    const door = await page.evaluate(() => (window as unknown as { __k11: Dev }).__k11.explorerDoor(0));
+    const door = await page.evaluate(() => (window as unknown as { __k11: Dev }).__k11.explorerDoor(0)) as { x: number; y: number; stage: number };
     expect(door).toBeTruthy();
     await page.evaluate((d) => (window as unknown as { __k11: Dev }).__k11.explorerTeleport(d.x, d.y - 2), door);
     await page.evaluate(() => (window as unknown as { __k11: Dev }).__k11.auto(60));
@@ -84,7 +84,8 @@ test.describe('World Explorer — big scrolling worlds with doors', () => {
     const errors = watchErrors(page);
     await seedOpen(page); await devReady(page);
     await page.evaluate(() => (window as unknown as { __k11: Dev }).__k11.explorerGo(1));
-    const door = await page.evaluate(() => (window as unknown as { __k11: Dev }).__k11.explorerDoor(1));
+    const door = await page.evaluate(() => (window as unknown as { __k11: Dev }).__k11.explorerDoor(1)) as { x: number; y: number; stage: number };
+    expect(door).toBeTruthy();
     await page.evaluate((d) => (window as unknown as { __k11: Dev }).__k11.explorerTeleport(d.x + 10, d.y - 2), door);
     await page.evaluate(() => (window as unknown as { __k11: Dev }).__k11.auto(6));
     await page.evaluate((d) => (window as unknown as { __k11: Dev }).__k11.explorerTeleport(d.x + 90, d.y - 2), door);
