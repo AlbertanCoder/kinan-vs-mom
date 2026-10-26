@@ -86,7 +86,7 @@ test.describe('companion collection and loadout', () => {
     await openDev(page);
     await page.evaluate(() => (window as unknown as { __k11: Dev }).__k11.grantPets());
     await page.locator('#petsBtnT').click();
-    await expect(page.locator('#screen h1.title')).toHaveText('Pet loadout');
+    await expect(page.locator('#screen h1.title')).toHaveText(/Pet loadout|Backpack/);
     await expect(page.locator('input[data-pet="cat1"]')).toHaveValue('Garfield');
     await expect(page.locator('input[data-pet="dog1"]')).toHaveValue('Chikastino');
     await page.locator('[data-equip="cat2"]').click();

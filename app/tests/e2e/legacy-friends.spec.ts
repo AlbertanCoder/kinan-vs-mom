@@ -65,7 +65,7 @@ test.describe('Friend Assist and checkpoint loadout', () => {
     await call(page, (k) => k.goHome());
     await expect(page.locator('#petsBtnT')).toBeVisible();
     await page.locator('#petsBtnT').click();
-    await expect(page.locator('#screen h1.title')).toHaveText('Pet loadout');
+    await expect(page.locator('#screen h1.title')).toHaveText(/Pet loadout|Backpack/);
     await page.locator('[data-friend="milo"]').click();
     expect((await progress(page)).friendAssist).toBe('milo');
     await page.locator('[data-friend="aiden"]').click();

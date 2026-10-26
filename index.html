@@ -613,12 +613,12 @@ html.tier2 .iconbtn{border-color:var(--gold)}
         <p class="eyebrow">Paused</p>
         <h2>Take a breather</h2>
         <div class="btncol">
-          <button class="btn go" id="resumeBtn" type="button">RESUME</button>
-          <button class="btn" id="saveBtn" type="button">Save game</button>
-          <button class="btn" id="petsBtnP" type="button">Pets</button>
-          <button class="btn" id="restartBtn" type="button">Restart stage</button>
-          <button class="btn" id="mapBtnP" type="button">Stage map</button>
-          <button class="btn" id="fullBtn" type="button">Fullscreen</button>
+          <button class="btn go" id="resumeBtn" type="button">▶ RESUME</button>
+          <button class="btn" id="mapBtnP" type="button">🗺️ World map</button>
+          <button class="btn" id="saveBtn" type="button">💾 Save game</button>
+          <button class="btn" id="petsBtnP" type="button">🐾 Pet loadout</button>
+          <button class="btn" id="restartBtn" type="button">🔄 Restart stage</button>
+          <button class="btn" id="fullBtn" type="button">⛶ Fullscreen</button>
           <button class="btn" id="fxBtn" type="button">Effects: FULL</button>
           <button class="btn" id="buzzBtn" type="button" hidden>Vibration: ON</button>
           <button class="btn" id="tiltBtnP" type="button" hidden>Tilt to steer: OFF</button>
@@ -9248,7 +9248,7 @@ function shopTap(id, from) {
   else if (shopConfirm !== id) { shopConfirm = id; SFX.click(); }
   else { progress.wallet -= it.price; progress.owned.push(id); shopConfirm = null; equip(it, true); const kept = save(true); SFX.power(); shopMsg = '🛍️ <b>' + it.name + '</b> is yours!' + (kept ? '' : ' This device is out of room, so it will be gone next time.'); }
   const msg = shopMsg;
-  shopScreen(from);
+  if (from === 'backpack') backpackScreen('backpack'); else shopScreen(from);
   screenPage(pg);   /* stay on the same page of the shop */
   if (msg) toast(msg, 2600);   /* on any page, the message is seen */
 }
@@ -9281,7 +9281,7 @@ function titleScreen() {
     '<div class="cast titlecast">' + castHTML() + '</div>' +
     '<div class="btnrow tools">' +
     (cont ? '<button class="mtool" id="mapBtn" type="button"><span class="ti">🗺️</span><span class="tl">Stage map</span></button>' : '') +
-    '<button class="mtool" id="petsBtnT" type="button"><span class="ti">🐾</span><span class="tl">Pets</span></button>' +
+    '<button class="mtool" id="petsBtnT" type="button"><span class="ti">🎒</span><span class="tl">Backpack</span></button>' +
     '<button class="mtool" id="howBtn" type="button"><span class="ti">❓</span><span class="tl">How to play</span></button>' +
     '<button class="mtool" id="shopBtn" type="button"><span class="ti">🛍️</span><span class="tl">Party Shop</span></button>' +
     '<button class="mtool" id="codeBtn" type="button"><span class="ti">🎁</span><span class="tl">Reward code</span></button>' +
@@ -9296,8 +9296,8 @@ function titleScreen() {
     else startExplorer(cont ? worldOf(next) : 1);
   });
   $('#howBtn').addEventListener('click', () => { AudioSys.init(); SFX.click(); howToScreen(); });
-  $('#shopBtn').addEventListener('click', () => { AudioSys.init(); SFX.click(); shopScreen('title'); });
-  $('#petsBtnT').addEventListener('click', () => { AudioSys.init(); SFX.click(); petLoadoutScreen(); });
+  $('#shopBtn').addEventListener('click', () => { AudioSys.init(); SFX.click(); backpackScreen('title'); });
+  $('#petsBtnT').addEventListener('click', () => { AudioSys.init(); SFX.click(); backpackScreen('title'); });
   $('#codeBtn').addEventListener('click', () => { AudioSys.init(); SFX.click(); codeScreen('title'); });
   const mb = $('#mapBtn'); if (mb) mb.addEventListener('click', () => { AudioSys.init(); SFX.click(); mapScreen(); });
   const nb = $('#newBtn');
@@ -9421,6 +9421,43 @@ function bindPetLoadout(root, refresh) {
       save(); SFX.save();
     });
   });
+}
+/* THE BACKPACK — the one simple place for pets, hats and the Party Shop */
+function backpackScreen(from) {
+  Music.play('title');
+  const stars = totalStars();
+  const hats = HATS.filter((h) => !h.shop || ownsItem('hat:' + h.id)).map((h) => {
+    const unlocked = h.shop ? true : stars >= h.need;
+    const on = progress.hat === h.id;
+    return '<button class="hatbtn' + (on ? ' on' : '') + '" type="button" data-hat="' + h.id + '"' + (unlocked ? '' : ' disabled') + ' title="' + (unlocked ? h.name : 'Earn ' + h.need + ' stars to unlock') + '">' +
+      '<span style="font-size:20px">' + (unlocked ? h.icon : '🔒') + '</span><span>' + h.name + '</span></button>';
+  }).join('');
+  const card = (it) => {
+    const own = ownsItem(it.id), on = own && isEquipped(it);
+    const label = on ? 'Wearing ✓' : (own ? 'Tap to wear' : (shopConfirm === it.id ? 'Tap again: buy for ' + it.price + ' <i class="coin-ico"></i>' : it.price + ' <i class="coin-ico"></i>'));
+    return '<button type="button" class="shopcard' + (on ? ' on' : '') + (own ? ' own' : '') + '" data-item="' + it.id + '">' + shopPreview(it) + '<b>' + it.name + '</b><small>' + label + '</small></button>';
+  };
+  const cats = [['outfit', "Kinan's outfits"], ['hat', 'Hats'], ['trail', 'Sparkle trails (when he runs and jumps)'], ['costume', 'Family Brawl costumes']];
+  showScreen(
+    '<p class="eyebrow">Your backpack · pets, hats and party stuff</p>' +
+    '<h1 class="title"><span class="t2">Backpack · Party Shop</span></h1>' +
+    '<p class="loadout-status" id="petLoadoutStatus">' + petLoadoutSummary() + '</p>' +
+    '<p class="tiny">Equip up to one cat AND one dog, or go solo. Tap a name to rename it.</p>' +
+    '<div class="petedit">' + petLoadoutHTML() + '</div>' +
+    '<p class="eyebrow">Friend Assist · choose at most one</p><div class="btnrow">' + friendLoadoutHTML() + '</div>' +
+    '<div class="btnrow"><button class="btn" id="soloPets" type="button" aria-pressed="' + (!progress.pets.equippedCat && !progress.pets.equippedDog) + '">Go solo</button></div>' +
+    '<p class="eyebrow">Hat locker · stars unlock hats · you have ' + stars + ' ★</p><div class="hatrow">' + hats + '</div>' +
+    '<p class="wallet"><i class="coin-ico"></i><b id="walletN">' + (progress.wallet || 0) + '</b> coins to spend</p>' +
+    '<p class="tiny" id="shopMsg">' + shopMsg + '</p>' +
+    cats.map((c) => '<p class="eyebrow">' + c[1] + '</p><div class="shopgrid">' + SHOP.filter((it) => it.cat === c[0]).map(card).join('') + '</div>').join('') +
+    '<div class="btnrow"><button class="btn go" id="petsBack" type="button">Done</button></div>'
+  );
+  shopMsg = '';
+  bindPetLoadout(el.screen, () => backpackScreen(from));
+  $$('.hatbtn', el.screen).forEach((b) => b.addEventListener('click', () => { if (b.disabled) return; progress.hat = b.dataset.hat; save(); SFX.save(); backpackScreen(from); }));
+  $$('.shopcard', el.screen).forEach((b) => b.addEventListener('click', () => shopTap(b.dataset.item, 'backpack')));
+  const done = from === 'map' ? mapScreen : titleScreen;
+  $('#petsBack').addEventListener('click', () => { SFX.click(); shopConfirm = null; done(); });
 }
 function petLoadoutScreen(back) {
   Music.play('title');
