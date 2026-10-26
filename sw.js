@@ -1,5 +1,5 @@
 /* Kinan vs. Mom - offline cache */
-const CACHE = 'kinan-vs-mom-v29';   /* v29: World 11 the Glitch (flat-plane 3D, saved game finale, gold tier-2 UI) */
+const CACHE = 'kinan-vs-mom-v30';   /* v30: Explorer maps + per-world scenery, weather and stage atmosphere */
 const ASSETS = [
   './',
   './index.html',

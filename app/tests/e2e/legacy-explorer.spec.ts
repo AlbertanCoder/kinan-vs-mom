@@ -13,6 +13,7 @@ type Dev = {
   explorerGo: (w: number) => { world: number };
   explorerTeleport: (x: number, y: number) => { x: number; y: number };
   explorerDoor: (k: number) => { x: number; y: number; stage: number } | null;
+  overThemes: () => { world: number; grass: string; sky: string; weather: string; scene: string }[];
 };
 const fixture = (name: string): string => readFileSync(fileURLToPath(new URL(`../fixtures/saves/${name}`, import.meta.url)), 'utf8');
 function watchErrors(page: Page): string[] {
@@ -99,6 +100,20 @@ test.describe('World Explorer — big scrolling worlds with doors', () => {
     await page.evaluate(() => (window as unknown as { __k11: Dev }).__k11.explorerTeleport(1378, 400));
     await page.evaluate(() => (window as unknown as { __k11: Dev }).__k11.auto(12));
     await expect.poll(() => page.evaluate(() => (window as unknown as { __k11: Dev }).__k11.explorerInfo().world)).toBe(3);
+    expect(errors).toEqual([]);
+  });
+
+  test('every world map is visually unique (the "worlds look the same" fix)', async ({ page }) => {
+    const errors = watchErrors(page);
+    await seedOpen(page); await devReady(page);
+    const themes = await page.evaluate(() => (window as unknown as { __k11: Dev }).__k11.overThemes());
+    expect(themes.length).toBe(11);
+    const grass = new Set(themes.map((t) => t.grass));
+    const sky = new Set(themes.map((t) => t.sky));
+    const weather = new Set(themes.map((t) => t.weather));
+    expect(grass.size).toBeGreaterThanOrEqual(9);   /* at most two worlds may share a grass tone */
+    expect(sky.size).toBeGreaterThanOrEqual(9);
+    expect(weather.size).toBeGreaterThanOrEqual(8); /* each world has its own air */
     expect(errors).toEqual([]);
   });
 });

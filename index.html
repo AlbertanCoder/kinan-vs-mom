@@ -6520,6 +6520,39 @@ function drawParticles() {
 }
 const vignettes = [null, null];
 /* the darker corners and the faint lines over the picture; light = the clearer one (story, Smash, Builder: 2026-10-21) */
+/* stage-side world weather: the same identity follows you into the levels */
+function drawStageWeather() {
+  if (!L || L.explorer) return;
+  const w = worldOf(L.i);
+  if (w === 5 || w === 6) {
+    ctx.strokeStyle = 'rgba(180,210,255,.38)'; ctx.lineWidth = 1;
+    for (let k = 0; k < 26; k++) {
+      const x = ((k * 61 + frame * 3.2) % (W + 40)) - 20, y = ((k * 97 + frame * 6.4) % (H + 40)) - 20;
+      ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x - 3, y + 9); ctx.stroke();
+    }
+  } else if (w === 7) {
+    for (let k = 0; k < 14; k++) {
+      const x = (k * 97 + Math.sin((frame + k * 26) / 30) * 18) % W, y = ((k * 61 - frame * 0.8) % H + H) % H;
+      ctx.fillStyle = 'rgba(255,' + (90 + (k * 13) % 90) + ',40,.5)'; ctx.fillRect(x, y, 2, 3);
+    }
+  } else if (w === 9 || w === 10) {
+    for (let k = 0; k < 18; k++) {
+      const x = (k * 149) % W, y = (k * 83) % Math.floor(H * 0.7);
+      const tw = 0.3 + 0.6 * Math.abs(Math.sin((frame + k * 21) / 32));
+      ctx.fillStyle = 'rgba(255,255,255,' + tw.toFixed(2) + ')'; ctx.fillRect(x, y, 2, 2);
+    }
+  } else if (w === 11) {
+    if ((frame >> 4) % 3 === 0) {
+      const y = (frame * 3) % H;
+      ctx.fillStyle = 'rgba(255,111,174,.12)'; ctx.fillRect(0, y, W, 5);
+    }
+  } else if (w === 4) {
+    for (let k = 0; k < 12; k++) {
+      const x = ((k * 83 + frame * 0.6) % (W + 20)) - 10, y = (k * 47 + frame * 0.3) % H;
+      ctx.fillStyle = 'rgba(255,200,120,.3)'; ctx.fillRect(x, y, 2, 2);
+    }
+  }
+}
 function drawVignette(light) {
   const k = light ? 1 : 0;
   if (!vignettes[k]) {
@@ -6604,6 +6637,7 @@ function draw() {
   drawPlayer();
   drawShots();
   drawWorld5Fx();
+  drawStageWeather();
   if (cy) ctx.restore();
   drawDaylight(th);
   if (cy) { ctx.save(); ctx.translate(0, -cy); }
@@ -9497,8 +9531,22 @@ const OVER_THEMES = {
   10: { grass: '#7a5fc0', grass2: '#8a6fd0', path: '#f0c0e0', water: '#4f3fd8', rock: '#5a4a9a', tree: '#6a4fae', trunk: '#4a3a7a', sky: ['#5b3c8a', '#c86fd8'], deco: '#f6c445' },
   11: { grass: '#4a3f8a', grass2: '#5a4f9a', path: '#8a7fd8', water: '#3f2fc8', rock: '#3a2f6e', tree: '#5a4aae', trunk: '#3a2f6e', sky: ['#141232', '#4a2f8a'], deco: '#7be3a3' }
 };
+/* per-world scene props and weather — the "every world looks different" skin */
+const OVER_SKINS = {
+  1: { scene: ['house', 'balloon'], weather: 'fireflies', sun: '#ffd76a' },
+  2: { scene: ['derrick'], weather: 'dust', sun: '#ff9a3f' },
+  3: { scene: ['tower'], weather: 'stars', sun: '#c8b4ff' },
+  4: { scene: ['tent', 'cactus'], weather: 'fireworks', sun: '#ffb84a' },
+  5: { scene: ['pine'], weather: 'rain', sun: '#9ab4e8' },
+  6: { scene: ['stud', 'pine'], weather: 'balloons', sun: '#fff3c4' },
+  7: { scene: ['palm', 'volcano'], weather: 'embers', sun: '#ff8a5a' },
+  8: { scene: ['pylon'], weather: 'ships', sun: '#7be3a3' },
+  9: { scene: ['portal'], weather: 'stars', sun: '#f6c445' },
+  10: { scene: ['glitch'], weather: 'glitch', sun: '#ff6fae' },
+  11: { scene: ['glitch', 'portal'], weather: 'glitch', sun: '#8a7fd8' }
+};
 function overBuild(world) {
-  const w = WORLDS[world - 1], th = OVER_THEMES[world] || OVER_THEMES[1];
+  const w = WORLDS[world - 1], th = Object.assign({}, OVER_THEMES[world] || OVER_THEMES[1], OVER_SKINS[world] || OVER_SKINS[1]);
   const rng = kSeed(world * 131 + 7);
   const cols = 88, rows = 48;   /* ~3.3 x 3.2 screens: a real map to roam */
   const tiles = new Uint8Array(cols * rows);   /* 0 grass, 1 grass2, 2 water, 3 path, 4 rock */
@@ -9617,11 +9665,74 @@ function updateExplorer() {
   if (P.x > L.cols * T - T * 2.2 && worldOpen(L.explorer + 1)) { explorerWarp(L.explorer + 1, 'left'); return; }
   progress.explorer = { world: L.explorer, x: Math.round(P.x), y: Math.round(P.y) };
 }
+function drawSceneProp(kind, sx, sy, th, tx, ty) {
+  if (kind === 'house') {
+    ctx.fillStyle = '#e8d8c8'; ctx.fillRect(sx + 2, sy + 4, 12, 10);
+    ctx.fillStyle = th.deco; ctx.fillRect(sx, sy + 1, 16, 5);
+    ctx.fillStyle = '#7a4f2f'; ctx.fillRect(sx + 7, sy + 9, 4, 5);
+  } else if (kind === 'balloon') {
+    ctx.fillStyle = th.deco; ctx.beginPath(); ctx.arc(sx + 8, sy + 5, 4, 0, 6.284); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,.4)'; ctx.fillRect(sx + 6, sy + 3, 2, 2);
+    ctx.fillStyle = '#f4f1e8'; ctx.fillRect(sx + 8, sy + 9, 1, 4);
+  } else if (kind === 'derrick') {
+    ctx.fillStyle = '#5a4632'; ctx.fillRect(sx + 3, sy - 8, 10, 18);
+    ctx.fillStyle = '#3a2f22'; for (let k = 0; k < 4; k++) ctx.fillRect(sx + 4, sy - 6 + k * 4, 8, 1);
+    const fl = Math.round(Math.sin((frame + tx * 11) / 8) * 2);
+    ctx.fillStyle = '#ff9a3f'; ctx.fillRect(sx + 7, sy - 13 + fl, 3, 5);
+    ctx.fillStyle = '#ffd76a'; ctx.fillRect(sx + 7, sy - 11 + fl, 2, 2);
+  } else if (kind === 'tower') {
+    ctx.fillStyle = '#4a4f8a'; ctx.fillRect(sx + 2, sy - 14, 12, 26);
+    ctx.fillStyle = '#f6c445';
+    for (let r = 0; r < 4; r++) for (let c = 0; c < 2; c++) if ((tx + ty + r + c) % 3) ctx.fillRect(sx + 4 + c * 5, sy - 12 + r * 5, 3, 3);
+  } else if (kind === 'tent') {
+    ctx.fillStyle = '#e0562c'; ctx.beginPath(); ctx.moveTo(sx + 8, sy - 6); ctx.lineTo(sx + 1, sy + 11); ctx.lineTo(sx + 15, sy + 11); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#f4f1e8'; ctx.fillRect(sx + 7, sy - 2, 2, 6);
+  } else if (kind === 'cactus') {
+    ctx.fillStyle = '#3a9a4c'; ctx.fillRect(sx + 6, sy - 4, 4, 16);
+    ctx.fillRect(sx + 2, sy + 1, 4, 3); ctx.fillRect(sx + 10, sy - 1, 4, 3);
+  } else if (kind === 'pine') {
+    ctx.fillStyle = th.trunk; ctx.fillRect(sx + 7, sy + 9, 3, 6);
+    ctx.fillStyle = th.tree; for (let k = 0; k < 3; k++) ctx.fillRect(sx + 7 - k * 3, sy + 8 - k * 5, 3 + k * 6, 5);
+  } else if (kind === 'stud') {
+    ctx.fillStyle = th.tree; ctx.beginPath(); ctx.arc(sx + 8, sy + 8, 6, 0, 6.284); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,.35)'; ctx.beginPath(); ctx.arc(sx + 8, sy + 6, 3, 0, 6.284); ctx.fill();
+  } else if (kind === 'palm') {
+    ctx.fillStyle = '#7a5628'; ctx.fillRect(sx + 7, sy, 3, 13);
+    ctx.fillStyle = '#2c8a3c'; for (let k = 0; k < 4; k++) ctx.fillRect(sx + 6 + Math.cos(k * 1.57) * 6, sy - 3 + Math.sin(k * 1.57) * 3, 6, 3);
+  } else if (kind === 'volcano') {
+    ctx.fillStyle = '#5a4a4a'; ctx.beginPath(); ctx.moveTo(sx + 8, sy - 16); ctx.lineTo(sx - 8, sy + 12); ctx.lineTo(sx + 24, sy + 12); ctx.closePath(); ctx.fill();
+    const gl = Math.round(Math.sin(frame / 18 + tx) * 2);
+    ctx.fillStyle = '#ff6a2c'; ctx.fillRect(sx + 5, sy - 16 + gl, 6, 5);
+    ctx.fillStyle = '#ffd76a'; ctx.fillRect(sx + 6, sy - 15 + gl, 3, 2);
+  } else if (kind === 'pylon') {
+    ctx.fillStyle = '#2a3f6e'; ctx.fillRect(sx + 6, sy - 10, 4, 22);
+    ctx.fillStyle = th.deco; ctx.fillRect(sx + 3, sy - 12, 10, 3);
+    ctx.fillStyle = 'rgba(123,227,163,.35)'; ctx.beginPath(); ctx.arc(sx + 8, sy - 11, 8, 0, 6.284); ctx.fill();
+  } else if (kind === 'portal') {
+    const sp = frame / 12 + tx;
+    ctx.strokeStyle = th.deco; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.ellipse(sx + 8, sy + 4, 10, 13, Math.sin(sp / 3) * 0.3, 0, 6.284); ctx.stroke();
+    ctx.strokeStyle = 'rgba(255,255,255,.5)';
+    ctx.beginPath(); ctx.ellipse(sx + 8, sy + 4, 6, 9, -Math.sin(sp / 3) * 0.3, 0, 6.284); ctx.stroke();
+  } else if (kind === 'glitch') {
+    const jx = ((frame >> 3) + tx * 5 + ty * 3) % 5 - 2;
+    ctx.fillStyle = 'rgba(255,111,174,.8)'; ctx.fillRect(sx + 1 + jx, sy + 2, 12, 4);
+    ctx.fillStyle = 'rgba(123,227,163,.8)'; ctx.fillRect(sx + 3 - jx, sy + 8, 12, 4);
+    ctx.fillStyle = '#4a3f8a'; ctx.fillRect(sx + 4, sy + 4, 8, 6);
+  }
+}
 function drawExplorer() {
   const th = L.oth || OVER_THEMES[1];
   const g = ctx.createLinearGradient(0, 0, 0, H);
   g.addColorStop(0, th.sky[0]); g.addColorStop(1, th.sky[1]);
   ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  if (th.sun) {
+    ctx.globalAlpha = 0.9; ctx.fillStyle = th.sun;
+    ctx.beginPath(); ctx.arc(W - 64, 44, 18, 0, 6.284); ctx.fill();
+    ctx.globalAlpha = 0.22;
+    ctx.beginPath(); ctx.arc(W - 64, 44, 30, 0, 6.284); ctx.fill();
+    ctx.globalAlpha = 1;
+  }
   const x0 = Math.max(0, Math.floor(camX / T)), x1 = Math.min(L.cols - 1, Math.ceil((camX + W) / T));
   const y0 = Math.max(0, Math.floor(camY / T)), y1 = Math.min(L.rows - 1, Math.ceil((camY + H) / T));
   for (let ty = y0; ty <= y1; ty++) {
@@ -9658,6 +9769,19 @@ function drawExplorer() {
       }
     }
   }
+  /* per-world scenery: the landmarks that make every map unmistakable */
+  const scenes = th.scene || [];
+  if (scenes.length) {
+    for (let ty = y0; ty <= y1; ty++) {
+      for (let tx = x0; tx <= x1; tx++) {
+        const t = L.tiles[ty * L.cols + tx];
+        if (t === 2 || t === 3) continue;
+        const hh = (tx * 31 + ty * 17) % 23;
+        if (hh % 7 !== 3) continue;
+        drawSceneProp(scenes[hh % scenes.length], tx * T - camX, ty * T - camY, th, tx, ty);
+      }
+    }
+  }
   for (const nd of L.nodes) {
     const sx = nd.x * T + T / 2 - camX, sy = nd.y * T + T / 2 - camY;
     if (sx < -50 || sx > W + 50 || sy < -50 || sy > H + 50) continue;
@@ -9690,6 +9814,69 @@ function drawExplorer() {
   if (L.enterT > 0) {
     ctx.strokeStyle = '#f6c445'; ctx.lineWidth = 3;
     ctx.beginPath(); ctx.arc(px, py - 20, 7, -1.57, -1.57 + 6.284 * Math.min(1, L.enterT / 34)); ctx.stroke();
+  }
+  /* every world has its own air: rain, dust, embers, stars, ships... */
+  const wx = th.weather;
+  if (wx === 'rain') {
+    ctx.strokeStyle = 'rgba(180,210,255,.5)'; ctx.lineWidth = 1;
+    for (let k = 0; k < 34; k++) {
+      const x = ((k * 61 + frame * 3.5) % (W + 40)) - 20, y = ((k * 97 + frame * 7) % (H + 40)) - 20;
+      ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x - 3, y + 9); ctx.stroke();
+    }
+  } else if (wx === 'dust') {
+    for (let k = 0; k < 22; k++) {
+      const x = ((k * 83 + frame * 0.7) % (W + 20)) - 10, y = (k * 47 + frame * 0.35 + Math.sin((frame + k * 20) / 40) * 8) % H;
+      ctx.fillStyle = 'rgba(255,200,120,.4)'; ctx.fillRect(x, y, 2, 2);
+    }
+  } else if (wx === 'stars') {
+    for (let k = 0; k < 26; k++) {
+      const x = (k * 149) % W, y = (k * 83) % Math.floor(H * 0.6);
+      const tw = 0.35 + 0.65 * Math.abs(Math.sin((frame + k * 21) / 34));
+      ctx.fillStyle = 'rgba(255,255,255,' + tw.toFixed(2) + ')'; ctx.fillRect(x, y, 2, 2);
+    }
+  } else if (wx === 'fireflies') {
+    for (let k = 0; k < 16; k++) {
+      const x = (k * 127 + Math.sin((frame + k * 33) / 46) * 22) % W, y = (k * 71 + Math.cos((frame + k * 17) / 38) * 14 + H * 0.3) % H;
+      const tw = 0.25 + 0.75 * Math.abs(Math.sin((frame + k * 29) / 30));
+      ctx.fillStyle = 'rgba(255,231,120,' + tw.toFixed(2) + ')'; ctx.fillRect(x, y, 2, 2);
+    }
+  } else if (wx === 'fireworks') {
+    const t = frame % 180;
+    if (t < 60) {
+      const fx = W * 0.3 + ((Math.floor(frame / 180) * 137) % Math.floor(W * 0.5)), fy = H * 0.22;
+      for (let k = 0; k < 12; k++) {
+        const a = k * 0.524 + t / 30, r = t * 0.55;
+        ctx.fillStyle = 'rgba(255,' + (140 + k * 8) + ',90,.85)';
+        ctx.fillRect(fx + Math.cos(a) * r, fy + Math.sin(a) * r, 2, 2);
+      }
+    }
+  } else if (wx === 'embers') {
+    for (let k = 0; k < 20; k++) {
+      const x = (k * 97 + Math.sin((frame + k * 26) / 30) * 18) % W, y = ((k * 61 - frame * 0.9) % H + H) % H;
+      ctx.fillStyle = 'rgba(255,' + (90 + (k * 13) % 90) + ',40,.65)'; ctx.fillRect(x, y, 2, 3);
+    }
+  } else if (wx === 'ships') {
+    for (let k = 0; k < 3; k++) {
+      const x = ((frame * (0.5 + k * 0.22) + k * 260) % (W + 120)) - 60, y = 24 + k * 30;
+      ctx.fillStyle = 'rgba(123,227,163,.75)'; ctx.fillRect(x, y, 18, 3);
+      ctx.fillStyle = 'rgba(123,227,163,.3)'; ctx.fillRect(x - 8, y + 1, 8, 1);
+    }
+  } else if (wx === 'balloons') {
+    for (let k = 0; k < 6; k++) {
+      const x = (k * 103 + Math.sin((frame + k * 40) / 60) * 16) % W, y = ((k * 89 - frame * 0.45) % H + H) % H;
+      ctx.fillStyle = ['#ff6fae', '#f6c445', '#7be3a3', '#7fd8ff'][k % 4];
+      ctx.beginPath(); ctx.arc(x, y, 4, 0, 6.284); ctx.fill();
+    }
+  } else if (wx === 'glitch') {
+    if ((frame >> 4) % 4 === 0) {
+      const y = (frame * 3) % H;
+      ctx.fillStyle = 'rgba(255,111,174,.14)'; ctx.fillRect(0, y, W, 6);
+      ctx.fillStyle = 'rgba(123,227,163,.12)'; ctx.fillRect(0, y + 8, W, 3);
+    }
+    for (let k = 0; k < 14; k++) {
+      const x = (k * 113) % W, y = (k * 67 + frame * 0.5) % H;
+      ctx.fillStyle = 'rgba(255,255,255,.28)'; ctx.fillRect(x, y, 2, 2);
+    }
   }
 }
 function mapScreen() {
@@ -15488,6 +15675,7 @@ window.__k11 = window.__k11DevOnly() ? {
   explorerTeleport: (x, y) => { if (L && L.explorer && P) { P.x = x; P.y = y; P.vx = 0; P.vy = 0; } return { x: P.x, y: P.y }; },
   explorerGo: (w) => { startExplorer(w); return { world: L.explorer }; },
   explorerDoor: (k) => (L && L.nodes && L.nodes[k] ? { x: L.nodes[k].x * T + T / 2, y: L.nodes[k].y * T + T / 2, stage: L.nodes[k].stage } : null),
+  overThemes: () => Object.keys(OVER_THEMES).map((n) => ({ world: Number(n), grass: OVER_THEMES[n].grass, sky: OVER_THEMES[n].sky[0], weather: (OVER_SKINS[n] || {}).weather, scene: ((OVER_SKINS[n] || {}).scene || []).join(',') })),
   defaults: () => JSON.parse(JSON.stringify(DEFAULT_PROGRESS)),
   petSpot: () => (crate ? { x: crate.x, y: crate.y, pet: crate.pet } : null),
   toPet: () => { if (crate) { P.x = crate.x; P.y = crate.y; P.vx = 0; P.vy = 0; } },
