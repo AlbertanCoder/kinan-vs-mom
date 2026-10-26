@@ -197,8 +197,14 @@ h1.title .t2{display:block;font-size:clamp(24px,6.4vw,40px);color:var(--edge)}
 .petname .pcol{min-width:0;flex:1}
 .petname input{width:100%;background:transparent;border:0;border-bottom:1px dashed #3d4176;color:var(--edge);font:inherit;font-size:13px;padding:1px 0}
 .petname input:focus{outline:none;border-bottom-color:var(--gold)}
-.petname .perk{display:block;font-size:9.5px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.petname .perk{display:block;font-size:9.5px;color:var(--dim);white-space:normal;line-height:1.2}
 .petname.locked{opacity:.45}
+.petname.equipped{border-color:var(--gold);background:#262043;box-shadow:inset 0 0 0 1px rgba(246,196,69,.25)}
+.petname .slot{display:block;font-size:8.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--gold)}
+.petname .equipbtn{flex:none;min-width:62px;min-height:44px;padding:4px 6px;background:#20254a;border:2px solid var(--panel2);border-radius:5px;color:var(--edge);font:inherit;font-size:10px;font-weight:700;cursor:pointer}
+.petname.equipped .equipbtn{border-color:var(--gold);color:var(--gold)}
+.petname .equipbtn:disabled{opacity:.45;cursor:default}
+.loadout-status{margin:0;color:var(--edge);font-size:13px;font-weight:700}
 /* results */
 .starline{display:flex;gap:10px;font-size:36px;line-height:1;filter:drop-shadow(0 3px 0 rgba(0,0,0,.4))}
 .starline .off{color:#2f3363;text-shadow:0 0 0 #000}
@@ -1101,12 +1107,12 @@ SP.tStand = bake(legs(recolor(MOM, { H: 'Q', t: 'F', d: 'G', p: 'w' }), LEGS.sta
 SP.mechStand = bake(MECH);
 /* ---- the family pets: four cats, two dogs ---- */
 const PET_DEFS = [
-  { id: 'cat1', kind: 'cat', label: 'Cat 1', perk: 'Double jump', color: '#d98a3d', shade: '#a85f22' },
-  { id: 'dog1', kind: 'dog', label: 'Dog 1', perk: 'Dash attack', color: '#a8692e', shade: '#6b3f18' },
-  { id: 'cat2', kind: 'cat', label: 'Cat 2', perk: 'Coin magnet', color: '#9a9aa6', shade: '#5e5e6a' },
-  { id: 'dog2', kind: 'dog', label: 'Dog 2', perk: 'Power stomp', color: '#4a4a58', shade: '#26262f' },
-  { id: 'cat3', kind: 'cat', label: 'Cat 3', perk: 'Extra heart', color: '#f0e2c8', shade: '#c4ad84' },
-  { id: 'cat4', kind: 'cat', label: 'Cat 4', perk: 'Faster POW', color: '#6b6f7a', shade: '#3b3f4a' }
+  { id: 'cat1', kind: 'cat', label: 'Garfield', perk: 'Kitten Zoomies · double jump + 3-landing boost', color: '#d98a3d', shade: '#a85f22' },
+  { id: 'dog1', kind: 'dog', label: 'Chikastino', perk: 'Neighbourhood Watch · warning + 14s bark stun', color: '#f0e2c8', shade: '#a8692e' },
+  { id: 'cat2', kind: 'cat', label: 'Vader', perk: 'Coin magnet', color: '#9a9aa6', shade: '#5e5e6a' },
+  { id: 'dog2', kind: 'dog', label: 'Hunter', perk: 'Power stomp', color: '#4a4a58', shade: '#26262f' },
+  { id: 'cat3', kind: 'cat', label: 'Duchess', perk: 'Extra heart', color: '#f0e2c8', shade: '#c4ad84' },
+  { id: 'cat4', kind: 'cat', label: 'Tuxedo', perk: 'Faster POW', color: '#6b6f7a', shade: '#3b3f4a' }
 ];
 /* one rescue per stage — 4 cats and 2 dogs across the house */
 const PET_STAGE = { 0: 'cat1', 1: 'dog1', 2: 'cat2', 4: 'dog2', 6: 'cat3', 8: 'cat4' };
@@ -1118,7 +1124,27 @@ PET_DEFS.forEach((d) => {
 });
 const petDef = (id) => PET_DEFS.filter((p) => p.id === id)[0] || PET_DEFS[0];
 const petName = (id) => (progress && progress.pets && progress.pets.names && progress.pets.names[id]) || petDef(id).label;
-const hasPet = (id) => !!(progress && progress.pets && progress.pets.ids && progress.pets.ids.indexOf(id) >= 0);
+const ownsPet = (id) => !!(progress && progress.pets && progress.pets.ids && progress.pets.ids.indexOf(id) >= 0);
+/* Ownership is the collection; hasPet is the ACTIVE loadout used by gameplay.
+   At most one cat and one dog can be active, with null meaning a solo slot. */
+const hasPet = (id) => {
+  if (!ownsPet(id) || !progress.pets) return false;
+  const key = petDef(id).kind === 'cat' ? 'equippedCat' : 'equippedDog';
+  return progress.pets[key] === id;
+};
+const activePetIds = () => progress.pets.ids.filter((id) => hasPet(id));
+function equipPet(id) {
+  if (!ownsPet(id)) return false;
+  const key = petDef(id).kind === 'cat' ? 'equippedCat' : 'equippedDog';
+  progress.pets[key] = progress.pets[key] === id ? null : id;
+  save();
+  return true;
+}
+function clearPetLoadout() {
+  progress.pets.equippedCat = null;
+  progress.pets.equippedDog = null;
+  save();
+}
 const maxHearts = () => 3 + (hasPet('cat3') ? 1 : 0);
 const imgOf = (c, scale) => '<img alt="" width="' + c.width * (scale || 4) + '" src="' + c.toDataURL() + '">';
 /* ============================================================
@@ -1954,7 +1980,7 @@ function buildGalaxy(i) {
 /* ============================================================
    STATE
    ============================================================ */
-const DEFAULT_PROGRESS = { unlocked: 1, beaten: [], stars: {}, bestScore: {}, totalCandles: 0, pets: { ids: [], names: {} }, hat: 'none', won: false, sound: true, lite: false,
+const DEFAULT_PROGRESS = { unlocked: 1, beaten: [], stars: {}, bestScore: {}, totalCandles: 0, pets: { ids: [], names: {}, equippedCat: null, equippedDog: null }, hat: 'none', won: false, sound: true, lite: false,
   wallet: 0, owned: [], outfit: 'classic', trail: 'none', costumes: {}, gold: {}, smashItems: true, codes: [], wonWorlds: [], builds: [], bossLosses: {} };
 function loadProgress() {
   let p = readProgressRecord(SAVE_KEY), recovered = false;
@@ -1988,7 +2014,19 @@ function loadProgress() {
   const ids = Array.isArray(oldPets.ids) ? oldPets.ids.slice() : [];
   if (oldPets.cat && ids.indexOf('cat1') < 0) ids.push('cat1');
   if (oldPets.dog && ids.indexOf('dog1') < 0) ids.push('dog1');
-  out.pets = { ids: ids.filter((id) => PET_DEFS.some((d) => d.id === id)), names: Object.assign({}, oldPets.names || {}) };
+  const cleanIds = ids.filter((id) => PET_DEFS.some((d) => d.id === id));
+  const firstOfKind = (kind) => cleanIds.filter((id) => petDef(id).kind === kind)[0] || null;
+  const equipChoice = (value, kind) => {
+    if (value === undefined) return firstOfKind(kind);   /* legacy collection: preserve play with a default pair */
+    if (value === null) return null;                    /* explicit Solo choice survives reloads */
+    return cleanIds.indexOf(value) >= 0 && petDef(value).kind === kind ? value : null;
+  };
+  out.pets = {
+    ids: cleanIds,
+    names: Object.assign({}, oldPets.names || {}),
+    equippedCat: equipChoice(oldPets.equippedCat, 'cat'),
+    equippedDog: equipChoice(oldPets.equippedDog, 'dog')
+  };
   if (out.resume && !(typeof out.resume === 'object' && out.resume.i >= 0 && out.resume.i < LV.length)) delete out.resume;
   /* Party Shop: the candles already collected become the first spending money */
   if (typeof p.wallet !== 'number') out.wallet = Math.max(0, Math.floor(Number(out.totalCandles) || 0));
@@ -2350,12 +2388,12 @@ function setHearts(hp, max) {
   el.hearts.setAttribute('aria-label', hp + ' of ' + max + ' hearts');
 }
 function renderPetStat() {
-  const cats = progress.pets.ids.filter((id) => petDef(id).kind === 'cat').length;
-  const dogs = progress.pets.ids.filter((id) => petDef(id).kind === 'dog').length;
-  el.petStat.hidden = !(cats || dogs);
-  if (cats || dogs) {
-    el.petStat.innerHTML = '🐱<b>' + cats + '</b> 🐶<b>' + dogs + '</b>';
-    el.petStat.title = cats + ' cats · ' + dogs + ' dogs';
+  const cat = hasPet('cat1') || hasPet('cat2') || hasPet('cat3') || hasPet('cat4') ? progress.pets.equippedCat : null;
+  const dog = hasPet('dog1') || hasPet('dog2') ? progress.pets.equippedDog : null;
+  el.petStat.hidden = !(cat || dog);
+  if (cat || dog) {
+    el.petStat.innerHTML = (cat ? '🐱<b>1</b>' : '') + (dog ? ' 🐶<b>1</b>' : '');
+    el.petStat.title = 'Following: ' + (cat ? petName(cat) : 'no cat') + ' · ' + (dog ? petName(dog) : 'no dog');
   }
 }
 function updHud() {
@@ -2616,16 +2654,17 @@ function startStage(i, silent, custom) {
   P = {
     x: spawn.x, y: spawn.y, w: 10, h: 16, vx: 0, vy: 0, onGround: false, face: 1,
     coyote: 0, inv: 0, hp: 3, max: 3, dead: 0, power: null, rush: 0, airJumps: 0,
+    cleanLandings: 0, zoomiesT: 0, zoomiesCd: 0,
     fireCd: 0, hat: false, squash: 0, stretch: 0, landT: 0, anim: 0, skid: 0, jumpT: null, prevBottom: 0
   };
-  const owned = progress.pets.ids;
+  const owned = progress.pets.ids, active = activePetIds();
   pets = { cats: [], dogs: [] };
-  owned.forEach((id, idx) => {
+  active.forEach((id, idx) => {
     const def = petDef(id);
     if (def.kind === 'cat') pets.cats.push({ id: id, def: def, x: P.x + 16 + idx * 14, y: P.y + 7, face: 1 });
-    else pets.dogs.push({ id: id, def: def, x: P.x + 66 + idx * 18, y: P.y + 6, t: ri(0, 120), dash: null, face: 1 });
+    else pets.dogs.push({ id: id, def: def, x: P.x + 66 + idx * 18, y: P.y + 6, t: ri(0, 120), warn: 0, dash: null, face: 1 });
   });
-  P.max = 3 + (owned.indexOf('cat3') >= 0 ? 1 : 0);
+  P.max = 3 + (active.indexOf('cat3') >= 0 ? 1 : 0);
   P.hp = P.max;
   P.airJumps = hasPet('cat1') ? 1 : 0;
   const nextPet = !custom && PET_STAGE[i] && owned.indexOf(PET_STAGE[i]) < 0 ? PET_STAGE[i] : null;
@@ -2701,13 +2740,34 @@ function dropSave(i) {
 /* ============================================================
    PLAYER
    ============================================================ */
+function tickCompanionTimers() {
+  if (!P) return;
+  if (P.zoomiesT > 0) {
+    P.zoomiesT--;
+    if (P.zoomiesT === 0) P.cleanLandings = 0;
+  }
+  if (P.zoomiesCd > 0) P.zoomiesCd--;
+}
+function noteCleanLanding() {
+  if (!P || !hasPet('cat1') || P.zoomiesT > 0 || P.zoomiesCd > 0) return;
+  P.cleanLandings++;
+  if (P.cleanLandings >= 3) {
+    P.cleanLandings = 0;
+    P.zoomiesT = 150;   /* 2.5 seconds at the fixed 60 Hz update rate */
+    P.zoomiesCd = 900;  /* 15 seconds until the next Kitten Zoomies */
+    pop(P.x, P.y - 14, 'KITTEN ZOOMIES!', 52, '#f6c445');
+    SFX.power();
+  }
+}
 function updatePlayer() {
+  tickCompanionTimers();
   const rush = P.rush > 0;
   const left = input.left || padIn.left, right = input.right || padIn.right;
   const ice = !!(L.ice && P.onGround && boss === 'off');   /* the Mall Ice Rink: slow to get going, slow to stop (never in a boss arena: the lumberjack show has a sawdust floor) */
   const slime = !ice && P.onGround && onSlime(P.x + P.w / 2);   /* a giant banana slug's slime: a bit slippery */
-  const acc = P.onGround ? (ice ? 0.16 : (slime ? 0.3 : 0.55)) : 0.38, max = rush ? 3.7 : RUN_MAX;
+  const acc = (P.onGround ? (ice ? 0.16 : (slime ? 0.3 : 0.55)) : 0.38) * (P.zoomiesT > 0 ? 1.65 : 1), max = rush ? 3.7 : RUN_MAX;
   const wasGround = P.onGround;
+  if (P.zoomiesT > 0 && frame % 4 === 0) part(P.x + 5, P.y + P.h - 1, { vx: -P.face * 0.5, vy: -0.25, life: 15, size: 2, color: '#f6c445', glow: true });
 
   if (left && !right) {
     if (P.vx > 0 && P.onGround) { P.skid = 6; dust(P.x + 5, P.y + P.h, 2, 'rgba(244,241,232,.5)'); }
@@ -2768,6 +2828,7 @@ function updatePlayer() {
   if (!wasGround && P.onGround) {
     P.landT = 7; P.squash = 6;
     if (Math.abs(P.vy) > 2) dust(P.x + 5, P.y + P.h, 4);
+    noteCleanLanding();
   }
 
   if (P.inv > 0) P.inv--;
@@ -2784,6 +2845,7 @@ function updatePlayer() {
   }
 
   if (P.y > H + 10) {
+    P.cleanLandings = 0;
     if (!L.noHurt) { P.hp = Math.max(0, P.hp - 1); heartsLost++; SFX.hurt(); flashScreen(); }   /* the Builder's can't-get-hurt switch */
     if (P.hp <= 0) { P.dead = 1; P.vy = -5; return; }
     P.x = boss === 'fight' ? (L.arenaX + 2) * T : (cpHit ? spawn.x : lastSafe.x || spawn.x);
@@ -2797,6 +2859,7 @@ function updatePlayer() {
 
 function hurt(from) {
   if (P.inv > 0 || P.dead || P.rush > 0 || paused || L.noHurt) return;
+  P.cleanLandings = 0;
   if (P.hat) {
     P.hat = false; P.inv = 90; P.vy = -3.2;
     SFX.stomp(); pop(P.x, P.y - 10, 'CLONK!', 26, '#f6c445'); updHud();
@@ -2935,13 +2998,17 @@ function updateWorld() {
       crate.open = true;
       const def = petDef(crate.pet);
       if (progress.pets.ids.indexOf(def.id) < 0) progress.pets.ids.push(def.id);
+      const slot = def.kind === 'cat' ? 'equippedCat' : 'equippedDog';
+      if (!progress.pets[slot]) progress.pets[slot] = def.id;
       save();
-      if (def.kind === 'cat') pets.cats.push({ id: def.id, def: def, x: crate.x, y: crate.y + 7, face: 1 });
-      else pets.dogs.push({ id: def.id, def: def, x: crate.x, y: crate.y + 6, t: 0, dash: null, face: 1 });
-      if (def.id === 'cat1') P.airJumps = 1;
-      if (def.id === 'cat3') { P.max = Math.min(5, P.max + 1); P.hp = P.max; }
+      if (hasPet(def.id)) {
+        if (def.kind === 'cat') pets.cats.push({ id: def.id, def: def, x: crate.x, y: crate.y + 7, face: 1 });
+        else pets.dogs.push({ id: def.id, def: def, x: crate.x, y: crate.y + 6, t: 0, warn: 0, dash: null, face: 1 });
+      }
+      if (def.id === 'cat1' && hasPet(def.id)) P.airJumps = 1;
+      if (def.id === 'cat3' && hasPet(def.id)) { P.max = Math.min(5, P.max + 1); P.hp = P.max; }
       if (def.kind === 'cat') SFX.meow(); else SFX.woof();
-      toast((def.kind === 'cat' ? '🐱 ' : '🐶 ') + '<b>' + escAttr(petName(def.id)) + '</b> joined the party! <b>' + def.perk + '</b> unlocked.', 3000);
+      toast((def.kind === 'cat' ? '🐱 ' : '🐶 ') + '<b>' + escAttr(petName(def.id)) + '</b> joined your collection! <b>' + def.perk + '</b>' + (hasPet(def.id) ? ' · equipped now.' : ' · choose them in Pets.'), 3000);
       pop(crate.x, crate.y - 10, def.perk.toUpperCase(), 50, '#f6c445');
       sparks(crate.x + 8, crate.y + 8, 22, ['#f6c445', '#fff', '#7be3a3']);
       shakeIt(3); updHud();
@@ -2983,6 +3050,43 @@ function updatePets() {
   });
   pets.dogs.forEach((d, i) => {
     d.t++;
+    if (d.id === 'dog1') {
+      /* Chikastino — Neighbourhood Watch: follows, warns about off-screen
+         threats, then barks without killing nearby enemies (14-second cooldown). */
+      const p = at(34 + i * 10);
+      if (p) {
+        d.x = lerp(d.x, p.x - (80 + i * 20) * p.face, 0.16);
+        d.y = p.y - 11;
+        d.face = p.face;
+      }
+      d.warn = Math.max(0, (d.warn || 0) - 1);
+      const offscreen = foes.find((f) => f.alive && !f.hidden && Math.abs(f.x - P.x) < 240 && (f.x < camX - 20 || f.x > camX + W + 20)) ||
+        shots.find((s) => !s.gone && Math.abs(s.x - P.x) < 240 && (s.x < camX - 20 || s.x > camX + W + 20));
+      if (offscreen && d.warn <= 0) {
+        d.warn = 240;
+        pop(d.x, d.y - 12, 'WATCH!', 38, '#ff6b6b');
+        SFX.woof();
+      }
+      if (d.t > 840) {
+        const nearFoes = foes.filter((f) => f.alive && !f.hidden && !f.def.tough && Math.abs(f.x - P.x) < 145 && Math.abs(f.y - P.y) < 80 && f.x > camX - 20 && f.x < camX + W + 20);
+        const nearBosses = boss === 'fight' ? bosses.filter((b) => !b.out && Math.abs(b.x - P.x) < 170) : [];
+        if (nearFoes.length || nearBosses.length) {
+          nearFoes.forEach((f) => {
+            f.stun = Math.max(f.stun || 0, 90);
+            f.vx = 0; f.charge = 0;
+            pop(f.x, f.y - 10, 'WOOF! 💫', 34, '#7be3a3');
+          });
+          nearBosses.forEach((b) => {
+            b.stun = Math.max(b.stun, 36);
+            pop(b.x, b.y - 10, 'WOOF! 💫', 30, '#7be3a3');
+          });
+          d.t = 0;
+          rings.push({ x: d.x + 6, y: d.y + 8, r: 4, t: 22 });
+          SFX.woof();
+        }
+      }
+      return;
+    }
     if (d.dash) {
       const tgt = d.dash;
       d.x = lerp(d.x, tgt.x, 0.3);
@@ -3156,6 +3260,7 @@ function updateFoes() {
     if (Math.abs(f.x - P.x) > W + 90) continue;
     f.t++;
     if (f.hurtT > 0) f.hurtT--;
+    if (f.stun > 0) { f.stun--; f.vx = 0; f.charge = 0; continue; }
     const beh = f.def.beh;
     if (beh === 'flyer') {
       if (f.flee) {   /* a magpie getting away (with a coin, if it got one) */
@@ -8261,6 +8366,7 @@ function titleScreen() {
     '<div class="cast titlecast">' + castHTML() + '</div>' +
     '<div class="btnrow tools">' +
     (cont ? '<button class="mtool" id="mapBtn" type="button"><span class="ti">🗺️</span><span class="tl">Stage map</span></button>' : '') +
+    '<button class="mtool" id="petsBtnT" type="button"><span class="ti">🐾</span><span class="tl">Pets</span></button>' +
     '<button class="mtool" id="howBtn" type="button"><span class="ti">❓</span><span class="tl">How to play</span></button>' +
     '<button class="mtool" id="shopBtn" type="button"><span class="ti">🛍️</span><span class="tl">Party Shop</span></button>' +
     '<button class="mtool" id="codeBtn" type="button"><span class="ti">🎁</span><span class="tl">Reward code</span></button>' +
@@ -8276,6 +8382,7 @@ function titleScreen() {
   });
   $('#howBtn').addEventListener('click', () => { AudioSys.init(); SFX.click(); howToScreen(); });
   $('#shopBtn').addEventListener('click', () => { AudioSys.init(); SFX.click(); shopScreen('title'); });
+  $('#petsBtnT').addEventListener('click', () => { AudioSys.init(); SFX.click(); petLoadoutScreen(); });
   $('#codeBtn').addEventListener('click', () => { AudioSys.init(); SFX.click(); codeScreen('title'); });
   const mb = $('#mapBtn'); if (mb) mb.addEventListener('click', () => { AudioSys.init(); SFX.click(); mapScreen(); });
   const nb = $('#newBtn');
@@ -8302,7 +8409,7 @@ function howToScreen() {
     '<li><span class="ico">👟</span><span><b>Jump on enemies</b> to bonk them. Chain bonks without landing for a <b>combo multiplier</b>.</span></li>' +
     '<li><span class="ico">🦘</span><span><b>Tap jump</b> for a quick hop, <b>hold</b> for a big jump. Land on shelves, gift blocks, and enemies.</span></li>' +
     '<li><span class="ico">🎁</span><span>Hit <b>gift blocks</b> from below for coins and powers: 🎉 <b>Party Popper</b>, 🍰 <b>Sugar Rush</b>, ❤ extra hearts.</span></li>' +
-    '<li><span class="ico">🐱</span><span>Rescue all <b>4 cats and 2 dogs</b> hiding in boxes. Each one adds a power: double jump, coin magnet, extra heart, dash attack and more.</span></li>' +
+    '<li><span class="ico">🐱</span><span>Rescue <b>4 cats and 2 dogs</b>. Open <b>Pets</b> to equip one cat and one dog, or go solo. Only equipped pets follow and grant their perks.</span></li>' +
     '<li><span class="ico">⛑️</span><span><b>Shad</b> drops in at checkpoints and boss fights: his slam clears the screen and gives you a <b>hard hat</b> that blocks one hit.</span></li>' +
     '<li><span class="ico">⭐</span><span>Earn up to <b>3 stars</b> per stage: clear it, grab 70% of the coins, and never lose a heart. Stars unlock <b>hats</b>.</span></li>' +
     '<li><span class="ico">🍰</span><span>Every <b>25 coins</b> = an extra heart. Trampolines launch you sky-high. The game saves itself at every checkpoint and whenever you pause.</span></li>' +
@@ -8354,6 +8461,53 @@ function starHTML(n, animate) {
   return h + '</span>';
 }
 
+function petLoadoutSummary() {
+  const cat = progress.pets.equippedCat, dog = progress.pets.equippedDog;
+  return cat || dog ? 'Following: ' + (cat ? escAttr(petName(cat)) : 'No cat') + ' + ' + (dog ? escAttr(petName(dog)) : 'No dog') : 'Solo — no pets following';
+}
+function petLoadoutHTML() {
+  return PET_DEFS.map((d) => {
+    const own = ownsPet(d.id), active = hasPet(d.id), nm = own ? petName(d.id) : '';
+    return '<div class="petname' + (own ? '' : ' locked') + (active ? ' equipped' : '') + '">' +
+      '<img alt="" src="' + PET_SPRITES[d.id].toDataURL() + '">' +
+      '<span class="pcol"><span class="slot">' + d.kind + ' slot</span>' +
+      '<input data-pet="' + d.id + '" maxlength="12" value="' + escAttr(nm) + '" placeholder="' + d.label + '" aria-label="Name for ' + d.label + '"' + (own ? '' : ' disabled') + '>' +
+      '<span class="perk">' + (own ? escAttr(d.perk) : 'Not rescued yet') + '</span></span>' +
+      '<button type="button" class="equipbtn" data-equip="' + d.id + '" aria-pressed="' + active + '"' + (own ? '' : ' disabled') + '>' + (active ? 'Equipped ✓' : 'Equip') + '</button></div>';
+  }).join('');
+}
+function bindPetLoadout(root, refresh) {
+  $$('.equipbtn[data-equip]', root).forEach((b) => b.addEventListener('click', () => {
+    if (b.disabled) return;
+    equipPet(b.dataset.equip);
+    SFX.save();
+    refresh();
+  }));
+  const solo = $('#soloPets', root);
+  if (solo) solo.addEventListener('click', () => { clearPetLoadout(); SFX.save(); refresh(); });
+  $$('.petname input', root).forEach((inp) => {
+    inp.addEventListener('focus', () => { try { inp.select(); } catch (e) { /* ignore */ } });
+    inp.addEventListener('change', () => {
+      const id = inp.dataset.pet, val = inp.value.trim().slice(0, 12);
+      if (val) progress.pets.names[id] = val; else delete progress.pets.names[id];
+      save(); SFX.save();
+    });
+  });
+}
+function petLoadoutScreen() {
+  Music.play('title');
+  showScreen(
+    '<p class="eyebrow">Collection & loadout</p>' +
+    '<h1 class="title"><span class="t2">Pet loadout</span></h1>' +
+    '<p class="loadout-status" id="petLoadoutStatus">' + petLoadoutSummary() + '</p>' +
+    '<p class="tiny">Equip up to one cat AND one dog, or go solo. Only equipped pets follow and grant their stage perks. Tap a name to rename it.</p>' +
+    '<div class="petedit">' + petLoadoutHTML() + '</div>' +
+    '<div class="btnrow"><button class="btn" id="soloPets" type="button" aria-pressed="' + (!progress.pets.equippedCat && !progress.pets.equippedDog) + '">Go solo</button>' +
+    '<button class="btn go" id="petsBack" type="button">Done</button></div>'
+  );
+  bindPetLoadout(el.screen, petLoadoutScreen);
+  $('#petsBack').addEventListener('click', () => { SFX.click(); titleScreen(); });
+}
 function mapScreen() {
   Music.play('title');
   const stars = totalStars();
@@ -8383,14 +8537,7 @@ function mapScreen() {
     return '<button class="hatbtn' + (on ? ' on' : '') + '" type="button" data-hat="' + h.id + '"' + (unlocked ? '' : ' disabled') + ' title="' + (unlocked ? h.name : 'Earn ' + h.need + ' stars to unlock') + '">' +
       '<span style="font-size:20px">' + (unlocked ? h.icon : '🔒') + '</span><span>' + h.name + '</span></button>';
   }).join('');
-  const petEditor = PET_DEFS.map((d) => {
-    const own = progress.pets.ids.indexOf(d.id) >= 0;
-    const nm = own ? petName(d.id) : '';
-    return '<label class="petname' + (own ? '' : ' locked') + '">' +
-      '<img alt="" src="' + PET_SPRITES[d.id].toDataURL() + '">' +
-      '<span class="pcol"><input data-pet="' + d.id + '" maxlength="12" value="' + escAttr(nm) + '" placeholder="' + d.label + '" aria-label="Name for ' + d.label + '">' +
-      '<span class="perk">' + (own ? d.perk : 'Not rescued yet') + '</span></span></label>';
-  }).join('');
+  const petEditor = petLoadoutHTML();
   const tool = (id, ico, label) => '<button type="button" class="mtool" id="' + id + '"><span class="ti">' + ico + '</span><span class="tl">' + label + '</span></button>';
   const panel = (id, cls, title, sub, body, foot) => '<div class="gpanel' + (cls ? ' ' + cls : '') + '" id="' + id + '" role="dialog" aria-label="' + escAttr(title) + '" hidden>' +
     '<div class="gphead"><b>' + title + '</b><span>' + sub + '</span><button type="button" class="gpx" aria-label="Close">✕</button></div>' +
@@ -8408,7 +8555,9 @@ function mapScreen() {
       (list ? '<ul class="mapgrid">' + list + '</ul>' : '<p class="lede">' + worldStatus(wd) + '</p>') + '<p class="wrapnote">Tip: 3 stars needs a clean run — clear the boss, collect 70% of coins and lose zero hearts.</p>',
       '<div class="btnrow"><button class="btn go" type="button" id="playNext">' + (progress.beaten.indexOf(nextStage()) >= 0 ? 'Replay final stage' : 'Play next stage') + '</button></div>') +
     panel('panHats', '', 'Hat locker', 'Stars unlock hats · you have ' + stars + ' ★', '<div class="hatrow">' + hats + '</div>', '') +
-    panel('panPets', '', 'The pet pack', progress.pets.ids.length + ' of 6 rescued · tap a name to change it', '<div class="petedit">' + petEditor + '</div>', '')
+    panel('panPets', '', 'The pet pack', progress.pets.ids.length + ' of 6 rescued · equip 1 cat + 1 dog or go solo',
+      '<p class="loadout-status" id="petLoadoutStatus">' + petLoadoutSummary() + '</p><p class="tiny">Only equipped pets follow and grant stage perks. Tap a name to rename it.</p><div class="petedit">' + petEditor + '</div>',
+      '<button class="btn" id="soloPets" type="button" aria-pressed="' + (!progress.pets.equippedCat && !progress.pets.equippedDog) + '">Go solo</button>')
   );
   el.screen.classList.add('mapmode'); screenPage(0);
   $$('.gpanel', el.screen).forEach((p) => el.screen.appendChild(p));   /* the panels open over the whole game window */
@@ -8422,15 +8571,7 @@ function mapScreen() {
     if (b.disabled) return;
     progress.hat = b.dataset.hat; save(); SFX.save(); mapScreen(); openPanel('panHats', true);
   }));
-  $$('.petname input', el.screen).forEach((inp) => {
-    inp.addEventListener('focus', () => { try { inp.select(); } catch (e) { /* ignore */ } });
-    inp.addEventListener('change', () => {
-      const id = inp.dataset.pet;
-      const val = inp.value.trim().slice(0, 12);
-      if (val) progress.pets.names[id] = val; else delete progress.pets.names[id];
-      save(); SFX.save();
-    });
-  });
+  bindPetLoadout(el.screen, () => { mapScreen(); openPanel('panPets', true); });
   const pn = $('#playNext');
   if (pn) pn.addEventListener('click', () => {
     AudioSys.init(); SFX.click();
@@ -13975,7 +14116,25 @@ window.__k11 = window.__k11DevOnly() ? {
   morphFreeze: (t) => { morph = { t: t, wait: { n: 1e9, res: () => {} } }; paused = true; },   /* hold one frame, for screenshots */
   morphRun: () => galaxyMorph(),
   grantPets: () => { progress.pets.ids = PET_DEFS.map((d) => d.id); save(); return progress.pets.ids.slice(); },
-  petInfo: () => ({ ids: progress.pets.ids.slice(), names: Object.assign({}, progress.pets.names), liveCats: pets.cats.length, liveDogs: pets.dogs.length }),
+  petInfo: () => ({
+    ids: progress.pets.ids.slice(), names: Object.assign({}, progress.pets.names),
+    equippedCat: progress.pets.equippedCat || null, equippedDog: progress.pets.equippedDog || null,
+    liveCats: pets.cats.length, liveDogs: pets.dogs.length,
+    cleanLandings: P ? P.cleanLandings : 0, zoomies: P ? P.zoomiesT : 0, zoomiesCooldown: P ? P.zoomiesCd : 0,
+    dogs: pets.dogs.map((d) => ({ id: d.id, cooldown: d.t, warning: d.warn || 0 })),
+    stunnedFoes: foes.filter((f) => f.alive && f.stun > 0).map((f) => f.idx)
+  }),
+  petLand: () => { noteCleanLanding(); return window.__k11.petInfo(); },
+  petAbilityTick: (n) => { for (let k = 0; k < n; k++) tickCompanionTimers(); return window.__k11.petInfo(); },
+  petTickPets: (n) => { for (let k = 0; k < n; k++) updatePets(); return window.__k11.petInfo(); },
+  petBark: (offscreen) => {
+    const f = foes.filter((x) => x.alive)[0], d = pets.dogs.filter((x) => x.id === 'dog1')[0];
+    if (!f || !d) return null;
+    f.x = offscreen ? camX - 60 : P.x + 32; f.y = P.y; f.hidden = false;
+    if (offscreen) { d.t = 0; d.warn = 0; } else { d.t = 840; }
+    updatePets();
+    return { alive: f.alive, stun: f.stun || 0, cooldown: d.t, warning: d.warn || 0, info: window.__k11.petInfo() };
+  },
   progress: () => JSON.parse(JSON.stringify(progress)),
   defaults: () => JSON.parse(JSON.stringify(DEFAULT_PROGRESS)),
   petSpot: () => (crate ? { x: crate.x, y: crate.y, pet: crate.pet } : null),

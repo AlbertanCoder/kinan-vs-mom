@@ -1,5 +1,5 @@
 /* Kinan vs. Mom - offline cache */
-const CACHE = 'kinan-vs-mom-v18';   /* v18: upright portrait rotate gate; no CSS-rotated gameplay */
+const CACHE = 'kinan-vs-mom-v19';   /* v19: companion collection/loadout and initial locked pet abilities */
 const ASSETS = [
   './',
   './index.html',

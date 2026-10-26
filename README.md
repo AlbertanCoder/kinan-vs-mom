@@ -5,7 +5,7 @@ An 11-stage birthday platformer made by Shad for Kinan.
 **Play online:** https://albertancoder.github.io/kinan-vs-mom/
 
 - 11 stages, 11 family bosses, one birthday ending
-- 4 cats and 2 dogs to rescue — each one adds a power (double jump, candle magnet, dash attack, extra heart…)
+- 4 cats and 2 dogs to rescue — equip one cat and one dog, or go solo; only equipped pets follow and grant their perks.
 - Stars, hats, best times, combo scoring, touch + keyboard + gamepad
 - Installable on iPhone, iPad, Android and tablets; works offline after the first load
 - One self-contained HTML file: no external fonts, images or trackers
