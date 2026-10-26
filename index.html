@@ -2496,6 +2496,8 @@ function loadProgress() {
   if (!out.mapSeen || typeof out.mapSeen !== 'object') out.mapSeen = {};
   if (!out.mapSel || typeof out.mapSel !== 'object') out.mapSel = {};   /* where the player was on each world's map */
   out.pendingCutscene = typeof out.pendingCutscene === 'string' ? out.pendingCutscene : null;   /* finale mid-cutscene resume */
+  out.explorer = (p.explorer && typeof p.explorer === 'object' && Number(p.explorer.world) >= 1 && Number(p.explorer.world) <= 11)
+    ? { world: Math.floor(Number(p.explorer.world)), x: Number(p.explorer.x) || 0, y: Number(p.explorer.y) || 0 } : null;
   const vol100 = (x) => { const n = Math.floor(Number(x)); return Number.isFinite(n) ? clamp(n, 0, 100) : 100; };
   out.vol = { music: vol100(p.vol && p.vol.music), sfx: vol100(p.vol && p.vol.sfx), vo: vol100(p.vol && p.vol.vo) };
   out.narration = p.narration !== false;
@@ -3613,6 +3615,7 @@ function updateWorld() {
     }
   }
   if (LV[L.i].conveyor) L.conveyorOffset = (L.conveyorOffset || 0) + 0.35;
+  updateExplorer();
   for (const p of pops) { p.t--; p.y -= 0.55; }
   pops = pops.filter((p) => p.t > 0);
   for (const p of parts) {
@@ -6590,6 +6593,7 @@ function draw() {
   drawProps(th);
   drawBuildPads();
   drawConveyor();
+  if (L.explorer) drawExplorer();
   drawDinoFriend();
   drawVaderScout();
   drawGoal();
@@ -9289,7 +9293,7 @@ function titleScreen() {
   $('#startBtn').addEventListener('click', () => {
     AudioSys.init(); SFX.click();
     if (rs) playStage(rs.i, { resume: true });
-    else playStage(cont ? next : 0);
+    else startExplorer(cont ? worldOf(next) : 1);
   });
   $('#howBtn').addEventListener('click', () => { AudioSys.init(); SFX.click(); howToScreen(); });
   $('#shopBtn').addEventListener('click', () => { AudioSys.init(); SFX.click(); shopScreen('title'); });
@@ -9435,7 +9439,130 @@ function petLoadoutScreen(back) {
   $('#petsBack').addEventListener('click', () => { SFX.click(); done(); });
 }
 const WORLD_ICONS = { 1: '🎂', 2: '🛢️', 3: '🎢', 4: '🤠', 5: '☔', 6: '🌧️', 7: '🧱', 8: '🦖', 9: '🚀', 10: '🎉', 11: '🌀' };
+/* ============================================================
+   WORLD EXPLORER — every world is one big continuous terrain.
+   Kinan walks and climbs freely (up / down / left / right), the
+   camera follows him, and every stage is a PLACE with a door you
+   walk into — the Super Mario World feel. It is built on the real
+   stage engine (the custom-level path), so the physics, camera
+   and rendering are the actual game, not a second system.
+   ============================================================ */
+function explorerLevel(world) {
+  const w = WORLDS[world - 1];
+  const rng = kSeed(world * 7919 + 31);
+  const cols = 112, up = 12;   /* ~4 screens wide and ~2 screens tall */
+  const rows = ROWS + up;
+  const g = new Array(cols * rows).fill(0);
+  const set = (x, y, v) => { if (x >= 0 && x < cols && y >= 0 && y < rows) g[y * cols + x] = v; };
+  const get = (x, y) => (x >= 0 && x < cols && y >= 0 && y < rows) ? g[y * cols + x] : 1;
+  const top = [];
+  let h = ROWS - 3;
+  for (let x = 0; x < cols; x++) {
+    if (x % 9 === 0) h += rng() < 0.5 ? -1 : 1;
+    if (x > cols * 0.42 && x < cols * 0.58) h -= 1;   /* a tall middle climb */
+    if (x >= cols * 0.58 && x < cols * 0.70) h += 2;
+    h = clamp(h, up + 5, ROWS - 2);
+    top[x] = h;
+    for (let y = h; y < ROWS; y++) set(x, y, y === h ? 1 : 2);
+  }
+  for (let k = 0; k < 30; k++) {   /* stair climbs and floating ledges: every height is reachable */
+    const x = 4 + Math.floor(rng() * (cols - 8));
+    const y = clamp(top[x] - 2 - Math.floor(rng() * 5), -up + 3, ROWS - 4);
+    set(x, y, 2); set(x + 1, y, 2);
+    if (rng() < 0.5) set(x + 2, y - 2, 2);
+  }
+  const entrances = [];
+  const n = w.to - w.from + 1;
+  for (let k = 0; k < n; k++) {
+    const x = 8 + Math.floor((cols - 20) * (k + 0.5) / n);
+    const y = top[x] - 1;
+    set(x, y + 1, 1); set(x + 1, y + 1, 1);   /* a solid porch under every door */
+    entrances.push({ x: x, y: y, stage: w.from + k, k: k });
+  }
+  const th = Object.assign({}, LV[w.from]);   /* the world's own first stage dresses its terrain */
+  return {
+    i: w.from, explorer: world, custom: true, th: th, g: g, w: cols, up: up,
+    foes: [], candles: [], gifts: {}, petSpot: null, ice: false, wind: false,
+    arenaX: cols - 3, arenaW: 2, startT: [3, top[3] - 1],
+    entrances: entrances, gates: [{ x: 2, to: world - 1 }, { x: cols - 2, to: world + 1 }], top: top,
+    src: { name: 'World Explorer' }, opts: {}, song: 'title'
+  };
+}
+function startExplorer(world, resume) {
+  world = clamp(Math.floor(world) || 1, 1, 11);
+  showGame(true);   /* the explorer IS the game picture: reveal it like playStage does */
+  const Lx = explorerLevel(world);
+  startStage(Lx.i, true, Lx);
+  const ex = resume && progress.explorer && progress.explorer.world === world ? progress.explorer : null;
+  if (ex) { P.x = ex.x; P.y = ex.y; P.vx = 0; P.vy = 0; }
+  camX = clamp(Math.round(P.x - W * 0.42), 0, Lx.w * T - W);
+  el.stageLbl.textContent = 'WORLD ' + world + ' · ' + WORLDS[world - 1].name.toUpperCase();
+  const mbp = $('#mapBtnP'); if (mbp) mbp.textContent = 'World map';
+  progress.explorer = { world: world, x: Math.round(P.x), y: Math.round(P.y) };
+  save();
+  Music.play('title');
+  running = true; paused = false; last = 0; acc = 0;
+  run();
+  if (!ex) toast('<b>WORLD ' + world + '</b> · ' + escAttr(WORLDS[world - 1].name) + ' — walk to a door to play a stage!', 2600);
+}
+function explorerWarp(world, side) {
+  startExplorer(world);
+  P.x = side === 'right' ? (L.w - 4) * T : 4 * T;
+  P.y = (L.top[side === 'right' ? L.w - 4 : 4] - 1) * T;
+  camX = clamp(Math.round(P.x - W * 0.42), 0, L.w * T - W);
+}
+function updateExplorer() {
+  if (!L || !L.explorer || paused || P.dead) return;
+  let at = null;
+  for (const e of L.entrances) {
+    const ex = e.x * T - 4, ey = e.y * T - 10;
+    if (P.x + P.w > ex && P.x < ex + 24 && P.y + P.h > ey && P.y < ey + 34) { at = e; break; }
+  }
+  if (at) {
+    L.enterT = (L.enterT || 0) + 1;
+    if (L.enterT > 34) {   /* stand on the doormat: walking past never traps you */
+      progress.explorer = { world: L.explorer, x: Math.round(P.x), y: Math.round(P.y) };
+      save();
+      playStage(at.stage);
+      return;
+    }
+  } else L.enterT = 0;
+  if (P.x < 2 * T && worldOpen(L.explorer - 1)) { explorerWarp(L.explorer - 1, 'right'); return; }
+  if (P.x > (L.w - 2) * T && worldOpen(L.explorer + 1)) { explorerWarp(L.explorer + 1, 'left'); return; }
+  /* the camera climbs with Kinan (the world is two screens tall) */
+  const ty = clamp(Math.round(P.y - H * 0.55), -L.up * T, 0);
+  camY = Math.abs(ty - camY) < 0.6 ? ty : Math.round(camY + (ty - camY) * 0.12);
+  progress.explorer = { world: L.explorer, x: Math.round(P.x), y: Math.round(P.y) };
+}
+function drawExplorer() {
+  for (const e of L.entrances) {
+    const sx = e.x * T - Math.round(camX), sy = e.y * T;
+    if (sx < -70 || sx > W + 70) continue;
+    const open = stageOpen(e.stage), done = progress.beaten.includes(e.stage);
+    const pulse = 0.5 + 0.5 * Math.sin((frame + e.k * 40) / 24);
+    ctx.fillStyle = 'rgba(0,0,0,.28)'; ctx.fillRect(sx - 8, sy + 24, 28, 3);
+    ctx.fillStyle = open ? (done ? '#4ec98a' : '#f6c445') : '#565c86';
+    ctx.fillRect(sx - 6, sy + 2, 24, 22);
+    ctx.fillStyle = 'rgba(255,255,255,.35)'; ctx.fillRect(sx - 6, sy + 2, 24, 3);
+    ctx.fillStyle = 'rgba(0,0,0,.4)'; ctx.fillRect(sx + 1, sy + 9, 9, 15);
+    if (open && !done) { ctx.fillStyle = 'rgba(255,255,255,' + (0.25 + pulse * 0.5).toFixed(2) + ')'; ctx.fillRect(sx - 10, sy - 2, 32, 3); }
+    ctx.fillStyle = '#fff'; ctx.font = 'bold 9px monospace'; ctx.textAlign = 'center';
+    ctx.fillText(open ? (done ? '✓' : String(e.k + 1)) : '🔒', sx + 6, sy - 3);
+  }
+  for (const gt of L.gates) {
+    const sx = gt.x * T - Math.round(camX);
+    if (sx < -90 || sx > W + 90) continue;
+    const open = gt.to >= 1 && gt.to <= 11 && worldOpen(gt.to);
+    ctx.fillStyle = open ? 'rgba(138,127,216,.85)' : 'rgba(86,92,134,.5)';
+    ctx.fillRect(Math.round(sx) - 4, (GROUND - 5) * T, 16, 5 * T);
+    ctx.fillStyle = '#fff'; ctx.font = 'bold 9px monospace'; ctx.textAlign = 'center';
+    ctx.fillText(open ? '➜ ' + gt.to : '🔒', Math.round(sx) + 4, (GROUND - 5) * T - 5);
+  }
+}
 function mapScreen() {
+  /* once the Explorer exists, the world map IS the map: the old screen only
+     serves fresh test saves and the developer tools */
+  if (progress.explorer && progress.explorer.world) { startExplorer(progress.explorer.world, true); return; }
   Music.play('title');
   const stars = totalStars();
   const want = progress.mapWorld || worldOf(nextStage());
@@ -15223,6 +15350,11 @@ window.__k11 = window.__k11DevOnly() ? {
   world11Info: () => ({ stage: L && L.i, world: L ? worldOf(L.i) : null, place: L ? LV[L.i].place : null,
     look3d: L ? !!LV[L.i].look3d : false, glitchy: L && LV[L.i].boss ? !!LV[L.i].boss.glitchy : false,
     finalWorld: L ? (LV[L.i].finalWorld || 0) : 0, tier2: progress.wonWorlds.indexOf(10) >= 0, pending: progress.pendingCutscene || null }),
+  explorerInfo: () => ({ world: L && L.explorer ? L.explorer : 0, onMap: !!(L && L.explorer), x: P ? Math.round(P.x) : 0, y: P ? Math.round(P.y) : 0,
+    camX: Math.round(camX), camY: Math.round(camY), entrances: L && L.entrances ? L.entrances.length : 0 }),
+  explorerTeleport: (x, y) => { if (L && L.explorer && P) { P.x = x; P.y = y; P.vx = 0; P.vy = 0; } return { x: P.x, y: P.y }; },
+  explorerGo: (w) => { startExplorer(w); return { world: L.explorer }; },
+  explorerDoor: (k) => (L && L.entrances && L.entrances[k] ? { x: L.entrances[k].x * T, y: L.entrances[k].y * T, stage: L.entrances[k].stage } : null),
   defaults: () => JSON.parse(JSON.stringify(DEFAULT_PROGRESS)),
   petSpot: () => (crate ? { x: crate.x, y: crate.y, pet: crate.pet } : null),
   toPet: () => { if (crate) { P.x = crate.x; P.y = crate.y; P.vx = 0; P.vy = 0; } },
