@@ -78,6 +78,13 @@
 > every stage in 2D, both encounters, the save-before-cinematic guarantee and
 > the mid-cutscene resume path.
 >
+> **Natural audio:** story lines play the family’s recorded clips first
+> (`vo/clips.json` + `vo/*.mp3`); the device voice is an optional, toggleable
+> fallback. The 🎚️ Audio box has music/SFX/voice sliders, a device-voice
+> toggle and sound captions. `tests/e2e/legacy-audio.spec.ts` covers the
+> controls, persistence, captions, and clip playback with `speechSynthesis`
+> removed entirely.
+>
 > The original skeleton notes are kept below for history.
 
 ---

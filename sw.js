@@ -1,5 +1,5 @@
 /* Kinan vs. Mom - offline cache */
-const CACHE = 'kinan-vs-mom-v27';   /* v27: World 10 Birthday Multiverse (Grandmothers, Mom finale, saved cinematic) */
+const CACHE = 'kinan-vs-mom-v28';   /* v28: natural-audio pass (channel controls, captions, clips-first voice) */
 const ASSETS = [
   './',
   './index.html',

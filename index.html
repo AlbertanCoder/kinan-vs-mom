@@ -342,6 +342,10 @@ html.sideways .pad button.spec:not(:disabled){opacity:.92}
 .chatquick{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px}.chatquick button{background:var(--panel);border:1px solid var(--panel2);border-radius:6px;color:var(--text);font:inherit;font-size:12px;padding:4px 6px;cursor:pointer}
 .chatform{display:flex;gap:4px}.chatform input{flex:1;min-width:0;background:#0b0d1e;border:1px solid var(--panel2);border-radius:6px;color:var(--text);font:inherit;font-size:13px;padding:5px}
 .chatform button{background:var(--gold);color:var(--night);border:0;border-radius:6px;font:inherit;font-size:12px;font-weight:700;padding:5px 8px;cursor:pointer}
+.audiobox{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:60;width:min(310px,88vw);display:grid;gap:9px;background:rgba(14,16,34,.97);border:2px solid var(--edge);border-radius:12px;padding:12px 14px;box-shadow:0 14px 34px rgba(0,0,0,.6)}
+.arow{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text)}
+.arow input[type=range]{flex:1;min-width:0}
+.captions{position:absolute;left:50%;transform:translateX(-50%);bottom:56px;z-index:8;max-width:86%;padding:4px 12px;border-radius:8px;background:rgba(10,12,26,.82);color:#f4f1e8;font-size:12px;letter-spacing:.4px;pointer-events:none;text-align:center}
 .btools{position:absolute;left:0;right:0;top:0;bottom:0;z-index:6;display:flex;flex-direction:column;gap:3px;padding:4px;pointer-events:none}
 .btools .brow{display:flex;flex-wrap:wrap;gap:3px;align-items:center;pointer-events:none}
 .btools .brow > button,.btools .brow > select{pointer-events:auto}   /* the gaps between the buttons are the level: taps go through */
@@ -573,6 +577,7 @@ html.sideways .stage{max-width:100%}
       <span class="stat" id="scoreEl" title="Score">★ <b>0</b></span>
       <button class="iconbtn" id="pauseBtn" type="button" aria-label="Pause" hidden>⏸</button>
       <button class="iconbtn" id="snd" type="button" aria-pressed="true" aria-label="Sound">♪</button>
+<button class="iconbtn" id="vol" type="button" aria-label="Audio settings">🎚️</button>
       <button class="iconbtn" id="installBtn" type="button" aria-label="Install app" hidden>📲</button>
     </div>
   </header>
@@ -586,6 +591,7 @@ html.sideways .stage{max-width:100%}
     <div class="combo" id="comboEl" hidden><span id="comboX">x2</span><small>COMBO</small></div>
     <div class="toast" id="toast" hidden></div>
     <div class="dialog win" id="dialog" hidden><img class="portrait" id="portrait" alt=""><p id="dtext"></p><span class="next" aria-hidden="true">▶</span></div>
+    <div class="captions" id="captions" hidden></div>
     <div class="pause" id="helpAsk" hidden>
       <div class="pausebox win">
         <p class="eyebrow">Tough boss!</p>
@@ -644,6 +650,15 @@ html.sideways .stage{max-width:100%}
   <p class="mobilefoot" id="mobileFoot">4 cats · 2 dogs · made by Shad in Edmonton</p>
 
   <section class="screen win" id="screen"></section>
+  <div class="audiobox" id="audioBox" hidden role="dialog" aria-label="Audio settings">
+    <div class="chathead"><b>🔊 Audio</b><span class="chatsub">music · sounds · voice</span><button type="button" class="chatx" id="volX" aria-label="Close the audio settings">✕</button></div>
+    <label class="arow">Music <input type="range" id="volMusic" min="0" max="100" step="5"></label>
+    <label class="arow">Sound effects <input type="range" id="volSfx" min="0" max="100" step="5"></label>
+    <label class="arow">Voice <input type="range" id="volVo" min="0" max="100" step="5"></label>
+    <label class="arow"><input type="checkbox" id="volNarr"> Device voice (only when no recording)</label>
+    <label class="arow"><input type="checkbox" id="volCaps"> Captions for sounds</label>
+    <p class="chatsub">Recorded family voices always play first. The device voice is the optional fallback.</p>
+  </div>
   <aside class="chat" id="chat" hidden>
     <button class="chattab" id="chatTab" type="button" aria-label="Open the room chat" aria-expanded="false">💬<b id="chatBadge" hidden>0</b></button>
     <div class="chatbox" id="chatBox" hidden>
@@ -823,6 +838,13 @@ const AudioSys = {
     src.start(t0); src.stop(t0 + dur);
   }
 };
+/* per-channel volumes (music/sfx/voice) applied to the existing gain nodes; 100 = the classic mix */
+function applyAudioPrefs() {
+  const v = progress.vol || {};
+  const m = clamp((v.music == null ? 100 : v.music) / 100, 0, 1), s = clamp((v.sfx == null ? 100 : v.sfx) / 100, 0, 1);
+  if (AudioSys.music) AudioSys.music.gain.value = 0.26 * m;
+  if (AudioSys.sfx) AudioSys.sfx.gain.value = 0.55 * s;
+}
 const SFX = {
   jump() { AudioSys.tone(330, 0.10, { vol: 0.13, slide: 640 }); },
   djump() { AudioSys.tone(520, 0.10, { type: 'triangle', vol: 0.15, slide: 900 }); AudioSys.tone(780, 0.08, { vol: 0.06, at: 0.05 }); },
@@ -848,6 +870,23 @@ const SFX = {
   save() { AudioSys.tone(880, 0.06, { vol: 0.09 }); AudioSys.tone(1320, 0.09, { vol: 0.07, at: 0.06 }); },
   click() { AudioSys.tone(420, 0.04, { vol: 0.07 }); }
 };
+/* captions: when "Captions for sounds" is on, every gameplay sound shows a short text
+   label over the game picture (UI clicks are never captioned — they would flood the screen) */
+function caption(text) {
+  if (progress.captions === false) return;
+  const c = document.getElementById('captions');
+  if (!c) return;
+  c.textContent = text;
+  c.hidden = false;
+  clearTimeout(caption.t);
+  caption.t = setTimeout(() => { c.hidden = true; }, 1500);
+}
+const SFX_CAPTIONS = { jump: 'boing!', djump: 'double boing!', spring: 'SPROING!', stomp: 'stomp!', combo: 'combo chime', candle: 'candle chime', gift: 'gift jingle', power: 'power-up fanfare', pew: 'pew!', pop: 'pop!', hurt: 'ouch! — hit buzzer', dad: 'helper jingle', woof: 'WOOF!', meow: 'mrow!', boss: 'boss growl', hit: 'hit!', thud: 'THUD!', flag: 'flag jingle', heart: 'heart chime', win: 'victory jingle', lose: 'fail tune', save: 'save chime' };
+for (const k of Object.keys(SFX)) {
+  if (k === 'click') continue;
+  const orig = SFX[k];
+  SFX[k] = function () { caption('(' + (SFX_CAPTIONS[k] || k) + ')'); return orig.apply(SFX, arguments); };
+}
 /* ---------- procedural soundtrack ---------- */
 const MIDI = (m) => 440 * Math.pow(2, (m - 69) / 12);
 /* ============================================================
@@ -886,20 +925,25 @@ const VO = {
   speak(html, who) {
     try {
       VO.loadClips();
-      if (!AudioSys.on || !window.speechSynthesis) return;
+      if (!AudioSys.on) return;
       const text = String(html || '').replace(/<[^>]+>/g, ' ').replace(/&[a-z#0-9]+;/gi, ' ').replace(/[\uD83C-\uD83F][\uDC00-\uDFFF]/g, ' ').replace(/\s+/g, ' ').trim();
       if (!text) return;
+      const vol = clamp((progress.vol ? progress.vol.vo : 100) / 100, 0, 1);
+      if (!vol) return;   /* the voice channel is turned down */
       const file = VO.clips && (VO.clips[html] || VO.clips[text]);
-      if (file) {   /* the family's own recorded voice */
+      if (file) {   /* the family's own recorded voice — always first, never needs the device voice */
         if (!VO.audio) VO.audio = new Audio();
         VO.audio.src = 'vo/' + file;
+        VO.audio.volume = vol;
         VO.audio.play().catch(() => {});
         return;
       }
+      if (progress.narration === false || !window.speechSynthesis) return;   /* the robotic voice is OPTIONAL */
       speechSynthesis.cancel();
       const u = new SpeechSynthesisUtterance(text);
       const v = VO.pick(who);
       if (v) u.voice = v;
+      u.volume = vol;
       const tune = {
         k: [1.35, 1.06], m: [1.04, 1.0], c: [0.94, 1.04], d: [0.8, 0.98], s: [1.12, 1.02],
         n: [0.9, 0.95], b: [0.7, 0.95], f: [0.85, 0.95], lg: [1.1, 1.02], cd: [0.8, 0.95],
@@ -2305,7 +2349,8 @@ function buildGalaxy(i) {
    STATE
    ============================================================ */
 const DEFAULT_PROGRESS = { unlocked: 1, beaten: [], stars: {}, bestScore: {}, totalCandles: 0, pets: { ids: [], names: {}, equippedCat: null, equippedDog: null }, friendAssist: null, friendsUnlocked: [], hat: 'none', won: false, sound: true, lite: false,
-  wallet: 0, owned: [], outfit: 'classic', trail: 'none', costumes: {}, gold: {}, smashItems: true, codes: [], wonWorlds: [], builds: [], bossLosses: {} };
+  wallet: 0, owned: [], outfit: 'classic', trail: 'none', costumes: {}, gold: {}, smashItems: true, codes: [], wonWorlds: [], builds: [], bossLosses: {},
+  vol: { music: 100, sfx: 100, vo: 100 }, narration: true, captions: true };
 function loadProgress() {
   let p = readProgressRecord(SAVE_KEY), recovered = false;
   if (!p) {
@@ -2369,6 +2414,10 @@ function loadProgress() {
   if (!out.mapSeen || typeof out.mapSeen !== 'object') out.mapSeen = {};
   if (!out.mapSel || typeof out.mapSel !== 'object') out.mapSel = {};   /* where the player was on each world's map */
   out.pendingCutscene = typeof out.pendingCutscene === 'string' ? out.pendingCutscene : null;   /* finale mid-cutscene resume */
+  const vol100 = (x) => { const n = Math.floor(Number(x)); return Number.isFinite(n) ? clamp(n, 0, 100) : 100; };
+  out.vol = { music: vol100(p.vol && p.vol.music), sfx: vol100(p.vol && p.vol.sfx), vo: vol100(p.vol && p.vol.vo) };
+  out.narration = p.narration !== false;
+  out.captions = p.captions !== false;
   out.bossLosses = {};
   if (p.bossLosses && typeof p.bossLosses === 'object') for (const k in p.bossLosses) { const n = Math.floor(Number(p.bossLosses[k])); if (LV[k] && n > 0 && n < 1000) out.bossLosses[k] = n; }
   /* a damaged or hand-edited save must never stop the game from starting: each field back to its own kind, or the default */
@@ -2918,6 +2967,37 @@ function setSound(on) {
   el.snd.textContent = on ? '♪' : '♪̶';
 }
 el.snd.addEventListener('click', () => { AudioSys.init(); setSound(!AudioSys.on); });
+/* the audio settings box: music / sound effects / voice volumes, the optional device voice, captions */
+function openAudioBox(on) {
+  const box = $('#audioBox'); if (!box) return;
+  box.hidden = !on;
+  if (on) {
+    const v = progress.vol || { music: 100, sfx: 100, vo: 100 };
+    $('#volMusic').value = v.music == null ? 100 : v.music;
+    $('#volSfx').value = v.sfx == null ? 100 : v.sfx;
+    $('#volVo').value = v.vo == null ? 100 : v.vo;
+    $('#volNarr').checked = progress.narration !== false;
+    $('#volCaps').checked = progress.captions !== false;
+  }
+}
+function saveAudioPrefs() {
+  progress.vol = {
+    music: Number($('#volMusic').value), sfx: Number($('#volSfx').value), vo: Number($('#volVo').value)
+  };
+  progress.narration = $('#volNarr').checked;
+  progress.captions = $('#volCaps').checked;
+  if (progress.captions === false) { const c = document.getElementById('captions'); if (c) c.hidden = true; }   /* hide a caption the moment it is off */
+  applyAudioPrefs();
+  save();
+}
+$('#vol').addEventListener('click', () => { AudioSys.init(); SFX.click(); openAudioBox($('#audioBox').hidden); });
+$('#volX').addEventListener('click', () => { SFX.click(); openAudioBox(false); });
+['volMusic', 'volSfx', 'volVo'].forEach((id) => $('#' + id).addEventListener('input', saveAudioPrefs));
+$('#volNarr').addEventListener('change', saveAudioPrefs);
+$('#volCaps').addEventListener('change', saveAudioPrefs);
+/* captions for the soundtrack: one label whenever the music changes */
+const musicPlay0 = Music.play.bind(Music);
+Music.play = (name) => { if (name && name !== Music.name) caption('(♪ ' + ({ title: 'menu theme', stage: 'stage theme', boss: 'boss theme', final: 'finale theme' }[name] || name + ' music') + ')'); return musicPlay0(name); };
 el.pauseBtn.addEventListener('click', togglePause);
 $('#resumeBtn').addEventListener('click', () => { setPaused(false); SFX.click(); });
 $('#restartBtn').addEventListener('click', () => {
@@ -14845,6 +14925,7 @@ bindChat();
 bindBuilder();
 bindWorldMap();
 AudioSys.on = progress.sound !== false;
+applyAudioPrefs();
 applyLite();
 initPWA();
 if (IS_IOS && !IS_STANDALONE && el.install) el.install.hidden = false;
@@ -15001,6 +15082,10 @@ window.__k11 = window.__k11DevOnly() ? {
   world10Info: () => ({ stage: L && L.i, world: L ? worldOf(L.i) : null, place: L ? LV[L.i].place : null,
     grandmas: L && LV[L.i].boss ? !!LV[L.i].boss.grandmas : false, momBoss: L && LV[L.i].boss ? LV[L.i].boss.kind === 'mom' : false,
     finalWorld: L ? (LV[L.i].finalWorld || 0) : 0, pending: progress.pendingCutscene || null }),
+  audioInfo: () => ({ on: AudioSys.on, vol: { music: progress.vol.music, sfx: progress.vol.sfx, vo: progress.vol.vo },
+    narration: progress.narration !== false, captions: progress.captions !== false,
+    clips: VO.clips ? Object.keys(VO.clips).length : 0, tts: !!window.speechSynthesis }),
+  audioCue: (k) => { if (SFX[k]) SFX[k](); return { caption: $('#captions') && !$('#captions').hidden ? $('#captions').textContent : null }; },
   defaults: () => JSON.parse(JSON.stringify(DEFAULT_PROGRESS)),
   petSpot: () => (crate ? { x: crate.x, y: crate.y, pet: crate.pet } : null),
   toPet: () => { if (crate) { P.x = crate.x; P.y = crate.y; P.vx = 0; P.vy = 0; } },
