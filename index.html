@@ -1012,6 +1012,7 @@ const COIN = [
 const FLAG = ['y.......', 'yRRRR...', 'yRRRRRR.', 'yRRRR...'].concat(Array(12).fill('y.......'));
 const legs = (body, l, pant) => body.concat(l.map((r) => r.replace(/j/g, pant)));
 const recolor = (rows, map) => rows.map((r) => r.replace(/./g, (ch) => (map[ch] || ch)));
+const ANNIE = recolor(CHENOA, { c: 'p', E: 'y', G: 'b', Y: 'h', T: 'p', u: 'h' });
 const flipRows = (rows) => rows.map((r) => r.split('').reverse().join(''));
 
 function bake(rows) {
@@ -1109,6 +1110,9 @@ SP.sWalk = bake(legs(SHAD, LEGS.walk, 'n'));
 SP.sJump = bake(legs(SHAD, LEGS.jump, 'n'));
 SP.tStand = bake(legs(recolor(MOM, { H: 'Q', t: 'F', d: 'G', p: 'w' }), LEGS.stand, 'J'));
 SP.mechStand = bake(MECH);
+SP.annieStand = bake(legs(ANNIE, LEGS.stand, 'j'));
+SP.annieWalk = bake(legs(ANNIE, LEGS.walk, 'j'));
+SP.annieJump = bake(legs(ANNIE, LEGS.jump, 'j'));
 /* ---- the family pets: four cats, two dogs ---- */
 const PET_DEFS = [
   { id: 'cat1', kind: 'cat', label: 'Garfield', perk: 'Kitten Zoomies · double jump + 3-landing boost', color: '#d98a3d', shade: '#a85f22' },
@@ -1889,6 +1893,60 @@ LV.push(
   })
 );
 
+LV.push(
+  expandedStage({
+    place: 'Twin-Sun Outpost', bg: 'outdoor', world: 9, laserTutorial: true,
+    sky: ['#e5a45f', '#ffe0a6'], far: '#a66b45', mid: '#754633', ground: '#5b3c2a', top: '#d7b46a', brick: '#a0703a', accent: '#f6c445',
+    foes: ['raincloud', 'umbrellabat', 'lego'],
+    intro: ['Two suns, one very confused outpost. The practice lasers are slow and every shot can be deflected.', 'Tap POW to deflect a shot. Force-marked crates and doors are optional safe practice, never required hazards.'],
+    boss: null,
+    win: ['The practice target powers down. You have officially deflected a laser without becoming a space casualty.'],
+    meanwhile: 'Dad says this is just like his old deflector training, which gets a very skeptical look from Mom.'
+  }),
+  expandedStage({
+    place: 'Droid Factory & Hangar', bg: 'sciencedome', world: 9,
+    sky: ['#29344f', '#697aa0'], far: '#3a4a6a', mid: '#4a3a6a', ground: '#3a3f52', top: '#9aa1ab', brick: '#6fc8ff', accent: '#f6c445',
+    foes: ['lego', 'raincloud', 'umbrellabat'],
+    intro: ['Droid parts move along the conveyor: gears, doors, and Force-marked crates that slide into place when you build the route.', 'Use the marked build pads to open a path. No laser is required until the safe tutorial is complete.'],
+    boss: null,
+    win: ['The hangar door opens with a satisfying sci-fi clunk. One little droid offers to carry your coins.'],
+    meanwhile: 'Dad names every droid before Mom can finish saying please do not name the droids.'
+  }),
+  expandedStage({
+    place: 'Starbase Laser Corridors', bg: 'sciencedome', world: 9, laserTutorial: true,
+    sky: ['#1e2b52', '#526da8'], far: '#3a4a6a', mid: '#4a3a6a', ground: '#3a3f52', top: '#9aa1ab', brick: '#6fc8ff', accent: '#ff6fae',
+    foes: ['umbrellabat', 'raincloud', 'lego'],
+    intro: ['The corridor lights up: real laser lanes this time, but every shot has a bright telegraph and a deflection window.', 'Read the warning, tap POW as it reaches you, and use the safe platforms between volleys.'],
+    boss: null,
+    win: ['The corridor is clear. Your deflection timing gets a tiny celebratory beep from the base computer.'],
+    meanwhile: 'Dad calls that move very Jedi-adjacent. Mom calls it excellent hand-eye coordination.'
+  })
+);
+
+LV.push(
+  expandedStage({
+    place: '2D Trench Run', bg: 'skytrain', world: 9,
+    sky: ['#14233f', '#536b9f'], far: '#3a4a6a', mid: '#4a5a6e', ground: '#4a4f57', top: '#c9c9cf', brick: '#2f5fb3', accent: '#f6c445',
+    foes: ['seagull', 'rollerblader', 'raincloud'],
+    intro: ['The trench is narrow, fast, and full of warning lights. Stay on the marked route and do not chase every coin into danger.', 'Deflect the lane shots and keep a steady jump rhythm. The finish beacon is straight ahead.'],
+    boss: null,
+    win: ['The beacon locks on. The trench goes quiet, and Annie answers on the kitchen channel.'],
+    meanwhile: 'Dad asks why the kitchen channel is playing a dhol beat. Mom says it is about to get awesome.'
+  }),
+  expandedStage({
+    place: "Annie's Galactic Kitchen", bg: 'dinner', world: 9, rhythm: true, conveyor: true,
+    sky: ['#4c326d', '#b58ad8'], far: '#72519a', mid: '#4d3d70', ground: '#4a3f5a', top: '#ffaecd', brick: '#d8342c', accent: '#f6c445',
+    foes: ['waiter', 'lego', 'busker'],
+    intro: ['Annie is finally here: chef, hero, and reigning champion of the galactic kitchen.', 'Deflect the golden rotis, move with the dhol beat, and bounce on the prep stations when they open. This is a friendly championship, not a war.'],
+    boss: { kind: 'supchenoa', title: 'Annie — Galactic Kitchen Champion', prop: '🫓', hp: 6, face: 'a', annie: true },
+    bossIntro: ['<b>ANNIE:</b> You made it to my kitchen, little superstar! Ready for a friendly cook-off?', '<b>KINAN:</b> I have been training for this! Your music is awesome!'],
+    taunts: ['Dhol up! Time for the next course!', 'Catch this roti!', 'Kitchen champion in the house!'],
+    win: ['<b>ANNIE:</b> That was a championship-worthy round! You are officially kitchen-approved.', 'Annie joins the team as a heroic rival. Chenoa declares a rematch over dessert.'],
+    finalWorld: 9,
+    meanwhile: 'Mom asks for the recipe. Annie promises to teach everyone—after the birthday cake.'
+  })
+);
+
 const FOE = {
   sock: { beh: 'walker', kind: 'sock', color: '#c9c2d8' },
   teddy: { beh: 'walker', kind: 'teddy', color: '#b07a4a', spd: 0.5 },
@@ -2074,7 +2132,8 @@ function build(i) {
   for (let k = 0; k < arenaW + 3; k++) col(arenaX + k, GROUND);
   for (let y = 0; y < GROUND; y++) set(arenaX + arenaW, y, 5);
   if (LV[i].boss && LV[i].boss.kind === 'static') for (const k of [5, arenaW - 5]) set(arenaX + k, GROUND, 6);   /* the science dome's arena: a magnet pad set into the floor near each end */
-  const buildPads = worldOf(i) === 7 ? [{ x: checkpoint ? checkpoint.x : 24 * T, y: (GROUND - 1) * T, recipe: i % 2 ? 'stairs' : 'bridge' }] : [];
+  const buildPads = worldOf(i) === 7 ? [{ x: checkpoint ? checkpoint.x : 24 * T, y: (GROUND - 1) * T, recipe: i % 2 ? 'stairs' : 'bridge' }]
+    : worldOf(i) === 9 ? [{ x: (arenaX - 6) * T, y: (GROUND - 1) * T, recipe: i % 2 ? 'stairs' : 'bridge' }] : [];
   return { i, g, w, foes, candles, gifts, checkpoint, petSpot, arenaX, arenaW, len, buildPads, ice: !!LV[i].ice, wind: !!LV[i].wind };
 }
 /* the World 6 sneak peek: little planet islands floating in space. The same stage shape as build(): a run of
@@ -2627,6 +2686,7 @@ function faceRows(def, mood) {
   const [c0, c1, r0, r1] = def.crop;
   return g.slice(r0, r1).map((r) => r.slice(c0, c1).join(''));
 }
+FACE_DEF.a = FACE_DEF.c;
 const PORTRAIT_SRC = {};
 function portraitFor(who, mood) {
   /* 'm' is what every Mom stage uses (LV[i].boss.face) and 'mech' the Lego Mega-Mech */
@@ -2638,7 +2698,7 @@ function portraitFor(who, mood) {
 }
 /* who is talking: a line that starts with "<b>NAME:</b>" shows that person's face and voice; narration shows Kinan, no voice */
 const SPEAKERS = { 'MOM': 'm', 'CHENOA': 'c', 'KINAN': 'k', 'ROBIN': 'd', 'DAD': 'd', 'SHAD': 's', 'NOSY NEIGHBOUR': 'n', 'NEIGHBOUR': 'n', 'BIG KID': 'b', 'MEGA-MECH': 'mech', '???': 'mech', 'FOREMAN': 'f', 'SAFETY FOREMAN': 'f', 'PUMPJACK PETE': 'mech',
-  'LIFEGUARD': 'lg', 'CONDUCTOR': 'cd', 'SHAD AND CHENOA': 's', 'BARKER': 'br', 'REX': 'mech', 'LUMBERJACK': 'lj', 'PROFESSOR STATIC': 'ps', 'DRIZZLE': 'dz' };
+  'LIFEGUARD': 'lg', 'CONDUCTOR': 'cd', 'SHAD AND CHENOA': 's', 'BARKER': 'br', 'REX': 'mech', 'LUMBERJACK': 'lj', 'PROFESSOR STATIC': 'ps', 'DRIZZLE': 'dz', 'ANNIE': 'a', 'AMANDEEP': 'a' };
 function speakerOf(html, who) {
   const m = /^<b>([^<:(]+?)\s*(?:\([^)]*\))?:<\/b>/.exec(html || '');
   if (!m) return null;
@@ -2653,7 +2713,7 @@ function moodOf(html, fallback) {
   return fallback || 'n';
 }
 /* each voice: [pitch Hz, wave]; one short beep every couple of letters, like old game text */
-const VOICES = { k: [540, 'square'], m: [700, 'triangle'], c: [820, 'square'], d: [300, 'square'], s: [390, 'square'], n: [250, 'sawtooth'], b: [460, 'square'], mech: [980, 'square'], f: [270, 'sawtooth'], lg: [760, 'triangle'], cd: [330, 'square'], br: [420, 'sawtooth'], lj: [180, 'square'], ps: [880, 'square'], dz: [110, 'sawtooth'] };
+const VOICES = { k: [540, 'square'], m: [700, 'triangle'], c: [820, 'square'], d: [300, 'square'], s: [390, 'square'], n: [250, 'sawtooth'], b: [460, 'square'], mech: [980, 'square'], f: [270, 'sawtooth'], lg: [760, 'triangle'], cd: [330, 'square'], br: [420, 'sawtooth'], lj: [180, 'square'], ps: [880, 'square'], dz: [110, 'sawtooth'], a: [760, 'triangle'] };
 let typing = null;
 function tokenizeHTML(html) {
   const out = [], re = /(<[^>]+>|&[a-z#0-9]+;)/gi;
@@ -3185,6 +3245,17 @@ function activateDinoFriend(kind) {
   toast(kind === 'brachiosaurus' ? '<b>BRACHIOSAURUS:</b> A long-neck bridge to the next ledge!' : '<b>STEGOSAURUS:</b> Plated steps for Kinan!', 1800);
   SFX.power();
 }
+function drawConveyor() {
+  if (!LV[L.i].conveyor) return;
+  const y = GROUND * T + 4, offset = (L.conveyorOffset || 0) % 24;
+  ctx.fillStyle = '#2b2f45'; ctx.fillRect(0, y, W, 7);
+  ctx.fillStyle = '#9aa1ab'; ctx.fillRect(0, y, W, 1);
+  ctx.fillStyle = '#f6c445';
+  for (let x = -24 + offset; x < W + 24; x += 24) {
+    ctx.fillRect(Math.round(x), y + 3, 8, 1);
+    ctx.fillRect(Math.round(x + 6), y + 2, 2, 3);
+  }
+}
 function drawDinoFriend() {
   if (!LV[L.i].dinoFriend || !cpHit || !L.checkpoint) return;
   const x = L.checkpoint.tx * T - Math.round(camX), y = (L.checkpoint.ty - 1) * T - 28;
@@ -3272,6 +3343,15 @@ function updateWorld() {
       pop(bag.x, bag.y - 10, dog ? 'WOOF! +5' : 'MEOW! +5', 50, '#f6c445'); sparks(bag.x + 8, bag.y + 8, 18, ['#f6c445', '#fff', '#7be3a3']);
     }
   }
+  if (LV[L.i].rhythm && boss === 'fight' && frame % 120 === 0) {
+    L.rhythmPhase = (L.rhythmPhase || 0) + 1;
+    AudioSys.tone(160, 0.07, { type: 'sine', vol: 0.06, slide: 40 });
+    if (L.rhythmPhase % 2 === 0) {
+      P.rush = Math.max(P.rush, 30);
+      pop(P.x, P.y - 14, 'DHOL BEAT!', 26, '#f6c445');
+    }
+  }
+  if (LV[L.i].conveyor) L.conveyorOffset = (L.conveyorOffset || 0) + 0.35;
   for (const p of pops) { p.t--; p.y -= 0.55; }
   pops = pops.filter((p) => p.t > 0);
   for (const p of parts) {
@@ -3326,7 +3406,7 @@ function drawBuildPads() {
     for (let k = 0; k < 3; k++) ctx.fillRect(sx + k * 5, sy + 12, 4, 4);
     if (Math.abs(P.x - p.x) < 44) {
       ctx.fillStyle = '#f4f1e8'; ctx.font = 'bold 8px monospace'; ctx.textAlign = 'center';
-      ctx.fillText('E BUILD', sx + 8, sy + 4);
+      ctx.fillText(worldOf(L.i) === 9 ? 'E FORCE' : 'E BUILD', sx + 8, sy + 4);
     }
   }
 }
@@ -3770,7 +3850,12 @@ function updateFoes() {
    ============================================================ */
 function updateShots() {
   if (worldOf(L.i) === 7 && shots.length > 4) shots.splice(0, shots.length - 4);
+  if (LV[L.i].laserTutorial && !L.laserHintDone && shots.length) {
+    L.laserHintDone = true;
+    toast('<b>LASER SCHOOL:</b> Tap POW as a shot reaches you to deflect it.', 2300);
+  }
   for (const s of shots) {
+    if (LV[L.i].laserTutorial) { s.vx = clamp(s.vx, -1.5, 1.5); s.vy = clamp(s.vy, -4, 4); }
     if (s.kind === 'wave') { s.x += s.vx; s.y = GROUND * T - s.h; s.life--; }
     else { s.vy += s.g; s.x += s.vx; s.y += s.vy; s.life--; }
     if (s.bounce) {
@@ -3822,7 +3907,7 @@ function updateShots() {
 const BOSS_NAMES = { mom: 'MOM', chenoa: 'CHENOA', mech: 'MEGA-MECH', neighbour: 'NEIGHBOUR', bully: 'BIG KID',
   moose: 'BULL MOOSE', foreman: 'SAFETY FOREMAN', pumpjack: 'PUMPJACK PETE', dadboss: 'HYDRO VAC DAD', bronco: 'BRONCO', rodeo: 'BRONCO', barker: 'CARNIVAL BARKER', rex: 'REX', bananaslug: 'BANANA SLUG', lumberjack: 'LUMBERJACK CHAMP', static: 'PROFESSOR STATIC', drizzle: 'DRIZZLE',
   lifeguard: 'LIFEGUARD', conductor: 'COASTER CONDUCTOR', supchenoa: '🍽️ CHENOA', shadboss: '👷 SHAD' };
-function bossName(b) { return BOSS_NAMES[b.kind] || 'BOSS'; }
+function bossName(b) { if (b.kind === 'supchenoa' && LV[L.i] && LV[L.i].boss && LV[L.i].boss.annie) return '🫓 ANNIE'; return BOSS_NAMES[b.kind] || 'BOSS'; }
 function makeBoss(kind, x, hp, prop) {
   const sizes = { mom: [14, 22], chenoa: [12, CH_H], mech: [28, 34], neighbour: [14, 22], bully: [14, 22], moose: [36, 32], foreman: [14, 22], pumpjack: [28, 34], dadboss: [14, 22], lifeguard: [14, 22], conductor: [24, 26], supchenoa: [12, CH_H], shadboss: [14, 22], bronco: [32, 26], rodeo: [32, 26], barker: [14, 22], rex: [30, 34], bananaslug: [40, 18], lumberjack: [14, 22], static: [14, 22], drizzle: [48, 26] };
   const s = sizes[kind] || [12, 18];
@@ -5988,6 +6073,7 @@ function drawBoss(b) {
   else if (b.kind === 'dadboss') drawDadBoss(b, sx, sy);
   else if (b.kind === 'lifeguard') drawLifeguard(b, sx, sy);
   else if (b.kind === 'conductor') drawConductor(b, sx, sy);
+  else if (b.kind === 'supchenoa' && LV[L.i].boss && LV[L.i].boss.annie) drawAnnie(b, sx, sy);
   else if (b.kind === 'supchenoa') drawSupChenoa(b, sx, sy);
   else if (b.kind === 'shadboss') drawShadBoss(b, sx, sy);
   else if (b.kind === 'bronco' || b.kind === 'rodeo') drawBull(b, sx, sy);
@@ -6041,9 +6127,15 @@ function drawShots() {
       ctx.fillStyle = s.color || '#ff4fa3';
       ctx.beginPath(); ctx.arc(sx + 4, sy + 4, 4, 0, 6.284); ctx.fill();
     } else if (s.kind === 'plate') {
-      ctx.fillStyle = '#c9c9cf'; ctx.beginPath(); ctx.ellipse(sx + 4, sy + 5, 5, 3, 0, 0, 6.284); ctx.fill();
-      ctx.fillStyle = '#f4f1e8'; ctx.beginPath(); ctx.ellipse(sx + 4, sy + 4, 5, 3, 0, 0, 6.284); ctx.fill();
-      ctx.fillStyle = '#3fa9f5'; ctx.fillRect(sx + 2, sy + 3, 4, 1);
+      if (LV[L.i].boss && LV[L.i].boss.annie) {
+        ctx.fillStyle = '#e0b84a'; ctx.beginPath(); ctx.ellipse(sx + 4, sy + 5, 6, 3, 0, 0, 6.284); ctx.fill();
+        ctx.fillStyle = '#f6c445'; ctx.beginPath(); ctx.ellipse(sx + 4, sy + 4, 6, 3, 0, 0, 6.284); ctx.fill();
+        ctx.fillStyle = '#a8692e'; ctx.fillRect(sx + 1, sy + 3, 1, 1); ctx.fillRect(sx + 6, sy + 2, 1, 1); ctx.fillRect(sx + 5, sy + 5, 1, 1);
+      } else {
+        ctx.fillStyle = '#c9c9cf'; ctx.beginPath(); ctx.ellipse(sx + 4, sy + 5, 5, 3, 0, 0, 6.284); ctx.fill();
+        ctx.fillStyle = '#f4f1e8'; ctx.beginPath(); ctx.ellipse(sx + 4, sy + 4, 5, 3, 0, 0, 6.284); ctx.fill();
+        ctx.fillStyle = '#3fa9f5'; ctx.fillRect(sx + 2, sy + 3, 4, 1);
+      }
     } else if (s.kind === 'paper') {
       ctx.fillStyle = '#f4f1e8'; ctx.fillRect(sx, sy, 8, 6);
       ctx.fillStyle = 'rgba(0,0,0,.25)'; ctx.fillRect(sx + 1, sy + 2, 6, 1); ctx.fillRect(sx + 1, sy + 4, 4, 1);
@@ -6206,6 +6298,7 @@ function draw() {
   drawTiles(th);
   drawProps(th);
   drawBuildPads();
+  drawConveyor();
   drawDinoFriend();
   drawVaderScout();
   drawGoal();
@@ -6670,7 +6763,8 @@ const WORLDS = [
 ];
 WORLDS.push({ n: 7, name: 'Kinan vs. the Brick Realms', where: 'LEGO brick builds and BRICK-REX', from: 57, to: 61 });
 WORLDS.push({ n: 8, name: 'Kinan vs. the Prehistoric', where: 'Badlands, fossils and dinosaur friends', from: 62, to: 66 });
-for (let n = 9; n <= 11; n++) WORLDS.push({ n: n, name: 'World ' + n, where: 'being built', from: -1, to: -1, soon: true });
+WORLDS.push({ n: 9, name: 'Kinan vs. the Starbase', where: 'Star Wars inspiration and Annie’s arrival', from: 67, to: 71 });
+for (let n = 10; n <= 11; n++) WORLDS.push({ n: n, name: 'World ' + n, where: 'being built', from: -1, to: -1, soon: true });
 const CODE_SALT = '38c60e5665866a0e';
 const CODE_HASH = {'2': '9ad410626f9342abc9682aec5aa5e01d6092ccb2d00b216ca8e8e56f191acbdb', '3': '2cc4446b83762f35763d948917db7518994a710291fd78f559ffb370bb1fdf09', '4': 'cd961045d7d2a30a4e590a3f2998e9b52f7931c3822b33e4d56567ef6e4a8fae', '5': '26bb21be1bec703f8ac1e2cd2b273bcadfa35c2aadbe708b84c32be340d10dba', '6': '8a20c57f7f6150912709d8a4d745f4330114d60a01deacc4268bf201f777f6f9', '7': '99f2c87e392edb24489bcecc48a065cf857a70f7a7412410f00c1f72b0babbb2', '8': '42650263170026ab707abd47791545eb75ab75d832f45d42a3542b10db757560', '9': '8ca4b0034588262258e6209e44e9f3e5a7d6ec5cc581c01eac7d04f42c5c8512', '10': 'e91ae5fd91428cd7c323dd3481612276a7a26113fc9b5e128dec8cbb8da042bf', '11': 'e69c5eeadaa728ec6e6c67b9ec066aac7babfc18030d0f6e7b05291d67e0d282'};
 const worldOf = (i) => { if (i === 51) return 6; let n = 1; for (const w of WORLDS) if (!w.soon && i >= w.from) n = w.n; return n; };
@@ -7932,6 +8026,17 @@ function drawConductor(b, sx, sy) {
   ctx.textAlign = 'center';
   if (b.state === 'stall') { ctx.font = '10px sans-serif'; ctx.fillText('💫', Math.round(cx + Math.sin(frame / 30) * 3), sy - 6); }
   else if (b.state === 'windup') { ctx.fillStyle = '#ff6b6b'; ctx.font = 'bold 11px monospace'; ctx.fillText('!', Math.round(cx), sy - 6); }
+}
+function drawAnnie(b, sx, sy) {
+  const walking = Math.abs(b.vx) > 0.2 && b.onGround, cx = sx + b.w / 2;
+  drawBig(walking && Math.floor(frame / 14) % 2 ? SP.annieWalk : SP.annieStand, cx, sy + b.h, b.face, 1);
+  if (b.state === 'windup' || b.state === 'charge') {
+    ctx.strokeStyle = '#f6c445'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.ellipse(Math.round(cx + b.face * 10), sy + 7, 6, 2.5, 0, 0, 6.284); ctx.stroke();
+    for (let k = 0; k < 3; k++) { ctx.fillStyle = '#d98a3d'; ctx.fillRect(Math.round(cx - 8 + k * 7), sy + 18, 3, 3); }
+  }
+  ctx.textAlign = 'center';
+  if (b.state === 'windup') { ctx.fillStyle = '#ff6fae'; ctx.font = 'bold 11px monospace'; ctx.fillText('!', Math.round(cx), sy - 5); }
 }
 function drawSupChenoa(b, sx, sy) {
   const walking = Math.abs(b.vx) > 0.2 && b.onGround, cx = sx + b.w / 2;
@@ -13955,6 +14060,13 @@ const WM_PATHS = {
     { at: [196, 88], via: [[152, 108]] },                     /* Brachiosaurus River */
     { at: [282, 126], via: [[238, 104]] },                    /* Raptor Canyon */
     { at: [372, 154], via: [[328, 140]] }                     /* Alpha T-Rex nest */
+  ],
+  9: [
+    { at: [48, 72] },                                         /* Twin-Sun Outpost */
+    { at: [118, 120], via: [[82, 96]] },                      /* Droid Factory and Hangar */
+    { at: [202, 82], via: [[158, 102]] },                     /* Starbase Laser Corridors */
+    { at: [290, 126], via: [[244, 102]] },                    /* 2D Trench Run */
+    { at: [378, 148], via: [[334, 138]] }                     /* Annie's Galactic Kitchen */
   ]
 };
 /* the road trip: the 11 cities on a map of Canada (Worlds 3-11 are planned, not built yet) */
@@ -14674,6 +14786,25 @@ window.__k11 = window.__k11DevOnly() ? {
     return { vx: P.vx, vy: P.vy, hp: P.hp };
   },
   progress: () => JSON.parse(JSON.stringify(progress)),
+  world9Info: () => ({ stage: L && L.i, world: L ? worldOf(L.i) : null, place: L ? LV[L.i].place : null,
+    laserTutorial: L ? !!LV[L.i].laserTutorial : false, forcePads: L && L.buildPads ? L.buildPads.length : 0,
+    rhythm: L ? !!LV[L.i].rhythm : false, conveyor: L ? !!LV[L.i].conveyor : false,
+    annie: L && LV[L.i].boss ? !!LV[L.i].boss.annie : false }),
+  world9Laser: () => {
+    shots = [{ kind: 'bolt', x: P.x + 160, y: P.y - 30, w: 6, h: 6, vx: 9, vy: 0, g: 0, life: 60 }];
+    updateShots();
+    return { slow: shots.length === 0 || Math.abs(shots[0].vx) <= 1.5, hint: !!L.laserHintDone, remaining: shots.length };
+  },
+  world9Force: () => {
+    const pad = L.buildPads[0];
+    if (!pad) return { built: 0, bricks: 0 };
+    P.x = pad.x; P.y = pad.y; P.face = 1;
+    const result = callMilo();
+    return { recipe: pad.recipe, result, built: friendPlatforms.length, bricks: friendPlatforms.length };
+  },
+  world9Rhythm: () => { frame = 120; updateWorld(); return { phase: L.rhythmPhase || 0, offset: L.conveyorOffset || 0, rush: P.rush, boss: boss }; },
+  world9Art: () => ({ speaker: SPEAKERS.ANNIE, portrait: portraitFor('a', 'n').startsWith('data:image/'), sprite: SP.annieStand.width > 0,
+    title: LV[71].boss.title, annie: !!LV[71].boss.annie, finalWorld: LV[71].finalWorld, path: WM_PATHS[9].length }),
   defaults: () => JSON.parse(JSON.stringify(DEFAULT_PROGRESS)),
   petSpot: () => (crate ? { x: crate.x, y: crate.y, pet: crate.pet } : null),
   toPet: () => { if (crate) { P.x = crate.x; P.y = crate.y; P.vx = 0; P.vy = 0; } },

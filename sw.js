@@ -1,5 +1,5 @@
 /* Kinan vs. Mom - offline cache */
-const CACHE = 'kinan-vs-mom-v24';   /* v24: World 8 dinosaur friends and Alpha reunion */
+const CACHE = 'kinan-vs-mom-v25';   /* v25: World 9 Starbase stages and Annie's kitchen cook-off */
 const ASSETS = [
   './',
   './index.html',

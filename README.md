@@ -4,7 +4,7 @@ An expanding birthday platformer made by Shad for Kinan.
 
 **Play online:** https://albertancoder.github.io/kinan-vs-mom/
 
-- Original five worlds plus five new 2D Vancouver stages and Drizzle’s rainbow finale; more worlds in active development
+- Original five worlds plus Vancouver, LEGO Brick Realms, prehistoric dinosaurs, and Starbase & Annie’s Arrival; more worlds in active development
 - 4 cats and 2 dogs to rescue — equip one cat and one dog, or go solo; only equipped pets follow and grant their perks.
 - Stars, hats, best times, combo scoring, touch + keyboard + gamepad
 - Installable on iPhone, iPad, Android and tablets; works offline after the first load

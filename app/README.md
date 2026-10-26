@@ -62,6 +62,14 @@
 > T-Rex reunion. `tests/e2e/legacy-world8.spec.ts` covers the map, Brachiosaurus
 > platform behavior, all stages, and completion without a 3D morph.
 >
+> **World 9 — Starbase & Annie’s Arrival:** five real 2D stages add safe laser
+> deflection tutorials, Force-marked runway build pads, conveyor/rhythm effects,
+> and Annie’s heroic Galactic Kitchen cook-off with roti deflection. Her arrival
+> uses a dedicated sprite, portrait speaker, and nonlethal finale.
+> `tests/e2e/legacy-world9.spec.ts` covers map access, every stage, both tutorial
+> mechanics, Annie’s art/data, rhythm/conveyor updates, completion/unlock, and
+> the absence of an early 3D morph.
+>
 > The original skeleton notes are kept below for history.
 
 ---
