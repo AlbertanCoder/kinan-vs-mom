@@ -537,6 +537,11 @@ html.sideways .stage{max-width:100%}
 #wmPrev,#wmNext{min-width:52px;font-size:17px}
 @keyframes playpulse{50%{filter:brightness(1.12)}}
 @media (prefers-reduced-motion:reduce){#wmPlay{animation:none}}
+/* the persistent post-World-10 UI upgrade: beating the Birthday Multiverse turns the whole UI gold */
+html.tier2 .btn.go,html.tier2 .modebtn.go{background:linear-gradient(180deg,#ffd76a,#e0a52e);color:#241a05}
+html.tier2 .maptitle,html.tier2 h1.title{text-shadow:0 2px 0 rgba(0,0,0,.45),0 0 18px rgba(246,196,69,.45)}
+html.tier2 .worldtab.on{box-shadow:inset 0 0 0 1px var(--gold),0 4px 16px rgba(246,196,69,.35)}
+html.tier2 .iconbtn{border-color:var(--gold)}
 
 
 /* ============================================================
@@ -2088,6 +2093,83 @@ LV.push(
   })
 );
 
+/* World 11 (the last world): "Kinan vs. the Glitch" — the tiny portal from the World 10
+   finale sneezes and the world gains DEPTH (look3d = flat-plane 3D: extruded blocks and
+   shadows while gravity stays straight down — NEVER the archived galaxy3d morph). Glitchy
+   is the tiny one who freaks out. Ends with the game-finale cinematic (saved like World 10). */
+LV.push(
+  expandedStage({
+    place: 'The Wrong-Way Portal', bg: 'night', world: 11, look3d: true,
+    sky: ['#141232', '#4a2f8a'], far: '#241f52', mid: '#332a6e', ground: '#2a2456', top: '#7be3a3', brick: '#4a3f8a', accent: '#ff6fae',
+    foes: ['sock', 'lego', 'raincloud'],
+    intro: [
+      'The tiny portal from the birthday party follows Kinan home... and then it SNEEZES.',
+      '<b>???:</b> AAAAAA! THE DIMENSION! IT IS THE WRONG ONE! IT HAS <i>DEPTH</i> NOW!',
+      'A tiny pixel creature tumbles out. This is GLITCHY, and they are having a VERY bad day.',
+      '<b>KINAN:</b> Whoa... why does everything look... 3D? THE GROUND HAS SIDES!',
+      '<b>GLITCHY:</b> DO NOT PANIC. I am panicking ENOUGH FOR BOTH OF US.',
+      'The blocks are real blocks now, with tops and sides. Gravity is still straight down — but the world looks like a diorama come alive.',
+      '<b>KINAN:</b> Okay. Deep breath. Let us get you home and fix this — together.'
+    ],
+    boss: null,
+    win: ['The first anchor point holds steady. Glitchy floats ahead, sparking nervously.', '<b>GLITCHY:</b> Four more anchors and I NEVER have to look at a dimension again!'],
+    meanwhile: 'Dad pokes a 3D block. "It has a SIDE, Debbie. A whole side."'
+  }),
+  expandedStage({
+    place: 'Depth Drop Caverns', bg: 'dig', world: 11, look3d: true,
+    sky: ['#20143c', '#5a3a9a'], far: '#2f2470', mid: '#44359a', ground: '#332a6e', top: '#c88aff', brick: '#6a4fc0', accent: '#7be3a3',
+    foes: ['sock', 'umbrellabat', 'lego'],
+    intro: ['The caverns have bottomless drops... and every ledge has DEPTH now, so you can see exactly how far down "down" is.', '<b>GLITCHY:</b> Do NOT look into the drop. I looked. I did NOT enjoy.'],
+    boss: null,
+    win: ['The cavern echo says "nice jump" in Glitchy\'s voice.', '<b>KINAN:</b> Was that the echo or you?', '<b>GLITCHY:</b> ...The echo.'],
+    meanwhile: 'Mom packs snacks for a dimension that "has sides".'
+  }),
+  expandedStage({
+    place: 'Backwards Boulevard', bg: 'whyte', world: 11, look3d: true,
+    sky: ['#1c2050', '#6a4fa8'], far: '#2c2f6e', mid: '#404090', ground: '#33346e', top: '#f6c445', brick: '#6a5fc0', accent: '#ff6fae',
+    foes: ['rollerblader', 'seagull', 'busker'],
+    intro: ['On this street everything runs backwards: the traffic, the music, even the high-fives.', '<b>GLITCHY:</b> My home street! ...It looks TERRIBLE in 3D. Keep moving!'],
+    boss: null,
+    win: ['The boulevard snaps back to forwards with a polite "pardon us".', '<b>KINAN:</b> Backwards is EXHAUSTING.'],
+    meanwhile: 'Shad tries a backwards high-five. It works perfectly.'
+  })
+);
+
+LV.push(
+  expandedStage({
+    place: 'The Portal Machine', bg: 'sciencedome', world: 11, look3d: true,
+    sky: ['#10204a', '#3a6fd8'], far: '#1c3a7a', mid: '#2a4f9a', ground: '#243f7e', top: '#7be3a3', brick: '#3f7de0', accent: '#f6c445',
+    foes: ['lego', 'raincloud', 'umbrellabat'],
+    intro: ['The machine that keeps dimensions glued together is HUGE, humming, and very clearly in the wrong order.', '<b>GLITCHY:</b> Re-seat the four big cogs and do NOT press the shiny red button. Nobody press it.'],
+    boss: null,
+    win: ['The machine purrs. The last anchor is one rooftop away.', '<b>KINAN:</b> Nobody pressed the red button.', '<b>GLITCHY:</b> ...Correct.'],
+    meanwhile: 'The shiny red button feels very unappreciated.'
+  }),
+  expandedStage({
+    place: "Glitchy's Last Stand", bg: 'storm', world: 11, look3d: true,
+    sky: ['#241442', '#8a4fc0'], far: '#3a2470', mid: '#54349a', ground: '#3f2a72', top: '#ff6fae', brick: '#7a4fc0', accent: '#7be3a3',
+    foes: ['umbrellabat', 'lego', 'sock'],
+    intro: ['The last anchor sits on the rooftop — and Glitchy is out of calm. The whole dimension crackles with DEPTH.', '<b>GLITCHY:</b> ONE LAST FIGHT! Winner fixes the portal! No hard feelings! Probably!'],
+    boss: { kind: 'supchenoa', title: 'Glitchy — the Freaked-Out Portal Kid', prop: '🌀', hp: 9, face: 'm', glitchy: true },
+    bossIntro: ['<b>GLITCHY:</b> I DID NOT MEAN TO RENDER ANY OF THIS!', '<b>KINAN:</b> It is okay! Let us fix it together — nicely!'],
+    taunts: ['STOP LOOKING AT ME WITH DEPTH!', 'I AM SO CALM RIGHT NOW!', 'THE ANCHORS! ALMOST! THERE!', 'THIS IS THE WORST BIRTHDAY-ADJACENT DAY OF MY LIFE!'],
+    win: ['<b>GLITCHY:</b> ...Whew. Thank you for not panicking FOR me.', 'The portal hums, folds, and pops back to its tiny harmless self.'],
+    finalWorld: 11,
+    cinematicId: 'w11-finale',
+    cinematic: [
+      '<b>GLITCHY:</b> I am calm. I am SO calm. I am the calmest creature in every dimension.',
+      'The tiny portal yawns once, folds the deep dimension away... and keeps a LITTLE of the depth. Just a souvenir.',
+      '<b>KINAN:</b> You fixed it, Glitchy!',
+      '<b>GLITCHY:</b> WE fixed it. Also I am keeping the depth. It makes everything look EXPENSIVE.',
+      'Everyone squeezes through the tiny portal home: Dad, Shad, Chenoa, Robin, the pets, both Grandmothers (with cake), and Mom.',
+      '<b>MOM:</b> Cake. NOW. Before another dimension opens.',
+      '<b>KINAN:</b> Best. Birthday. EVER. ...In EVERY dimension!',
+      'THE END — happy birthday, Kinan!'
+    ],
+    meanwhile: 'The kitchen reports the cake survived the entire multiverse. Miracles happen.'
+  })
+);
+
 const FOE = {
   sock: { beh: 'walker', kind: 'sock', color: '#c9c2d8' },
   teddy: { beh: 'walker', kind: 'teddy', color: '#b07a4a', spd: 0.5 },
@@ -2846,7 +2928,7 @@ function portraitFor(who, mood) {
 }
 /* who is talking: a line that starts with "<b>NAME:</b>" shows that person's face and voice; narration shows Kinan, no voice */
 const SPEAKERS = { 'MOM': 'm', 'CHENOA': 'c', 'KINAN': 'k', 'ROBIN': 'd', 'DAD': 'd', 'SHAD': 's', 'NOSY NEIGHBOUR': 'n', 'NEIGHBOUR': 'n', 'BIG KID': 'b', 'MEGA-MECH': 'mech', '???': 'mech', 'FOREMAN': 'f', 'SAFETY FOREMAN': 'f', 'PUMPJACK PETE': 'mech',
-  'LIFEGUARD': 'lg', 'CONDUCTOR': 'cd', 'SHAD AND CHENOA': 's', 'BARKER': 'br', 'REX': 'mech', 'LUMBERJACK': 'lj', 'PROFESSOR STATIC': 'ps', 'DRIZZLE': 'dz', 'ANNIE': 'a', 'AMANDEEP': 'a', 'GRANDMOTHERS': 'm' };
+  'LIFEGUARD': 'lg', 'CONDUCTOR': 'cd', 'SHAD AND CHENOA': 's', 'BARKER': 'br', 'REX': 'mech', 'LUMBERJACK': 'lj', 'PROFESSOR STATIC': 'ps', 'DRIZZLE': 'dz', 'ANNIE': 'a', 'AMANDEEP': 'a', 'GRANDMOTHERS': 'm', 'GLITCHY': 'mech' };
 function speakerOf(html, who) {
   const m = /^<b>([^<:(]+?)\s*(?:\([^)]*\))?:<\/b>/.exec(html || '');
   if (!m) return null;
@@ -4086,7 +4168,7 @@ function updateShots() {
 const BOSS_NAMES = { mom: 'MOM', chenoa: 'CHENOA', mech: 'MEGA-MECH', neighbour: 'NEIGHBOUR', bully: 'BIG KID',
   moose: 'BULL MOOSE', foreman: 'SAFETY FOREMAN', pumpjack: 'PUMPJACK PETE', dadboss: 'HYDRO VAC DAD', bronco: 'BRONCO', rodeo: 'BRONCO', barker: 'CARNIVAL BARKER', rex: 'REX', bananaslug: 'BANANA SLUG', lumberjack: 'LUMBERJACK CHAMP', static: 'PROFESSOR STATIC', drizzle: 'DRIZZLE',
   lifeguard: 'LIFEGUARD', conductor: 'COASTER CONDUCTOR', supchenoa: '🍽️ CHENOA', shadboss: '👷 SHAD' };
-function bossName(b) { if (b.kind === 'supchenoa' && LV[L.i] && LV[L.i].boss) { if (LV[L.i].boss.annie) return '🫓 ANNIE'; if (LV[L.i].boss.grandmas) return '👵 THE GRANDMOTHERS'; } return BOSS_NAMES[b.kind] || 'BOSS'; }
+function bossName(b) { if (b.kind === 'supchenoa' && LV[L.i] && LV[L.i].boss) { if (LV[L.i].boss.annie) return '🫓 ANNIE'; if (LV[L.i].boss.grandmas) return '👵 THE GRANDMOTHERS'; if (LV[L.i].boss.glitchy) return '👾 GLITCHY'; } return BOSS_NAMES[b.kind] || 'BOSS'; }
 function makeBoss(kind, x, hp, prop) {
   const sizes = { mom: [14, 22], chenoa: [12, CH_H], mech: [28, 34], neighbour: [14, 22], bully: [14, 22], moose: [36, 32], foreman: [14, 22], pumpjack: [28, 34], dadboss: [14, 22], lifeguard: [14, 22], conductor: [24, 26], supchenoa: [12, CH_H], shadboss: [14, 22], bronco: [32, 26], rodeo: [32, 26], barker: [14, 22], rex: [30, 34], bananaslug: [40, 18], lumberjack: [14, 22], static: [14, 22], drizzle: [48, 26] };
   const s = sizes[kind] || [12, 18];
@@ -6252,6 +6334,7 @@ function drawBoss(b) {
   else if (b.kind === 'dadboss') drawDadBoss(b, sx, sy);
   else if (b.kind === 'lifeguard') drawLifeguard(b, sx, sy);
   else if (b.kind === 'conductor') drawConductor(b, sx, sy);
+  else if (b.kind === 'supchenoa' && LV[L.i].boss && LV[L.i].boss.glitchy) drawGlitchy(b, sx, sy);
   else if (b.kind === 'supchenoa' && LV[L.i].boss && LV[L.i].boss.grandmas) drawGrandmothers(b, sx, sy);
   else if (b.kind === 'supchenoa' && LV[L.i].boss && LV[L.i].boss.annie) drawAnnie(b, sx, sy);
   else if (b.kind === 'supchenoa') drawSupChenoa(b, sx, sy);
@@ -6447,6 +6530,33 @@ function drawVignette(light) {
   }
   ctx.drawImage(vignettes[k], 0, 0);
 }
+/* World 11's flat-plane 3D look: every exposed tile face gains depth (light top face,
+   dark right side) so the level reads as extruded blocks — while gravity, collision and
+   every gameplay rule stay perfectly FLAT (this is never the archived galaxy3d morph). */
+function drawFlat3D(th) {
+  const up = L.up | 0;
+  const x0 = Math.max(0, Math.floor(camX / T) - 1), x1 = Math.min(L.w - 1, Math.ceil((camX + viewW) / T) + 1);
+  const y0 = up ? Math.max(-up, Math.floor(camY / T)) : 0, y1 = up ? Math.min(ROWS - 1, Math.floor((camY + viewH) / T)) : ROWS - 1;
+  for (let ty = y0; ty <= y1; ty++) {
+    for (let tx = x0; tx <= x1; tx++) {
+      if (!L.g[(ty + up) * L.w + tx]) continue;
+      const sx = tx * T - Math.round(camX), sy = ty * T;
+      if (!solid(tx, ty - 1)) {   /* a light top face on every exposed block */
+        ctx.fillStyle = 'rgba(255,255,255,.22)'; ctx.fillRect(sx, sy - 4, T, 4);
+        ctx.fillStyle = 'rgba(255,255,255,.38)'; ctx.fillRect(sx, sy - 4, T, 1);
+        ctx.fillStyle = 'rgba(0,0,0,.20)'; ctx.fillRect(sx, sy - 1, T, 1);
+      }
+      if (!solid(tx + 1, ty)) {   /* a dark side face on every exposed right edge */
+        ctx.fillStyle = 'rgba(0,0,0,.26)'; ctx.fillRect(sx + T - 4, sy - 4, 4, T + 4);
+      }
+    }
+  }
+  const g = ctx.createLinearGradient(0, 0, 0, H);   /* the nearer (lower) scene sits in soft shadow */
+  g.addColorStop(0, 'rgba(0,0,0,0)');
+  g.addColorStop(1, 'rgba(6,4,18,.22)');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, W, H);
+}
 function draw() {
   if (builder) { drawBuilder(); return; }
   if (kart) { drawKart(); return; }
@@ -6476,6 +6586,7 @@ function draw() {
   }
   if (cy) { ctx.save(); ctx.translate(0, -cy); }
   drawTiles(th);
+  if (L.look3d) drawFlat3D(th);
   drawProps(th);
   drawBuildPads();
   drawConveyor();
@@ -6945,7 +7056,7 @@ WORLDS.push({ n: 7, name: 'Kinan vs. the Brick Realms', where: 'LEGO brick build
 WORLDS.push({ n: 8, name: 'Kinan vs. the Prehistoric', where: 'Badlands, fossils and dinosaur friends', from: 62, to: 66 });
 WORLDS.push({ n: 9, name: 'Kinan vs. the Starbase', where: 'Star Wars inspiration and Annie’s arrival', from: 67, to: 71 });
 WORLDS.push({ n: 10, name: 'Kinan vs. the Birthday Multiverse', where: 'every birthday, all at once', from: 72, to: 76 });
-for (let n = 11; n <= 11; n++) WORLDS.push({ n: n, name: 'World ' + n, where: 'being built', from: -1, to: -1, soon: true });
+WORLDS.push({ n: 11, name: 'Kinan vs. the Glitch', where: 'the deep dimension behind the wrong-way portal', from: 77, to: 81 });
 const CODE_SALT = '38c60e5665866a0e';
 const CODE_HASH = {'2': '9ad410626f9342abc9682aec5aa5e01d6092ccb2d00b216ca8e8e56f191acbdb', '3': '2cc4446b83762f35763d948917db7518994a710291fd78f559ffb370bb1fdf09', '4': 'cd961045d7d2a30a4e590a3f2998e9b52f7931c3822b33e4d56567ef6e4a8fae', '5': '26bb21be1bec703f8ac1e2cd2b273bcadfa35c2aadbe708b84c32be340d10dba', '6': '8a20c57f7f6150912709d8a4d745f4330114d60a01deacc4268bf201f777f6f9', '7': '99f2c87e392edb24489bcecc48a065cf857a70f7a7412410f00c1f72b0babbb2', '8': '42650263170026ab707abd47791545eb75ab75d832f45d42a3542b10db757560', '9': '8ca4b0034588262258e6209e44e9f3e5a7d6ec5cc581c01eac7d04f42c5c8512', '10': 'e91ae5fd91428cd7c323dd3481612276a7a26113fc9b5e128dec8cbb8da042bf', '11': 'e69c5eeadaa728ec6e6c67b9ec066aac7babfc18030d0f6e7b05291d67e0d282'};
 const worldOf = (i) => { if (i === 51) return 6; let n = 1; for (const w of WORLDS) if (!w.soon && i >= w.from) n = w.n; return n; };
@@ -7079,6 +7190,7 @@ function codeScreen(back) {
 async function endingWorld(n) {
   progress.wonWorlds = progress.wonWorlds || [];
   if (progress.wonWorlds.indexOf(n) < 0) progress.wonWorlds.push(n);
+  if (n === 10) document.documentElement.classList.add('tier2');   /* the gold UI upgrade arrives with the multiverse win */
   const i = L.i;
   if (LV[i].cinematic) {
     /* the finale: completion, the next world's unlock and the pending-cutscene marker are all
@@ -8261,6 +8373,20 @@ function drawGrandmothers(b, sx, sy) {
   if (b.state === 'windup' || b.state === 'charge') {
     ctx.fillStyle = '#e0b84a';   /* a cookie toss */
     for (let k = 0; k < 3; k++) { ctx.beginPath(); ctx.arc(Math.round(cx - 10 + k * 10), sy + 16, 2, 0, 6.284); ctx.fill(); }
+  }
+  ctx.textAlign = 'center';
+  if (b.state === 'windup') { ctx.fillStyle = '#ff6fae'; ctx.font = 'bold 11px monospace'; ctx.fillText('!', Math.round(cx), sy - 5); }
+}
+function drawGlitchy(b, sx, sy) {
+  const walking = Math.abs(b.vx) > 0.2 && b.onGround, cx = sx + b.w / 2;
+  const jx = Math.round(Math.sin(frame / 2.3) * 1.2);   /* a nervous glitch jitter */
+  drawBig(walking && Math.floor(frame / 14) % 2 ? SP.annieWalk : SP.annieStand, cx + jx, sy + b.h, b.face, 1);
+  if ((frame >> 2) % 5 === 0) {   /* scanline glitch bars */
+    ctx.fillStyle = 'rgba(255,111,174,.65)'; ctx.fillRect(Math.round(cx - 10), sy + 3 + (frame % 9), 20, 2);
+    ctx.fillStyle = 'rgba(123,227,163,.65)'; ctx.fillRect(Math.round(cx - 8), sy + 12 + (frame % 7), 16, 2);
+  }
+  if (b.state === 'windup' || b.state === 'charge') {
+    ctx.fillStyle = '#7be3a3'; ctx.fillRect(Math.round(cx + b.face * 10), sy + 7, 4, 3);
   }
   ctx.textAlign = 'center';
   if (b.state === 'windup') { ctx.fillStyle = '#ff6fae'; ctx.font = 'bold 11px monospace'; ctx.fillText('!', Math.round(cx), sy - 5); }
@@ -14310,6 +14436,13 @@ const WM_PATHS = {
     { at: [206, 80], via: [[162, 102]] },                     /* Candy Cosmos Causeway */
     { at: [292, 124], via: [[246, 100]] },                    /* The Grandmothers' Hearth */
     { at: [380, 148], via: [[336, 138]] }                     /* The Birthday That Never Was */
+  ],
+  11: [
+    { at: [50, 70] },                                         /* The Wrong-Way Portal */
+    { at: [122, 118], via: [[86, 94]] },                      /* Depth Drop Caverns */
+    { at: [204, 78], via: [[160, 100]] },                     /* Backwards Boulevard */
+    { at: [294, 122], via: [[248, 98]] },                     /* The Portal Machine */
+    { at: [378, 150], via: [[334, 140]] }                     /* Glitchy's Last Stand */
   ]
 };
 /* the road trip: the 11 cities on a map of Canada (Worlds 3-11 are planned, not built yet) */
@@ -14926,6 +15059,7 @@ bindBuilder();
 bindWorldMap();
 AudioSys.on = progress.sound !== false;
 applyAudioPrefs();
+if (progress.wonWorlds.indexOf(10) >= 0) document.documentElement.classList.add('tier2');   /* the post-World-10 gold UI */
 applyLite();
 initPWA();
 if (IS_IOS && !IS_STANDALONE && el.install) el.install.hidden = false;
@@ -15086,6 +15220,9 @@ window.__k11 = window.__k11DevOnly() ? {
     narration: progress.narration !== false, captions: progress.captions !== false,
     clips: VO.clips ? Object.keys(VO.clips).length : 0, tts: !!window.speechSynthesis }),
   audioCue: (k) => { if (SFX[k]) SFX[k](); return { caption: $('#captions') && !$('#captions').hidden ? $('#captions').textContent : null }; },
+  world11Info: () => ({ stage: L && L.i, world: L ? worldOf(L.i) : null, place: L ? LV[L.i].place : null,
+    look3d: L ? !!LV[L.i].look3d : false, glitchy: L && LV[L.i].boss ? !!LV[L.i].boss.glitchy : false,
+    finalWorld: L ? (LV[L.i].finalWorld || 0) : 0, tier2: progress.wonWorlds.indexOf(10) >= 0, pending: progress.pendingCutscene || null }),
   defaults: () => JSON.parse(JSON.stringify(DEFAULT_PROGRESS)),
   petSpot: () => (crate ? { x: crate.x, y: crate.y, pet: crate.pet } : null),
   toPet: () => { if (crate) { P.x = crate.x; P.y = crate.y; P.vx = 0; P.vy = 0; } },

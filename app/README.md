@@ -85,6 +85,16 @@
 > controls, persistence, captions, and clip playback with `speechSynthesis`
 > removed entirely.
 >
+> **World 11 — Kinan vs. the Glitch (the last world):** the freak-out cutscene
+> opens a flat-plane 3D look (`look3d`: extruded block faces and depth shading
+> while gravity stays straight down — never the archived galaxy3d morph), five
+> stages, and the nonlethal Glitchy finale. The game-finale cinematic saves
+> completion + `pendingCutscene` BEFORE its first frame, and beating World 10
+> unlocks the persistent gold tier-2 UI (`html.tier2`).
+> `tests/e2e/legacy-world11.spec.ts` covers the map, every stage without the
+> archived engine, the flat-plane look, the Glitchy encounter, the saved
+> cinematic, and the tier-2 upgrade.
+>
 > The original skeleton notes are kept below for history.
 
 ---

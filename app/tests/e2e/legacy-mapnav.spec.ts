@@ -43,7 +43,7 @@ test.describe('Map navigation — world cards, stage chips and the stage card', 
     const errors = watchErrors(page);
     await seed(page, { unlocked: 42, beatenTo: 40, wonWorlds: [2, 3, 4], codes: [2, 3, 4, 5] }); await openMap(page);
     await expect(page.locator('.worldtab[data-world="5"]')).toHaveClass(/on/);
-    await expect(page.locator('.worldtab')).toHaveCount(10);   /* every built world has a card */
+    await expect(page.locator('.worldtab')).toHaveCount(11);   /* every built world has a card */
     await expect(page.locator('.worldtab .wtico').first()).toBeVisible();
     await expect(page.locator('.worldtab .wtp').first()).toHaveText(/\d+\/\d+/);
     await expect(page.locator('.maptitle')).toContainText('World 5');

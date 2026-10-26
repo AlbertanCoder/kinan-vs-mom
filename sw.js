@@ -1,5 +1,5 @@
 /* Kinan vs. Mom - offline cache */
-const CACHE = 'kinan-vs-mom-v28';   /* v28: natural-audio pass (channel controls, captions, clips-first voice) */
+const CACHE = 'kinan-vs-mom-v29';   /* v29: World 11 the Glitch (flat-plane 3D, saved game finale, gold tier-2 UI) */
 const ASSETS = [
   './',
   './index.html',
