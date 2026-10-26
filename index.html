@@ -197,8 +197,16 @@ h1.title .t2{display:block;font-size:clamp(24px,6.4vw,40px);color:var(--edge)}
 .petname .pcol{min-width:0;flex:1}
 .petname input{width:100%;background:transparent;border:0;border-bottom:1px dashed #3d4176;color:var(--edge);font:inherit;font-size:13px;padding:1px 0}
 .petname input:focus{outline:none;border-bottom-color:var(--gold)}
-.petname .perk{display:block;font-size:9.5px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.petname .perk{display:block;font-size:9.5px;color:var(--dim);white-space:normal;line-height:1.2}
 .petname.locked{opacity:.45}
+.petname.equipped{border-color:var(--gold);background:#262043;box-shadow:inset 0 0 0 1px rgba(246,196,69,.25)}
+.petname .slot{display:block;font-size:8.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--gold)}
+.petname .equipbtn{flex:none;min-width:62px;min-height:44px;padding:4px 6px;background:#20254a;border:2px solid var(--panel2);border-radius:5px;color:var(--edge);font:inherit;font-size:10px;font-weight:700;cursor:pointer}
+.petname.equipped .equipbtn{border-color:var(--gold);color:var(--gold)}
+.petname .equipbtn:disabled{opacity:.45;cursor:default}
+.loadout-status{margin:0;color:var(--edge);font-size:13px;font-weight:700}
+.friendbtn small{display:block;font-size:10px;color:var(--dim);margin-top:2px}
+.friendbtn[aria-pressed="true"]{border-color:var(--gold);color:var(--gold)}
 /* results */
 .starline{display:flex;gap:10px;font-size:36px;line-height:1;filter:drop-shadow(0 3px 0 rgba(0,0,0,.4))}
 .starline .off{color:#2f3363;text-shadow:0 0 0 #000}
@@ -258,13 +266,9 @@ h1.title .t2{display:block;font-size:clamp(24px,6.4vw,40px);color:var(--edge)}
   .pad{margin-top:auto}
   .rotatehint{display:block;margin-top:6px}
 }
-/* phones and tablets (touch, no mouse) play sideways: the picture takes the whole height and the see-through
-   buttons float over it, left/right on the left, JUMP + the special power (POW) on the right.
-   setOrientationUI() puts html.sideways on a touch device in landscape (and a short window), and html.rotated + html.sideways
-   on a phone or tablet held upright WHILE A STAGE OR FIGHT IS ON: then only the game view is drawn turned 90°.
-   Menus, results, the map and the online room always stay upright: a turned page cannot be scrolled with a finger. */
-.turnhint{display:none;position:absolute;right:8px;top:44px;z-index:70;margin:0;background:rgba(17,19,43,.92);border:2px solid var(--edge);border-radius:6px;padding:4px 9px;font-size:12px;color:var(--gold);pointer-events:none;animation:fadeaway 1s 7s forwards}
-@keyframes fadeaway{to{opacity:0;visibility:hidden}}
+/* Phones and tablets play in landscape with thumb controls over the picture.
+   Portrait gameplay never rotates the DOM: setOrientationUI() shows an upright,
+   safe-area-aware rotate gate and pauses play until landscape returns. */
 html.sideways{--vh:100vh}
 @supports (height:100dvh){html.sideways{--vh:100dvh}}
 html.sideways body{padding:max(5px,env(safe-area-inset-top,0px)) max(10px,env(safe-area-inset-right,0px)) max(5px,env(safe-area-inset-bottom,0px)) max(10px,env(safe-area-inset-left,0px))}
@@ -309,19 +313,21 @@ html.sideways .pausebox h2{font-size:24px}
 html.sideways .btncol{grid-template-columns:1fr 1fr;gap:6px}
 html.sideways .pause .btn{min-height:38px;font-size:14px;padding:5px 10px}
 html.sideways .pause .tiny{display:none}
-/* held upright during play: draw the game view turned 90° so turning the device gives the big picture
-   (iPhones/iPads cannot be forced into landscape by a web app) */
-html.rotated{--vh:100vw}
-@supports (width:100dvw){html.rotated{--vh:100dvw}}
-html.rotated,html.rotated body{height:100%;overflow:hidden}
-html.rotated body{padding:0;display:block}
-html.rotated .app{position:fixed;top:0;left:0;width:100vh;width:100dvh;height:100vw;height:100dvw;max-width:none;overflow:hidden;transform-origin:0 0;transform:rotate(90deg) translate(0,-100%);padding:max(5px,env(safe-area-inset-right,0px)) max(6px,env(safe-area-inset-bottom,0px)) max(5px,env(safe-area-inset-left,0px)) max(6px,env(safe-area-inset-top,0px))}
-html.rotated .turnhint{display:block}
+/* Upright portrait gate: no transform, no sideways page, no hidden live gameplay. */
+.portraitgate{position:fixed;inset:0;z-index:120;display:grid;place-items:center;padding:max(20px,env(safe-area-inset-top,0px)) max(20px,env(safe-area-inset-right,0px)) max(20px,env(safe-area-inset-bottom,0px)) max(20px,env(safe-area-inset-left,0px));background:radial-gradient(circle at 50% 35%,#29346a 0,#11152f 58%,#080a19 100%);color:var(--edge);text-align:center;touch-action:none;overscroll-behavior:none}
+.portraitgate[hidden]{display:none}
+.portraitgatebox{display:grid;justify-items:center;gap:13px;width:min(340px,100%);padding:26px 22px;background:rgba(17,19,43,.94);border:3px solid var(--gold);border-radius:18px;box-shadow:0 12px 40px rgba(0,0,0,.45)}
+.portraitphone{font-size:64px;line-height:1;animation:portraitpulse 1.6s ease-in-out infinite}
+.portraitgate h2{margin:0;font-family:var(--display);font-size:36px;line-height:1;color:var(--gold);font-weight:400}
+.portraitgate p{margin:0;font-size:16px;line-height:1.45;color:var(--edge)}
+.portraitgate small{font-size:12px;color:var(--dim)}
+@keyframes portraitpulse{50%{opacity:.45;transform:scale(1.06)}}
+@media (prefers-reduced-motion:reduce){.portraitphone{animation:none}}
 .lvbtn .gold{display:block;font-size:10.5px;color:var(--gold);letter-spacing:0;margin-top:2px;text-align:right}
 .kartrow{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin:4px 0 8px}.kartrow img{width:88px;height:auto;image-rendering:pixelated}
 .kartpick img{width:74px;height:auto;image-rendering:pixelated}
 .stage.kartmode .toast{top:calc(20% + 4px)}
-.worldtabs{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 10px}.worldtab{background:var(--panel);border:2px solid var(--panel2);border-radius:8px;color:var(--text);padding:7px 10px;font:inherit;font-size:13px;cursor:pointer;min-height:40px}.worldtab.on{border-color:var(--gold);box-shadow:inset 0 0 0 1px var(--gold)}.worldtab:disabled{opacity:.45;cursor:default}
+.worldtabs{display:flex;flex-wrap:nowrap;gap:6px;margin:4px 0 8px;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x proximity;scrollbar-width:thin;padding:2px 1px 6px}.worldtab{scroll-snap-align:center;flex:0 0 auto;min-width:118px;display:grid;gap:1px;justify-items:center;background:var(--panel);border:2px solid var(--panel2);border-radius:10px;color:var(--text);padding:6px 10px;font:inherit;font-size:13px;cursor:pointer;min-height:40px}.worldtab .wtrow{display:flex;align-items:center;gap:5px}.worldtab .wtico{font-size:17px;line-height:1}.worldtab .wtnum{font-family:var(--display);font-size:15px;font-weight:400;letter-spacing:.4px}.worldtab .wtn{display:block;font-size:11px;color:var(--dim);max-width:132px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.worldtab .wtp{display:block;font-size:10px;letter-spacing:.4px;color:var(--edge)}.worldtab.on{border-color:var(--gold);box-shadow:inset 0 0 0 1px var(--gold),0 4px 12px rgba(246,196,69,.25);background:linear-gradient(180deg,#2c2455,#191b38)}.worldtab.on .wtp{color:var(--gold)}.worldtab:hover:not(:disabled){transform:translateY(-1px);border-color:var(--edge)}.worldtab:active:not(:disabled){transform:translateY(1px)}.worldtab:disabled{opacity:.45;cursor:default}
 .lockcard{background:var(--panel);border:2px dashed var(--panel2);border-radius:10px;padding:10px 14px;margin:6px 0 10px}.codein.wide{width:min(260px,70vw);letter-spacing:.08em}
 .kwheel{display:none;touch-action:none;-webkit-user-select:none;user-select:none}.kwheel svg{width:100%;height:100%;display:block;transition:transform .05s linear}
 .pad button.spec{background:var(--panel);color:var(--gold);font-size:22px}.pad button.spec:not(:disabled){background:var(--gold);color:var(--night);animation:specglow 1s ease-in-out infinite}
@@ -336,6 +342,10 @@ html.sideways .pad button.spec:not(:disabled){opacity:.92}
 .chatquick{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px}.chatquick button{background:var(--panel);border:1px solid var(--panel2);border-radius:6px;color:var(--text);font:inherit;font-size:12px;padding:4px 6px;cursor:pointer}
 .chatform{display:flex;gap:4px}.chatform input{flex:1;min-width:0;background:#0b0d1e;border:1px solid var(--panel2);border-radius:6px;color:var(--text);font:inherit;font-size:13px;padding:5px}
 .chatform button{background:var(--gold);color:var(--night);border:0;border-radius:6px;font:inherit;font-size:12px;font-weight:700;padding:5px 8px;cursor:pointer}
+.audiobox{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:60;width:min(310px,88vw);display:grid;gap:9px;background:rgba(14,16,34,.97);border:2px solid var(--edge);border-radius:12px;padding:12px 14px;box-shadow:0 14px 34px rgba(0,0,0,.6)}
+.arow{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text)}
+.arow input[type=range]{flex:1;min-width:0}
+.captions{position:absolute;left:50%;transform:translateX(-50%);bottom:56px;z-index:8;max-width:86%;padding:4px 12px;border-radius:8px;background:rgba(10,12,26,.82);color:#f4f1e8;font-size:12px;letter-spacing:.4px;pointer-events:none;text-align:center}
 .btools{position:absolute;left:0;right:0;top:0;bottom:0;z-index:6;display:flex;flex-direction:column;gap:3px;padding:4px;pointer-events:none}
 .btools .brow{display:flex;flex-wrap:wrap;gap:3px;align-items:center;pointer-events:none}
 .btools .brow > button,.btools .brow > select{pointer-events:auto}   /* the gaps between the buttons are the level: taps go through */
@@ -457,7 +467,7 @@ html.sideways .stage{max-width:100%}
   html .logo{width:52px;height:52px}
   html .modebtn .mt{min-width:0}
   html .modebtn small{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .worldtab .wtn{display:none}
+  .worldtab .wtn{max-width:88px}
 }
 .mtool:hover{background:var(--panel2)}
 .mtool:active{transform:translateY(2px);box-shadow:0 1px 0 var(--shadow)}
@@ -471,8 +481,8 @@ html.sideways .stage{max-width:100%}
 .screen.mapmode>.scrv>.scrc{display:block;height:100%}
 .mapscr{height:100%;min-height:0;display:flex;flex-direction:column;justify-content:center;gap:7px}
 .mapsub{margin:0;font-size:12px;color:var(--dim);text-align:center}
-.maptop .worldtabs{margin:0;flex-wrap:nowrap;gap:5px}
-.maptop .worldtab{flex:1 1 0;min-width:0;min-height:38px;padding:4px 8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:12.5px}
+.maptop .worldtabs{margin:0 0 2px;flex-wrap:nowrap;gap:5px}
+.maptop .worldtab{min-width:112px;padding:4px 8px;min-height:38px}
 .mapmain{flex:0 0 auto;display:flex;flex-direction:column;gap:6px}
 .mapmain .wmap{flex:0 0 auto;margin:0;display:flex;flex-direction:column;gap:6px}
 .wmcan{flex:0 0 auto;display:flex;align-items:center;justify-content:center;overflow:hidden}
@@ -483,7 +493,7 @@ html.sideways .stage{max-width:100%}
 .mapscr .lockcard{margin:0;padding:8px 12px;font-size:13px}
 .mapscr .lockcard p{margin:0 0 4px}
 @media (orientation:landscape) and (max-height:560px){
-  .mapscr{display:grid;grid-template-columns:minmax(0,1fr) minmax(190px,31%);grid-template-rows:auto minmax(0,1fr) auto auto;grid-template-areas:"top top" "can bar" "can play" "tools tools";gap:6px 10px}
+  .mapscr{display:grid;grid-template-columns:minmax(0,1fr) minmax(190px,31%);grid-template-rows:auto minmax(0,1fr) auto auto auto;grid-template-areas:"top top" "can bar" "can play" "can chips" "tools tools";gap:6px 10px}
   .mapsub{display:none}
   .mapscr .mapmain,.mapscr .mapmain .wmap{display:contents}
   .mapscr .maptop{grid-area:top}
@@ -495,10 +505,43 @@ html.sideways .stage{max-width:100%}
   .mapscr .wmapbar .btn{flex:1 1 0;min-height:32px;padding:0 4px}
   .mapscr #wmPlay{min-height:36px;padding:4px 10px;font-size:14px}
   .mapscr .lockcard{grid-row:2 / 4;grid-column:2;align-self:start}
+  .mapscr .lvchips{grid-area:chips;flex-wrap:wrap;overflow-x:hidden;overflow-y:auto;max-height:104px}
+  .mapscr .lvchip{min-width:0;flex:1 1 46%;max-width:none;min-height:30px;font-size:10px;padding:2px 5px;gap:4px}
   .mapscr .maptools{grid-area:tools;grid-template-columns:repeat(7,1fr)}
   .mtool{min-height:38px;padding:2px}.mtool .ti{font-size:15px}.mtool .tl{font-size:10px}
   .gphead b{font-size:22px}
 }
+/* the map's game-feel pass: world cards, a big world title, always-visible stage chips and a
+   proper stage card — the map should read like a real game's world/level select */
+.maphead{margin:2px 0 0;text-align:center}
+.maptitle{margin:0;font-family:var(--display);font-size:clamp(19px,3.4vw,27px);font-weight:400;line-height:1.05;color:var(--gold);letter-spacing:.5px;text-shadow:0 2px 0 rgba(0,0,0,.45)}
+.mapsub{margin:2px 0 0;font-size:11.5px;color:var(--dim);text-align:center}
+.lvchips{display:flex;gap:5px;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x proximity;scrollbar-width:thin;padding:2px 1px 5px}
+.lvchip{scroll-snap-align:center;flex:0 0 auto;display:flex;align-items:center;gap:6px;min-height:38px;min-width:118px;max-width:196px;padding:4px 9px;background:var(--panel);border:2px solid var(--panel2);border-radius:9px;color:var(--text);font:inherit;font-size:11.5px;cursor:pointer;box-shadow:0 3px 0 var(--shadow)}
+.lvchip .cnum{font-family:var(--display);font-size:16px;color:var(--gold);min-width:19px;text-align:center;line-height:1}
+.lvchip .cname{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lvchip.done .cnum{color:#7be3a3}
+.lvchip[data-locked]{opacity:.5}
+.lvchip[data-locked] .cnum{font-size:12px}
+.lvchip.on{border-color:var(--gold);background:linear-gradient(180deg,#2c2455,#191b38);box-shadow:0 3px 10px rgba(246,196,69,.28)}
+.lvchip:hover{transform:translateY(-1px)}
+.lvchip:active{transform:translateY(1px);box-shadow:0 1px 0 var(--shadow)}
+.lvchips.off{opacity:.45;pointer-events:none}
+.mapscr.locked .lvchips{display:none}
+#wmInfo{display:grid;gap:1px;align-content:center;min-height:56px}
+#wmInfo .wmk{font-size:10.5px;letter-spacing:.6px;text-transform:uppercase;color:var(--gold)}
+#wmInfo .wmt{font-family:var(--display);font-size:17px;font-weight:400;line-height:1.1;color:var(--edge)}
+#wmInfo .wmd{font-size:11px;color:var(--dim)}
+#wmPlay{min-height:50px;font-size:16px;font-weight:700;letter-spacing:.6px;background:linear-gradient(180deg,#ffd76a,#e0a52e);color:#241a05;border-color:#8a6420;text-shadow:none;box-shadow:0 4px 0 #8a6420;animation:playpulse 1.6s ease-in-out infinite}
+#wmPlay:disabled{animation:none;filter:saturate(.35);opacity:.6}
+#wmPrev,#wmNext{min-width:52px;font-size:17px}
+@keyframes playpulse{50%{filter:brightness(1.12)}}
+@media (prefers-reduced-motion:reduce){#wmPlay{animation:none}}
+/* the persistent post-World-10 UI upgrade: beating the Birthday Multiverse turns the whole UI gold */
+html.tier2 .btn.go,html.tier2 .modebtn.go{background:linear-gradient(180deg,#ffd76a,#e0a52e);color:#241a05}
+html.tier2 .maptitle,html.tier2 h1.title{text-shadow:0 2px 0 rgba(0,0,0,.45),0 0 18px rgba(246,196,69,.45)}
+html.tier2 .worldtab.on{box-shadow:inset 0 0 0 1px var(--gold),0 4px 16px rgba(246,196,69,.35)}
+html.tier2 .iconbtn{border-color:var(--gold)}
 
 
 /* ============================================================
@@ -539,10 +582,10 @@ html.sideways .stage{max-width:100%}
       <span class="stat" id="scoreEl" title="Score">★ <b>0</b></span>
       <button class="iconbtn" id="pauseBtn" type="button" aria-label="Pause" hidden>⏸</button>
       <button class="iconbtn" id="snd" type="button" aria-pressed="true" aria-label="Sound">♪</button>
+<button class="iconbtn" id="vol" type="button" aria-label="Audio settings">🎚️</button>
       <button class="iconbtn" id="installBtn" type="button" aria-label="Install app" hidden>📲</button>
     </div>
   </header>
-  <p class="turnhint" id="turnHint" aria-hidden="true">↻ Turn the screen sideways</p>
 
   <div class="stage" id="stage" hidden>
     <canvas id="cv" width="432" height="240" aria-label="Game screen"></canvas>
@@ -553,6 +596,7 @@ html.sideways .stage{max-width:100%}
     <div class="combo" id="comboEl" hidden><span id="comboX">x2</span><small>COMBO</small></div>
     <div class="toast" id="toast" hidden></div>
     <div class="dialog win" id="dialog" hidden><img class="portrait" id="portrait" alt=""><p id="dtext"></p><span class="next" aria-hidden="true">▶</span></div>
+    <div class="captions" id="captions" hidden></div>
     <div class="pause" id="helpAsk" hidden>
       <div class="pausebox win">
         <p class="eyebrow">Tough boss!</p>
@@ -571,6 +615,7 @@ html.sideways .stage{max-width:100%}
         <div class="btncol">
           <button class="btn go" id="resumeBtn" type="button">RESUME</button>
           <button class="btn" id="saveBtn" type="button">Save game</button>
+          <button class="btn" id="petsBtnP" type="button">Pets</button>
           <button class="btn" id="restartBtn" type="button">Restart stage</button>
           <button class="btn" id="mapBtnP" type="button">Stage map</button>
           <button class="btn" id="fullBtn" type="button">Fullscreen</button>
@@ -596,6 +641,7 @@ html.sideways .stage{max-width:100%}
     </div>
     <div class="acts">
       <button class="win spec" type="button" data-k="special" id="specBtn" aria-label="Special move" hidden disabled>★</button>
+      <button class="win spec" type="button" data-k="friend" id="friendBtn" aria-label="Friend Assist" hidden disabled>FRIEND</button>
       <button class="win shieldb smashonly" type="button" data-k="shield" aria-label="Shield">🛡</button>
       <button class="win atk smashonly" type="button" data-k="attack" aria-label="Attack">👊</button>
       <button class="win pow" type="button" data-k="fire" id="powBtn" aria-label="Superpower" disabled>POW</button>
@@ -609,6 +655,15 @@ html.sideways .stage{max-width:100%}
   <p class="mobilefoot" id="mobileFoot">4 cats · 2 dogs · made by Shad in Edmonton</p>
 
   <section class="screen win" id="screen"></section>
+  <div class="audiobox" id="audioBox" hidden role="dialog" aria-label="Audio settings">
+    <div class="chathead"><b>🔊 Audio</b><span class="chatsub">music · sounds · voice</span><button type="button" class="chatx" id="volX" aria-label="Close the audio settings">✕</button></div>
+    <label class="arow">Music <input type="range" id="volMusic" min="0" max="100" step="5"></label>
+    <label class="arow">Sound effects <input type="range" id="volSfx" min="0" max="100" step="5"></label>
+    <label class="arow">Voice <input type="range" id="volVo" min="0" max="100" step="5"></label>
+    <label class="arow"><input type="checkbox" id="volNarr"> Device voice (only when no recording)</label>
+    <label class="arow"><input type="checkbox" id="volCaps"> Captions for sounds</label>
+    <p class="chatsub">Recorded family voices always play first. The device voice is the optional fallback.</p>
+  </div>
   <aside class="chat" id="chat" hidden>
     <button class="chattab" id="chatTab" type="button" aria-label="Open the room chat" aria-expanded="false">💬<b id="chatBadge" hidden>0</b></button>
     <div class="chatbox" id="chatBox" hidden>
@@ -620,6 +675,15 @@ html.sideways .stage{max-width:100%}
   </aside>
 </div>
 
+<div class="portraitgate win" id="portraitGate" role="dialog" aria-modal="true" aria-labelledby="portraitGateTitle" hidden>
+  <div class="portraitgatebox">
+    <div class="portraitphone" aria-hidden="true">📱↻</div>
+    <h2 id="portraitGateTitle">Rotate to landscape</h2>
+    <p>Turn your device sideways to keep playing.</p>
+    <small>Your game is paused. Kinan will wait right here.</small>
+  </div>
+</div>
+
 <div class="sheet" id="sheet" hidden>
   <div class="sheetbox win">
     <button class="sheetx" id="sheetX" type="button" aria-label="Close">✕</button>
@@ -629,8 +693,26 @@ html.sideways .stage{max-width:100%}
     <button class="btn go" id="sheetOk" type="button">GOT IT</button>
   </div>
 </div>
-<script src="galaxy3d-models.js"></script>
-<script src="galaxy3d.js"></script>
+<script>
+/* ============================================================
+   M1 QUARANTINE — legacy 3D experiment (reference only)
+   The old galaxy3d*.js experiment is NOT loaded eagerly any more.
+   It loads only for explicit local development: ?devtools=1 AND a
+   localhost/127.0.0.1/[::1] host. Shared links and production
+   (GitHub Pages) can never reach it. See docs/LEGACY-BOUNDARY.md.
+   ============================================================ */
+window.__k11DevOnly = function () {
+  var local = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
+  return local && new URLSearchParams(location.search).get('devtools') === '1';
+};
+if (window.__k11DevOnly()) {
+  ['galaxy3d-models.js', 'galaxy3d.js'].forEach(function (src) {
+    var s = document.createElement('script');
+    s.src = src;
+    document.body.appendChild(s);
+  });
+}
+</script>
 <script>
 (() => {
 'use strict';
@@ -659,6 +741,37 @@ const T = 16, ROWS = 15, H = 240, W = 432, GROUND = 11;
 const RUN_MAX = 3.0, JUMP_V = -8.2, AIR_JUMP_V = -7.4, MAX_FALL = 8.6;
 const GRAV_HOLD = 0.38, GRAV_TAP = 0.48, GRAV_FALL = 0.62;
 const SAVE_KEY = 'kinan-remaster-v1';
+const SAVE_BACKUP_KEY = SAVE_KEY + '-backup';
+
+/* Last-known-good saves: accept older sparse v1 records, but reject broken
+   containers so a damaged current record can fall back to its verified backup.
+   k11v3 remains a separate, read-only migration source below. */
+function validProgressRecord(p) {
+  if (!p || typeof p !== 'object' || Array.isArray(p)) return false;
+  if (!Number.isFinite(Number(p.unlocked)) || !Array.isArray(p.beaten)) return false;
+  if (p.pets !== undefined) {
+    if (!p.pets || typeof p.pets !== 'object' || Array.isArray(p.pets)) return false;
+    if (p.pets.ids !== undefined && !Array.isArray(p.pets.ids)) return false;
+    if (p.pets.names !== undefined && (!p.pets.names || typeof p.pets.names !== 'object' || Array.isArray(p.pets.names))) return false;
+  }
+  return true;
+}
+function readProgressRecord(key) {
+  try {
+    const raw = localStorage.getItem(key);
+    if (raw === null) return null;
+    const value = JSON.parse(raw);
+    return validProgressRecord(value) ? value : null;
+  } catch (e) { return null; }
+}
+function writeProgressRecord(key, value) {
+  if (!validProgressRecord(value)) return false;
+  try {
+    const raw = JSON.stringify(value);
+    localStorage.setItem(key, raw);
+    return localStorage.getItem(key) === raw;
+  } catch (e) { return false; }
+}
 
 const cv = $('#cv');
 const ctx = cv.getContext('2d');
@@ -730,6 +843,13 @@ const AudioSys = {
     src.start(t0); src.stop(t0 + dur);
   }
 };
+/* per-channel volumes (music/sfx/voice) applied to the existing gain nodes; 100 = the classic mix */
+function applyAudioPrefs() {
+  const v = progress.vol || {};
+  const m = clamp((v.music == null ? 100 : v.music) / 100, 0, 1), s = clamp((v.sfx == null ? 100 : v.sfx) / 100, 0, 1);
+  if (AudioSys.music) AudioSys.music.gain.value = 0.26 * m;
+  if (AudioSys.sfx) AudioSys.sfx.gain.value = 0.55 * s;
+}
 const SFX = {
   jump() { AudioSys.tone(330, 0.10, { vol: 0.13, slide: 640 }); },
   djump() { AudioSys.tone(520, 0.10, { type: 'triangle', vol: 0.15, slide: 900 }); AudioSys.tone(780, 0.08, { vol: 0.06, at: 0.05 }); },
@@ -755,6 +875,23 @@ const SFX = {
   save() { AudioSys.tone(880, 0.06, { vol: 0.09 }); AudioSys.tone(1320, 0.09, { vol: 0.07, at: 0.06 }); },
   click() { AudioSys.tone(420, 0.04, { vol: 0.07 }); }
 };
+/* captions: when "Captions for sounds" is on, every gameplay sound shows a short text
+   label over the game picture (UI clicks are never captioned — they would flood the screen) */
+function caption(text) {
+  if (progress.captions === false) return;
+  const c = document.getElementById('captions');
+  if (!c) return;
+  c.textContent = text;
+  c.hidden = false;
+  clearTimeout(caption.t);
+  caption.t = setTimeout(() => { c.hidden = true; }, 1500);
+}
+const SFX_CAPTIONS = { jump: 'boing!', djump: 'double boing!', spring: 'SPROING!', stomp: 'stomp!', combo: 'combo chime', candle: 'candle chime', gift: 'gift jingle', power: 'power-up fanfare', pew: 'pew!', pop: 'pop!', hurt: 'ouch! — hit buzzer', dad: 'helper jingle', woof: 'WOOF!', meow: 'mrow!', boss: 'boss growl', hit: 'hit!', thud: 'THUD!', flag: 'flag jingle', heart: 'heart chime', win: 'victory jingle', lose: 'fail tune', save: 'save chime' };
+for (const k of Object.keys(SFX)) {
+  if (k === 'click') continue;
+  const orig = SFX[k];
+  SFX[k] = function () { caption('(' + (SFX_CAPTIONS[k] || k) + ')'); return orig.apply(SFX, arguments); };
+}
 /* ---------- procedural soundtrack ---------- */
 const MIDI = (m) => 440 * Math.pow(2, (m - 69) / 12);
 /* ============================================================
@@ -793,20 +930,25 @@ const VO = {
   speak(html, who) {
     try {
       VO.loadClips();
-      if (!AudioSys.on || !window.speechSynthesis) return;
+      if (!AudioSys.on) return;
       const text = String(html || '').replace(/<[^>]+>/g, ' ').replace(/&[a-z#0-9]+;/gi, ' ').replace(/[\uD83C-\uD83F][\uDC00-\uDFFF]/g, ' ').replace(/\s+/g, ' ').trim();
       if (!text) return;
+      const vol = clamp((progress.vol ? progress.vol.vo : 100) / 100, 0, 1);
+      if (!vol) return;   /* the voice channel is turned down */
       const file = VO.clips && (VO.clips[html] || VO.clips[text]);
-      if (file) {   /* the family's own recorded voice */
+      if (file) {   /* the family's own recorded voice — always first, never needs the device voice */
         if (!VO.audio) VO.audio = new Audio();
         VO.audio.src = 'vo/' + file;
+        VO.audio.volume = vol;
         VO.audio.play().catch(() => {});
         return;
       }
+      if (progress.narration === false || !window.speechSynthesis) return;   /* the robotic voice is OPTIONAL */
       speechSynthesis.cancel();
       const u = new SpeechSynthesisUtterance(text);
       const v = VO.pick(who);
       if (v) u.voice = v;
+      u.volume = vol;
       const tune = {
         k: [1.35, 1.06], m: [1.04, 1.0], c: [0.94, 1.04], d: [0.8, 0.98], s: [1.12, 1.02],
         n: [0.9, 0.95], b: [0.7, 0.95], f: [0.85, 0.95], lg: [1.1, 1.02], cd: [0.8, 0.95],
@@ -947,6 +1089,7 @@ const COIN = [
 const FLAG = ['y.......', 'yRRRR...', 'yRRRRRR.', 'yRRRR...'].concat(Array(12).fill('y.......'));
 const legs = (body, l, pant) => body.concat(l.map((r) => r.replace(/j/g, pant)));
 const recolor = (rows, map) => rows.map((r) => r.replace(/./g, (ch) => (map[ch] || ch)));
+const ANNIE = recolor(CHENOA, { c: 'p', E: 'y', G: 'b', Y: 'h', T: 'p', u: 'h' });
 const flipRows = (rows) => rows.map((r) => r.split('').reverse().join(''));
 
 function bake(rows) {
@@ -1044,14 +1187,17 @@ SP.sWalk = bake(legs(SHAD, LEGS.walk, 'n'));
 SP.sJump = bake(legs(SHAD, LEGS.jump, 'n'));
 SP.tStand = bake(legs(recolor(MOM, { H: 'Q', t: 'F', d: 'G', p: 'w' }), LEGS.stand, 'J'));
 SP.mechStand = bake(MECH);
+SP.annieStand = bake(legs(ANNIE, LEGS.stand, 'j'));
+SP.annieWalk = bake(legs(ANNIE, LEGS.walk, 'j'));
+SP.annieJump = bake(legs(ANNIE, LEGS.jump, 'j'));
 /* ---- the family pets: four cats, two dogs ---- */
 const PET_DEFS = [
-  { id: 'cat1', kind: 'cat', label: 'Cat 1', perk: 'Double jump', color: '#d98a3d', shade: '#a85f22' },
-  { id: 'dog1', kind: 'dog', label: 'Dog 1', perk: 'Dash attack', color: '#a8692e', shade: '#6b3f18' },
-  { id: 'cat2', kind: 'cat', label: 'Cat 2', perk: 'Coin magnet', color: '#9a9aa6', shade: '#5e5e6a' },
-  { id: 'dog2', kind: 'dog', label: 'Dog 2', perk: 'Power stomp', color: '#4a4a58', shade: '#26262f' },
-  { id: 'cat3', kind: 'cat', label: 'Cat 3', perk: 'Extra heart', color: '#f0e2c8', shade: '#c4ad84' },
-  { id: 'cat4', kind: 'cat', label: 'Cat 4', perk: 'Faster POW', color: '#6b6f7a', shade: '#3b3f4a' }
+  { id: 'cat1', kind: 'cat', label: 'Garfield', perk: 'Kitten Zoomies · double jump + 3-landing boost', color: '#d98a3d', shade: '#a85f22' },
+  { id: 'dog1', kind: 'dog', label: 'Chikastino', perk: 'Neighbourhood Watch · warning + 14s bark stun', color: '#f0e2c8', shade: '#a8692e' },
+  { id: 'cat2', kind: 'cat', label: 'Vader', perk: 'Curious Force · secret scout + 8s coin pull', color: '#9a9aa6', shade: '#5e5e6a' },
+  { id: 'dog2', kind: 'dog', label: 'Hunter', perk: 'Courage Fetch · healing drops + one-heart rescue', color: '#4a4a58', shade: '#26262f' },
+  { id: 'cat3', kind: 'cat', label: 'Duchess', perk: 'Royal Snack Break · bonus food heal + checkpoint rest', color: '#f0e2c8', shade: '#c4ad84' },
+  { id: 'cat4', kind: 'cat', label: 'Tuxedo', perk: 'Senior Glare · 20% less knockback + 16s interrupt', color: '#6b6f7a', shade: '#3b3f4a' }
 ];
 /* one rescue per stage — 4 cats and 2 dogs across the house */
 const PET_STAGE = { 0: 'cat1', 1: 'dog1', 2: 'cat2', 4: 'dog2', 6: 'cat3', 8: 'cat4' };
@@ -1063,8 +1209,28 @@ PET_DEFS.forEach((d) => {
 });
 const petDef = (id) => PET_DEFS.filter((p) => p.id === id)[0] || PET_DEFS[0];
 const petName = (id) => (progress && progress.pets && progress.pets.names && progress.pets.names[id]) || petDef(id).label;
-const hasPet = (id) => !!(progress && progress.pets && progress.pets.ids && progress.pets.ids.indexOf(id) >= 0);
-const maxHearts = () => 3 + (hasPet('cat3') ? 1 : 0);
+const ownsPet = (id) => !!(progress && progress.pets && progress.pets.ids && progress.pets.ids.indexOf(id) >= 0);
+/* Ownership is the collection; hasPet is the ACTIVE loadout used by gameplay.
+   At most one cat and one dog can be active, with null meaning a solo slot. */
+const hasPet = (id) => {
+  if (!ownsPet(id) || !progress.pets) return false;
+  const key = petDef(id).kind === 'cat' ? 'equippedCat' : 'equippedDog';
+  return progress.pets[key] === id;
+};
+const activePetIds = () => progress.pets.ids.filter((id) => hasPet(id));
+function equipPet(id) {
+  if (!ownsPet(id)) return false;
+  const key = petDef(id).kind === 'cat' ? 'equippedCat' : 'equippedDog';
+  progress.pets[key] = progress.pets[key] === id ? null : id;
+  save();
+  return true;
+}
+function clearPetLoadout() {
+  progress.pets.equippedCat = null;
+  progress.pets.equippedDog = null;
+  save();
+}
+const maxHearts = () => 3;
 const imgOf = (c, scale) => '<img alt="" width="' + c.width * (scale || 4) + '" src="' + c.toDataURL() + '">';
 /* ============================================================
    WORLDS — same story, brighter paint
@@ -1641,6 +1807,369 @@ const GRADE = { dawn: 'rgba(255,150,110,.10)', morning: 'rgba(255,236,190,.05)',
 /* ============================================================
    ENEMY TABLE
    ============================================================ */
+const expandedStage = (o) => Object.assign({ clock: '2D', goalRide: 'dad' }, o);
+LV.push(
+  expandedStage({
+    place: 'Sea-to-Sky Suspension Bridge', bg: 'outdoor', world: 6, rain: 1, umbrellas: true,
+    sky: ['#6f91b5', '#d8ecfa'], far: '#7896ad', mid: '#527765', ground: '#4a3c32', top: '#69a96a', brick: '#a0703a', accent: '#6fc8ff',
+    foes: ['seagull', 'raincloud', 'puddlefrog'],
+    intro: ['Back in Vancouver, the bridge sways above the trees. This time the rain has its own route.', 'Use an umbrella, watch the wind, and take the dry boards before hopping the puddles.'],
+    boss: null,
+    win: ['The bridge is behind you. Drizzle follows at a distance, trying very hard not to look curious.'],
+    meanwhile: 'Dad takes exactly seventeen photos of the exact same mountain.'
+  }),
+  expandedStage({
+    place: 'Stanley Park & Seawall', bg: 'outdoor', world: 6, rain: 1, umbrellas: true,
+    sky: ['#557f9d', '#d1e5e8'], far: '#688d88', mid: '#3f6f5d', ground: '#4b3b2d', top: '#4f9b62', brick: '#8a6a48', accent: '#f6c445',
+    foes: ['raccoon', 'seagull', 'slug'],
+    intro: ['Stanley Park is huge: tall trees, curvy seawall paths, and raccoons supervising every snack.', 'Rain makes puddles, not invisible hazards. Read the platforms and keep moving.'],
+    boss: null,
+    win: ['You made it around the seawall without feeding a single raccoon. They seem mildly disappointed.'],
+    meanwhile: 'Mom spots an orca. Dad insists it is a very big fish.'
+  }),
+  expandedStage({
+    place: 'Granville Science World', bg: 'sciencedome', world: 6, rain: 0, umbrellas: true,
+    sky: ['#2a3a5a', '#5a6a8a'], far: '#3a4a6a', mid: '#4a3a6a', ground: '#3a3f52', top: '#9aa1ab', brick: '#6fc8ff', accent: '#f6c445',
+    foes: ['umbrellabat', 'puddlefrog', 'raincloud'],
+    intro: ['Inside the giant silver dome: magnets, pulleys, and a big PLEASE TOUCH sign.', 'Magnet pads lift you over the experiments. Vader can outline the interactive gift blocks if he is equipped.'],
+    boss: null,
+    win: ['The rain stops at the door. The magnets keep working, which is much more convenient.'],
+    meanwhile: 'Dad reads a vacuum exhibit label out loud. Twice.'
+  })
+);
+
+LV.push(
+  expandedStage({
+    place: 'SkyTrain — Big Storm', bg: 'skytrain', world: 6, rain: 1, signs: true, umbrellas: true,
+    sky: ['#657d98', '#e0d4c8'], far: '#5a6a7e', mid: '#4a5a6e', ground: '#4a4f57', top: '#c9c9cf', brick: '#2f5fb3', accent: '#f6c445',
+    foes: ['seagull', 'rollerblader', 'raincloud'],
+    intro: ['The SkyTrain rattles into the biggest cloud you have ever seen. (Game rule only: safe fictional roof route.)', 'Read the signs, use the dry platforms, and do not let the storm rush you.'],
+    boss: null,
+    win: ['The train doors open. Sunlight leaks through the clouds. Drizzle is still making a dramatic rumble.'],
+    meanwhile: 'Mom asks everyone to stop standing so close to the edge. She is right, as usual.'
+  }),
+  expandedStage({
+    place: 'Rainbow Observatory', bg: 'skytrain', world: 6, rain: 1, signs: true, umbrellas: true,
+    sky: ['#566f91', '#e1d4c8'], far: '#5a6a7e', mid: '#4a5a6e', ground: '#4a4f57', top: '#c9c9cf', brick: '#f6c445', accent: '#ff6fae',
+    foes: ['raincloud', 'umbrellabat', 'puddlefrog'],
+    intro: ['At the observatory, Drizzle blocks the view with one enormous storm cloud.', 'Dodge the telegraphed rain, use umbrellas and platforms, and show Drizzle that storms can be fun.'],
+    boss: { kind: 'drizzle', title: 'Drizzle, the Big Storm', prop: '🌈', hp: 6, face: 'dz' },
+    bossIntro: ['<b>DRIZZLE:</b> RUMBLE. Nobody likes rain. Prove it is fun or I keep the storm.', '<b>KINAN:</b> Rain makes the gardens grow. Let us show you!'],
+    taunts: ['RUMBLE. Rain is annoying.', 'Try staying dry now.', 'This is only a little drizzle.'],
+    win: ['<b>KINAN:</b> See? Rain helped the trees, the flowers, and the whole city.', 'Drizzle stops rumbling, makes one tiny rainbow, then a huge one over Vancouver.'],
+    finalWorld: 6,
+    meanwhile: 'Dad asks whether the rainbow is also available as a postcard.'
+  })
+);
+
+LV.push(
+  expandedStage({
+    place: 'The Great LEGO Bin', bg: 'lego', world: 7,
+    sky: ['#79b7ed', '#e5f2ff'], far: '#7a9fd0', mid: '#4d6fae', ground: '#38475f', top: '#f0c83e', brick: '#d8342c', accent: '#f6c445',
+    foes: ['lego', 'babydino', 'bunny'],
+    intro: ['A whole city made of bricks: studs, hinges, and a suspiciously alive LEGO bin.', 'Use build pads and Milo’s recipes to make temporary bridges and staircases.'],
+    boss: null,
+    win: ['The first bridge holds. The bricks applaud by falling into a neat pile.'],
+    meanwhile: 'Milo labels every brick bin. Even the bin labelled MISCELLANEOUS.'
+  }),
+  expandedStage({
+    place: 'Fire-Truck Brick City', bg: 'school', world: 7,
+    sky: ['#87c9ed', '#f2f8ff'], far: '#8fa8bd', mid: '#5c7b9e', ground: '#4a4f57', top: '#e8364b', brick: '#f6c445', accent: '#44c55a',
+    foes: ['lego', 'cone', 'busker'],
+    intro: ['A tiny fire truck needs a ladder and a hose route. The good news: every problem is buildable.', 'Build only what you need. Temporary bricks disappear after eight seconds, so keep moving.'],
+    boss: null,
+    win: ['The ladder reaches the top. The truck rolls away with its siren making a very important brick noise.'],
+    meanwhile: 'Milo insists the fire truck gets its own parking space. Fair enough.'
+  }),
+  expandedStage({
+    place: 'Machine Brickwilds', bg: 'sciencedome', world: 7,
+    sky: ['#29344f', '#697aa0'], far: '#3a4a6a', mid: '#4a3a6a', ground: '#3a3f52', top: '#9aa1ab', brick: '#6fc8ff', accent: '#f6c445',
+    foes: ['lego', 'raincloud', 'umbrellabat'],
+    intro: ['Gears, conveyor belts, and machine parts that only move when a recipe makes sense.', 'Read the stud pattern and build a route instead of brute-forcing the machines.'],
+    boss: null,
+    win: ['The machines settle into a steady rhythm. One tiny robot offers you a wrench as a souvenir.'],
+    meanwhile: 'Dad calls this a very organized hydro-vac, which makes the machine beep indignantly.'
+  })
+);
+
+LV.push(
+  expandedStage({
+    place: 'Studded Skyscraper Tower', bg: 'lego', world: 7,
+    sky: ['#596eb0', '#d6e2ff'], far: '#7189bd', mid: '#4d5f99', ground: '#38475f', top: '#f0c83e', brick: '#d8342c', accent: '#6fc8ff',
+    foes: ['lego', 'babydino', 'umbrellabat'],
+    intro: ['A tower built one stud at a time. Every landing is a recipe, not a random platform.', 'Climb with Milo’s staircase or build your own route across the shelves.'],
+    boss: null,
+    win: ['The tower is complete. The last brick clicks into place with an extremely satisfying CLICK.'],
+    meanwhile: 'Milo counts the studs on the top floor. He gets the same number twice.'
+  }),
+  expandedStage({
+    place: 'BRICK-REX — Heart of the Blocks', bg: 'lego', world: 7,
+    sky: ['#25305f', '#768ac1'], far: '#3a4a6a', mid: '#4a3a6a', ground: '#3a3f52', top: '#f0c83e', brick: '#d8342c', accent: '#f6c445',
+    foes: ['lego', 'babydino', 'drummer'],
+    intro: ['BRICK-REX stole the golden Heart of the Blocks. Now the whole arena is built from very smug bricks.', 'Deflect up to four bombs at a time with POW, dodge the tail and turbo stomps, then take the Heart back.'],
+    boss: { kind: 'mech', title: 'BRICK-REX, the Turbo T-Rex', prop: '💛', hp: 6, face: 'mech' },
+    bossIntro: ['<b>BRICK-REX:</b> MY HEART. MY BRICKS. MY VERY ADVANCED TAIL.', '<b>KINAN:</b> That Heart belongs to everybody. Time to dismantle your attitude.'],
+    taunts: ['TURBO STOMP!', 'Brick bombs away!', 'My studs are indestructible!'],
+    win: ['The Heart pops free. BRICK-REX collapses into harmless bricks—and two very embarrassed googly eyes blink up at you.'],
+    finalWorld: 7,
+    meanwhile: 'Milo puts the googly eyes on the first brick. Now it is a pet brick.'
+  })
+);
+
+LV.push(
+  expandedStage({
+    place: 'Badlands Fossil Dig', bg: 'outdoor', world: 8,
+    sky: ['#e6a15c', '#ffe5ad'], far: '#b9794e', mid: '#8a563d', ground: '#6b4a2a', top: '#d7b46a', brick: '#a0703a', accent: '#f6c445',
+    foes: ['babydino', 'raccoon', 'pothole'],
+    intro: ['The Badlands are full of fossils, dusty ledges, and tiny dinosaurs who definitely did not touch your lunch.', 'Follow the fossil markers and use the high shelves when the dust starts rolling.'],
+    boss: null,
+    win: ['A perfect little ammonite. The baby dinosaur guarding it decides you are acceptable company.'],
+    meanwhile: 'Dad finds a rock shaped exactly like a pancake. Geology remains undefeated.'
+  }),
+  expandedStage({
+    place: 'Fern Jungle & Baby-Dino Rescue', bg: 'outdoor', world: 8,
+    sky: ['#69b879', '#e1f7cf'], far: '#4e8b58', mid: '#356847', ground: '#3f4f2a', top: '#6ab45a', brick: '#8a6a48', accent: '#7be3a3',
+    foes: ['babydino', 'goose', 'raincloud'],
+    intro: ['A baby dino is stuck behind the ferns. It is not a trap. It is a very small, very loud rescue mission.', 'Use the dinosaur-friend platforms and do not rush the little one.'],
+    boss: null,
+    win: ['The baby dino is back with its family. It sneezes a leaf onto your head and calls that a thank-you.'],
+    meanwhile: 'Mom says the baby is cute. Dad says the leaf is technically a hat now.'
+  }),
+  expandedStage({
+    place: 'Brachiosaurus River', bg: 'outdoor', world: 8, dinoFriend: 'brachiosaurus',
+    sky: ['#69a9d8', '#e2f2ff'], far: '#5a8c78', mid: '#3f6f5d', ground: '#4b3b2d', top: '#5fb84a', brick: '#a0703a', accent: '#6fc8ff',
+    foes: ['babydino', 'flyingfish', 'puddlefrog'],
+    intro: ['A long-neck friend makes a bridge over the river. It is patient, enormous, and completely uninterested in shortcuts.', 'Cross with the brachiosaurus or take the shelf route. Both are safe when you watch the water.'],
+    boss: null,
+    win: ['The long-neck lowers its head for one last look, then lets you hop off by the ferns.'],
+    meanwhile: 'Dad calls the brachiosaurus a bridge with a neck. Mom says that is enough bridge talk for today.'
+  })
+);
+
+LV.push(
+  expandedStage({
+    place: 'Raptor Canyon', bg: 'outdoor', world: 8, dinoFriend: 'triceratops',
+    sky: ['#d99055', '#ffe0a6'], far: '#a66b45', mid: '#754633', ground: '#5b3c2a', top: '#c39252', brick: '#a0703a', accent: '#f6c445',
+    foes: ['babydino', 'minibull', 'pothole'],
+    intro: ['Raptors patrol the canyon, but they are looking for their baby, not a fight.', 'Use the triceratops charge to open a route, or distract the patrols with Aiden.'],
+    boss: null,
+    win: ['The patrol lets you pass. The baby raptor chirps once and every raptor in the canyon pretends not to cry.'],
+    meanwhile: 'Dad demonstrates a raptor call. It sounds suspiciously like a lawnmower.'
+  }),
+  expandedStage({
+    place: 'Alpha T-Rex Nest', bg: 'outdoor', world: 8, dinoFriend: 'stegosaurus',
+    sky: ['#b87452', '#ffe0a6'], far: '#8d5840', mid: '#633b2f', ground: '#4b3026', top: '#c39252', brick: '#a0703a', accent: '#ff6fae',
+    foes: ['babydino', 'minibull', 'pothole'],
+    intro: ['The Alpha T-Rex is enormous, loud, and standing directly between you and her baby.', 'She is protective, not evil. Dodge her charges, watch the tail and stun windows, and return the baby safely.'],
+    boss: { kind: 'rex', title: 'Alpha T-Rex — the Protective Parent', prop: '🦖', hp: 6, face: 'mech' },
+    bossIntro: ['<b>ALPHA:</b> ROOOOAR! Nobody comes near my nest!', '<b>KINAN:</b> We are not here to hurt you. We are bringing your baby home.'],
+    taunts: ['ROOOOAR!', 'My nest! My baby!', 'Back away from the nest!'],
+    win: ['The baby waddles up. Alpha stops mid-roar, nuzzles the baby, and lets the whole family leave in peace.'],
+    finalWorld: 8,
+    meanwhile: 'Dad whispers that this is exactly why you never hurry a parent.'
+  })
+);
+
+LV.push(
+  expandedStage({
+    place: 'Twin-Sun Outpost', bg: 'outdoor', world: 9, laserTutorial: true,
+    sky: ['#e5a45f', '#ffe0a6'], far: '#a66b45', mid: '#754633', ground: '#5b3c2a', top: '#d7b46a', brick: '#a0703a', accent: '#f6c445',
+    foes: ['raincloud', 'umbrellabat', 'lego'],
+    intro: ['Two suns, one very confused outpost. The practice lasers are slow and every shot can be deflected.', 'Tap POW to deflect a shot. Force-marked crates and doors are optional safe practice, never required hazards.'],
+    boss: null,
+    win: ['The practice target powers down. You have officially deflected a laser without becoming a space casualty.'],
+    meanwhile: 'Dad says this is just like his old deflector training, which gets a very skeptical look from Mom.'
+  }),
+  expandedStage({
+    place: 'Droid Factory & Hangar', bg: 'sciencedome', world: 9,
+    sky: ['#29344f', '#697aa0'], far: '#3a4a6a', mid: '#4a3a6a', ground: '#3a3f52', top: '#9aa1ab', brick: '#6fc8ff', accent: '#f6c445',
+    foes: ['lego', 'raincloud', 'umbrellabat'],
+    intro: ['Droid parts move along the conveyor: gears, doors, and Force-marked crates that slide into place when you build the route.', 'Use the marked build pads to open a path. No laser is required until the safe tutorial is complete.'],
+    boss: null,
+    win: ['The hangar door opens with a satisfying sci-fi clunk. One little droid offers to carry your coins.'],
+    meanwhile: 'Dad names every droid before Mom can finish saying please do not name the droids.'
+  }),
+  expandedStage({
+    place: 'Starbase Laser Corridors', bg: 'sciencedome', world: 9, laserTutorial: true,
+    sky: ['#1e2b52', '#526da8'], far: '#3a4a6a', mid: '#4a3a6a', ground: '#3a3f52', top: '#9aa1ab', brick: '#6fc8ff', accent: '#ff6fae',
+    foes: ['umbrellabat', 'raincloud', 'lego'],
+    intro: ['The corridor lights up: real laser lanes this time, but every shot has a bright telegraph and a deflection window.', 'Read the warning, tap POW as it reaches you, and use the safe platforms between volleys.'],
+    boss: null,
+    win: ['The corridor is clear. Your deflection timing gets a tiny celebratory beep from the base computer.'],
+    meanwhile: 'Dad calls that move very Jedi-adjacent. Mom calls it excellent hand-eye coordination.'
+  })
+);
+
+LV.push(
+  expandedStage({
+    place: '2D Trench Run', bg: 'skytrain', world: 9,
+    sky: ['#14233f', '#536b9f'], far: '#3a4a6a', mid: '#4a5a6e', ground: '#4a4f57', top: '#c9c9cf', brick: '#2f5fb3', accent: '#f6c445',
+    foes: ['seagull', 'rollerblader', 'raincloud'],
+    intro: ['The trench is narrow, fast, and full of warning lights. Stay on the marked route and do not chase every coin into danger.', 'Deflect the lane shots and keep a steady jump rhythm. The finish beacon is straight ahead.'],
+    boss: null,
+    win: ['The beacon locks on. The trench goes quiet, and Annie answers on the kitchen channel.'],
+    meanwhile: 'Dad asks why the kitchen channel is playing a dhol beat. Mom says it is about to get awesome.'
+  }),
+  expandedStage({
+    place: "Annie's Galactic Kitchen", bg: 'dinner', world: 9, rhythm: true, conveyor: true,
+    sky: ['#4c326d', '#b58ad8'], far: '#72519a', mid: '#4d3d70', ground: '#4a3f5a', top: '#ffaecd', brick: '#d8342c', accent: '#f6c445',
+    foes: ['waiter', 'lego', 'busker'],
+    intro: ['Annie is finally here: chef, hero, and reigning champion of the galactic kitchen.', 'Deflect the golden rotis, move with the dhol beat, and bounce on the prep stations when they open. This is a friendly championship, not a war.'],
+    boss: { kind: 'supchenoa', title: 'Annie — Galactic Kitchen Champion', prop: '🫓', hp: 6, face: 'a', annie: true },
+    bossIntro: ['<b>ANNIE:</b> You made it to my kitchen, little superstar! Ready for a friendly cook-off?', '<b>KINAN:</b> I have been training for this! Your music is awesome!'],
+    taunts: ['Dhol up! Time for the next course!', 'Catch this roti!', 'Kitchen champion in the house!'],
+    win: ['<b>ANNIE:</b> That was a championship-worthy round! You are officially kitchen-approved.', 'Annie joins the team as a heroic rival. Chenoa declares a rematch over dessert.'],
+    finalWorld: 9,
+    meanwhile: 'Mom asks for the recipe. Annie promises to teach everyone—after the birthday cake.'
+  })
+);
+
+/* World 10: "Kinan vs. the Birthday Multiverse" — every universe where it is Kinan's birthday
+   connects at once (Shad's 2026-10-26 brief: indices 72-76, SEPARATE Grandmothers and Mom
+   encounters, and the finale saves completion + the World 11 unlock + the pending-cutscene
+   marker BEFORE its cinematic). Nonlethal throughout: cake, cookies and hugs. */
+LV.push(
+  expandedStage({
+    place: 'Portal Piñata Plaza', bg: 'midway', world: 10,
+    sky: ['#5b3c8a', '#c86fd8'], far: '#7a4fa8', mid: '#9a5fc0', ground: '#4b2f6e', top: '#f6c445', brick: '#e0568a', accent: '#7be3a3',
+    foes: ['sock', 'teddy', 'lego'],
+    intro: ['Happy birthday, Kinan! This year the birthday candles lit a PORTAL.', 'Every universe where it is your birthday just connected at once — and the piñatas from ten dimensions are VERY confused.'],
+    boss: null,
+    win: ['The plaza settles down. The piñatas bow to their true champion.', '<b>KINAN:</b> I want every birthday to have a portal.'],
+    meanwhile: 'Mom is counting candles in three dimensions at once and will not stop.'
+  }),
+  expandedStage({
+    place: 'Mirror-Twin Skyscrapers', bg: 'castle', world: 10,
+    sky: ['#2b2f5e', '#8a7fd8'], far: '#4a4f8a', mid: '#6a5fb0', ground: '#3a3f6e', top: '#c8c4f0', brick: '#8a7fd8', accent: '#f6c445',
+    foes: ['seagull', 'rollerblader', 'raincloud'],
+    intro: ['Two towers, two mirrors, two of EVERYTHING — including two of you.', 'Both Kinans wave at each other. Only one can reach the top first. (It is you.)'],
+    boss: null,
+    win: ['The mirror Kinan gives you a thumbs-up and poofs back to their own universe.', '<b>KINAN:</b> He was really cool.'],
+    meanwhile: 'Dad meets his reflection and they immediately agree to take a nap.'
+  }),
+  expandedStage({
+    place: 'Candy Cosmos Causeway', bg: 'galaxy', world: 10,
+    sky: ['#141042', '#4a2f8a'], far: '#2f2470', mid: '#4a3a9a', ground: '#3a2f7a', top: '#ff9ac8', brick: '#7be3a3', accent: '#f6c445',
+    foes: ['umbrellabat', 'raincloud', 'lego'],
+    intro: ['A causeway of rock candy connects the last universes. Do NOT lick the constellations.', 'The gummy meteors bounce instead of crash. That is the entire safety briefing.'],
+    boss: null,
+    win: ['The candy stars spell out HAPPY BIRTHDAY just once, then scatter.', '<b>KINAN:</b> Best universe. No notes.'],
+    meanwhile: 'Chenoa is negotiating a trade deal with a sentient jellybean.'
+  })
+);
+
+LV.push(
+  expandedStage({
+    place: "The Grandmothers' Hearth", bg: 'kitchen', world: 10,
+    sky: ['#8a4f2f', '#f0c08a'], far: '#a8683f', mid: '#c88a5a', ground: '#6e4a2f', top: '#f6c445', brick: '#e0568a', accent: '#7be3a3',
+    foes: ['waiter', 'busker', 'sock'],
+    intro: ['Every universe agrees on one thing: the grandmothers run the kitchen.', 'They have made enough food for every birthday that ever existed — and you must prove you can handle SECONDS.'],
+    boss: { kind: 'supchenoa', title: 'The Grandmothers — Kitchen Legends', prop: '🍪', hp: 7, face: 'm', grandmas: true },
+    bossIntro: ['<b>GRANDMOTHERS:</b> KINAN! You are too thin! Dodge the cookies if you can — we made extras!', '<b>KINAN:</b> This is the best fight ever.'],
+    taunts: ['Eat! Eat!', 'Did you sleep enough?!', 'Pinch! For health!', 'We are SO proud of you!'],
+    win: ['<b>GRANDMOTHERS:</b> You win, you win! Sit! Soup is ready!', 'One grandma slips you a cookie behind the other one\'s back. It is the multiverse\'s greatest secret.'],
+    meanwhile: 'Both grandmothers declare the other one\'s recipe the winner.'
+  }),
+  expandedStage({
+    place: 'The Birthday That Never Was', bg: 'cake', world: 10,
+    sky: ['#4a2f6e', '#f0a0c8'], far: '#6e4a9a', mid: '#8a5fb0', ground: '#5a3f7e', top: '#f6c445', brick: '#e0568a', accent: '#7be3a3',
+    foes: ['teddy', 'sock', 'waiter'],
+    intro: ['This universe never had a birthday: no cake, no candles, no party — and Mom has been fighting ALL day to fix that.', 'One last friendly showdown: Mom vs. Kinan, winner picks the cake flavour!'],
+    boss: { kind: 'mom', title: 'Mom — Queen of the Birthday Multiverse', prop: '🎂', hp: 8, face: 'm' },
+    bossIntro: ['<b>MOM:</b> One last round, birthday boy! Winner picks the cake flavour!', '<b>KINAN:</b> You are ON, Mom!'],
+    taunts: ['Nobody outsprints a MOM!', 'This is for your own birthday!', 'I MADE that cape, you know!', 'HUG incoming!'],
+    win: ['<b>MOM:</b> Okay, okay! Vanilla AND chocolate. Everybody wins!', 'The candles relight. Every universe folds neatly back into one.'],
+    finalWorld: 10,
+    cinematicId: 'w10-finale',
+    cinematic: [
+      '<b>MOM:</b> There it is, sweetie. The birthday that existed in every universe at once.',
+      'The whole family appears between the candles: Dad, Shad, Chenoa, Robin, the pets — and BOTH grandmothers carrying one enormous cake.',
+      '<b>GRANDMOTHERS:</b> MAKE A WISH, KINAN!',
+      '<b>KINAN:</b> I wish... for this exact moment. In every universe.',
+      'Eleven candles blow out at once. Somewhere behind the light, a portal yawns open in the WRONG direction — and someone tiny absolutely freaks out...',
+      '<b>MOM:</b> ...What was that? Never mind. CAKE TIME!'
+    ],
+    meanwhile: 'The kitchen reports zero cake remaining. An investigation is ongoing.'
+  })
+);
+
+/* World 11 (the last world): "Kinan vs. the Glitch" — the tiny portal from the World 10
+   finale sneezes and the world gains DEPTH (look3d = flat-plane 3D: extruded blocks and
+   shadows while gravity stays straight down — NEVER the archived galaxy3d morph). Glitchy
+   is the tiny one who freaks out. Ends with the game-finale cinematic (saved like World 10). */
+LV.push(
+  expandedStage({
+    place: 'The Wrong-Way Portal', bg: 'night', world: 11, look3d: true,
+    sky: ['#141232', '#4a2f8a'], far: '#241f52', mid: '#332a6e', ground: '#2a2456', top: '#7be3a3', brick: '#4a3f8a', accent: '#ff6fae',
+    foes: ['sock', 'lego', 'raincloud'],
+    intro: [
+      'The tiny portal from the birthday party follows Kinan home... and then it SNEEZES.',
+      '<b>???:</b> AAAAAA! THE DIMENSION! IT IS THE WRONG ONE! IT HAS <i>DEPTH</i> NOW!',
+      'A tiny pixel creature tumbles out. This is GLITCHY, and they are having a VERY bad day.',
+      '<b>KINAN:</b> Whoa... why does everything look... 3D? THE GROUND HAS SIDES!',
+      '<b>GLITCHY:</b> DO NOT PANIC. I am panicking ENOUGH FOR BOTH OF US.',
+      'The blocks are real blocks now, with tops and sides. Gravity is still straight down — but the world looks like a diorama come alive.',
+      '<b>KINAN:</b> Okay. Deep breath. Let us get you home and fix this — together.'
+    ],
+    boss: null,
+    win: ['The first anchor point holds steady. Glitchy floats ahead, sparking nervously.', '<b>GLITCHY:</b> Four more anchors and I NEVER have to look at a dimension again!'],
+    meanwhile: 'Dad pokes a 3D block. "It has a SIDE, Debbie. A whole side."'
+  }),
+  expandedStage({
+    place: 'Depth Drop Caverns', bg: 'dig', world: 11, look3d: true,
+    sky: ['#20143c', '#5a3a9a'], far: '#2f2470', mid: '#44359a', ground: '#332a6e', top: '#c88aff', brick: '#6a4fc0', accent: '#7be3a3',
+    foes: ['sock', 'umbrellabat', 'lego'],
+    intro: ['The caverns have bottomless drops... and every ledge has DEPTH now, so you can see exactly how far down "down" is.', '<b>GLITCHY:</b> Do NOT look into the drop. I looked. I did NOT enjoy.'],
+    boss: null,
+    win: ['The cavern echo says "nice jump" in Glitchy\'s voice.', '<b>KINAN:</b> Was that the echo or you?', '<b>GLITCHY:</b> ...The echo.'],
+    meanwhile: 'Mom packs snacks for a dimension that "has sides".'
+  }),
+  expandedStage({
+    place: 'Backwards Boulevard', bg: 'whyte', world: 11, look3d: true,
+    sky: ['#1c2050', '#6a4fa8'], far: '#2c2f6e', mid: '#404090', ground: '#33346e', top: '#f6c445', brick: '#6a5fc0', accent: '#ff6fae',
+    foes: ['rollerblader', 'seagull', 'busker'],
+    intro: ['On this street everything runs backwards: the traffic, the music, even the high-fives.', '<b>GLITCHY:</b> My home street! ...It looks TERRIBLE in 3D. Keep moving!'],
+    boss: null,
+    win: ['The boulevard snaps back to forwards with a polite "pardon us".', '<b>KINAN:</b> Backwards is EXHAUSTING.'],
+    meanwhile: 'Shad tries a backwards high-five. It works perfectly.'
+  })
+);
+
+LV.push(
+  expandedStage({
+    place: 'The Portal Machine', bg: 'sciencedome', world: 11, look3d: true,
+    sky: ['#10204a', '#3a6fd8'], far: '#1c3a7a', mid: '#2a4f9a', ground: '#243f7e', top: '#7be3a3', brick: '#3f7de0', accent: '#f6c445',
+    foes: ['lego', 'raincloud', 'umbrellabat'],
+    intro: ['The machine that keeps dimensions glued together is HUGE, humming, and very clearly in the wrong order.', '<b>GLITCHY:</b> Re-seat the four big cogs and do NOT press the shiny red button. Nobody press it.'],
+    boss: null,
+    win: ['The machine purrs. The last anchor is one rooftop away.', '<b>KINAN:</b> Nobody pressed the red button.', '<b>GLITCHY:</b> ...Correct.'],
+    meanwhile: 'The shiny red button feels very unappreciated.'
+  }),
+  expandedStage({
+    place: "Glitchy's Last Stand", bg: 'storm', world: 11, look3d: true,
+    sky: ['#241442', '#8a4fc0'], far: '#3a2470', mid: '#54349a', ground: '#3f2a72', top: '#ff6fae', brick: '#7a4fc0', accent: '#7be3a3',
+    foes: ['umbrellabat', 'lego', 'sock'],
+    intro: ['The last anchor sits on the rooftop — and Glitchy is out of calm. The whole dimension crackles with DEPTH.', '<b>GLITCHY:</b> ONE LAST FIGHT! Winner fixes the portal! No hard feelings! Probably!'],
+    boss: { kind: 'supchenoa', title: 'Glitchy — the Freaked-Out Portal Kid', prop: '🌀', hp: 9, face: 'm', glitchy: true },
+    bossIntro: ['<b>GLITCHY:</b> I DID NOT MEAN TO RENDER ANY OF THIS!', '<b>KINAN:</b> It is okay! Let us fix it together — nicely!'],
+    taunts: ['STOP LOOKING AT ME WITH DEPTH!', 'I AM SO CALM RIGHT NOW!', 'THE ANCHORS! ALMOST! THERE!', 'THIS IS THE WORST BIRTHDAY-ADJACENT DAY OF MY LIFE!'],
+    win: ['<b>GLITCHY:</b> ...Whew. Thank you for not panicking FOR me.', 'The portal hums, folds, and pops back to its tiny harmless self.'],
+    finalWorld: 11,
+    cinematicId: 'w11-finale',
+    cinematic: [
+      '<b>GLITCHY:</b> I am calm. I am SO calm. I am the calmest creature in every dimension.',
+      'The tiny portal yawns once, folds the deep dimension away... and keeps a LITTLE of the depth. Just a souvenir.',
+      '<b>KINAN:</b> You fixed it, Glitchy!',
+      '<b>GLITCHY:</b> WE fixed it. Also I am keeping the depth. It makes everything look EXPENSIVE.',
+      'Everyone squeezes through the tiny portal home: Dad, Shad, Chenoa, Robin, the pets, both Grandmothers (with cake), and Mom.',
+      '<b>MOM:</b> Cake. NOW. Before another dimension opens.',
+      '<b>KINAN:</b> Best. Birthday. EVER. ...In EVERY dimension!',
+      'THE END — happy birthday, Kinan!'
+    ],
+    meanwhile: 'The kitchen reports the cake survived the entire multiverse. Miracles happen.'
+  })
+);
+
 const FOE = {
   sock: { beh: 'walker', kind: 'sock', color: '#c9c2d8' },
   teddy: { beh: 'walker', kind: 'teddy', color: '#b07a4a', spd: 0.5 },
@@ -1826,7 +2355,9 @@ function build(i) {
   for (let k = 0; k < arenaW + 3; k++) col(arenaX + k, GROUND);
   for (let y = 0; y < GROUND; y++) set(arenaX + arenaW, y, 5);
   if (LV[i].boss && LV[i].boss.kind === 'static') for (const k of [5, arenaW - 5]) set(arenaX + k, GROUND, 6);   /* the science dome's arena: a magnet pad set into the floor near each end */
-  return { i, g, w, foes, candles, gifts, checkpoint, petSpot, arenaX, arenaW, len, ice: !!LV[i].ice, wind: !!LV[i].wind };
+  const buildPads = worldOf(i) === 7 ? [{ x: checkpoint ? checkpoint.x : 24 * T, y: (GROUND - 1) * T, recipe: i % 2 ? 'stairs' : 'bridge' }]
+    : worldOf(i) === 9 ? [{ x: (arenaX - 6) * T, y: (GROUND - 1) * T, recipe: i % 2 ? 'stairs' : 'bridge' }] : [];
+  return { i, g, w, foes, candles, gifts, checkpoint, petSpot, arenaX, arenaW, len, buildPads, ice: !!LV[i].ice, wind: !!LV[i].wind };
 }
 /* the World 6 sneak peek: little planet islands floating in space. The same stage shape as build(): a run of
    islands with short gaps, a checkpoint half way, gifts and foes, then a runway into the arena where the Power
@@ -1899,10 +2430,15 @@ function buildGalaxy(i) {
 /* ============================================================
    STATE
    ============================================================ */
-const DEFAULT_PROGRESS = { unlocked: 1, beaten: [], stars: {}, bestScore: {}, totalCandles: 0, pets: { ids: [], names: {} }, hat: 'none', won: false, sound: true, lite: false,
-  wallet: 0, owned: [], outfit: 'classic', trail: 'none', costumes: {}, gold: {}, smashItems: true, codes: [], wonWorlds: [], builds: [], bossLosses: {} };
+const DEFAULT_PROGRESS = { unlocked: 1, beaten: [], stars: {}, bestScore: {}, totalCandles: 0, pets: { ids: [], names: {}, equippedCat: null, equippedDog: null }, friendAssist: null, friendsUnlocked: [], hat: 'none', won: false, sound: true, lite: false,
+  wallet: 0, owned: [], outfit: 'classic', trail: 'none', costumes: {}, gold: {}, smashItems: true, codes: [], wonWorlds: [], builds: [], bossLosses: {},
+  vol: { music: 100, sfx: 100, vo: 100 }, narration: true, captions: true };
 function loadProgress() {
-  let p = store.get(SAVE_KEY, null);
+  let p = readProgressRecord(SAVE_KEY), recovered = false;
+  if (!p) {
+    p = readProgressRecord(SAVE_BACKUP_KEY);
+    recovered = !!p;
+  }
   if (!p) {
     /* carry over progress from the original game (save key "k11v3") */
     const old = store.get('k11v3', null);
@@ -1929,7 +2465,21 @@ function loadProgress() {
   const ids = Array.isArray(oldPets.ids) ? oldPets.ids.slice() : [];
   if (oldPets.cat && ids.indexOf('cat1') < 0) ids.push('cat1');
   if (oldPets.dog && ids.indexOf('dog1') < 0) ids.push('dog1');
-  out.pets = { ids: ids.filter((id) => PET_DEFS.some((d) => d.id === id)), names: Object.assign({}, oldPets.names || {}) };
+  const cleanIds = ids.filter((id) => PET_DEFS.some((d) => d.id === id));
+  const firstOfKind = (kind) => cleanIds.filter((id) => petDef(id).kind === kind)[0] || null;
+  const equipChoice = (value, kind) => {
+    if (value === undefined) return firstOfKind(kind);   /* legacy collection: preserve play with a default pair */
+    if (value === null) return null;                    /* explicit Solo choice survives reloads */
+    return cleanIds.indexOf(value) >= 0 && petDef(value).kind === kind ? value : null;
+  };
+  out.pets = {
+    ids: cleanIds,
+    names: Object.assign({}, oldPets.names || {}),
+    equippedCat: equipChoice(oldPets.equippedCat, 'cat'),
+    equippedDog: equipChoice(oldPets.equippedDog, 'dog')
+  };
+  out.friendsUnlocked = Array.isArray(p.friendsUnlocked) ? p.friendsUnlocked.filter((id, k, a) => (id === 'milo' || id === 'aiden') && a.indexOf(id) === k) : [];
+  out.friendAssist = out.friendsUnlocked.indexOf(p.friendAssist) >= 0 ? p.friendAssist : null;
   if (out.resume && !(typeof out.resume === 'object' && out.resume.i >= 0 && out.resume.i < LV.length)) delete out.resume;
   /* Party Shop: the candles already collected become the first spending money */
   if (typeof p.wallet !== 'number') out.wallet = Math.max(0, Math.floor(Number(out.totalCandles) || 0));
@@ -1944,6 +2494,12 @@ function loadProgress() {
   out.wonWorlds = Array.isArray(p.wonWorlds) ? p.wonWorlds.map(Number).filter((n) => n >= 2 && n <= 11) : [];
   out.builds = Array.isArray(p.builds) ? p.builds.filter(bNorm).slice(0, 50) : [];
   if (!out.mapSeen || typeof out.mapSeen !== 'object') out.mapSeen = {};
+  if (!out.mapSel || typeof out.mapSel !== 'object') out.mapSel = {};   /* where the player was on each world's map */
+  out.pendingCutscene = typeof out.pendingCutscene === 'string' ? out.pendingCutscene : null;   /* finale mid-cutscene resume */
+  const vol100 = (x) => { const n = Math.floor(Number(x)); return Number.isFinite(n) ? clamp(n, 0, 100) : 100; };
+  out.vol = { music: vol100(p.vol && p.vol.music), sfx: vol100(p.vol && p.vol.sfx), vo: vol100(p.vol && p.vol.vo) };
+  out.narration = p.narration !== false;
+  out.captions = p.captions !== false;
   out.bossLosses = {};
   if (p.bossLosses && typeof p.bossLosses === 'object') for (const k in p.bossLosses) { const n = Math.floor(Number(p.bossLosses[k])); if (LV[k] && n > 0 && n < 1000) out.bossLosses[k] = n; }
   /* a damaged or hand-edited save must never stop the game from starting: each field back to its own kind, or the default */
@@ -1957,21 +2513,34 @@ function loadProgress() {
   out.won = !!out.won; out.sound = out.sound !== false; out.lite = !!out.lite;
   out.wallet = Math.max(0, Math.floor(Number(out.wallet) || 0)); out.totalCandles = Math.max(0, Math.floor(Number(out.totalCandles) || 0));
   for (const k of ['hat', 'outfit', 'trail']) if (typeof out[k] !== 'string') out[k] = DEFAULT_PROGRESS[k];
+  if (recovered) {
+    const restored = writeProgressRecord(SAVE_KEY, out);
+    setTimeout(() => toast(restored
+      ? '💾 <b>Backup save recovered.</b> Your damaged current save was replaced with the last good copy.'
+      : '⚠️ Your backup was loaded, but the damaged current save could not be replaced yet.', 5200), 800);
+  }
   return out;
 }
 let progress = loadProgress();
 let saveWarnAt = 0;
-/* a save that doesn't fit (the device is out of room) says so, at most every 30 s, instead of failing quietly */
+/* Backup the previous valid current record and verify it BEFORE replacing current.
+   A failed backup aborts the commit; a failed current write leaves that backup intact. */
 const save = (loud) => {   /* loud: a save the player asked for always says when it didn't work */
-  if (store.set(SAVE_KEY, progress)) return true;
-  if (loud || Date.now() - saveWarnAt > 30000) { saveWarnAt = Date.now(); toast('This device is out of room, so the game could not save! Delete a homemade level or two to make room.', 4200); }
+  const current = readProgressRecord(SAVE_KEY), backup = readProgressRecord(SAVE_BACKUP_KEY);
+  const previous = current || backup || progress;
+  const committed = writeProgressRecord(SAVE_BACKUP_KEY, previous) && writeProgressRecord(SAVE_KEY, progress);
+  if (committed) return true;
+  if (loud || Date.now() - saveWarnAt > 30000) {
+    saveWarnAt = Date.now();
+    toast('The game could not safely save. Your existing save was not replaced. Free some device space and try again.', 4200);
+  }
   return false;
 };
 
 let L = null, P = null;
 let foes = [], shots = [], blasts = [], allyShots = [], bosses = [], allies = [], items = [];
 let candles = [], pops = [], parts = [], rings = [], trail = [];
-let pets = { cats: [], dogs: [] }, dad = null, bro = null, crate = null;
+let pets = { cats: [], dogs: [] }, dad = null, bro = null, crate = null, friendPlatforms = [];
 let camX = 0, camY = 0, viewW = W, viewH = H, shake = 0, hitStop = 0, frame = 0, running = false, paused = false, pausedByUser = false;
 let boss = 'off', got = 0, totalCandles = 0, nextHeartAt = 25;
 let score = 0, combo = 0, comboT = 0, bestCombo = 0, deaths = 0, heartsLost = 0, stageTime = 0;
@@ -2001,6 +2570,7 @@ function pressInto(inp, k) {
   else if (k === 'shield') inp.shield = true;
   else if (k === 'gas') inp.gas = true;
   else if (k === 'special') inp.specBuf = 10;
+  else if (k === 'friend') callFriendAssist();
 }
 function releaseInto(inp, k) {
   if (k === 'left') inp.left = false;
@@ -2055,6 +2625,7 @@ window.addEventListener('keydown', (e) => {
   else if (k === 'Space' || k === 'ArrowUp' || k === 'KeyW' || k === 'KeyZ') actionDown('jump');
   else if (k === 'ArrowDown' || k === 'KeyS') input.down = true;
   else if (k === 'KeyC' || k === 'KeyV') actionDown('special');
+  else if (k === 'KeyE') actionDown('friend');
   else if (k === 'KeyX' || k === 'KeyJ' || k === 'ShiftLeft' || k === 'ShiftRight') actionDown('fire');
   else if (k === 'Enter') advanceDialog();
   else if (k === 'KeyP' || k === 'Escape') togglePause();
@@ -2258,7 +2829,7 @@ function addScore(n) {
   el.scoreEl.innerHTML = '★ <b>' + score.toLocaleString() + '</b>';
 }
 function bumpCombo() {
-  combo++; comboT = hasPet('dog2') ? 150 : 110;  if (combo > bestCombo) bestCombo = combo;
+  combo++; comboT = 110;  if (combo > bestCombo) bestCombo = combo;
   const mult = Math.min(6, 1 + Math.floor(combo / 4));
   if (combo >= 2) {
     el.comboEl.hidden = false;
@@ -2278,12 +2849,12 @@ function setHearts(hp, max) {
   el.hearts.setAttribute('aria-label', hp + ' of ' + max + ' hearts');
 }
 function renderPetStat() {
-  const cats = progress.pets.ids.filter((id) => petDef(id).kind === 'cat').length;
-  const dogs = progress.pets.ids.filter((id) => petDef(id).kind === 'dog').length;
-  el.petStat.hidden = !(cats || dogs);
-  if (cats || dogs) {
-    el.petStat.innerHTML = '🐱<b>' + cats + '</b> 🐶<b>' + dogs + '</b>';
-    el.petStat.title = cats + ' cats · ' + dogs + ' dogs';
+  const cat = hasPet('cat1') || hasPet('cat2') || hasPet('cat3') || hasPet('cat4') ? progress.pets.equippedCat : null;
+  const dog = hasPet('dog1') || hasPet('dog2') ? progress.pets.equippedDog : null;
+  el.petStat.hidden = !(cat || dog);
+  if (cat || dog) {
+    el.petStat.innerHTML = (cat ? '🐱<b>1</b>' : '') + (dog ? ' 🐶<b>1</b>' : '');
+    el.petStat.title = 'Following: ' + (cat ? petName(cat) : 'no cat') + ' · ' + (dog ? petName(dog) : 'no dog');
   }
 }
 function updHud() {
@@ -2296,6 +2867,7 @@ function updHud() {
   el.pow.disabled = !(P.power === 'popper');
   el.pow.textContent = P.power === 'popper' ? 'POW' : (P.rush > 0 ? 'RUSH' : 'POW');
   renderPetStat();
+  updateFriendButton();
 }
 /* ============================================================
    DIALOGUE · TOASTS · PAUSE
@@ -2344,6 +2916,7 @@ function faceRows(def, mood) {
   const [c0, c1, r0, r1] = def.crop;
   return g.slice(r0, r1).map((r) => r.slice(c0, c1).join(''));
 }
+FACE_DEF.a = FACE_DEF.c;
 const PORTRAIT_SRC = {};
 function portraitFor(who, mood) {
   /* 'm' is what every Mom stage uses (LV[i].boss.face) and 'mech' the Lego Mega-Mech */
@@ -2355,7 +2928,7 @@ function portraitFor(who, mood) {
 }
 /* who is talking: a line that starts with "<b>NAME:</b>" shows that person's face and voice; narration shows Kinan, no voice */
 const SPEAKERS = { 'MOM': 'm', 'CHENOA': 'c', 'KINAN': 'k', 'ROBIN': 'd', 'DAD': 'd', 'SHAD': 's', 'NOSY NEIGHBOUR': 'n', 'NEIGHBOUR': 'n', 'BIG KID': 'b', 'MEGA-MECH': 'mech', '???': 'mech', 'FOREMAN': 'f', 'SAFETY FOREMAN': 'f', 'PUMPJACK PETE': 'mech',
-  'LIFEGUARD': 'lg', 'CONDUCTOR': 'cd', 'SHAD AND CHENOA': 's', 'BARKER': 'br', 'REX': 'mech', 'LUMBERJACK': 'lj', 'PROFESSOR STATIC': 'ps', 'DRIZZLE': 'dz' };
+  'LIFEGUARD': 'lg', 'CONDUCTOR': 'cd', 'SHAD AND CHENOA': 's', 'BARKER': 'br', 'REX': 'mech', 'LUMBERJACK': 'lj', 'PROFESSOR STATIC': 'ps', 'DRIZZLE': 'dz', 'ANNIE': 'a', 'AMANDEEP': 'a', 'GRANDMOTHERS': 'm', 'GLITCHY': 'mech' };
 function speakerOf(html, who) {
   const m = /^<b>([^<:(]+?)\s*(?:\([^)]*\))?:<\/b>/.exec(html || '');
   if (!m) return null;
@@ -2370,7 +2943,7 @@ function moodOf(html, fallback) {
   return fallback || 'n';
 }
 /* each voice: [pitch Hz, wave]; one short beep every couple of letters, like old game text */
-const VOICES = { k: [540, 'square'], m: [700, 'triangle'], c: [820, 'square'], d: [300, 'square'], s: [390, 'square'], n: [250, 'sawtooth'], b: [460, 'square'], mech: [980, 'square'], f: [270, 'sawtooth'], lg: [760, 'triangle'], cd: [330, 'square'], br: [420, 'sawtooth'], lj: [180, 'square'], ps: [880, 'square'], dz: [110, 'sawtooth'] };
+const VOICES = { k: [540, 'square'], m: [700, 'triangle'], c: [820, 'square'], d: [300, 'square'], s: [390, 'square'], n: [250, 'sawtooth'], b: [460, 'square'], mech: [980, 'square'], f: [270, 'sawtooth'], lg: [760, 'triangle'], cd: [330, 'square'], br: [420, 'sawtooth'], lj: [180, 'square'], ps: [880, 'square'], dz: [110, 'sawtooth'], a: [760, 'triangle'] };
 let typing = null;
 function tokenizeHTML(html) {
   const out = [], re = /(<[^>]+>|&[a-z#0-9]+;)/gi;
@@ -2444,6 +3017,7 @@ function setPaused(on, showMenu) {
   paused = on || !!advance;   /* a story box still on screen keeps the game frozen until it is tapped */
   pausedByUser = on;
   el.pause.hidden = !(on && showMenu !== false);
+  const pb = $('#petsBtnP'); if (pb) pb.disabled = !(cpHit && boss !== 'fight' && !L.custom && !LV[L.i].challenge);
   if (on) { input.left = input.right = input.jump = input.gas = false; }
   if (on && running) autoSave();   /* pause, app switch or screen off: the spot is kept */
   if (on) {   /* the pause menu's Vibration switch (phones that can) and, in a race, Tilt to steer */
@@ -2475,6 +3049,37 @@ function setSound(on) {
   el.snd.textContent = on ? '♪' : '♪̶';
 }
 el.snd.addEventListener('click', () => { AudioSys.init(); setSound(!AudioSys.on); });
+/* the audio settings box: music / sound effects / voice volumes, the optional device voice, captions */
+function openAudioBox(on) {
+  const box = $('#audioBox'); if (!box) return;
+  box.hidden = !on;
+  if (on) {
+    const v = progress.vol || { music: 100, sfx: 100, vo: 100 };
+    $('#volMusic').value = v.music == null ? 100 : v.music;
+    $('#volSfx').value = v.sfx == null ? 100 : v.sfx;
+    $('#volVo').value = v.vo == null ? 100 : v.vo;
+    $('#volNarr').checked = progress.narration !== false;
+    $('#volCaps').checked = progress.captions !== false;
+  }
+}
+function saveAudioPrefs() {
+  progress.vol = {
+    music: Number($('#volMusic').value), sfx: Number($('#volSfx').value), vo: Number($('#volVo').value)
+  };
+  progress.narration = $('#volNarr').checked;
+  progress.captions = $('#volCaps').checked;
+  if (progress.captions === false) { const c = document.getElementById('captions'); if (c) c.hidden = true; }   /* hide a caption the moment it is off */
+  applyAudioPrefs();
+  save();
+}
+$('#vol').addEventListener('click', () => { AudioSys.init(); SFX.click(); openAudioBox($('#audioBox').hidden); });
+$('#volX').addEventListener('click', () => { SFX.click(); openAudioBox(false); });
+['volMusic', 'volSfx', 'volVo'].forEach((id) => $('#' + id).addEventListener('input', saveAudioPrefs));
+$('#volNarr').addEventListener('change', saveAudioPrefs);
+$('#volCaps').addEventListener('change', saveAudioPrefs);
+/* captions for the soundtrack: one label whenever the music changes */
+const musicPlay0 = Music.play.bind(Music);
+Music.play = (name) => { if (name && name !== Music.name) caption('(♪ ' + ({ title: 'menu theme', stage: 'stage theme', boss: 'boss theme', final: 'finale theme' }[name] || name + ' music') + ')'); return musicPlay0(name); };
 el.pauseBtn.addEventListener('click', togglePause);
 $('#resumeBtn').addEventListener('click', () => { setPaused(false); SFX.click(); });
 $('#restartBtn').addEventListener('click', () => {
@@ -2486,6 +3091,7 @@ $('#restartBtn').addEventListener('click', () => {
   startStage(L ? L.i : 0, true);
 });
 $('#saveBtn').addEventListener('click', manualSave);
+$('#petsBtnP').addEventListener('click', openCheckpointLoadout);
 $('#mapBtnP').addEventListener('click', () => {
   setPaused(false); running = false; Music.stop();
   if (smash) { const online = smash.online; endSmash(); if (online) netLeave(); smashMenu(); return; }
@@ -2527,6 +3133,8 @@ function startStage(i, silent, custom) {
   if (advance) { advance = null; el.dialog.hidden = true; el.portrait.style.visibility = 'hidden'; Music.duck(false); paused = false; }
   puzzle = null;
   L = custom || build(i);
+  friendPlatforms = [];
+  unlockFriendsForStage(i);
   pieces = custom ? [] : findPieces(L); pieceCool = pieces.map(() => 0);
   stageTime = 0; score = 0; combo = 0; comboT = 0; bestCombo = 0; deaths = 0; heartsLost = 0;
   foes = L.foes.map((f, k) => Object.assign(makeFoe(f), { idx: k }));   /* idx: which stage enemy this is, for saves */
@@ -2544,16 +3152,18 @@ function startStage(i, silent, custom) {
   P = {
     x: spawn.x, y: spawn.y, w: 10, h: 16, vx: 0, vy: 0, onGround: false, face: 1,
     coyote: 0, inv: 0, hp: 3, max: 3, dead: 0, power: null, rush: 0, airJumps: 0,
+    cleanLandings: 0, zoomiesT: 0, zoomiesCd: 0,
+    vaderCd: 0, tuxCd: 0, tuxBossN: 0, hunterUsed: false, hunterT: 0, duchessUsed: false, friendCd: 0, aidenUsed: false, aidenT: 0,
     fireCd: 0, hat: false, squash: 0, stretch: 0, landT: 0, anim: 0, skid: 0, jumpT: null, prevBottom: 0
   };
-  const owned = progress.pets.ids;
+  const owned = progress.pets.ids, active = activePetIds();
   pets = { cats: [], dogs: [] };
-  owned.forEach((id, idx) => {
+  active.forEach((id, idx) => {
     const def = petDef(id);
     if (def.kind === 'cat') pets.cats.push({ id: id, def: def, x: P.x + 16 + idx * 14, y: P.y + 7, face: 1 });
-    else pets.dogs.push({ id: id, def: def, x: P.x + 66 + idx * 18, y: P.y + 6, t: ri(0, 120), dash: null, face: 1 });
+    else pets.dogs.push({ id: id, def: def, x: P.x + 66 + idx * 18, y: P.y + 6, t: ri(0, 120), warn: 0, dash: null, face: 1 });
   });
-  P.max = 3 + (owned.indexOf('cat3') >= 0 ? 1 : 0);
+  P.max = 3;
   P.hp = P.max;
   P.airJumps = hasPet('cat1') ? 1 : 0;
   const nextPet = !custom && PET_STAGE[i] && owned.indexOf(PET_STAGE[i]) < 0 ? PET_STAGE[i] : null;
@@ -2581,7 +3191,7 @@ function snapshotStage() {
   return {
     i: SL.i, x: Math.round(onGround ? P.x : safe.x), y: Math.round(onGround ? P.y : safe.y),
     hp: P.hp, max: P.max, got: got, score: score, stageTime: stageTime, deaths: deaths, heartsLost: heartsLost, bestCombo: bestCombo,
-    power: P.power, hat: !!P.hat, lasso: !!P.lasso, umbrella: !!P.umbrella, cpHit: cpHit, spawn: { x: spawn.x, y: spawn.y }, nextHeartAt: nextHeartAt, dadUsedStage: dadUsedStage,
+    power: P.power, hat: !!P.hat, lasso: !!P.lasso, umbrella: !!P.umbrella, cpHit: cpHit, spawn: { x: spawn.x, y: spawn.y }, nextHeartAt: nextHeartAt, dadUsedStage: dadUsedStage, hunterUsed: !!P.hunterUsed, hunterT: P.hunterT || 0, duchessUsed: !!P.duchessUsed, aidenUsed: !!P.aidenUsed,
     candles: candles.map((c, k) => (c.got ? k : -1)).filter((k) => k >= 0),
     gifts: Object.keys(SL.gifts).filter((k) => SL.g[Number(k)] === 4),
     foesDead: SL.foes.map((f, k) => k).filter((k) => !foes.some((f) => f.idx === k && f.alive)),
@@ -2595,6 +3205,7 @@ function restoreStage(s) {
   foes = foes.filter((f) => s.foesDead.indexOf(f.idx) < 0);
   got = s.got; score = s.score; stageTime = s.stageTime; deaths = s.deaths; heartsLost = s.heartsLost; bestCombo = s.bestCombo;
   nextHeartAt = s.nextHeartAt; dadUsedStage = !!s.dadUsedStage; cpHit = !!s.cpHit;
+  P.hunterUsed = !!s.hunterUsed; P.hunterT = Number(s.hunterT) || 0; P.duchessUsed = !!s.duchessUsed; P.aidenUsed = !!s.aidenUsed;
   if (s.cpHit && s.spawn) spawn = { x: s.spawn.x, y: s.spawn.y };
   P.hp = s.hp; P.max = s.max; P.power = s.power || null; P.hat = !!s.hat;
   if (s.bagOpen && bag) bag.open = true;
@@ -2629,13 +3240,44 @@ function dropSave(i) {
 /* ============================================================
    PLAYER
    ============================================================ */
+function tickCompanionTimers() {
+  if (!P) return;
+  if (P.zoomiesT > 0) {
+    P.zoomiesT--;
+    if (P.zoomiesT === 0) P.cleanLandings = 0;
+  }
+  if (P.zoomiesCd > 0) P.zoomiesCd--;
+  if (P.vaderCd > 0) P.vaderCd--;
+  if (P.tuxCd > 0) P.tuxCd--;
+  if (P.friendCd > 0) P.friendCd--;
+  if (P.aidenT > 0) P.aidenT--;
+  for (const fp of friendPlatforms) {
+    fp.t--;
+    if (fp.t <= 0 && L && L.g[fp.idx] === 7) L.g[fp.idx] = fp.old;
+  }
+  friendPlatforms = friendPlatforms.filter((fp) => fp.t > 0);
+  if (frame % 15 === 0) updateFriendButton();
+}
+function noteCleanLanding() {
+  if (!P || !hasPet('cat1') || P.zoomiesT > 0 || P.zoomiesCd > 0) return;
+  P.cleanLandings++;
+  if (P.cleanLandings >= 3) {
+    P.cleanLandings = 0;
+    P.zoomiesT = 150;   /* 2.5 seconds at the fixed 60 Hz update rate */
+    P.zoomiesCd = 900;  /* 15 seconds until the next Kitten Zoomies */
+    pop(P.x, P.y - 14, 'KITTEN ZOOMIES!', 52, '#f6c445');
+    SFX.power();
+  }
+}
 function updatePlayer() {
+  tickCompanionTimers();
   const rush = P.rush > 0;
   const left = input.left || padIn.left, right = input.right || padIn.right;
   const ice = !!(L.ice && P.onGround && boss === 'off');   /* the Mall Ice Rink: slow to get going, slow to stop (never in a boss arena: the lumberjack show has a sawdust floor) */
   const slime = !ice && P.onGround && onSlime(P.x + P.w / 2);   /* a giant banana slug's slime: a bit slippery */
-  const acc = P.onGround ? (ice ? 0.16 : (slime ? 0.3 : 0.55)) : 0.38, max = rush ? 3.7 : RUN_MAX;
+  const acc = (P.onGround ? (ice ? 0.16 : (slime ? 0.3 : 0.55)) : 0.38) * (P.zoomiesT > 0 ? 1.65 : 1), max = rush ? 3.7 : RUN_MAX;
   const wasGround = P.onGround;
+  if (P.zoomiesT > 0 && frame % 4 === 0) part(P.x + 5, P.y + P.h - 1, { vx: -P.face * 0.5, vy: -0.25, life: 15, size: 2, color: '#f6c445', glow: true });
 
   if (left && !right) {
     if (P.vx > 0 && P.onGround) { P.skid = 6; dust(P.x + 5, P.y + P.h, 2, 'rgba(244,241,232,.5)'); }
@@ -2696,6 +3338,7 @@ function updatePlayer() {
   if (!wasGround && P.onGround) {
     P.landT = 7; P.squash = 6;
     if (Math.abs(P.vy) > 2) dust(P.x + 5, P.y + P.h, 4);
+    noteCleanLanding();
   }
 
   if (P.inv > 0) P.inv--;
@@ -2707,11 +3350,12 @@ function updatePlayer() {
   if (input.fireBuf > 0) input.fireBuf--;
   if (input.fireBuf > 0 && P.power === 'popper' && P.fireCd === 0 && blasts.length < 4) {
     blasts.push({ x: P.x + (P.face > 0 ? P.w : -6), y: P.y + 6, w: 6, h: 6, vx: P.face * 4.4, life: 55 });
-    P.fireCd = hasPet('cat4') ? 8 : 11; input.fireBuf = 0; SFX.pew();
+    P.fireCd = 11; input.fireBuf = 0; SFX.pew();
     part(P.x + (P.face > 0 ? 12 : -2), P.y + 9, { vx: P.face * 1.2, vy: -0.4, life: 12, size: 2, color: '#ff6fae', glow: true });
   }
 
   if (P.y > H + 10) {
+    P.cleanLandings = 0;
     if (!L.noHurt) { P.hp = Math.max(0, P.hp - 1); heartsLost++; SFX.hurt(); flashScreen(); }   /* the Builder's can't-get-hurt switch */
     if (P.hp <= 0) { P.dead = 1; P.vy = -5; return; }
     P.x = boss === 'fight' ? (L.arenaX + 2) * T : (cpHit ? spawn.x : lastSafe.x || spawn.x);
@@ -2719,12 +3363,23 @@ function updatePlayer() {
     P.vx = P.vy = 0; P.inv = 100; trail = []; breakCombo();
     camX = clamp(Math.round(P.x - W * 0.42), 0, Math.min(L.w * T - W, (L.arenaX + L.arenaW + 1) * T - W));
     updHud();
-    if (P.hp === 1) callDad('heal');
+    if (P.hp === 1 && !startHunterRescue()) callDad('heal');
   }
 }
 
+function startHunterRescue() {
+  if (!hasPet('dog2')) return false;
+  if (P.hunterUsed) return true;
+  P.hunterUsed = true; P.hunterT = 360;
+  const d = pets.dogs.find((v) => v.id === 'dog2');
+  if (d) d.mission = 'out';
+  toast('<b>HUNTER:</b> is going for a snack. Hold on for six seconds!', 2200);
+  SFX.woof();
+  return true;
+}
 function hurt(from) {
   if (P.inv > 0 || P.dead || P.rush > 0 || paused || L.noHurt) return;
+  P.cleanLandings = 0;
   if (P.hat) {
     P.hat = false; P.inv = 90; P.vy = -3.2;
     SFX.stomp(); pop(P.x, P.y - 10, 'CLONK!', 26, '#f6c445'); updHud();
@@ -2737,13 +3392,13 @@ function hurt(from) {
     sparks(P.x + 5, P.y + 8, 10, ['#ff6fae', '#f6c445']);
     return;
   }
-  P.hp -= 1; heartsLost++; P.inv = 100; P.vy = -3.4; buzz(45);
-  P.vx = from != null ? (P.x < from ? -2.2 : 2.2) : 0;
+  P.hp -= 1; heartsLost++; P.inv = 100; P.vy = -3.4 * (hasPet('cat4') ? 0.8 : 1); buzz(45);
+  P.vx = (from != null ? (P.x < from ? -2.2 : 2.2) : 0) * (hasPet('cat4') ? 0.8 : 1);
   SFX.hurt(); flashScreen(); breakCombo();   /* no screen shake when Kinan is hurt (Shad: "violently shakes, stop that") */
   sparks(P.x + 5, P.y + 8, 8, ['#ff6b6b', '#fff']);
   updHud();
   if (P.hp <= 0) { P.dead = 1; P.vy = -5; return; }
-  if (P.hp === 1) callDad('heal');
+  if (P.hp === 1 && !startHunterRescue()) callDad('heal');
 }
 
 function die() {
@@ -2810,7 +3465,12 @@ function giveItem(kind) {
   else if (kind === 'heart') {
     P.max = Math.min(5, Math.max(P.max, P.hp + 1));
     P.hp = Math.min(P.max, P.hp + 1);
-    SFX.heart(); toast('❤ <b>Extra heart!</b>', 1300);
+    if (hasPet('cat3')) {
+      P.max = Math.min(5, Math.max(P.max, P.hp + 1));
+      P.hp = Math.min(P.max, P.hp + 1);
+      toast('❤ <b>ROYAL SNACK BREAK!</b> Duchess adds one more heart.', 1600);
+    } else toast('❤ <b>Extra heart!</b>', 1300);
+    SFX.heart();
   }
   else if (kind === 'hat') { P.hat = true; SFX.power(); toast("⛑️ <b>SHAD'S HARD HAT!</b> It takes one hit for you.", 2400); }
   else if (kind === 'lasso') { P.lasso = true; SFX.power(); toast('🤠 <b>LASSO!</b> Coins fly to you from far away. YEEHAW!', 2400); }
@@ -2823,6 +3483,45 @@ function trailPart(kind, x, y) {
   else if (kind === 'bubbles') part(x, y - 6, { vx: rand(-0.2, 0.2), vy: -0.45, life: 24, size: 1, type: 'bubble', color: '#9fe0ff', g: -0.005 });
   else if (kind === 'hearts') part(x, y - 6, { vx: rand(-0.3, 0.3), vy: -0.5, life: 22, size: 2, color: '#ff6fae', glow: true, g: 0 });
   else if (kind === 'stars') part(x, y - 4, { vx: -P.face * rand(0.4, 1.0), vy: rand(-0.3, 0.3), life: 14, size: ri(1, 3), color: pick(['#ffffff', '#fff3b0']), glow: true, g: 0 });
+}
+function activateDinoFriend(kind) {
+  if (!kind) return;
+  if (kind === 'triceratops') {
+    P.rush = Math.max(P.rush, 120);
+    toast('<b>TRICERATOPS:</b> Charge! A short safe route is open.', 1600);
+    SFX.power();
+    return;
+  }
+  const tx = Math.floor((L.checkpoint ? L.checkpoint.x : P.x) / T), ty = Math.floor((P.y + P.h) / T) - 1;
+  let made = 0;
+  for (let dy = 0; dy < 4 && made < 5; dy++) for (let dx = -6; dx <= 6 && made < 5; dx++) {
+    const x = tx + dx, y = ty - dy;
+    if (x < 1 || x >= L.w - 1 || y < 1) continue;
+    const idx = y * L.w + x;
+    if (L.g[idx] || friendPlatforms.some((fp) => fp.idx === idx)) continue;
+    L.g[idx] = 7;
+    friendPlatforms.push({ idx, old: 0, t: 999999 });
+    made++;
+  }
+  toast(kind === 'brachiosaurus' ? '<b>BRACHIOSAURUS:</b> A long-neck bridge to the next ledge!' : '<b>STEGOSAURUS:</b> Plated steps for Kinan!', 1800);
+  SFX.power();
+}
+function drawConveyor() {
+  if (!LV[L.i].conveyor) return;
+  const y = GROUND * T + 4, offset = (L.conveyorOffset || 0) % 24;
+  ctx.fillStyle = '#2b2f45'; ctx.fillRect(0, y, W, 7);
+  ctx.fillStyle = '#9aa1ab'; ctx.fillRect(0, y, W, 1);
+  ctx.fillStyle = '#f6c445';
+  for (let x = -24 + offset; x < W + 24; x += 24) {
+    ctx.fillRect(Math.round(x), y + 3, 8, 1);
+    ctx.fillRect(Math.round(x + 6), y + 2, 2, 3);
+  }
+}
+function drawDinoFriend() {
+  if (!LV[L.i].dinoFriend || !cpHit || !L.checkpoint) return;
+  const x = L.checkpoint.tx * T - Math.round(camX), y = (L.checkpoint.ty - 1) * T - 28;
+  ctx.font = '16px "Segoe UI Emoji",sans-serif'; ctx.textAlign = 'center';
+  ctx.fillText(LV[L.i].dinoFriend === 'brachiosaurus' ? '🦕' : '🦖', x, y);
 }
 function updateWorld() {
   for (const pc of pieces) {
@@ -2837,11 +3536,24 @@ function updateWorld() {
     spawn = { x: L.checkpoint.x, y: (L.checkpoint.ty - 1) * T };
     SFX.flag(); toast('<b>CHECKPOINT!</b> 🚩 Saved.', 1300); if (!LV[L.i].final3) callBro();   /* not on the bridge: Shad is waiting there */
     sparks(L.checkpoint.tx * T + 6, (L.checkpoint.ty - 1) * T, 12, ['#44c55a', '#fff', '#f6c445']);
+    activateDinoFriend(LV[L.i].dinoFriend);
+    if (hasPet('cat3') && !P.duchessUsed && P.hp < P.max && boss !== 'fight' && !L.custom && !LV[L.i].challenge) {
+      const snack = Math.min(2, P.max - P.hp);
+      P.duchessUsed = true; P.hp += snack;
+      toast('<b>DUCHESS:</b> Royal snack break! +' + snack + ' ❤', 1800);
+      SFX.heart(); updHud();
+    }
+    if (progress.friendAssist === 'aiden') callAidenSupport();
     autoSave();
   }
-  const magnet = (P.rush > 0 ? 34 : 24) + (hasPet('cat2') ? 18 : 0) + (P.lasso ? 70 : 0);
+  const magnet = (P.rush > 0 ? 34 : 24) + (P.lasso ? 70 : 0);
   for (const c of candles) {
     if (c.got) continue;
+    if (c.vader > 0) {
+      c.vader--;
+      c.x += clamp(P.x - c.x, -3, 3);
+      c.y += clamp(P.y - c.y, -3, 3);
+    }
     const ccx = c.x + 3, ccy = c.y + 5;
     if (overlap(P, c) || dist(ccx, ccy, P.x + 5, P.y + 8) < magnet) {
       c.got = true;
@@ -2850,6 +3562,11 @@ function updateWorld() {
     }
   }
   for (const it of items) {
+    if (it.vader > 0) {
+      it.vader--;
+      it.x += clamp(P.x - it.x, -3, 3);
+      it.y += clamp(P.y - it.y, -3, 3);
+    }
     if (it.rise > 0) { it.y -= 0.9; it.rise--; }
     if (!it.got && overlap(P, it)) {
       it.got = true; giveItem(it.kind);
@@ -2863,13 +3580,16 @@ function updateWorld() {
       crate.open = true;
       const def = petDef(crate.pet);
       if (progress.pets.ids.indexOf(def.id) < 0) progress.pets.ids.push(def.id);
+      const slot = def.kind === 'cat' ? 'equippedCat' : 'equippedDog';
+      if (!progress.pets[slot]) progress.pets[slot] = def.id;
       save();
-      if (def.kind === 'cat') pets.cats.push({ id: def.id, def: def, x: crate.x, y: crate.y + 7, face: 1 });
-      else pets.dogs.push({ id: def.id, def: def, x: crate.x, y: crate.y + 6, t: 0, dash: null, face: 1 });
-      if (def.id === 'cat1') P.airJumps = 1;
-      if (def.id === 'cat3') { P.max = Math.min(5, P.max + 1); P.hp = P.max; }
+      if (hasPet(def.id)) {
+        if (def.kind === 'cat') pets.cats.push({ id: def.id, def: def, x: crate.x, y: crate.y + 7, face: 1 });
+        else pets.dogs.push({ id: def.id, def: def, x: crate.x, y: crate.y + 6, t: 0, warn: 0, dash: null, face: 1 });
+      }
+      if (def.id === 'cat1' && hasPet(def.id)) P.airJumps = 1;
       if (def.kind === 'cat') SFX.meow(); else SFX.woof();
-      toast((def.kind === 'cat' ? '🐱 ' : '🐶 ') + '<b>' + escAttr(petName(def.id)) + '</b> joined the party! <b>' + def.perk + '</b> unlocked.', 3000);
+      toast((def.kind === 'cat' ? '🐱 ' : '🐶 ') + '<b>' + escAttr(petName(def.id)) + '</b> joined your collection! <b>' + def.perk + '</b>' + (hasPet(def.id) ? ' · equipped now.' : ' · choose them in Pets.'), 3000);
       pop(crate.x, crate.y - 10, def.perk.toUpperCase(), 50, '#f6c445');
       sparks(crate.x + 8, crate.y + 8, 22, ['#f6c445', '#fff', '#7be3a3']);
       shakeIt(3); updHud();
@@ -2884,6 +3604,15 @@ function updateWorld() {
       pop(bag.x, bag.y - 10, dog ? 'WOOF! +5' : 'MEOW! +5', 50, '#f6c445'); sparks(bag.x + 8, bag.y + 8, 18, ['#f6c445', '#fff', '#7be3a3']);
     }
   }
+  if (LV[L.i].rhythm && boss === 'fight' && frame % 120 === 0) {
+    L.rhythmPhase = (L.rhythmPhase || 0) + 1;
+    AudioSys.tone(160, 0.07, { type: 'sine', vol: 0.06, slide: 40 });
+    if (L.rhythmPhase % 2 === 0) {
+      P.rush = Math.max(P.rush, 30);
+      pop(P.x, P.y - 14, 'DHOL BEAT!', 26, '#f6c445');
+    }
+  }
+  if (LV[L.i].conveyor) L.conveyorOffset = (L.conveyorOffset || 0) + 0.35;
   for (const p of pops) { p.t--; p.y -= 0.55; }
   pops = pops.filter((p) => p.t > 0);
   for (const p of parts) {
@@ -2893,6 +3622,139 @@ function updateWorld() {
   for (const r of rings) { r.r += 6; r.t--; }
   rings = rings.filter((r) => r.t > 0);
   if (comboT > 0) { comboT--; if (comboT === 0) breakCombo(); }
+}
+/* ============================================================
+   FRIEND ASSIST + CHECKPOINT LOADOUT
+   ============================================================ */
+const friendUnlocked = (id) => progress.friendsUnlocked.indexOf(id) >= 0;
+const friendName = (id) => id === 'milo' ? 'Milo' : 'Aiden';
+function unlockFriendsForStage(i) {
+  if (worldOf(i) !== 2) return;
+  const added = ['milo', 'aiden'].filter((id) => !friendUnlocked(id));
+  if (!added.length) return;
+  progress.friendsUnlocked.push(...added);
+  save();
+  toast('<b>MILO & AIDEN</b> joined as Friend Assists! Choose one in Pets.', 3000);
+}
+function nearBuildPad() {
+  if (!L.buildPads) return null;
+  return L.buildPads.find((p) => Math.abs(P.x - p.x) < 32 && Math.abs(P.y - p.y) < 44) || null;
+}
+function buildBrickRecipe(pad) {
+  const tx0 = Math.floor(pad.x / T), ty0 = Math.floor((pad.y + P.h) / T) - 1, bridge = pad.recipe === 'bridge';
+  let made = 0;
+  for (let k = 0; k < 6; k++) {
+    const tx = tx0 + (P.face > 0 ? k + 1 : -k - 1), ty = bridge ? ty0 : ty0 - k;
+    if (tx < 1 || tx >= L.w - 1 || ty < 1 || ty >= ROWS) continue;
+    const idx = ty * L.w + tx;
+    if (L.g[idx] || friendPlatforms.some((fp) => fp.idx === idx)) continue;
+    L.g[idx] = 7;
+    friendPlatforms.push({ idx, old: 0, t: 480 });
+    made++;
+  }
+  if (!made) { toast('Milo needs a clear build pad for this recipe.', 1400); return false; }
+  P.friendCd = 1500;
+  pop(pad.x, pad.y - 18, bridge ? 'BRIDGE RECIPE!' : 'STAIR RECIPE!', 40, '#f6c445');
+  toast('<b>MILO:</b> ' + (bridge ? 'Bridge' : 'Staircase') + ' built! Eight seconds before the bricks reset.', 1800);
+  SFX.power();
+  return true;
+}
+function drawBuildPads() {
+  if (!L.buildPads) return;
+  for (const p of L.buildPads) {
+    const sx = Math.round(p.x - camX), sy = Math.round(p.y);
+    ctx.fillStyle = '#f6c445';
+    for (let k = 0; k < 3; k++) ctx.fillRect(sx + k * 5, sy + 12, 4, 4);
+    if (Math.abs(P.x - p.x) < 44) {
+      ctx.fillStyle = '#f4f1e8'; ctx.font = 'bold 8px monospace'; ctx.textAlign = 'center';
+      ctx.fillText(worldOf(L.i) === 9 ? 'E FORCE' : 'E BUILD', sx + 8, sy + 4);
+    }
+  }
+}
+function drawBrickRexCore(b) {
+  if (!LV[L.i] || LV[L.i].finalWorld !== 7) return;
+  const sx = Math.round(b.x - camX), sy = Math.round(b.y);
+  if (b.out) {
+    ctx.fillStyle = '#f4f1e8'; ctx.font = '16px "Segoe UI Emoji",sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText('👀', sx + 8, sy + 10);
+    ctx.fillStyle = '#f6c445'; ctx.font = 'bold 9px monospace'; ctx.fillText('HEART SAFE', sx + 8, sy - 4);
+  } else if (b.hp <= b.max / 2) {
+    glowDisc(sx + 8, sy - 14, 22, 'rgba(246,196,69,.65)', 0.8);
+    ctx.font = '14px "Segoe UI Emoji",sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText('💛', sx + 8, sy - 12);
+  }
+}
+function drawAlphaReunion(b) {
+  if (!LV[L.i] || LV[L.i].finalWorld !== 8 || !b.out) return;
+  const sx = Math.round(b.x - camX), sy = Math.round(b.y);
+  ctx.font = '16px "Segoe UI Emoji",sans-serif'; ctx.textAlign = 'center';
+  ctx.fillText('🦕', sx + 8, sy + 8);
+  ctx.fillStyle = '#7be3a3'; ctx.font = 'bold 9px monospace';
+  ctx.fillText('FAMILY REUNITED', sx + 8, sy - 5);
+}
+function callMilo() {
+  const pad = nearBuildPad();
+  if (pad) return buildBrickRecipe(pad);
+  const tx0 = Math.floor(P.x / T), ty0 = Math.floor((P.y + P.h) / T), span = worldOf(L.i) === 7 ? 7 : 5;
+  let made = 0;
+  for (let k = 0; k < span; k++) {
+    const tx = tx0 + (P.face > 0 ? k + 1 : -k - 1), ty = ty0 - 1 - k;
+    if (tx < 1 || tx >= L.w - 1 || ty < 1 || ty >= ROWS) continue;
+    const idx = ty * L.w + tx;
+    if (L.g[idx] || friendPlatforms.some((fp) => fp.idx === idx)) continue;
+    L.g[idx] = 7;
+    friendPlatforms.push({ idx, old: 0, t: 480 });
+    made++;
+  }
+  if (!made) { toast('Milo needs a clear spot for a brick staircase.', 1300); return false; }
+  P.friendCd = 1500;
+  pop(P.x, P.y - 14, 'MILO BUILT ' + made + ' BRICKS!', 42, '#f6c445');
+  toast('<b>MILO:</b> Brick staircase ready for eight seconds!', 1700);
+  SFX.power();
+  return true;
+}
+function callAidenSupport() {
+  if (P.aidenUsed) return false;
+  P.aidenUsed = true; P.friendCd = 1500; P.aidenT = 180;
+  giveItem('heart');
+  for (const f of foes) if (f.alive && Math.abs(f.x - P.x) < 220) f.distract = 180;
+  toast('<b>AIDEN:</b> Snack break! Nearby enemies are distracted for three seconds.', 1800);
+  return true;
+}
+function callFriendAssist() {
+  if (paused || !running || !progress.friendAssist || P.friendCd > 0) return false;
+  if (progress.friendAssist === 'milo') return callMilo();
+  if (progress.friendAssist === 'aiden') return callAidenSupport();
+  return false;
+}
+function updateFriendButton() {
+  const b = $('#friendBtn');
+  if (!b) return;
+  const show = !!(P && progress.friendAssist && !smash && !kart && !builder);
+  b.hidden = !show;
+  if (!show) return;
+  const id = progress.friendAssist;
+  b.textContent = id === 'milo' ? 'MILO' : 'AIDEN';
+  b.disabled = P.friendCd > 0 || (id === 'aiden' && P.aidenUsed);
+  b.title = id === 'milo' ? 'Build a temporary brick staircase (25s cooldown)' : 'Healing snack and a three-second distraction (once per checkpoint)';
+}
+function applyPetLoadout() {
+  const active = activePetIds();
+  pets = { cats: [], dogs: [] };
+  active.forEach((id, idx) => {
+    const def = petDef(id);
+    if (def.kind === 'cat') pets.cats.push({ id, def, x: P.x + 16 + idx * 14, y: P.y + 7, face: 1 });
+    else pets.dogs.push({ id, def, x: P.x + 66 + idx * 18, y: P.y + 6, t: 0, warn: 0, dash: null, face: 1 });
+  });
+  P.airJumps = hasPet('cat1') ? 1 : 0;
+  updHud();
+}
+function openCheckpointLoadout() {
+  const allowed = cpHit && boss !== 'fight' && !L.custom && !LV[L.i].challenge;
+  if (!allowed) { toast('Pets can be changed at activated checkpoints outside bosses and challenges.', 1900); return false; }
+  autoSave();
+  petLoadoutScreen(() => { showGame(true); applyPetLoadout(); setPaused(true, true); });
+  return true;
 }
 /* ============================================================
    PETS · DAD · BIG BRO
@@ -2908,44 +3770,109 @@ function updatePets() {
     c.y = p.y - 10 - (i % 2);
     c.face = p.face;
     if (Math.random() < 0.006) part(c.x + 5, c.y + 8, { vx: 0, vy: -0.2, life: 16, size: 1, color: c.def.color, glow: true });
+    if (c.id === 'cat2' && P.vaderCd <= 0) {
+      /* Vader pulls only visible pickups. Puzzle pieces, keys and objectives
+         never enter this list; his next pulse waits exactly eight seconds. */
+      const coins = candles.filter((v) => !v.got && v.x > camX && v.x < camX + W && Math.abs(v.x - P.x) > 60);
+      const drops = items.filter((v) => !v.got && v.x > camX && v.x < camX + W && Math.abs(v.x - P.x) > 60);
+      if (coins.length || drops.length) {
+        P.vaderCd = 480;
+        coins.forEach((v) => { v.vader = 180; });
+        drops.forEach((v) => { v.vader = 180; });
+        pop(c.x, c.y - 12, 'CURIOUS FORCE!', 34, '#9fe0ff');
+        SFX.meow();
+      }
+    }
+    if (c.id === 'cat4' && P.tuxCd <= 0) {
+      const charging = foes.find((f) => f.alive && f.charge > 0 && Math.abs(f.x - P.x) < 220);
+      if (charging) {
+        charging.stun = Math.max(charging.stun || 0, 120);
+        charging.charge = 0; charging.vx = 0; P.tuxCd = 960;
+        pop(charging.x, charging.y - 12, 'SENIOR GLARE!', 42, '#c9c9cf');
+        SFX.meow();
+      } else if (boss === 'fight') {
+        const b = bosses.find((v) => !v.out && (v.tele > 0 || v.charge > 0 || v.state === 'charge') && Math.abs(v.x - P.x) < 220);
+        if (b) {
+          const n = P.tuxBossN || 0;
+          b.stun = Math.max(b.stun, Math.max(8, 24 - n * 6));
+          P.tuxBossN = n + 1; P.tuxCd = 960;
+          pop(b.x, b.y - 12, 'SENIOR GLARE!', 34, '#c9c9cf');
+          SFX.meow();
+        }
+      }
+    }
   });
   pets.dogs.forEach((d, i) => {
     d.t++;
-    if (d.dash) {
-      const tgt = d.dash;
-      d.x = lerp(d.x, tgt.x, 0.3);
-      d.y = lerp(d.y, tgt.y + tgt.h - 12, 0.3);
-      d.face = sign(tgt.x - d.x) || 1;
-      if (Math.random() < 0.5) part(d.x + 5, d.y + 9, { vx: -d.face * 0.6, vy: 0, life: 12, size: 1, color: '#fff' });
-      if (Math.abs(tgt.x - d.x) < 7 || !(tgt.alive || tgt.isBoss)) {
-        if (tgt.isBoss) {
-          if (!tgt.out) { tgt.stun = Math.max(tgt.stun, 70 + i * 20); pop(tgt.x, tgt.y - 10, 'WOOF! 💫', 40, '#ff6fae'); }
-          d.t = -240;
-        } else { killFoe(tgt, 'WOOF!'); d.t = 0; }
-        SFX.woof(); d.dash = null;
-      }
-    } else {
+    if (d.id === 'dog1') {
+      /* Chikastino — Neighbourhood Watch: follows, warns about off-screen
+         threats, then barks without killing nearby enemies (14-second cooldown). */
       const p = at(34 + i * 10);
       if (p) {
         d.x = lerp(d.x, p.x - (80 + i * 20) * p.face, 0.16);
         d.y = p.y - 11;
         d.face = p.face;
       }
-      const cd = (hasPet('dog2') ? 130 : 165) + i * 40;
-      if (d.t > cd) {
-        const taken = pets.dogs.filter((o) => o !== d && o.dash).map((o) => o.dash);
-        let tgt = null;
-        if (boss === 'fight') {
-          const list = bosses.filter((b) => !b.out && b.stun === 0);
-          tgt = list.filter((b) => taken.indexOf(b) < 0)[0] || null;
-          if (tgt) tgt.isBoss = true;
-        } else {
-          const list = foes.filter((f) => f.alive && !f.hidden && !f.def.tough && Math.abs(f.x - P.x) < 130 && f.x > camX - 20 && f.x < camX + W + 20 && f.def.beh !== 'flyer');
-          tgt = list.filter((f) => taken.indexOf(f) < 0)[0] || null;
-        }
-        if (tgt) { d.dash = tgt; SFX.woof(); }
-        else d.t = 110;
+      d.warn = Math.max(0, (d.warn || 0) - 1);
+      const offscreen = foes.find((f) => f.alive && !f.hidden && Math.abs(f.x - P.x) < 240 && (f.x < camX - 20 || f.x > camX + W + 20)) ||
+        shots.find((s) => !s.gone && Math.abs(s.x - P.x) < 240 && (s.x < camX - 20 || s.x > camX + W + 20));
+      if (offscreen && d.warn <= 0) {
+        d.warn = 240;
+        pop(d.x, d.y - 12, 'WATCH!', 38, '#ff6b6b');
+        SFX.woof();
       }
+      if (d.t > 840) {
+        const nearFoes = foes.filter((f) => f.alive && !f.hidden && !f.def.tough && Math.abs(f.x - P.x) < 145 && Math.abs(f.y - P.y) < 80 && f.x > camX - 20 && f.x < camX + W + 20);
+        const nearBosses = boss === 'fight' ? bosses.filter((b) => !b.out && Math.abs(b.x - P.x) < 170) : [];
+        if (nearFoes.length || nearBosses.length) {
+          nearFoes.forEach((f) => {
+            f.stun = Math.max(f.stun || 0, 90);
+            f.vx = 0; f.charge = 0;
+            pop(f.x, f.y - 10, 'WOOF! 💫', 34, '#7be3a3');
+          });
+          nearBosses.forEach((b) => {
+            b.stun = Math.max(b.stun, 36);
+            pop(b.x, b.y - 10, 'WOOF! 💫', 30, '#7be3a3');
+          });
+          d.t = 0;
+          rings.push({ x: d.x + 6, y: d.y + 8, r: 4, t: 22 });
+          SFX.woof();
+        }
+      }
+      return;
+    }
+    if (d.id === 'dog2') {
+      /* Hunter retrieves nearby healing drops and performs one six-second
+         one-heart rescue per level instead of the old combat dash. */
+      if (P.hunterT > 0) {
+        P.hunterT--;
+        d.mission = 'out';
+        d.x = lerp(d.x, camX - 55, 0.08);
+        d.y = lerp(d.y, P.y + 6, 0.12);
+        if (P.hunterT === 0) {
+          d.mission = null; d.x = P.x - 40; d.y = P.y + 6;
+          giveItem('heart');
+          pop(P.x, P.y - 16, 'HUNTER FOUND A SNACK!', 52, '#7be3a3');
+          toast('<b>HUNTER:</b> came back with a one-heart snack!', 2000);
+        }
+        return;
+      }
+      d.mission = null;
+      for (const it of items) {
+        if (it.got || it.kind !== 'heart') continue;
+        const range = dist(it.x, it.y, P.x, P.y);
+        if (range < 180) {
+          it.x += clamp(P.x - it.x, -3, 3);
+          it.y += clamp(P.y - it.y, -3, 3);
+        }
+      }
+      const p = at(34 + i * 10);
+      if (p) {
+        d.x = lerp(d.x, p.x - (80 + i * 20) * p.face, 0.16);
+        d.y = p.y - 11;
+        d.face = p.face;
+      }
+      return;
     }
   });
 }
@@ -3084,6 +4011,8 @@ function updateFoes() {
     if (Math.abs(f.x - P.x) > W + 90) continue;
     f.t++;
     if (f.hurtT > 0) f.hurtT--;
+    if (f.stun > 0) { f.stun--; f.vx = 0; f.charge = 0; continue; }
+    if (f.distract > 0) { f.distract--; f.vx = 0; continue; }
     const beh = f.def.beh;
     if (beh === 'flyer') {
       if (f.flee) {   /* a magpie getting away (with a coin, if it got one) */
@@ -3161,7 +4090,7 @@ function updateFoes() {
     }
     if (stomp) {
       killFoe(f);
-      P.vy = (input.jump || padIn.jump) ? -7.8 - (hasPet('dog2') ? 0.5 : 0) : -6.0 - (hasPet('dog2') ? 0.3 : 0);
+      P.vy = (input.jump || padIn.jump) ? -7.8 : -6.0;
       P.squash = 4; P.y = f.y - P.h + 1;
       SFX.stomp(); shakeIt(1.5);
     } else if (f.def.thief) {   /* a magpie grabs a coin and flies off with it: stomp it to get the coin back */
@@ -3181,7 +4110,13 @@ function updateFoes() {
    PROJECTILES + BLASTS
    ============================================================ */
 function updateShots() {
+  if (worldOf(L.i) === 7 && shots.length > 4) shots.splice(0, shots.length - 4);
+  if (LV[L.i].laserTutorial && !L.laserHintDone && shots.length) {
+    L.laserHintDone = true;
+    toast('<b>LASER SCHOOL:</b> Tap POW as a shot reaches you to deflect it.', 2300);
+  }
   for (const s of shots) {
+    if (LV[L.i].laserTutorial) { s.vx = clamp(s.vx, -1.5, 1.5); s.vy = clamp(s.vy, -4, 4); }
     if (s.kind === 'wave') { s.x += s.vx; s.y = GROUND * T - s.h; s.life--; }
     else { s.vy += s.g; s.x += s.vx; s.y += s.vy; s.life--; }
     if (s.bounce) {
@@ -3233,7 +4168,7 @@ function updateShots() {
 const BOSS_NAMES = { mom: 'MOM', chenoa: 'CHENOA', mech: 'MEGA-MECH', neighbour: 'NEIGHBOUR', bully: 'BIG KID',
   moose: 'BULL MOOSE', foreman: 'SAFETY FOREMAN', pumpjack: 'PUMPJACK PETE', dadboss: 'HYDRO VAC DAD', bronco: 'BRONCO', rodeo: 'BRONCO', barker: 'CARNIVAL BARKER', rex: 'REX', bananaslug: 'BANANA SLUG', lumberjack: 'LUMBERJACK CHAMP', static: 'PROFESSOR STATIC', drizzle: 'DRIZZLE',
   lifeguard: 'LIFEGUARD', conductor: 'COASTER CONDUCTOR', supchenoa: '🍽️ CHENOA', shadboss: '👷 SHAD' };
-function bossName(b) { return BOSS_NAMES[b.kind] || 'BOSS'; }
+function bossName(b) { if (b.kind === 'supchenoa' && LV[L.i] && LV[L.i].boss) { if (LV[L.i].boss.annie) return '🫓 ANNIE'; if (LV[L.i].boss.grandmas) return '👵 THE GRANDMOTHERS'; if (LV[L.i].boss.glitchy) return '👾 GLITCHY'; } return BOSS_NAMES[b.kind] || 'BOSS'; }
 function makeBoss(kind, x, hp, prop) {
   const sizes = { mom: [14, 22], chenoa: [12, CH_H], mech: [28, 34], neighbour: [14, 22], bully: [14, 22], moose: [36, 32], foreman: [14, 22], pumpjack: [28, 34], dadboss: [14, 22], lifeguard: [14, 22], conductor: [24, 26], supchenoa: [12, CH_H], shadboss: [14, 22], bronco: [32, 26], rodeo: [32, 26], barker: [14, 22], rex: [30, 34], bananaslug: [40, 18], lumberjack: [14, 22], static: [14, 22], drizzle: [48, 26] };
   const s = sizes[kind] || [12, 18];
@@ -3379,6 +4314,7 @@ async function bossDefeated() {
   updateBossHud();
   SFX.win();
   const i = L.i;
+  if (LV[i].finalWorld) return endingWorld(LV[i].finalWorld);
   if (LV[i].final) return ending();
   if (LV[i].final2) return ending2();
   if (LV[i].final3) return ending3();
@@ -3959,6 +4895,7 @@ function updateFx() {
   if (shake > 0.05) shake *= 0.86; else shake = 0;
 }
 function update() {
+  if (portraitBlocked && !paused) setOrientationUI();
   if (builder) { updateBuilder(); return; }
   if (kart) { kartUpdate(); return; }
   if (smash) { updateSmash(); return; }
@@ -4021,6 +4958,7 @@ function loop(t) {
 }
 function run() {
   if (!running) running = true;
+  setOrientationUI();
   if (!runningRAF) { runningRAF = true; last = 0; acc = 0; requestAnimationFrame(loop); }
 }
 /* ============================================================
@@ -4603,6 +5541,29 @@ function drawTiles(th) {
   const dg = ctx.createLinearGradient(0, GROUND * T, 0, H);
   dg.addColorStop(0, 'rgba(0,0,0,.02)'); dg.addColorStop(1, 'rgba(0,0,0,.45)');
   ctx.fillStyle = dg; ctx.fillRect(0, GROUND * T, viewW, H - GROUND * T);
+}
+function vaderScoutTargets() {
+  const out = [];
+  if (!hasPet('cat2')) return out;
+  const up = L.up | 0, x0 = Math.floor(camX / T) - 1, x1 = Math.ceil((camX + viewW) / T) + 1;
+  const y0 = up ? Math.max(-up, Math.floor(camY / T)) : 0, y1 = up ? Math.min(ROWS - 1, Math.floor((camY + viewH) / T)) : ROWS - 1;
+  for (let ty = y0; ty <= y1; ty++) for (let tx = Math.max(0, x0); tx <= Math.min(L.w - 1, x1); tx++) {
+    if (L.g[(ty + up) * L.w + tx] === 3) out.push({ x: tx * T - Math.round(camX), y: ty * T, w: T, h: T });
+  }
+  for (const pc of pieces) {
+    if (hasGold(L.i, pc.j) || pc.x < camX - 12 || pc.x > camX + W + 12) continue;
+    out.push({ x: pc.x - camX - 4, y: pc.y - 4, w: 20, h: 20 });
+  }
+  if (crate && !crate.open && crate.x > camX - 16 && crate.x < camX + W + 16) out.push({ x: crate.x - camX - 3, y: crate.y - 3, w: 22, h: 22 });
+  return out;
+}
+function drawVaderScout() {
+  const targets = vaderScoutTargets();
+  if (!targets.length) return;
+  ctx.save();
+  ctx.strokeStyle = 'rgba(246,196,69,.72)'; ctx.lineWidth = 1; ctx.setLineDash([3, 3]);
+  for (const r of targets) ctx.strokeRect(r.x, r.y, r.w, r.h);
+  ctx.restore();
 }
 function drawProps(th) {
   for (const pc of pieces) if (!hasGold(L.i, pc.j)) drawPiece(Math.round(pc.x - camX), pc.y, frame + pc.j * 30);
@@ -5373,6 +6334,9 @@ function drawBoss(b) {
   else if (b.kind === 'dadboss') drawDadBoss(b, sx, sy);
   else if (b.kind === 'lifeguard') drawLifeguard(b, sx, sy);
   else if (b.kind === 'conductor') drawConductor(b, sx, sy);
+  else if (b.kind === 'supchenoa' && LV[L.i].boss && LV[L.i].boss.glitchy) drawGlitchy(b, sx, sy);
+  else if (b.kind === 'supchenoa' && LV[L.i].boss && LV[L.i].boss.grandmas) drawGrandmothers(b, sx, sy);
+  else if (b.kind === 'supchenoa' && LV[L.i].boss && LV[L.i].boss.annie) drawAnnie(b, sx, sy);
   else if (b.kind === 'supchenoa') drawSupChenoa(b, sx, sy);
   else if (b.kind === 'shadboss') drawShadBoss(b, sx, sy);
   else if (b.kind === 'bronco' || b.kind === 'rodeo') drawBull(b, sx, sy);
@@ -5426,9 +6390,15 @@ function drawShots() {
       ctx.fillStyle = s.color || '#ff4fa3';
       ctx.beginPath(); ctx.arc(sx + 4, sy + 4, 4, 0, 6.284); ctx.fill();
     } else if (s.kind === 'plate') {
-      ctx.fillStyle = '#c9c9cf'; ctx.beginPath(); ctx.ellipse(sx + 4, sy + 5, 5, 3, 0, 0, 6.284); ctx.fill();
-      ctx.fillStyle = '#f4f1e8'; ctx.beginPath(); ctx.ellipse(sx + 4, sy + 4, 5, 3, 0, 0, 6.284); ctx.fill();
-      ctx.fillStyle = '#3fa9f5'; ctx.fillRect(sx + 2, sy + 3, 4, 1);
+      if (LV[L.i].boss && LV[L.i].boss.annie) {
+        ctx.fillStyle = '#e0b84a'; ctx.beginPath(); ctx.ellipse(sx + 4, sy + 5, 6, 3, 0, 0, 6.284); ctx.fill();
+        ctx.fillStyle = '#f6c445'; ctx.beginPath(); ctx.ellipse(sx + 4, sy + 4, 6, 3, 0, 0, 6.284); ctx.fill();
+        ctx.fillStyle = '#a8692e'; ctx.fillRect(sx + 1, sy + 3, 1, 1); ctx.fillRect(sx + 6, sy + 2, 1, 1); ctx.fillRect(sx + 5, sy + 5, 1, 1);
+      } else {
+        ctx.fillStyle = '#c9c9cf'; ctx.beginPath(); ctx.ellipse(sx + 4, sy + 5, 5, 3, 0, 0, 6.284); ctx.fill();
+        ctx.fillStyle = '#f4f1e8'; ctx.beginPath(); ctx.ellipse(sx + 4, sy + 4, 5, 3, 0, 0, 6.284); ctx.fill();
+        ctx.fillStyle = '#3fa9f5'; ctx.fillRect(sx + 2, sy + 3, 4, 1);
+      }
     } else if (s.kind === 'paper') {
       ctx.fillStyle = '#f4f1e8'; ctx.fillRect(sx, sy, 8, 6);
       ctx.fillStyle = 'rgba(0,0,0,.25)'; ctx.fillRect(sx + 1, sy + 2, 6, 1); ctx.fillRect(sx + 1, sy + 4, 4, 1);
@@ -5560,6 +6530,33 @@ function drawVignette(light) {
   }
   ctx.drawImage(vignettes[k], 0, 0);
 }
+/* World 11's flat-plane 3D look: every exposed tile face gains depth (light top face,
+   dark right side) so the level reads as extruded blocks — while gravity, collision and
+   every gameplay rule stay perfectly FLAT (this is never the archived galaxy3d morph). */
+function drawFlat3D(th) {
+  const up = L.up | 0;
+  const x0 = Math.max(0, Math.floor(camX / T) - 1), x1 = Math.min(L.w - 1, Math.ceil((camX + viewW) / T) + 1);
+  const y0 = up ? Math.max(-up, Math.floor(camY / T)) : 0, y1 = up ? Math.min(ROWS - 1, Math.floor((camY + viewH) / T)) : ROWS - 1;
+  for (let ty = y0; ty <= y1; ty++) {
+    for (let tx = x0; tx <= x1; tx++) {
+      if (!L.g[(ty + up) * L.w + tx]) continue;
+      const sx = tx * T - Math.round(camX), sy = ty * T;
+      if (!solid(tx, ty - 1)) {   /* a light top face on every exposed block */
+        ctx.fillStyle = 'rgba(255,255,255,.22)'; ctx.fillRect(sx, sy - 4, T, 4);
+        ctx.fillStyle = 'rgba(255,255,255,.38)'; ctx.fillRect(sx, sy - 4, T, 1);
+        ctx.fillStyle = 'rgba(0,0,0,.20)'; ctx.fillRect(sx, sy - 1, T, 1);
+      }
+      if (!solid(tx + 1, ty)) {   /* a dark side face on every exposed right edge */
+        ctx.fillStyle = 'rgba(0,0,0,.26)'; ctx.fillRect(sx + T - 4, sy - 4, 4, T + 4);
+      }
+    }
+  }
+  const g = ctx.createLinearGradient(0, 0, 0, H);   /* the nearer (lower) scene sits in soft shadow */
+  g.addColorStop(0, 'rgba(0,0,0,0)');
+  g.addColorStop(1, 'rgba(6,4,18,.22)');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, W, H);
+}
 function draw() {
   if (builder) { drawBuilder(); return; }
   if (kart) { drawKart(); return; }
@@ -5589,10 +6586,15 @@ function draw() {
   }
   if (cy) { ctx.save(); ctx.translate(0, -cy); }
   drawTiles(th);
+  if (L.look3d) drawFlat3D(th);
   drawProps(th);
+  drawBuildPads();
+  drawConveyor();
+  drawDinoFriend();
+  drawVaderScout();
   drawGoal();
   for (const f of foes) drawFoe(f);
-  for (const b of bosses) drawBoss(b);
+  for (const b of bosses) { drawBoss(b); drawBrickRexCore(b); drawAlphaReunion(b); }
   drawHelpers();
   drawPets();
   drawPlayer();
@@ -5618,18 +6620,31 @@ function showGame(on) {
   if (rh) rh.hidden = !on;
   if (mf) mf.hidden = !on;
   el.pauseBtn.hidden = !on;
+  const fb = $('#friendBtn'); if (fb) fb.hidden = true;
   setOrientationUI();
 }
-/* see the html.sideways / html.rotated CSS: only a stage or fight on an upright phone/tablet is drawn turned */
+/* Landscape uses the existing thumb deck. Portrait shows an upright gate;
+   only the pause caused by that gate is automatically undone on return. */
 const MQ_LAND = window.matchMedia ? matchMedia('(hover: none) and (orientation: landscape), (orientation: landscape) and (max-height: 560px)') : null;
 const MQ_PORT = window.matchMedia ? matchMedia('(hover: none) and (orientation: portrait) and (max-width: 1100px)') : null;
+let portraitBlocked = false, orientationPaused = false;
 function setOrientationUI() {
-  const root = document.documentElement, app = $('#app');
-  const rot = !!(MQ_PORT && MQ_PORT.matches) && !el.stage.hidden;
-  const was = root.classList.contains('rotated');
-  root.classList.toggle('sideways', !!(MQ_LAND && MQ_LAND.matches) || rot);
-  root.classList.toggle('rotated', rot);
-  if (was !== rot && app) { app.scrollTop = 0; app.scrollLeft = 0; window.scrollTo(0, 0); }
+  const root = document.documentElement, app = $('#app'), gate = $('#portraitGate');
+  const block = !!(MQ_PORT && MQ_PORT.matches) && !el.stage.hidden;
+  const changed = block !== portraitBlocked;
+  portraitBlocked = block;
+  root.classList.toggle('sideways', !!(MQ_LAND && MQ_LAND.matches));
+  root.classList.remove('rotated');
+  root.classList.toggle('portraitBlocked', block);
+  if (gate) gate.hidden = !block;
+  if (block && running && !paused) {
+    orientationPaused = true;
+    setPaused(true, false);
+  } else if (!block && orientationPaused) {
+    orientationPaused = false;
+    setPaused(false);
+  }
+  if (changed && app) { app.scrollTop = 0; app.scrollLeft = 0; window.scrollTo(0, 0); }
 }
 [MQ_LAND, MQ_PORT].forEach((mq) => {
   if (!mq) return;
@@ -6035,17 +7050,24 @@ const WORLDS = [
   { n: 3, name: 'Kinan vs. Shad & Chenoa', where: 'a weekend in Edmonton', from: 21, to: 30 },
   { n: 4, name: 'Kinan vs. the Stampede', where: 'the Calgary Stampede', from: 31, to: 40 },
   { n: 5, name: 'Kinan vs. the Rain', where: 'a rainy day in Vancouver', from: 41, to: 50 },
-  { n: 6, name: 'Kinan vs. the Cosmos', where: 'a little galaxy past the moon', from: 51, to: 51, sneak: true }
+  { n: 6, name: 'Kinan vs. the Rain Returns', where: 'Vancouver and the rain, expanded in 2D', from: 52, to: 56 }
 ];
-for (let n = 7; n <= 11; n++) WORLDS.push({ n: n, name: 'World ' + n, where: 'being built', from: -1, to: -1, soon: true });
+WORLDS.push({ n: 7, name: 'Kinan vs. the Brick Realms', where: 'LEGO brick builds and BRICK-REX', from: 57, to: 61 });
+WORLDS.push({ n: 8, name: 'Kinan vs. the Prehistoric', where: 'Badlands, fossils and dinosaur friends', from: 62, to: 66 });
+WORLDS.push({ n: 9, name: 'Kinan vs. the Starbase', where: 'Star Wars inspiration and Annie’s arrival', from: 67, to: 71 });
+WORLDS.push({ n: 10, name: 'Kinan vs. the Birthday Multiverse', where: 'every birthday, all at once', from: 72, to: 76 });
+WORLDS.push({ n: 11, name: 'Kinan vs. the Glitch', where: 'the deep dimension behind the wrong-way portal', from: 77, to: 81 });
 const CODE_SALT = '38c60e5665866a0e';
 const CODE_HASH = {'2': '9ad410626f9342abc9682aec5aa5e01d6092ccb2d00b216ca8e8e56f191acbdb', '3': '2cc4446b83762f35763d948917db7518994a710291fd78f559ffb370bb1fdf09', '4': 'cd961045d7d2a30a4e590a3f2998e9b52f7931c3822b33e4d56567ef6e4a8fae', '5': '26bb21be1bec703f8ac1e2cd2b273bcadfa35c2aadbe708b84c32be340d10dba', '6': '8a20c57f7f6150912709d8a4d745f4330114d60a01deacc4268bf201f777f6f9', '7': '99f2c87e392edb24489bcecc48a065cf857a70f7a7412410f00c1f72b0babbb2', '8': '42650263170026ab707abd47791545eb75ab75d832f45d42a3542b10db757560', '9': '8ca4b0034588262258e6209e44e9f3e5a7d6ec5cc581c01eac7d04f42c5c8512', '10': 'e91ae5fd91428cd7c323dd3481612276a7a26113fc9b5e128dec8cbb8da042bf', '11': 'e69c5eeadaa728ec6e6c67b9ec066aac7babfc18030d0f6e7b05291d67e0d282'};
-const worldOf = (i) => { let n = 1; for (const w of WORLDS) if (!w.soon && i >= w.from) n = w.n; return n; };
+const worldOf = (i) => { if (i === 51) return 6; let n = 1; for (const w of WORLDS) if (!w.soon && i >= w.from) n = w.n; return n; };
 const worldInfo = (i) => WORLDS[worldOf(i) - 1];
 /* the creator's pass: ?creator=SHAD unlocks every world and stage for one hour,
    then the game quietly re-locks to what was actually earned. ?creator=off ends it early. */
 let creatorChecked = false;
 function creatorActive() {
+  /* M1 QUARANTINE: the creator pass is developer-only (explicit ?devtools=1 + localhost).
+     In production it never grants anything, even if a save still holds creatorUntil. */
+  if (!window.__k11DevOnly()) return false;
   if (!creatorChecked) {
     creatorChecked = true;
     if (/[?&]creator=off/i.test(location.search)) progress.creatorUntil = 0;
@@ -6063,7 +7085,8 @@ function worldOpen(n) {
   if (creatorActive()) return true;
   const w = WORLDS[n - 1];
   if (!w || w.soon) return false;
-  if (w.sneak) return worldBeaten(5);   /* the World 6 sneak peek opens by itself once World 5 is beaten */
+  if (w.sneak) return worldBeaten(5);   /* archived World 6 experiment: developer-only */
+  if (n >= 6) return worldBeaten(n - 1);  /* expanded 2D worlds progress sequentially, with no new code requirement */
   return n === 1 || ((progress.codes || []).indexOf(n) >= 0 && worldBeaten(n - 1));
 }
 function stageOpen(i) { return !!LV[i] && (creatorActive() || (i < progress.unlocked && worldOpen(worldOf(i)))); }
@@ -6131,6 +7154,7 @@ async function useCode(text) {
 function worldStatus(w) {
   if (w.n === 1) return worldBeaten(1) ? '✅ beaten' : '✅ open';
   if (w.sneak) return worldOpen(w.n) ? (worldBeaten(w.n) ? '🌌 sneak peek · ✅ beaten' : '🌌 sneak peek · ✅ open') : '🌌 sneak peek · beat World 5 first';
+  if (w.n >= 6) return worldOpen(w.n) ? (worldBeaten(w.n) ? '✅ beaten' : '✅ open') : '🔒 beat World ' + (w.n - 1) + ' first';
   const coded = (progress.codes || []).indexOf(w.n) >= 0;
   if (w.soon) return coded ? '🎁 code saved · being built' : '🔒 being built';
   if (worldOpen(w.n)) return worldBeaten(w.n) ? '✅ beaten' : '✅ open';
@@ -6160,6 +7184,52 @@ function codeScreen(back) {
   $('#rcodeGo').addEventListener('click', () => { AudioSys.init(); go(); });
   $('#rcode').addEventListener('keydown', (e) => { if (e.key === 'Enter') go(); });
   $('#rcodeBack').addEventListener('click', () => { SFX.click(); if (back === 'map') mapScreen(); else titleScreen(); });
+}
+/* Expanded-world finale: record the win and open the next 2D world without
+   invoking the archived early-3D cutscene or changing the existing save schema. */
+async function endingWorld(n) {
+  progress.wonWorlds = progress.wonWorlds || [];
+  if (progress.wonWorlds.indexOf(n) < 0) progress.wonWorlds.push(n);
+  if (n === 10) document.documentElement.classList.add('tier2');   /* the gold UI upgrade arrives with the multiverse win */
+  const i = L.i;
+  if (LV[i].cinematic) {
+    /* the finale: completion, the next world's unlock and the pending-cutscene marker are all
+       saved BEFORE the cinematic's first frame, so a refresh mid-cutscene can never lose the ending */
+    firstClear = !progress.beaten.includes(i);
+    if (firstClear) progress.beaten.push(i);
+    progress.unlocked = Math.max(progress.unlocked, i + 2);
+    progress.pendingCutscene = LV[i].cinematicId || 'finale';
+    refreshWorlds();
+    save();
+    await story(LV[i].cinematic, LV[i].boss.face || 'm', 'h');
+    progress.pendingCutscene = null;
+    save();
+    resultsScreen(i);
+    return;
+  }
+  await story(LV[i].win, LV[i].boss.face || 'm', 'h');
+  firstClear = !progress.beaten.includes(i);
+  if (firstClear) progress.beaten.push(i);
+  progress.unlocked = Math.max(progress.unlocked, i + 2);
+  refreshWorlds();
+  save();
+  resultsScreen(i);
+}
+/* a refresh mid-finale: the pending marker survives in the save, so the cinematic plays again
+   (and clears) the next time the player reaches the map */
+let cutsceneResuming = false;
+function resumePendingCutscene() {
+  if (!progress.pendingCutscene || cutsceneResuming) return;
+  const i = LV.findIndex((v) => v && v.cinematicId === progress.pendingCutscene);
+  if (i < 0) { progress.pendingCutscene = null; save(); return; }
+  cutsceneResuming = true;
+  showGame(true);   /* the dialog lives on the game picture: show it behind the finale */
+  story(LV[i].cinematic, (LV[i].boss && LV[i].boss.face) || 'm', 'h').then(() => {
+    progress.pendingCutscene = null;
+    save();
+    cutsceneResuming = false;
+    mapScreen();
+  });
 }
 /* a stage with no boss ends at Dad's truck */
 async function goalReached() {
@@ -6631,13 +7701,8 @@ async function ending5() {
   delete progress.resume;
   refreshWorlds();
   save();
-  if (window.GALAXY3D && GALAXY3D.available) {
-    running = false;
-    await GALAXY3D.cutscene({ host: el.stage, say: (h, w, m) => say(h, w, m), sfx: galaxySfx });   /* the world turns 3D, in 3D */
-    GALAXY3D.stop();
-  } else {
-    await galaxyMorph();   /* the old canvas cutscene, for browsers without WebGL */
-  }
+  /* World 5 ends with Drizzle's 2D rainbow friendship. The archived early-3D
+     handoff is no longer part of normal progression; World 11 owns the 3D shift. */
   Music.play('title');
   let stars = 0, gold = 0;
   for (let k = WORLDS[4].from; k <= WORLDS[4].to; k++) { stars += progress.stars[k] || 0; gold += goldCount(k); }
@@ -6652,7 +7717,7 @@ async function ending5() {
     '<p class="lede"><b>DAD:</b> That\'s one ocean, bud. Want to see the other one?</p>' +
     '<div class="postcard"><b>Rain, rain, go away. (It did.)</b><span>Love, Kinan, Vancouver 🌈</span></div>' +
     '<p class="wrapnote"><i class="coin-ico"></i>Golden coins in World 5: <b>' + gold + '</b> / 30 · ⭐ ' + stars + ' / 30 stars</p>' +
-    '<p class="wrapnote">🌌 <b>World 6: Kinan vs. the Cosmos</b> is a <b>sneak peek</b> — a whole new kind of level, up among the stars. Tell a grown-up if you want more worlds like it!</p>' +
+    '<p class="wrapnote">🌧️ <b>World 6: Vancouver & the Rain</b> continues with new 2D stages. The old 3D experiment stays archived for developers.</p>' +
     '<ul class="credits">' +
     '<li><b>Kinan</b> as The Hero (and the Rainbow Maker)</li>' +
     '<li><b>Drizzle</b> as a little rain cloud, a big thunderstorm, and a rainbow</li>' +
@@ -6660,13 +7725,13 @@ async function ending5() {
     '<li><b>Mom</b>, <b>Dad</b>, <b>Shad</b> and <b>Chenoa</b> as the soggy cheering section</li>' +
     '<li><b>An orca</b> as the best surprise of the trip</li>' +
     '</ul>' +
-    '<div class="btnrow"><button class="btn go" type="button" id="galaxyBtn">▶ Warp to the stars</button>' +
+    '<div class="btnrow"><button class="btn go" type="button" id="galaxyBtn">▶ Continue to World 6</button>' +
     '<button class="btn" type="button" id="mapBtn">Stage map</button>' +
     '<button class="btn" type="button" id="titleBtn">Title screen</button>' +
     '<button class="btn ghost" type="button" id="againBtn">Face the storm again</button></div>'
   );
   el.stageLbl.textContent = 'KINAN · LV 11';
-  $('#galaxyBtn').addEventListener('click', () => { SFX.click(); playStage(WORLDS[5].from); });
+  $('#galaxyBtn').addEventListener('click', () => { SFX.click(); playStage(52); });
   $('#mapBtn').addEventListener('click', () => { SFX.click(); mapScreen(); });
   $('#titleBtn').addEventListener('click', () => { SFX.click(); titleScreen(); });
   $('#againBtn').addEventListener('click', () => { SFX.click(); playStage(WORLDS[4].to); });
@@ -7285,6 +8350,46 @@ function drawConductor(b, sx, sy) {
   ctx.textAlign = 'center';
   if (b.state === 'stall') { ctx.font = '10px sans-serif'; ctx.fillText('💫', Math.round(cx + Math.sin(frame / 30) * 3), sy - 6); }
   else if (b.state === 'windup') { ctx.fillStyle = '#ff6b6b'; ctx.font = 'bold 11px monospace'; ctx.fillText('!', Math.round(cx), sy - 6); }
+}
+function drawAnnie(b, sx, sy) {
+  const walking = Math.abs(b.vx) > 0.2 && b.onGround, cx = sx + b.w / 2;
+  drawBig(walking && Math.floor(frame / 14) % 2 ? SP.annieWalk : SP.annieStand, cx, sy + b.h, b.face, 1);
+  if (b.state === 'windup' || b.state === 'charge') {
+    ctx.strokeStyle = '#f6c445'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.ellipse(Math.round(cx + b.face * 10), sy + 7, 6, 2.5, 0, 0, 6.284); ctx.stroke();
+    for (let k = 0; k < 3; k++) { ctx.fillStyle = '#d98a3d'; ctx.fillRect(Math.round(cx - 8 + k * 7), sy + 18, 3, 3); }
+  }
+  ctx.textAlign = 'center';
+  if (b.state === 'windup') { ctx.fillStyle = '#ff6fae'; ctx.font = 'bold 11px monospace'; ctx.fillText('!', Math.round(cx), sy - 5); }
+}
+function drawGrandmothers(b, sx, sy) {
+  /* the two grandmothers share one health bar: Chenoa-frame and Annie-frame grandmas side by side */
+  const walking = Math.abs(b.vx) > 0.2 && b.onGround, cx = sx + b.w / 2;
+  const f1 = walking && Math.floor(frame / 14) % 2 ? SP.cWalk : SP.cStand, f2 = walking && Math.floor(frame / 14) % 2 ? SP.annieWalk : SP.annieStand;
+  drawBig(f1, cx - 9, sy + b.h, 1, 1);
+  drawBig(f2, cx + 9, sy + b.h, -1, 1);
+  ctx.fillStyle = '#f4f1e8';   /* bonnets */
+  ctx.fillRect(Math.round(cx - 13), sy + 1, 7, 2); ctx.fillRect(Math.round(cx + 7), sy + 1, 7, 2);
+  if (b.state === 'windup' || b.state === 'charge') {
+    ctx.fillStyle = '#e0b84a';   /* a cookie toss */
+    for (let k = 0; k < 3; k++) { ctx.beginPath(); ctx.arc(Math.round(cx - 10 + k * 10), sy + 16, 2, 0, 6.284); ctx.fill(); }
+  }
+  ctx.textAlign = 'center';
+  if (b.state === 'windup') { ctx.fillStyle = '#ff6fae'; ctx.font = 'bold 11px monospace'; ctx.fillText('!', Math.round(cx), sy - 5); }
+}
+function drawGlitchy(b, sx, sy) {
+  const walking = Math.abs(b.vx) > 0.2 && b.onGround, cx = sx + b.w / 2;
+  const jx = Math.round(Math.sin(frame / 2.3) * 1.2);   /* a nervous glitch jitter */
+  drawBig(walking && Math.floor(frame / 14) % 2 ? SP.annieWalk : SP.annieStand, cx + jx, sy + b.h, b.face, 1);
+  if ((frame >> 2) % 5 === 0) {   /* scanline glitch bars */
+    ctx.fillStyle = 'rgba(255,111,174,.65)'; ctx.fillRect(Math.round(cx - 10), sy + 3 + (frame % 9), 20, 2);
+    ctx.fillStyle = 'rgba(123,227,163,.65)'; ctx.fillRect(Math.round(cx - 8), sy + 12 + (frame % 7), 16, 2);
+  }
+  if (b.state === 'windup' || b.state === 'charge') {
+    ctx.fillStyle = '#7be3a3'; ctx.fillRect(Math.round(cx + b.face * 10), sy + 7, 4, 3);
+  }
+  ctx.textAlign = 'center';
+  if (b.state === 'windup') { ctx.fillStyle = '#ff6fae'; ctx.font = 'bold 11px monospace'; ctx.fillText('!', Math.round(cx), sy - 5); }
 }
 function drawSupChenoa(b, sx, sy) {
   const walking = Math.abs(b.vx) > 0.2 && b.onGround, cx = sx + b.w / 2;
@@ -8172,6 +9277,7 @@ function titleScreen() {
     '<div class="cast titlecast">' + castHTML() + '</div>' +
     '<div class="btnrow tools">' +
     (cont ? '<button class="mtool" id="mapBtn" type="button"><span class="ti">🗺️</span><span class="tl">Stage map</span></button>' : '') +
+    '<button class="mtool" id="petsBtnT" type="button"><span class="ti">🐾</span><span class="tl">Pets</span></button>' +
     '<button class="mtool" id="howBtn" type="button"><span class="ti">❓</span><span class="tl">How to play</span></button>' +
     '<button class="mtool" id="shopBtn" type="button"><span class="ti">🛍️</span><span class="tl">Party Shop</span></button>' +
     '<button class="mtool" id="codeBtn" type="button"><span class="ti">🎁</span><span class="tl">Reward code</span></button>' +
@@ -8187,6 +9293,7 @@ function titleScreen() {
   });
   $('#howBtn').addEventListener('click', () => { AudioSys.init(); SFX.click(); howToScreen(); });
   $('#shopBtn').addEventListener('click', () => { AudioSys.init(); SFX.click(); shopScreen('title'); });
+  $('#petsBtnT').addEventListener('click', () => { AudioSys.init(); SFX.click(); petLoadoutScreen(); });
   $('#codeBtn').addEventListener('click', () => { AudioSys.init(); SFX.click(); codeScreen('title'); });
   const mb = $('#mapBtn'); if (mb) mb.addEventListener('click', () => { AudioSys.init(); SFX.click(); mapScreen(); });
   const nb = $('#newBtn');
@@ -8213,7 +9320,7 @@ function howToScreen() {
     '<li><span class="ico">👟</span><span><b>Jump on enemies</b> to bonk them. Chain bonks without landing for a <b>combo multiplier</b>.</span></li>' +
     '<li><span class="ico">🦘</span><span><b>Tap jump</b> for a quick hop, <b>hold</b> for a big jump. Land on shelves, gift blocks, and enemies.</span></li>' +
     '<li><span class="ico">🎁</span><span>Hit <b>gift blocks</b> from below for coins and powers: 🎉 <b>Party Popper</b>, 🍰 <b>Sugar Rush</b>, ❤ extra hearts.</span></li>' +
-    '<li><span class="ico">🐱</span><span>Rescue all <b>4 cats and 2 dogs</b> hiding in boxes. Each one adds a power: double jump, coin magnet, extra heart, dash attack and more.</span></li>' +
+    '<li><span class="ico">🐱</span><span>Rescue <b>4 cats and 2 dogs</b>. Open <b>Pets</b> to equip one cat and one dog, or go solo. Only equipped pets follow and grant their perks.</span></li>' +
     '<li><span class="ico">⛑️</span><span><b>Shad</b> drops in at checkpoints and boss fights: his slam clears the screen and gives you a <b>hard hat</b> that blocks one hit.</span></li>' +
     '<li><span class="ico">⭐</span><span>Earn up to <b>3 stars</b> per stage: clear it, grab 70% of the coins, and never lose a heart. Stars unlock <b>hats</b>.</span></li>' +
     '<li><span class="ico">🍰</span><span>Every <b>25 coins</b> = an extra heart. Trampolines launch you sky-high. The game saves itself at every checkpoint and whenever you pause.</span></li>' +
@@ -8265,6 +9372,69 @@ function starHTML(n, animate) {
   return h + '</span>';
 }
 
+function friendLoadoutHTML() {
+  const current = progress.friendAssist;
+  return ['milo', 'aiden'].map((id) => {
+    const open = friendUnlocked(id), on = current === id;
+    const about = id === 'milo' ? '8s brick staircase · 25s cooldown' : 'Checkpoint snack · 3s distraction';
+    return '<button type="button" class="btn friendbtn" data-friend="' + id + '" aria-pressed="' + on + '"' + (open ? '' : ' disabled') + '>' + friendName(id) + (on ? ' ✓' : '') + '<small>' + (open ? about : 'Unlock in World 2') + '</small></button>';
+  }).join('') + '<button type="button" class="btn friendbtn" data-friend="" aria-pressed="' + (!current) + '">No assist</button>';
+}
+function petLoadoutSummary() {
+  const cat = progress.pets.equippedCat, dog = progress.pets.equippedDog;
+  return cat || dog ? 'Following: ' + (cat ? escAttr(petName(cat)) : 'No cat') + ' + ' + (dog ? escAttr(petName(dog)) : 'No dog') : 'Solo — no pets following';
+}
+function petLoadoutHTML() {
+  return PET_DEFS.map((d) => {
+    const own = ownsPet(d.id), active = hasPet(d.id), nm = own ? petName(d.id) : '';
+    return '<div class="petname' + (own ? '' : ' locked') + (active ? ' equipped' : '') + '">' +
+      '<img alt="" src="' + PET_SPRITES[d.id].toDataURL() + '">' +
+      '<span class="pcol"><span class="slot">' + d.kind + ' slot</span>' +
+      '<input data-pet="' + d.id + '" maxlength="12" value="' + escAttr(nm) + '" placeholder="' + d.label + '" aria-label="Name for ' + d.label + '"' + (own ? '' : ' disabled') + '>' +
+      '<span class="perk">' + (own ? escAttr(d.perk) : 'Not rescued yet') + '</span></span>' +
+      '<button type="button" class="equipbtn" data-equip="' + d.id + '" aria-pressed="' + active + '"' + (own ? '' : ' disabled') + '>' + (active ? 'Equipped ✓' : 'Equip') + '</button></div>';
+  }).join('');
+}
+function bindPetLoadout(root, refresh) {
+  $$('.equipbtn[data-equip]', root).forEach((b) => b.addEventListener('click', () => {
+    if (b.disabled) return;
+    equipPet(b.dataset.equip);
+    SFX.save();
+    refresh();
+  }));
+  const solo = $('#soloPets', root);
+  if (solo) solo.addEventListener('click', () => { clearPetLoadout(); SFX.save(); refresh(); });
+  $$('.friendbtn[data-friend]', root).forEach((b) => b.addEventListener('click', () => {
+    if (b.disabled) return;
+    progress.friendAssist = b.dataset.friend || null;
+    save(); SFX.save(); refresh();
+  }));
+  $$('.petname input', root).forEach((inp) => {
+    inp.addEventListener('focus', () => { try { inp.select(); } catch (e) { /* ignore */ } });
+    inp.addEventListener('change', () => {
+      const id = inp.dataset.pet, val = inp.value.trim().slice(0, 12);
+      if (val) progress.pets.names[id] = val; else delete progress.pets.names[id];
+      save(); SFX.save();
+    });
+  });
+}
+function petLoadoutScreen(back) {
+  Music.play('title');
+  showScreen(
+    '<p class="eyebrow">Collection & loadout</p>' +
+    '<h1 class="title"><span class="t2">Pet loadout</span></h1>' +
+    '<p class="loadout-status" id="petLoadoutStatus">' + petLoadoutSummary() + '</p>' +
+    '<p class="tiny">Equip up to one cat AND one dog, or go solo. Only equipped pets follow and grant their stage perks. Tap a name to rename it.</p>' +
+    '<div class="petedit">' + petLoadoutHTML() + '</div>' +
+    '<p class="eyebrow">Friend Assist · choose at most one</p><div class="btnrow">' + friendLoadoutHTML() + '</div>' +
+    '<div class="btnrow"><button class="btn" id="soloPets" type="button" aria-pressed="' + (!progress.pets.equippedCat && !progress.pets.equippedDog) + '">Go solo</button>' +
+    '<button class="btn go" id="petsBack" type="button">Done</button></div>'
+  );
+  bindPetLoadout(el.screen, () => petLoadoutScreen(back));
+  const done = back || titleScreen;
+  $('#petsBack').addEventListener('click', () => { SFX.click(); done(); });
+}
+const WORLD_ICONS = { 1: '🎂', 2: '🛢️', 3: '🎢', 4: '🤠', 5: '☔', 6: '🌧️', 7: '🧱', 8: '🦖', 9: '🚀', 10: '🎉', 11: '🌀' };
 function mapScreen() {
   Music.play('title');
   const stars = totalStars();
@@ -8294,23 +9464,21 @@ function mapScreen() {
     return '<button class="hatbtn' + (on ? ' on' : '') + '" type="button" data-hat="' + h.id + '"' + (unlocked ? '' : ' disabled') + ' title="' + (unlocked ? h.name : 'Earn ' + h.need + ' stars to unlock') + '">' +
       '<span style="font-size:20px">' + (unlocked ? h.icon : '🔒') + '</span><span>' + h.name + '</span></button>';
   }).join('');
-  const petEditor = PET_DEFS.map((d) => {
-    const own = progress.pets.ids.indexOf(d.id) >= 0;
-    const nm = own ? petName(d.id) : '';
-    return '<label class="petname' + (own ? '' : ' locked') + '">' +
-      '<img alt="" src="' + PET_SPRITES[d.id].toDataURL() + '">' +
-      '<span class="pcol"><input data-pet="' + d.id + '" maxlength="12" value="' + escAttr(nm) + '" placeholder="' + d.label + '" aria-label="Name for ' + d.label + '">' +
-      '<span class="perk">' + (own ? d.perk : 'Not rescued yet') + '</span></span></label>';
-  }).join('');
+  const petEditor = petLoadoutHTML();
   const tool = (id, ico, label) => '<button type="button" class="mtool" id="' + id + '"><span class="ti">' + ico + '</span><span class="tl">' + label + '</span></button>';
   const panel = (id, cls, title, sub, body, foot) => '<div class="gpanel' + (cls ? ' ' + cls : '') + '" id="' + id + '" role="dialog" aria-label="' + escAttr(title) + '" hidden>' +
     '<div class="gphead"><b>' + title + '</b><span>' + sub + '</span><button type="button" class="gpx" aria-label="Close">✕</button></div>' +
     '<div class="scrv"><div class="scrc">' + body + '</div></div><div class="scrfoot">' + (foot || '') + '</div></div>';
+  const wIcon = (n) => WORLD_ICONS[n] || '⭐';
+  const wShort = (nm) => nm.replace(/^Kinan vs\.\s*/i, '').replace(/^the\s+/i, '');
+  const wStars = (w) => { let s = 0; for (let i = w.from; i <= w.to; i++) if (LV[i]) s += progress.stars[i] || 0; return s + '/' + ((w.to - w.from + 1) * 3); };
   const tabs = '<div class="worldtabs">' + WORLDS.filter((w) => !w.soon).map((w) => '<button type="button" class="worldtab' + (w.n === mw ? ' on' : '') + '" data-world="' + w.n + '" title="World ' + w.n + ' · ' + escAttr(w.name) + '">' +
-    (worldOpen(w.n) ? '' : '🔒 ') + '<b>World ' + w.n + '</b><span class="wtn"> · ' + escAttr(w.name.replace(/^Kinan vs\.\s*/, '')) + '</span></button>').join('') + '</div>';
+    '<span class="wtrow"><span class="wtico">' + (worldOpen(w.n) ? wIcon(w.n) : '🔒') + '</span><b class="wtnum">World ' + w.n + '</b></span>' +
+    '<span class="wtn">' + escAttr(wShort(w.name)) + '</span><span class="wtp">★ ' + wStars(w) + '</span></button>').join('') + '</div>';
   showScreen(
     '<div class="mapscr' + (worldOpen(mw) ? '' : ' locked') + '">' +
-    '<div class="maptop">' + tabs + '<p class="mapsub">' + escAttr(wd.name) + ' · ' + clearedHere + ' of ' + here.length + ' cleared · ' + starsHere + ' of ' + here.length * 3 + ' ★</p></div>' +
+    '<div class="maptop">' + tabs + '<div class="maphead"><h2 class="maptitle">' + (worldOpen(mw) ? '' : '🔒 ') + 'World ' + mw + ' · ' + escAttr(wd.name) + '</h2>' +
+    '<p class="mapsub">' + escAttr(wd.where) + ' · ' + clearedHere + ' of ' + here.length + ' cleared · ' + starsHere + ' of ' + here.length * 3 + ' ★</p></div></div>' +
     '<div class="mapmain">' + wmapHTML(mw) + lock + '</div>' +
     '<div class="maptools">' + tool('stagesBtn', '📋', 'Stages') + tool('hatsBtn', '🎩', 'Hats') + tool('petsBtn', '🐾', 'Pets') + tool('shopBtnM', '🛍️', 'Shop') +
     tool('wmCanada', '🗺️', 'Canada') + tool('codeBtnM', '🎁', 'Code') + tool('titleBtn', '🏠', 'Home') + '</div>' +
@@ -8319,7 +9487,9 @@ function mapScreen() {
       (list ? '<ul class="mapgrid">' + list + '</ul>' : '<p class="lede">' + worldStatus(wd) + '</p>') + '<p class="wrapnote">Tip: 3 stars needs a clean run — clear the boss, collect 70% of coins and lose zero hearts.</p>',
       '<div class="btnrow"><button class="btn go" type="button" id="playNext">' + (progress.beaten.indexOf(nextStage()) >= 0 ? 'Replay final stage' : 'Play next stage') + '</button></div>') +
     panel('panHats', '', 'Hat locker', 'Stars unlock hats · you have ' + stars + ' ★', '<div class="hatrow">' + hats + '</div>', '') +
-    panel('panPets', '', 'The pet pack', progress.pets.ids.length + ' of 6 rescued · tap a name to change it', '<div class="petedit">' + petEditor + '</div>', '')
+    panel('panPets', '', 'The pet pack', progress.pets.ids.length + ' of 6 rescued · equip 1 cat + 1 dog or go solo',
+      '<p class="loadout-status" id="petLoadoutStatus">' + petLoadoutSummary() + '</p><p class="tiny">Only equipped pets follow and grant stage perks. Tap a name to rename it.</p><div class="petedit">' + petEditor + '</div><p class="eyebrow">Friend Assist · choose at most one</p><div class="btnrow">' + friendLoadoutHTML() + '</div>',
+      '<button class="btn" id="soloPets" type="button" aria-pressed="' + (!progress.pets.equippedCat && !progress.pets.equippedDog) + '">Go solo</button>')
   );
   el.screen.classList.add('mapmode'); screenPage(0);
   $$('.gpanel', el.screen).forEach((p) => el.screen.appendChild(p));   /* the panels open over the whole game window */
@@ -8333,15 +9503,7 @@ function mapScreen() {
     if (b.disabled) return;
     progress.hat = b.dataset.hat; save(); SFX.save(); mapScreen(); openPanel('panHats', true);
   }));
-  $$('.petname input', el.screen).forEach((inp) => {
-    inp.addEventListener('focus', () => { try { inp.select(); } catch (e) { /* ignore */ } });
-    inp.addEventListener('change', () => {
-      const id = inp.dataset.pet;
-      const val = inp.value.trim().slice(0, 12);
-      if (val) progress.pets.names[id] = val; else delete progress.pets.names[id];
-      save(); SFX.save();
-    });
-  });
+  bindPetLoadout(el.screen, () => { mapScreen(); openPanel('panPets', true); });
   const pn = $('#playNext');
   if (pn) pn.addEventListener('click', () => {
     AudioSys.init(); SFX.click();
@@ -8357,6 +9519,9 @@ function mapScreen() {
   $('#petsBtn').addEventListener('click', () => { AudioSys.init(); openPanel('panPets'); });
   $$('.gpanel .gpx', el.screen).forEach((b) => b.addEventListener('click', () => closePanel(b.closest('.gpanel'))));
   wmapStart(mw);
+  resumePendingCutscene();
+  const at = el.screen.querySelector('.worldtab.on');
+  if (at && at.scrollIntoView) { try { at.scrollIntoView({ block: 'nearest', inline: 'center' }); } catch (e) { /* ignore */ } }
 }
 
 async function playStage(i, opts) {
@@ -8386,6 +9551,12 @@ function galaxySfx(name) {
   if (fn) fn();
 }
 function playGalaxy3D() {
+  /* M1 QUARANTINE: the 3D handoff runs only for explicit local development. */
+  if (!window.__k11DevOnly()) {
+    toast('🌟 <b>World 6 3D</b> is archived in this build (developer-only). The story continues in 2D.', 4200);
+    mapScreen();
+    return;
+  }
   AudioSys.init();
   showGame(true);
   running = false;
@@ -12308,13 +13479,13 @@ function bindWheel() {
   const w = $('#kwheel');
   if (!w) return;
   const set = (v) => { kWheel.v = clamp(v, -1, 1); w.firstElementChild.style.transform = 'rotate(' + Math.round(kWheel.v * 110) + 'deg)'; };
-  /* on an upright phone the race is drawn turned a quarter clockwise, so the wheel's left-right runs down the screen */
-  const at = (e) => (document.documentElement.classList.contains('rotated') ? e.clientY : e.clientX);
+  /* The game is never CSS-rotated; steering always uses normal screen coordinates. */
+  const at = (e) => e.clientX;
   w.addEventListener('pointerdown', (e) => {
     e.preventDefault(); AudioSys.init();
     try { w.setPointerCapture(e.pointerId); } catch (er) { /* ignore */ }
-    const r = w.getBoundingClientRect(), rot = document.documentElement.classList.contains('rotated');
-    kWheel.id = e.pointerId; kWheel.cx = rot ? r.top + r.height / 2 : r.left + r.width / 2; kWheel.span = (rot ? r.height : r.width) * 0.38;
+    const r = w.getBoundingClientRect();
+    kWheel.id = e.pointerId; kWheel.cx = r.left + r.width / 2; kWheel.span = r.width * 0.38;
     set((at(e) - kWheel.cx) / kWheel.span);
   });
   w.addEventListener('pointermove', (e) => { if (e.pointerId !== kWheel.id) return; e.preventDefault(); set((at(e) - kWheel.cx) / kWheel.span); });
@@ -12837,11 +14008,11 @@ function bHereSpot() {
   }
   return null;
 }
-/* where on the level a finger or mouse is (the race and builder are drawn turned on upright phones) */
+/* Where on the level a finger or mouse is, in normal unrotated coordinates. */
 function builderTile(e) {
-  const r = cv.getBoundingClientRect(), rot = document.documentElement.classList.contains('rotated'), z = builder.zoom;
-  const lx = rot ? (e.clientY - r.top) / r.height * W : (e.clientX - r.left) / r.width * W;
-  const ly = rot ? (r.right - e.clientX) / r.width * H : (e.clientY - r.top) / r.height * H;
+  const r = cv.getBoundingClientRect(), z = builder.zoom;
+  const lx = (e.clientX - r.left) / r.width * W;
+  const ly = (e.clientY - r.top) / r.height * H;
   return { tx: Math.floor((lx / z + builder.cam) / T), ty: Math.floor((ly / z + builder.camY) / T), lx: lx, ly: ly };
 }
 function builderApply(t, first) {
@@ -13230,6 +14401,48 @@ const WM_PATHS = {
     { at: [330, 142], via: [[290, 152]] },                                      /* up onto the SkyTrain */
     { at: [232, 100], via: [[300, 126], [256, 112]] },                          /* down to the harbour */
     { at: [192, 126], via: [[214, 112]] }                                       /* the Big Storm over downtown */
+  ],
+  6: [
+    { at: [60, 70] },                                         /* Sea-to-Sky bridge */
+    { at: [120, 132], via: [[92, 104]] },                     /* Stanley Park and the seawall */
+    { at: [210, 92], via: [[164, 116]] },                     /* Granville Science World */
+    { at: [300, 78], via: [[250, 70]] },                      /* SkyTrain */
+    { at: [360, 152], via: [[334, 112]] }                     /* Rainbow Observatory */
+  ],
+  7: [
+    { at: [44, 76] },                                         /* the Great LEGO Bin */
+    { at: [116, 118], via: [[78, 96]] },                      /* Fire-Truck Brick City */
+    { at: [194, 74], via: [[154, 96]] },                      /* Machine Brickwilds */
+    { at: [278, 116], via: [[234, 94]] },                     /* Studded Skyscraper Tower */
+    { at: [374, 154], via: [[326, 138]] }                     /* BRICK-REX arena */
+  ],
+  8: [
+    { at: [44, 82] },                                         /* Badlands fossil dig */
+    { at: [112, 132], via: [[76, 106]] },                     /* Fern Jungle and baby-dino rescue */
+    { at: [196, 88], via: [[152, 108]] },                     /* Brachiosaurus River */
+    { at: [282, 126], via: [[238, 104]] },                    /* Raptor Canyon */
+    { at: [372, 154], via: [[328, 140]] }                     /* Alpha T-Rex nest */
+  ],
+  9: [
+    { at: [48, 72] },                                         /* Twin-Sun Outpost */
+    { at: [118, 120], via: [[82, 96]] },                      /* Droid Factory and Hangar */
+    { at: [202, 82], via: [[158, 102]] },                     /* Starbase Laser Corridors */
+    { at: [290, 126], via: [[244, 102]] },                    /* 2D Trench Run */
+    { at: [378, 148], via: [[334, 138]] }                     /* Annie's Galactic Kitchen */
+  ],
+  10: [
+    { at: [46, 74] },                                         /* Portal Piñata Plaza */
+    { at: [120, 122], via: [[84, 96]] },                      /* Mirror-Twin Skyscrapers */
+    { at: [206, 80], via: [[162, 102]] },                     /* Candy Cosmos Causeway */
+    { at: [292, 124], via: [[246, 100]] },                    /* The Grandmothers' Hearth */
+    { at: [380, 148], via: [[336, 138]] }                     /* The Birthday That Never Was */
+  ],
+  11: [
+    { at: [50, 70] },                                         /* The Wrong-Way Portal */
+    { at: [122, 118], via: [[86, 94]] },                      /* Depth Drop Caverns */
+    { at: [204, 78], via: [[160, 100]] },                     /* Backwards Boulevard */
+    { at: [294, 122], via: [[248, 98]] },                     /* The Portal Machine */
+    { at: [378, 150], via: [[334, 140]] }                     /* Glitchy's Last Stand */
   ]
 };
 /* the road trip: the 11 cities on a map of Canada (Worlds 3-11 are planned, not built yet) */
@@ -13277,7 +14490,7 @@ function wmapFit(M) {
     if (getComputedStyle(scr).display === 'grid') { const r = box.getBoundingClientRect(); aw = r.width; ah = r.height; }   /* sideways: its own cell */
     else {
       let used = 0, n = 0;
-      scr.querySelectorAll(':scope > .maptop, :scope > .maptools, .wmapbar, .wmplayrow, .lockcard').forEach((e) => { if (e.offsetParent !== null) { used += e.getBoundingClientRect().height; n++; } });
+      scr.querySelectorAll(':scope > .maptop, :scope > .maptools, .lvchips, .wmapbar, .wmplayrow, .lockcard').forEach((e) => { if (e.offsetParent !== null) { used += e.getBoundingClientRect().height; n++; } });
       aw = scr.clientWidth; ah = scr.clientHeight - used - (n + 1) * 7;
     }
     if (aw > 0 && ah > 0) {
@@ -13301,12 +14514,21 @@ function wmapPos(s) {
   return P[P.length - 1].slice();
 }
 /* the map's part of the stage map page: world buttons, the picture, and the controls under it */
-function wmapHTML(mw) {   /* the picture, the stage bar and PLAY (the world tabs and the tools are the map screen's) */
+function wmapHTML(mw) {   /* the picture, the stage chips, the stage bar and PLAY (the world tabs and the tools are the map screen's) */
+  const w = WORLDS[mw - 1];
+  let chips = '';
+  if (w && !w.soon) for (let k = 0; k <= w.to - w.from; k++) {
+    const i = w.from + k, th = LV[i]; if (!th) continue;
+    const open = stageOpen(i), done = progress.beaten.includes(i);
+    chips += '<button type="button" class="lvchip' + (done ? ' done' : '') + '" data-stop="' + k + '"' + (open ? '' : ' data-locked="1"') + ' aria-label="Stage ' + (k + 1) + ' ' + escAttr(th.place) + '">' +
+      '<span class="cnum">' + (open ? (done ? '✓' : k + 1) : '🔒') + '</span><span class="cname">' + escAttr(th.place) + '</span></button>';
+  }
   return '<div class="wmap" id="wmap">' +
     '<div class="wmcan"><canvas id="wmCanvas" width="' + WM_W + '" height="' + WM_H + '" aria-label="World map: tap a stop to walk there"></canvas></div>' +
+    '<div class="lvchips" id="lvChips" aria-label="Stages in this world">' + chips + '</div>' +
     '<div class="wmapbar"><button type="button" class="btn" id="wmPrev" aria-label="Previous stop">◀</button><div id="wmInfo" aria-live="polite"></div>' +
     '<button type="button" class="btn" id="wmNext" aria-label="Next stop">▶</button></div>' +
-    '<div class="btnrow wmplayrow"><button class="btn go" type="button" id="wmPlay">▶ Play this stage</button></div></div>';
+    '<div class="btnrow wmplayrow"><button class="btn go" type="button" id="wmPlay">▶ PLAY STAGE</button></div></div>';
 }
 function wmapStart(world) {
   const cv = $('#wmCanvas'); if (!cv) return;
@@ -13319,9 +14541,15 @@ function wmapStart(world) {
   if (worldOpen(world)) for (let k = 0; k < stops.length; k++) if (stageOpen(w.from + k)) openN = k + 1;
   progress.mapSeen = progress.mapSeen || {};
   const seen = progress.mapSeen[world] != null ? Math.min(openN, progress.mapSeen[world]) : openN;
-  /* start on the stage to play next in this world, or the last open one */
+  /* start on the stage to play next in this world, or the last open one — but a stop the player
+     picked and hasn't beaten yet is where they actually are, so stay there instead of yanking back */
   const nx = nextStage();
   let sel = nx >= w.from && nx <= w.to ? nx - w.from : openN - 1;
+  const mem = progress.mapSel ? Math.floor(Number(progress.mapSel[world])) : NaN;
+  if (Number.isFinite(mem) && mem >= 0 && mem < openN) {
+    const memBeaten = progress.beaten.indexOf(w.from + mem) >= 0, selBeaten = progress.beaten.indexOf(w.from + sel) >= 0;
+    if (!memBeaten || selBeaten) sel = mem;
+  }
   sel = clamp(sel, 0, Math.max(0, openN - 1));
   const reveal = seen < openN && seen > 0;
   const start = reveal ? seen - 1 : sel;
@@ -13334,6 +14562,12 @@ function wmapStart(world) {
   $('#wmPrev').addEventListener('click', () => wmapStep(-1));
   $('#wmNext').addEventListener('click', () => wmapStep(1));
   $('#wmPlay').addEventListener('click', wmapPlay);
+  $$('#lvChips .lvchip').forEach((b) => b.addEventListener('click', () => {
+    const k = Number(b.dataset.stop);
+    if (!WM || WM.reveal || WM.canada) return;
+    if (k < WM.openN) wmapSelect(k);
+    else { SFX.click(); WM.note = '🔒 <b>Stage ' + (k + 1) + '</b> · beat stage ' + k + ' first'; wmapInfo(); }
+  }));
   $('#wmCanada').addEventListener('click', () => { SFX.click(); WM.canada = !WM.canada; WM.note = ''; wmapInfo(); });
   wmapInfo();
   requestAnimationFrame(wmapTick);
@@ -13360,8 +14594,9 @@ function wmapTick() {
 function wmapSelect(k, quiet) {
   const M = WM; if (!M || k < 0 || k >= M.openN) return;
   M.sel = k; M.target = M.stopS[k]; M.note = '';
+  progress.mapSel = progress.mapSel || {}; progress.mapSel[M.world] = k;
   if (!quiet) SFX.click();
-  wmapInfo();
+  save(); wmapInfo();
 }
 function wmapStep(dir) { if (WM && !WM.reveal && !WM.canada) wmapSelect(clamp(WM.sel + dir, 0, WM.openN - 1)); }
 function wmapPlay() {
@@ -13395,18 +14630,26 @@ function wmapInfo() {
   const M = WM, box = $('#wmInfo'), play = $('#wmPlay'), cb = $('#wmCanada');
   if (!M || !box) return;
   cb.innerHTML = '<span class="ti">' + (M.canada ? '↩' : '🗺️') + '</span><span class="tl">' + (M.canada ? 'World ' + M.world : 'Canada') + '</span>';
+  const chipsBox = $('#lvChips');
+  if (chipsBox) {
+    chipsBox.classList.toggle('off', !!M.canada);
+    $$('#lvChips .lvchip').forEach((c) => c.classList.toggle('on', !M.canada && Number(c.dataset.stop) === M.sel));
+  }
   if (M.canada) {
     box.innerHTML = M.note || 'The road trip across Canada. Tap a city.';
-    play.disabled = true; $('#wmPrev').disabled = $('#wmNext').disabled = true;
+    play.disabled = true; play.textContent = '▶ PLAY STAGE'; $('#wmPrev').disabled = $('#wmNext').disabled = true;
     return;
   }
   $('#wmPrev').disabled = M.sel <= 0; $('#wmNext').disabled = M.sel >= M.openN - 1;
-  if (!M.openN) { box.innerHTML = '<b>World ' + M.world + ' · ' + escAttr(M.w.name) + '</b><br>' + worldStatus(M.w); play.disabled = true; return; }
+  if (!M.openN) { box.innerHTML = '<b>World ' + M.world + ' · ' + escAttr(M.w.name) + '</b><br>' + worldStatus(M.w); play.disabled = true; play.textContent = '▶ PLAY STAGE'; return; }
   const i = M.w.from + M.sel, th = LV[i], st = progress.stars[i] || 0, bt = progress.bestTime && progress.bestTime[i];
-  box.innerHTML = M.note || ('<b>Stage ' + (M.sel + 1) + ' · ' + escAttr(th.place) + '</b><br>' + (th.boss ? 'Boss: ' + escAttr(th.boss.title) : 'Goal: ' + goalName(i)) +
+  box.innerHTML = M.note || ('<span class="wmk">Stage ' + (M.sel + 1) + ' of ' + M.openN + (progress.beaten.includes(i) ? ' · cleared ✓' : '') + '</span>' +
+    '<b class="wmt">' + escAttr(th.place) + '</b>' +
+    '<span class="wmd">' + (th.boss ? '👑 Boss: ' + escAttr(th.boss.title) : '🏁 Goal: ' + goalName(i)) +
     ' · ' + [0, 1, 2].map((k) => (k < st ? '★' : '☆')).join('') + ' · <i class="coin-ico"></i>' + goldCount(i) + '/3' +
-    (progress.beaten.includes(i) && bt ? ' · best ' + fmtTime(bt) : ''));
+    (progress.beaten.includes(i) && bt ? ' · best ' + fmtTime(bt) : '') + '</span>');
   play.disabled = !!M.reveal;
+  play.textContent = '▶ PLAY STAGE ' + (M.sel + 1);
 }
 /* ---- drawing ---- */
 function wmR(x, y, w, h, c) { WM.x.fillStyle = c; WM.x.fillRect(Math.round(x), Math.round(y), Math.round(w), Math.round(h)); }
@@ -13815,6 +15058,8 @@ bindChat();
 bindBuilder();
 bindWorldMap();
 AudioSys.on = progress.sound !== false;
+applyAudioPrefs();
+if (progress.wonWorlds.indexOf(10) >= 0) document.documentElement.classList.add('tier2');   /* the post-World-10 gold UI */
 applyLite();
 initPWA();
 if (IS_IOS && !IS_STANDALONE && el.install) el.install.hidden = false;
@@ -13834,9 +15079,10 @@ if (SMASH_LINK.length === 4) smashOnlineScreen(SMASH_LINK);
 const KART_LINK = (new URLSearchParams(location.search).get('kart') || '').toUpperCase().replace(/[^A-Z]/g, '');
 if (KART_LINK.length === 4) kartOnlineScreen(KART_LINK);
 /* a preview link for the World 6 sneak peek: ?w6=play runs the galaxy level right away; ?w6=cutscene plays the
-   "the world goes 3D" cutscene first and drops into the level right after it (no need to beat World 5 first) */
+   "the world goes 3D" cutscene first and drops into the level right after it (no need to beat World 5 first).
+   M1 QUARANTINE: developer-only (explicit ?devtools=1 + localhost); inert in production and shared links. */
 const W6_LINK = (new URLSearchParams(location.search).get('w6') || '').toLowerCase();
-if (W6_LINK === 'play' || W6_LINK === 'cutscene') {
+if (window.__k11DevOnly() && (W6_LINK === 'play' || W6_LINK === 'cutscene')) {
   setTimeout(async () => {
     try {
       AudioSys.init();
@@ -13851,15 +15097,17 @@ if (W6_LINK === 'play' || W6_LINK === 'cutscene') {
   }, 500);
 }
 
-/* test hooks — used by the automated smoke test, harmless otherwise */
-window.__k11 = {
+/* test hooks — used by the automated smoke test, harmless otherwise.
+   M1 QUARANTINE: developer-only (explicit ?devtools=1 + localhost). These hooks
+   include godMode/killBosses/grantPets, so they must never ship enabled. */
+window.__k11 = window.__k11DevOnly() ? {
   build: build,
   startStage: startStage,
   playStage: playStage,
   state: () => ({
     stage: L && L.i, boss: boss, hp: P && P.hp, max: P && P.max, airJumps: P ? P.airJumps : 0,
     px: P && Math.round(P.x), py: P && Math.round(P.y), onGround: P ? !!P.onGround : false, vy: P ? Math.round(P.vy * 100) / 100 : 0,
-    camX: Math.round(camX), foes: foes.filter((f) => f.alive).length, bosses: bosses.filter((b) => !b.out).map((b) => b.kind + ':' + b.hp),
+    camX: Math.round(camX), foes: foes.filter((f) => f.alive).length, bosses: bosses.filter((b) => !b.out).map((b) => b.kind + ':' + b.hp), shots: shots.length,
     foePos: foes.filter((f) => f.alive).slice(0, 8).map((f) => [Math.round(f.x), Math.round(f.y), f.type]),
     candles: got, totalCandles: totalCandles, score: score, paused: paused, running: running,
     stars: progress.stars, unlocked: progress.unlocked
@@ -13877,8 +15125,104 @@ window.__k11 = {
   morphFreeze: (t) => { morph = { t: t, wait: { n: 1e9, res: () => {} } }; paused = true; },   /* hold one frame, for screenshots */
   morphRun: () => galaxyMorph(),
   grantPets: () => { progress.pets.ids = PET_DEFS.map((d) => d.id); save(); return progress.pets.ids.slice(); },
-  petInfo: () => ({ ids: progress.pets.ids.slice(), names: Object.assign({}, progress.pets.names), liveCats: pets.cats.length, liveDogs: pets.dogs.length }),
+  petInfo: () => ({
+    ids: progress.pets.ids.slice(), names: Object.assign({}, progress.pets.names),
+    equippedCat: progress.pets.equippedCat || null, equippedDog: progress.pets.equippedDog || null,
+    liveCats: pets.cats.length, liveDogs: pets.dogs.length,
+    cleanLandings: P ? P.cleanLandings : 0, zoomies: P ? P.zoomiesT : 0, zoomiesCooldown: P ? P.zoomiesCd : 0,
+    dogs: pets.dogs.map((d) => ({ id: d.id, cooldown: d.t, warning: d.warn || 0 })),
+    stunnedFoes: foes.filter((f) => f.alive && f.stun > 0).map((f) => f.idx),
+    vaderCooldown: P ? P.vaderCd : 0, tuxCooldown: P ? P.tuxCd : 0,
+    hunterUsed: P ? !!P.hunterUsed : false, hunterT: P ? P.hunterT : 0,
+    duchessUsed: P ? !!P.duchessUsed : false, hp: P ? P.hp : 0, maxHp: P ? P.max : 0,
+    pulledCoins: candles.filter((c) => c.vader > 0).length,
+    scoutTargets: L ? vaderScoutTargets().length : 0,
+    friendAssist: progress.friendAssist, friendsUnlocked: progress.friendsUnlocked.slice(),
+    friendCooldown: P ? P.friendCd : 0, aidenUsed: P ? !!P.aidenUsed : false, aidenT: P ? P.aidenT : 0,
+    platforms: friendPlatforms.length, platformTiles: friendPlatforms.map((fp) => fp.idx),
+    distractedFoes: foes.filter((f) => f.alive && f.distract > 0).map((f) => f.idx),
+    checkpoint: cpHit, boss: boss
+  }),
+  petLand: () => { noteCleanLanding(); return window.__k11.petInfo(); },
+  petAbilityTick: (n) => { for (let k = 0; k < n; k++) tickCompanionTimers(); return window.__k11.petInfo(); },
+  petTickPets: (n) => { for (let k = 0; k < n; k++) updatePets(); return window.__k11.petInfo(); },
+  petBark: (offscreen) => {
+    const f = foes.filter((x) => x.alive)[0], d = pets.dogs.filter((x) => x.id === 'dog1')[0];
+    if (!f || !d) return null;
+    f.x = offscreen ? camX - 60 : P.x + 32; f.y = P.y; f.hidden = false;
+    if (offscreen) { d.t = 0; d.warn = 0; } else { d.t = 840; }
+    updatePets();
+    return { alive: f.alive, stun: f.stun || 0, cooldown: d.t, warning: d.warn || 0, info: window.__k11.petInfo() };
+  },
+  petEquip: (cat, dog) => {
+    const valid = (id, kind) => id === null || (ownsPet(id) && petDef(id).kind === kind);
+    if (!valid(cat, 'cat') || !valid(dog, 'dog')) return null;
+    progress.pets.equippedCat = cat; progress.pets.equippedDog = dog;
+    startStage(L ? L.i : 0, true);
+    return window.__k11.petInfo();
+  },
+  petFreeze: () => { paused = true; pausedByUser = true; return true; },
+  petVader: () => { P.vaderCd = 0; updatePets(); return window.__k11.petInfo(); },
+  petHunter: () => { P.hp = 1; const started = startHunterRescue(); return { started, info: window.__k11.petInfo() }; },
+  petSave: () => { autoSave(); return progress.resume; },
+  friendSet: (id) => {
+    if (id !== null && id !== 'milo' && id !== 'aiden') return null;
+    if (id && !friendUnlocked(id)) return null;
+    progress.friendAssist = id; updateFriendButton();
+    return window.__k11.petInfo();
+  },
+  friendCall: () => { paused = false; running = true; const result = callFriendAssist(); paused = true; pausedByUser = true; return { result, info: window.__k11.petInfo() }; },
+  friendTickFoes: (n) => { for (let k = 0; k < n; k++) updateFoes(); return window.__k11.petInfo(); },
+  petSetBoss: (mode) => { boss = mode; setPaused(true, true); return window.__k11.petInfo(); },
+  goHome: () => { titleScreen(); return true; },
+  petFood: () => { P.hp = 1; giveItem('heart'); return window.__k11.petInfo(); },
+  petCheckpoint: (reset) => {
+    P.hp = 1; if (reset !== false) P.duchessUsed = false; P.x = L.checkpoint.x + 1; cpHit = false; boss = 'off';
+    updateWorld();
+    return window.__k11.petInfo();
+  },
+  petTux: () => {
+    const f = foes.filter((v) => v.alive)[0];
+    if (!f) return null;
+    f.x = P.x + 30; f.charge = 30; P.tuxCd = 0;
+    updatePets();
+    return { stun: f.stun || 0, charge: f.charge, info: window.__k11.petInfo() };
+  },
+  petHurt: () => {
+    P.hp = 3; P.inv = 0; P.rush = 0; P.hat = false; P.power = null;
+    hurt(P.x + 1);
+    return { vx: P.vx, vy: P.vy, hp: P.hp };
+  },
   progress: () => JSON.parse(JSON.stringify(progress)),
+  world9Info: () => ({ stage: L && L.i, world: L ? worldOf(L.i) : null, place: L ? LV[L.i].place : null,
+    laserTutorial: L ? !!LV[L.i].laserTutorial : false, forcePads: L && L.buildPads ? L.buildPads.length : 0,
+    rhythm: L ? !!LV[L.i].rhythm : false, conveyor: L ? !!LV[L.i].conveyor : false,
+    annie: L && LV[L.i].boss ? !!LV[L.i].boss.annie : false }),
+  world9Laser: () => {
+    shots = [{ kind: 'bolt', x: P.x + 160, y: P.y - 30, w: 6, h: 6, vx: 9, vy: 0, g: 0, life: 60 }];
+    updateShots();
+    return { slow: shots.length === 0 || Math.abs(shots[0].vx) <= 1.5, hint: !!L.laserHintDone, remaining: shots.length };
+  },
+  world9Force: () => {
+    const pad = L.buildPads[0];
+    if (!pad) return { built: 0, bricks: 0 };
+    P.x = pad.x; P.y = pad.y; P.face = 1;
+    const result = callMilo();
+    return { recipe: pad.recipe, result, built: friendPlatforms.length, bricks: friendPlatforms.length };
+  },
+  world9Rhythm: () => { frame = 120; updateWorld(); return { phase: L.rhythmPhase || 0, offset: L.conveyorOffset || 0, rush: P.rush, boss: boss }; },
+  world9Art: () => ({ speaker: SPEAKERS.ANNIE, portrait: portraitFor('a', 'n').startsWith('data:image/'), sprite: SP.annieStand.width > 0,
+    title: LV[71].boss.title, annie: !!LV[71].boss.annie, finalWorld: LV[71].finalWorld, path: WM_PATHS[9].length }),
+  world10Info: () => ({ stage: L && L.i, world: L ? worldOf(L.i) : null, place: L ? LV[L.i].place : null,
+    grandmas: L && LV[L.i].boss ? !!LV[L.i].boss.grandmas : false, momBoss: L && LV[L.i].boss ? LV[L.i].boss.kind === 'mom' : false,
+    finalWorld: L ? (LV[L.i].finalWorld || 0) : 0, pending: progress.pendingCutscene || null }),
+  audioInfo: () => ({ on: AudioSys.on, vol: { music: progress.vol.music, sfx: progress.vol.sfx, vo: progress.vol.vo },
+    narration: progress.narration !== false, captions: progress.captions !== false,
+    clips: VO.clips ? Object.keys(VO.clips).length : 0, tts: !!window.speechSynthesis }),
+  audioCue: (k) => { if (SFX[k]) SFX[k](); return { caption: $('#captions') && !$('#captions').hidden ? $('#captions').textContent : null }; },
+  world11Info: () => ({ stage: L && L.i, world: L ? worldOf(L.i) : null, place: L ? LV[L.i].place : null,
+    look3d: L ? !!LV[L.i].look3d : false, glitchy: L && LV[L.i].boss ? !!LV[L.i].boss.glitchy : false,
+    finalWorld: L ? (LV[L.i].finalWorld || 0) : 0, tier2: progress.wonWorlds.indexOf(10) >= 0, pending: progress.pendingCutscene || null }),
   defaults: () => JSON.parse(JSON.stringify(DEFAULT_PROGRESS)),
   petSpot: () => (crate ? { x: crate.x, y: crate.y, pet: crate.pet } : null),
   toPet: () => { if (crate) { P.x = crate.x; P.y = crate.y; P.vx = 0; P.vy = 0; } },
@@ -14040,7 +15384,7 @@ window.__k11 = {
     });
     return c.toDataURL();
   },
-};
+} : undefined;
 
 })();
 </script>

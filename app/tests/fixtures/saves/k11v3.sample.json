@@ -1,0 +1,8 @@
+{
+  "unlocked": 7,
+  "beaten": [0, 1, 2, 3],
+  "won": false,
+  "totalCandles": 88,
+  "pets": { "cat": true, "dog": true },
+  "k11v3-sound": true
+}

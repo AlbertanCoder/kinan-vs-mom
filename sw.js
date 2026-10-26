@@ -1,10 +1,8 @@
 /* Kinan vs. Mom - offline cache */
-const CACHE = 'kinan-vs-mom-v15';
+const CACHE = 'kinan-vs-mom-v29';   /* v29: World 11 the Glitch (flat-plane 3D, saved game finale, gold tier-2 UI) */
 const ASSETS = [
   './',
   './index.html',
-  './galaxy3d.js',
-  './galaxy3d-models.js',
   './manifest.webmanifest',
   './apple-touch-icon.png',
   './icons/icon-192.png',
