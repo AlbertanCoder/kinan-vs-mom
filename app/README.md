@@ -70,6 +70,14 @@
 > mechanics, Annie’s art/data, rhythm/conveyor updates, completion/unlock, and
 > the absence of an early 3D morph.
 >
+> **World 10 — Birthday Multiverse:** five stages where every universe with
+> Kinan’s birthday connects at once, with SEPARATE Grandmothers and Mom
+> encounters and a nonlethal cake-and-cookies finale. The ending cinematic
+> saves World 10 completion, the World 11 unlock and a pending-cutscene marker
+> BEFORE its first frame; `tests/e2e/legacy-world10.spec.ts` covers the map,
+> every stage in 2D, both encounters, the save-before-cinematic guarantee and
+> the mid-cutscene resume path.
+>
 > The original skeleton notes are kept below for history.
 
 ---

@@ -1975,6 +1975,75 @@ LV.push(
   })
 );
 
+/* World 10: "Kinan vs. the Birthday Multiverse" — every universe where it is Kinan's birthday
+   connects at once (Shad's 2026-10-26 brief: indices 72-76, SEPARATE Grandmothers and Mom
+   encounters, and the finale saves completion + the World 11 unlock + the pending-cutscene
+   marker BEFORE its cinematic). Nonlethal throughout: cake, cookies and hugs. */
+LV.push(
+  expandedStage({
+    place: 'Portal Piñata Plaza', bg: 'midway', world: 10,
+    sky: ['#5b3c8a', '#c86fd8'], far: '#7a4fa8', mid: '#9a5fc0', ground: '#4b2f6e', top: '#f6c445', brick: '#e0568a', accent: '#7be3a3',
+    foes: ['sock', 'teddy', 'lego'],
+    intro: ['Happy birthday, Kinan! This year the birthday candles lit a PORTAL.', 'Every universe where it is your birthday just connected at once — and the piñatas from ten dimensions are VERY confused.'],
+    boss: null,
+    win: ['The plaza settles down. The piñatas bow to their true champion.', '<b>KINAN:</b> I want every birthday to have a portal.'],
+    meanwhile: 'Mom is counting candles in three dimensions at once and will not stop.'
+  }),
+  expandedStage({
+    place: 'Mirror-Twin Skyscrapers', bg: 'castle', world: 10,
+    sky: ['#2b2f5e', '#8a7fd8'], far: '#4a4f8a', mid: '#6a5fb0', ground: '#3a3f6e', top: '#c8c4f0', brick: '#8a7fd8', accent: '#f6c445',
+    foes: ['seagull', 'rollerblader', 'raincloud'],
+    intro: ['Two towers, two mirrors, two of EVERYTHING — including two of you.', 'Both Kinans wave at each other. Only one can reach the top first. (It is you.)'],
+    boss: null,
+    win: ['The mirror Kinan gives you a thumbs-up and poofs back to their own universe.', '<b>KINAN:</b> He was really cool.'],
+    meanwhile: 'Dad meets his reflection and they immediately agree to take a nap.'
+  }),
+  expandedStage({
+    place: 'Candy Cosmos Causeway', bg: 'galaxy', world: 10,
+    sky: ['#141042', '#4a2f8a'], far: '#2f2470', mid: '#4a3a9a', ground: '#3a2f7a', top: '#ff9ac8', brick: '#7be3a3', accent: '#f6c445',
+    foes: ['umbrellabat', 'raincloud', 'lego'],
+    intro: ['A causeway of rock candy connects the last universes. Do NOT lick the constellations.', 'The gummy meteors bounce instead of crash. That is the entire safety briefing.'],
+    boss: null,
+    win: ['The candy stars spell out HAPPY BIRTHDAY just once, then scatter.', '<b>KINAN:</b> Best universe. No notes.'],
+    meanwhile: 'Chenoa is negotiating a trade deal with a sentient jellybean.'
+  })
+);
+
+LV.push(
+  expandedStage({
+    place: "The Grandmothers' Hearth", bg: 'kitchen', world: 10,
+    sky: ['#8a4f2f', '#f0c08a'], far: '#a8683f', mid: '#c88a5a', ground: '#6e4a2f', top: '#f6c445', brick: '#e0568a', accent: '#7be3a3',
+    foes: ['waiter', 'busker', 'sock'],
+    intro: ['Every universe agrees on one thing: the grandmothers run the kitchen.', 'They have made enough food for every birthday that ever existed — and you must prove you can handle SECONDS.'],
+    boss: { kind: 'supchenoa', title: 'The Grandmothers — Kitchen Legends', prop: '🍪', hp: 7, face: 'm', grandmas: true },
+    bossIntro: ['<b>GRANDMOTHERS:</b> KINAN! You are too thin! Dodge the cookies if you can — we made extras!', '<b>KINAN:</b> This is the best fight ever.'],
+    taunts: ['Eat! Eat!', 'Did you sleep enough?!', 'Pinch! For health!', 'We are SO proud of you!'],
+    win: ['<b>GRANDMOTHERS:</b> You win, you win! Sit! Soup is ready!', 'One grandma slips you a cookie behind the other one\'s back. It is the multiverse\'s greatest secret.'],
+    meanwhile: 'Both grandmothers declare the other one\'s recipe the winner.'
+  }),
+  expandedStage({
+    place: 'The Birthday That Never Was', bg: 'cake', world: 10,
+    sky: ['#4a2f6e', '#f0a0c8'], far: '#6e4a9a', mid: '#8a5fb0', ground: '#5a3f7e', top: '#f6c445', brick: '#e0568a', accent: '#7be3a3',
+    foes: ['teddy', 'sock', 'waiter'],
+    intro: ['This universe never had a birthday: no cake, no candles, no party — and Mom has been fighting ALL day to fix that.', 'One last friendly showdown: Mom vs. Kinan, winner picks the cake flavour!'],
+    boss: { kind: 'mom', title: 'Mom — Queen of the Birthday Multiverse', prop: '🎂', hp: 8, face: 'm' },
+    bossIntro: ['<b>MOM:</b> One last round, birthday boy! Winner picks the cake flavour!', '<b>KINAN:</b> You are ON, Mom!'],
+    taunts: ['Nobody outsprints a MOM!', 'This is for your own birthday!', 'I MADE that cape, you know!', 'HUG incoming!'],
+    win: ['<b>MOM:</b> Okay, okay! Vanilla AND chocolate. Everybody wins!', 'The candles relight. Every universe folds neatly back into one.'],
+    finalWorld: 10,
+    cinematicId: 'w10-finale',
+    cinematic: [
+      '<b>MOM:</b> There it is, sweetie. The birthday that existed in every universe at once.',
+      'The whole family appears between the candles: Dad, Shad, Chenoa, Robin, the pets — and BOTH grandmothers carrying one enormous cake.',
+      '<b>GRANDMOTHERS:</b> MAKE A WISH, KINAN!',
+      '<b>KINAN:</b> I wish... for this exact moment. In every universe.',
+      'Eleven candles blow out at once. Somewhere behind the light, a portal yawns open in the WRONG direction — and someone tiny absolutely freaks out...',
+      '<b>MOM:</b> ...What was that? Never mind. CAKE TIME!'
+    ],
+    meanwhile: 'The kitchen reports zero cake remaining. An investigation is ongoing.'
+  })
+);
+
 const FOE = {
   sock: { beh: 'walker', kind: 'sock', color: '#c9c2d8' },
   teddy: { beh: 'walker', kind: 'teddy', color: '#b07a4a', spd: 0.5 },
@@ -2299,6 +2368,7 @@ function loadProgress() {
   out.builds = Array.isArray(p.builds) ? p.builds.filter(bNorm).slice(0, 50) : [];
   if (!out.mapSeen || typeof out.mapSeen !== 'object') out.mapSeen = {};
   if (!out.mapSel || typeof out.mapSel !== 'object') out.mapSel = {};   /* where the player was on each world's map */
+  out.pendingCutscene = typeof out.pendingCutscene === 'string' ? out.pendingCutscene : null;   /* finale mid-cutscene resume */
   out.bossLosses = {};
   if (p.bossLosses && typeof p.bossLosses === 'object') for (const k in p.bossLosses) { const n = Math.floor(Number(p.bossLosses[k])); if (LV[k] && n > 0 && n < 1000) out.bossLosses[k] = n; }
   /* a damaged or hand-edited save must never stop the game from starting: each field back to its own kind, or the default */
@@ -2727,7 +2797,7 @@ function portraitFor(who, mood) {
 }
 /* who is talking: a line that starts with "<b>NAME:</b>" shows that person's face and voice; narration shows Kinan, no voice */
 const SPEAKERS = { 'MOM': 'm', 'CHENOA': 'c', 'KINAN': 'k', 'ROBIN': 'd', 'DAD': 'd', 'SHAD': 's', 'NOSY NEIGHBOUR': 'n', 'NEIGHBOUR': 'n', 'BIG KID': 'b', 'MEGA-MECH': 'mech', '???': 'mech', 'FOREMAN': 'f', 'SAFETY FOREMAN': 'f', 'PUMPJACK PETE': 'mech',
-  'LIFEGUARD': 'lg', 'CONDUCTOR': 'cd', 'SHAD AND CHENOA': 's', 'BARKER': 'br', 'REX': 'mech', 'LUMBERJACK': 'lj', 'PROFESSOR STATIC': 'ps', 'DRIZZLE': 'dz', 'ANNIE': 'a', 'AMANDEEP': 'a' };
+  'LIFEGUARD': 'lg', 'CONDUCTOR': 'cd', 'SHAD AND CHENOA': 's', 'BARKER': 'br', 'REX': 'mech', 'LUMBERJACK': 'lj', 'PROFESSOR STATIC': 'ps', 'DRIZZLE': 'dz', 'ANNIE': 'a', 'AMANDEEP': 'a', 'GRANDMOTHERS': 'm' };
 function speakerOf(html, who) {
   const m = /^<b>([^<:(]+?)\s*(?:\([^)]*\))?:<\/b>/.exec(html || '');
   if (!m) return null;
@@ -3936,7 +4006,7 @@ function updateShots() {
 const BOSS_NAMES = { mom: 'MOM', chenoa: 'CHENOA', mech: 'MEGA-MECH', neighbour: 'NEIGHBOUR', bully: 'BIG KID',
   moose: 'BULL MOOSE', foreman: 'SAFETY FOREMAN', pumpjack: 'PUMPJACK PETE', dadboss: 'HYDRO VAC DAD', bronco: 'BRONCO', rodeo: 'BRONCO', barker: 'CARNIVAL BARKER', rex: 'REX', bananaslug: 'BANANA SLUG', lumberjack: 'LUMBERJACK CHAMP', static: 'PROFESSOR STATIC', drizzle: 'DRIZZLE',
   lifeguard: 'LIFEGUARD', conductor: 'COASTER CONDUCTOR', supchenoa: '🍽️ CHENOA', shadboss: '👷 SHAD' };
-function bossName(b) { if (b.kind === 'supchenoa' && LV[L.i] && LV[L.i].boss && LV[L.i].boss.annie) return '🫓 ANNIE'; return BOSS_NAMES[b.kind] || 'BOSS'; }
+function bossName(b) { if (b.kind === 'supchenoa' && LV[L.i] && LV[L.i].boss) { if (LV[L.i].boss.annie) return '🫓 ANNIE'; if (LV[L.i].boss.grandmas) return '👵 THE GRANDMOTHERS'; } return BOSS_NAMES[b.kind] || 'BOSS'; }
 function makeBoss(kind, x, hp, prop) {
   const sizes = { mom: [14, 22], chenoa: [12, CH_H], mech: [28, 34], neighbour: [14, 22], bully: [14, 22], moose: [36, 32], foreman: [14, 22], pumpjack: [28, 34], dadboss: [14, 22], lifeguard: [14, 22], conductor: [24, 26], supchenoa: [12, CH_H], shadboss: [14, 22], bronco: [32, 26], rodeo: [32, 26], barker: [14, 22], rex: [30, 34], bananaslug: [40, 18], lumberjack: [14, 22], static: [14, 22], drizzle: [48, 26] };
   const s = sizes[kind] || [12, 18];
@@ -6102,6 +6172,7 @@ function drawBoss(b) {
   else if (b.kind === 'dadboss') drawDadBoss(b, sx, sy);
   else if (b.kind === 'lifeguard') drawLifeguard(b, sx, sy);
   else if (b.kind === 'conductor') drawConductor(b, sx, sy);
+  else if (b.kind === 'supchenoa' && LV[L.i].boss && LV[L.i].boss.grandmas) drawGrandmothers(b, sx, sy);
   else if (b.kind === 'supchenoa' && LV[L.i].boss && LV[L.i].boss.annie) drawAnnie(b, sx, sy);
   else if (b.kind === 'supchenoa') drawSupChenoa(b, sx, sy);
   else if (b.kind === 'shadboss') drawShadBoss(b, sx, sy);
@@ -6793,7 +6864,8 @@ const WORLDS = [
 WORLDS.push({ n: 7, name: 'Kinan vs. the Brick Realms', where: 'LEGO brick builds and BRICK-REX', from: 57, to: 61 });
 WORLDS.push({ n: 8, name: 'Kinan vs. the Prehistoric', where: 'Badlands, fossils and dinosaur friends', from: 62, to: 66 });
 WORLDS.push({ n: 9, name: 'Kinan vs. the Starbase', where: 'Star Wars inspiration and Annie’s arrival', from: 67, to: 71 });
-for (let n = 10; n <= 11; n++) WORLDS.push({ n: n, name: 'World ' + n, where: 'being built', from: -1, to: -1, soon: true });
+WORLDS.push({ n: 10, name: 'Kinan vs. the Birthday Multiverse', where: 'every birthday, all at once', from: 72, to: 76 });
+for (let n = 11; n <= 11; n++) WORLDS.push({ n: n, name: 'World ' + n, where: 'being built', from: -1, to: -1, soon: true });
 const CODE_SALT = '38c60e5665866a0e';
 const CODE_HASH = {'2': '9ad410626f9342abc9682aec5aa5e01d6092ccb2d00b216ca8e8e56f191acbdb', '3': '2cc4446b83762f35763d948917db7518994a710291fd78f559ffb370bb1fdf09', '4': 'cd961045d7d2a30a4e590a3f2998e9b52f7931c3822b33e4d56567ef6e4a8fae', '5': '26bb21be1bec703f8ac1e2cd2b273bcadfa35c2aadbe708b84c32be340d10dba', '6': '8a20c57f7f6150912709d8a4d745f4330114d60a01deacc4268bf201f777f6f9', '7': '99f2c87e392edb24489bcecc48a065cf857a70f7a7412410f00c1f72b0babbb2', '8': '42650263170026ab707abd47791545eb75ab75d832f45d42a3542b10db757560', '9': '8ca4b0034588262258e6209e44e9f3e5a7d6ec5cc581c01eac7d04f42c5c8512', '10': 'e91ae5fd91428cd7c323dd3481612276a7a26113fc9b5e128dec8cbb8da042bf', '11': 'e69c5eeadaa728ec6e6c67b9ec066aac7babfc18030d0f6e7b05291d67e0d282'};
 const worldOf = (i) => { if (i === 51) return 6; let n = 1; for (const w of WORLDS) if (!w.soon && i >= w.from) n = w.n; return n; };
@@ -6928,6 +7000,21 @@ async function endingWorld(n) {
   progress.wonWorlds = progress.wonWorlds || [];
   if (progress.wonWorlds.indexOf(n) < 0) progress.wonWorlds.push(n);
   const i = L.i;
+  if (LV[i].cinematic) {
+    /* the finale: completion, the next world's unlock and the pending-cutscene marker are all
+       saved BEFORE the cinematic's first frame, so a refresh mid-cutscene can never lose the ending */
+    firstClear = !progress.beaten.includes(i);
+    if (firstClear) progress.beaten.push(i);
+    progress.unlocked = Math.max(progress.unlocked, i + 2);
+    progress.pendingCutscene = LV[i].cinematicId || 'finale';
+    refreshWorlds();
+    save();
+    await story(LV[i].cinematic, LV[i].boss.face || 'm', 'h');
+    progress.pendingCutscene = null;
+    save();
+    resultsScreen(i);
+    return;
+  }
   await story(LV[i].win, LV[i].boss.face || 'm', 'h');
   firstClear = !progress.beaten.includes(i);
   if (firstClear) progress.beaten.push(i);
@@ -6935,6 +7022,22 @@ async function endingWorld(n) {
   refreshWorlds();
   save();
   resultsScreen(i);
+}
+/* a refresh mid-finale: the pending marker survives in the save, so the cinematic plays again
+   (and clears) the next time the player reaches the map */
+let cutsceneResuming = false;
+function resumePendingCutscene() {
+  if (!progress.pendingCutscene || cutsceneResuming) return;
+  const i = LV.findIndex((v) => v && v.cinematicId === progress.pendingCutscene);
+  if (i < 0) { progress.pendingCutscene = null; save(); return; }
+  cutsceneResuming = true;
+  showGame(true);   /* the dialog lives on the game picture: show it behind the finale */
+  story(LV[i].cinematic, (LV[i].boss && LV[i].boss.face) || 'm', 'h').then(() => {
+    progress.pendingCutscene = null;
+    save();
+    cutsceneResuming = false;
+    mapScreen();
+  });
 }
 /* a stage with no boss ends at Dad's truck */
 async function goalReached() {
@@ -8067,6 +8170,21 @@ function drawAnnie(b, sx, sy) {
   ctx.textAlign = 'center';
   if (b.state === 'windup') { ctx.fillStyle = '#ff6fae'; ctx.font = 'bold 11px monospace'; ctx.fillText('!', Math.round(cx), sy - 5); }
 }
+function drawGrandmothers(b, sx, sy) {
+  /* the two grandmothers share one health bar: Chenoa-frame and Annie-frame grandmas side by side */
+  const walking = Math.abs(b.vx) > 0.2 && b.onGround, cx = sx + b.w / 2;
+  const f1 = walking && Math.floor(frame / 14) % 2 ? SP.cWalk : SP.cStand, f2 = walking && Math.floor(frame / 14) % 2 ? SP.annieWalk : SP.annieStand;
+  drawBig(f1, cx - 9, sy + b.h, 1, 1);
+  drawBig(f2, cx + 9, sy + b.h, -1, 1);
+  ctx.fillStyle = '#f4f1e8';   /* bonnets */
+  ctx.fillRect(Math.round(cx - 13), sy + 1, 7, 2); ctx.fillRect(Math.round(cx + 7), sy + 1, 7, 2);
+  if (b.state === 'windup' || b.state === 'charge') {
+    ctx.fillStyle = '#e0b84a';   /* a cookie toss */
+    for (let k = 0; k < 3; k++) { ctx.beginPath(); ctx.arc(Math.round(cx - 10 + k * 10), sy + 16, 2, 0, 6.284); ctx.fill(); }
+  }
+  ctx.textAlign = 'center';
+  if (b.state === 'windup') { ctx.fillStyle = '#ff6fae'; ctx.font = 'bold 11px monospace'; ctx.fillText('!', Math.round(cx), sy - 5); }
+}
 function drawSupChenoa(b, sx, sy) {
   const walking = Math.abs(b.vx) > 0.2 && b.onGround, cx = sx + b.w / 2;
   drawBig(walking && Math.floor(frame / 14) % 2 ? SP.cWalk : SP.cStand, cx, sy + b.h, b.face, 1);
@@ -9110,7 +9228,7 @@ function petLoadoutScreen(back) {
   const done = back || titleScreen;
   $('#petsBack').addEventListener('click', () => { SFX.click(); done(); });
 }
-const WORLD_ICONS = { 1: '🎂', 2: '🛢️', 3: '🎢', 4: '🤠', 5: '☔', 6: '🌧️', 7: '🧱', 8: '🦖', 9: '🚀' };
+const WORLD_ICONS = { 1: '🎂', 2: '🛢️', 3: '🎢', 4: '🤠', 5: '☔', 6: '🌧️', 7: '🧱', 8: '🦖', 9: '🚀', 10: '🎉', 11: '🌀' };
 function mapScreen() {
   Music.play('title');
   const stars = totalStars();
@@ -9195,6 +9313,7 @@ function mapScreen() {
   $('#petsBtn').addEventListener('click', () => { AudioSys.init(); openPanel('panPets'); });
   $$('.gpanel .gpx', el.screen).forEach((b) => b.addEventListener('click', () => closePanel(b.closest('.gpanel'))));
   wmapStart(mw);
+  resumePendingCutscene();
   const at = el.screen.querySelector('.worldtab.on');
   if (at && at.scrollIntoView) { try { at.scrollIntoView({ block: 'nearest', inline: 'center' }); } catch (e) { /* ignore */ } }
 }
@@ -14104,6 +14223,13 @@ const WM_PATHS = {
     { at: [202, 82], via: [[158, 102]] },                     /* Starbase Laser Corridors */
     { at: [290, 126], via: [[244, 102]] },                    /* 2D Trench Run */
     { at: [378, 148], via: [[334, 138]] }                     /* Annie's Galactic Kitchen */
+  ],
+  10: [
+    { at: [46, 74] },                                         /* Portal Piñata Plaza */
+    { at: [120, 122], via: [[84, 96]] },                      /* Mirror-Twin Skyscrapers */
+    { at: [206, 80], via: [[162, 102]] },                     /* Candy Cosmos Causeway */
+    { at: [292, 124], via: [[246, 100]] },                    /* The Grandmothers' Hearth */
+    { at: [380, 148], via: [[336, 138]] }                     /* The Birthday That Never Was */
   ]
 };
 /* the road trip: the 11 cities on a map of Canada (Worlds 3-11 are planned, not built yet) */
@@ -14872,6 +14998,9 @@ window.__k11 = window.__k11DevOnly() ? {
   world9Rhythm: () => { frame = 120; updateWorld(); return { phase: L.rhythmPhase || 0, offset: L.conveyorOffset || 0, rush: P.rush, boss: boss }; },
   world9Art: () => ({ speaker: SPEAKERS.ANNIE, portrait: portraitFor('a', 'n').startsWith('data:image/'), sprite: SP.annieStand.width > 0,
     title: LV[71].boss.title, annie: !!LV[71].boss.annie, finalWorld: LV[71].finalWorld, path: WM_PATHS[9].length }),
+  world10Info: () => ({ stage: L && L.i, world: L ? worldOf(L.i) : null, place: L ? LV[L.i].place : null,
+    grandmas: L && LV[L.i].boss ? !!LV[L.i].boss.grandmas : false, momBoss: L && LV[L.i].boss ? LV[L.i].boss.kind === 'mom' : false,
+    finalWorld: L ? (LV[L.i].finalWorld || 0) : 0, pending: progress.pendingCutscene || null }),
   defaults: () => JSON.parse(JSON.stringify(DEFAULT_PROGRESS)),
   petSpot: () => (crate ? { x: crate.x, y: crate.y, pet: crate.pet } : null),
   toPet: () => { if (crate) { P.x = crate.x; P.y = crate.y; P.vx = 0; P.vy = 0; } },

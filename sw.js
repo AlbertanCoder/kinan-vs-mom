@@ -1,5 +1,5 @@
 /* Kinan vs. Mom - offline cache */
-const CACHE = 'kinan-vs-mom-v26';   /* v26: map navigation game-feel pass (world cards, stage chips, stage card) */
+const CACHE = 'kinan-vs-mom-v27';   /* v27: World 10 Birthday Multiverse (Grandmothers, Mom finale, saved cinematic) */
 const ASSETS = [
   './',
   './index.html',
