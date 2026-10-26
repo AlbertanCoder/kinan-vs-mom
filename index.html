@@ -1835,6 +1835,60 @@ LV.push(
   })
 );
 
+LV.push(
+  expandedStage({
+    place: 'Badlands Fossil Dig', bg: 'outdoor', world: 8,
+    sky: ['#e6a15c', '#ffe5ad'], far: '#b9794e', mid: '#8a563d', ground: '#6b4a2a', top: '#d7b46a', brick: '#a0703a', accent: '#f6c445',
+    foes: ['babydino', 'raccoon', 'pothole'],
+    intro: ['The Badlands are full of fossils, dusty ledges, and tiny dinosaurs who definitely did not touch your lunch.', 'Follow the fossil markers and use the high shelves when the dust starts rolling.'],
+    boss: null,
+    win: ['A perfect little ammonite. The baby dinosaur guarding it decides you are acceptable company.'],
+    meanwhile: 'Dad finds a rock shaped exactly like a pancake. Geology remains undefeated.'
+  }),
+  expandedStage({
+    place: 'Fern Jungle & Baby-Dino Rescue', bg: 'outdoor', world: 8,
+    sky: ['#69b879', '#e1f7cf'], far: '#4e8b58', mid: '#356847', ground: '#3f4f2a', top: '#6ab45a', brick: '#8a6a48', accent: '#7be3a3',
+    foes: ['babydino', 'goose', 'raincloud'],
+    intro: ['A baby dino is stuck behind the ferns. It is not a trap. It is a very small, very loud rescue mission.', 'Use the dinosaur-friend platforms and do not rush the little one.'],
+    boss: null,
+    win: ['The baby dino is back with its family. It sneezes a leaf onto your head and calls that a thank-you.'],
+    meanwhile: 'Mom says the baby is cute. Dad says the leaf is technically a hat now.'
+  }),
+  expandedStage({
+    place: 'Brachiosaurus River', bg: 'outdoor', world: 8, dinoFriend: 'brachiosaurus',
+    sky: ['#69a9d8', '#e2f2ff'], far: '#5a8c78', mid: '#3f6f5d', ground: '#4b3b2d', top: '#5fb84a', brick: '#a0703a', accent: '#6fc8ff',
+    foes: ['babydino', 'flyingfish', 'puddlefrog'],
+    intro: ['A long-neck friend makes a bridge over the river. It is patient, enormous, and completely uninterested in shortcuts.', 'Cross with the brachiosaurus or take the shelf route. Both are safe when you watch the water.'],
+    boss: null,
+    win: ['The long-neck lowers its head for one last look, then lets you hop off by the ferns.'],
+    meanwhile: 'Dad calls the brachiosaurus a bridge with a neck. Mom says that is enough bridge talk for today.'
+  })
+);
+
+LV.push(
+  expandedStage({
+    place: 'Raptor Canyon', bg: 'outdoor', world: 8, dinoFriend: 'triceratops',
+    sky: ['#d99055', '#ffe0a6'], far: '#a66b45', mid: '#754633', ground: '#5b3c2a', top: '#c39252', brick: '#a0703a', accent: '#f6c445',
+    foes: ['babydino', 'minibull', 'pothole'],
+    intro: ['Raptors patrol the canyon, but they are looking for their baby, not a fight.', 'Use the triceratops charge to open a route, or distract the patrols with Aiden.'],
+    boss: null,
+    win: ['The patrol lets you pass. The baby raptor chirps once and every raptor in the canyon pretends not to cry.'],
+    meanwhile: 'Dad demonstrates a raptor call. It sounds suspiciously like a lawnmower.'
+  }),
+  expandedStage({
+    place: 'Alpha T-Rex Nest', bg: 'outdoor', world: 8, dinoFriend: 'stegosaurus',
+    sky: ['#b87452', '#ffe0a6'], far: '#8d5840', mid: '#633b2f', ground: '#4b3026', top: '#c39252', brick: '#a0703a', accent: '#ff6fae',
+    foes: ['babydino', 'minibull', 'pothole'],
+    intro: ['The Alpha T-Rex is enormous, loud, and standing directly between you and her baby.', 'She is protective, not evil. Dodge her charges, watch the tail and stun windows, and return the baby safely.'],
+    boss: { kind: 'rex', title: 'Alpha T-Rex — the Protective Parent', prop: '🦖', hp: 6, face: 'mech' },
+    bossIntro: ['<b>ALPHA:</b> ROOOOAR! Nobody comes near my nest!', '<b>KINAN:</b> We are not here to hurt you. We are bringing your baby home.'],
+    taunts: ['ROOOOAR!', 'My nest! My baby!', 'Back away from the nest!'],
+    win: ['The baby waddles up. Alpha stops mid-roar, nuzzles the baby, and lets the whole family leave in peace.'],
+    finalWorld: 8,
+    meanwhile: 'Dad whispers that this is exactly why you never hurry a parent.'
+  })
+);
+
 const FOE = {
   sock: { beh: 'walker', kind: 'sock', color: '#c9c2d8' },
   teddy: { beh: 'walker', kind: 'teddy', color: '#b07a4a', spd: 0.5 },
@@ -3109,6 +3163,34 @@ function trailPart(kind, x, y) {
   else if (kind === 'hearts') part(x, y - 6, { vx: rand(-0.3, 0.3), vy: -0.5, life: 22, size: 2, color: '#ff6fae', glow: true, g: 0 });
   else if (kind === 'stars') part(x, y - 4, { vx: -P.face * rand(0.4, 1.0), vy: rand(-0.3, 0.3), life: 14, size: ri(1, 3), color: pick(['#ffffff', '#fff3b0']), glow: true, g: 0 });
 }
+function activateDinoFriend(kind) {
+  if (!kind) return;
+  if (kind === 'triceratops') {
+    P.rush = Math.max(P.rush, 120);
+    toast('<b>TRICERATOPS:</b> Charge! A short safe route is open.', 1600);
+    SFX.power();
+    return;
+  }
+  const tx = Math.floor((L.checkpoint ? L.checkpoint.x : P.x) / T), ty = Math.floor((P.y + P.h) / T) - 1;
+  let made = 0;
+  for (let dy = 0; dy < 4 && made < 5; dy++) for (let dx = -6; dx <= 6 && made < 5; dx++) {
+    const x = tx + dx, y = ty - dy;
+    if (x < 1 || x >= L.w - 1 || y < 1) continue;
+    const idx = y * L.w + x;
+    if (L.g[idx] || friendPlatforms.some((fp) => fp.idx === idx)) continue;
+    L.g[idx] = 7;
+    friendPlatforms.push({ idx, old: 0, t: 999999 });
+    made++;
+  }
+  toast(kind === 'brachiosaurus' ? '<b>BRACHIOSAURUS:</b> A long-neck bridge to the next ledge!' : '<b>STEGOSAURUS:</b> Plated steps for Kinan!', 1800);
+  SFX.power();
+}
+function drawDinoFriend() {
+  if (!LV[L.i].dinoFriend || !cpHit || !L.checkpoint) return;
+  const x = L.checkpoint.tx * T - Math.round(camX), y = (L.checkpoint.ty - 1) * T - 28;
+  ctx.font = '16px "Segoe UI Emoji",sans-serif'; ctx.textAlign = 'center';
+  ctx.fillText(LV[L.i].dinoFriend === 'brachiosaurus' ? '🦕' : '🦖', x, y);
+}
 function updateWorld() {
   for (const pc of pieces) {
     if (hasGold(L.i, pc.j)) continue;
@@ -3122,6 +3204,7 @@ function updateWorld() {
     spawn = { x: L.checkpoint.x, y: (L.checkpoint.ty - 1) * T };
     SFX.flag(); toast('<b>CHECKPOINT!</b> 🚩 Saved.', 1300); if (!LV[L.i].final3) callBro();   /* not on the bridge: Shad is waiting there */
     sparks(L.checkpoint.tx * T + 6, (L.checkpoint.ty - 1) * T, 12, ['#44c55a', '#fff', '#f6c445']);
+    activateDinoFriend(LV[L.i].dinoFriend);
     if (hasPet('cat3') && !P.duchessUsed && P.hp < P.max && boss !== 'fight' && !L.custom && !LV[L.i].challenge) {
       const snack = Math.min(2, P.max - P.hp);
       P.duchessUsed = true; P.hp += snack;
@@ -3259,6 +3342,14 @@ function drawBrickRexCore(b) {
     ctx.font = '14px "Segoe UI Emoji",sans-serif'; ctx.textAlign = 'center';
     ctx.fillText('💛', sx + 8, sy - 12);
   }
+}
+function drawAlphaReunion(b) {
+  if (!LV[L.i] || LV[L.i].finalWorld !== 8 || !b.out) return;
+  const sx = Math.round(b.x - camX), sy = Math.round(b.y);
+  ctx.font = '16px "Segoe UI Emoji",sans-serif'; ctx.textAlign = 'center';
+  ctx.fillText('🦕', sx + 8, sy + 8);
+  ctx.fillStyle = '#7be3a3'; ctx.font = 'bold 9px monospace';
+  ctx.fillText('FAMILY REUNITED', sx + 8, sy - 5);
 }
 function callMilo() {
   const pad = nearBuildPad();
@@ -6115,10 +6206,11 @@ function draw() {
   drawTiles(th);
   drawProps(th);
   drawBuildPads();
+  drawDinoFriend();
   drawVaderScout();
   drawGoal();
   for (const f of foes) drawFoe(f);
-  for (const b of bosses) { drawBoss(b); drawBrickRexCore(b); }
+  for (const b of bosses) { drawBoss(b); drawBrickRexCore(b); drawAlphaReunion(b); }
   drawHelpers();
   drawPets();
   drawPlayer();
@@ -6577,7 +6669,8 @@ const WORLDS = [
   { n: 6, name: 'Kinan vs. the Rain Returns', where: 'Vancouver and the rain, expanded in 2D', from: 52, to: 56 }
 ];
 WORLDS.push({ n: 7, name: 'Kinan vs. the Brick Realms', where: 'LEGO brick builds and BRICK-REX', from: 57, to: 61 });
-for (let n = 8; n <= 11; n++) WORLDS.push({ n: n, name: 'World ' + n, where: 'being built', from: -1, to: -1, soon: true });
+WORLDS.push({ n: 8, name: 'Kinan vs. the Prehistoric', where: 'Badlands, fossils and dinosaur friends', from: 62, to: 66 });
+for (let n = 9; n <= 11; n++) WORLDS.push({ n: n, name: 'World ' + n, where: 'being built', from: -1, to: -1, soon: true });
 const CODE_SALT = '38c60e5665866a0e';
 const CODE_HASH = {'2': '9ad410626f9342abc9682aec5aa5e01d6092ccb2d00b216ca8e8e56f191acbdb', '3': '2cc4446b83762f35763d948917db7518994a710291fd78f559ffb370bb1fdf09', '4': 'cd961045d7d2a30a4e590a3f2998e9b52f7931c3822b33e4d56567ef6e4a8fae', '5': '26bb21be1bec703f8ac1e2cd2b273bcadfa35c2aadbe708b84c32be340d10dba', '6': '8a20c57f7f6150912709d8a4d745f4330114d60a01deacc4268bf201f777f6f9', '7': '99f2c87e392edb24489bcecc48a065cf857a70f7a7412410f00c1f72b0babbb2', '8': '42650263170026ab707abd47791545eb75ab75d832f45d42a3542b10db757560', '9': '8ca4b0034588262258e6209e44e9f3e5a7d6ec5cc581c01eac7d04f42c5c8512', '10': 'e91ae5fd91428cd7c323dd3481612276a7a26113fc9b5e128dec8cbb8da042bf', '11': 'e69c5eeadaa728ec6e6c67b9ec066aac7babfc18030d0f6e7b05291d67e0d282'};
 const worldOf = (i) => { if (i === 51) return 6; let n = 1; for (const w of WORLDS) if (!w.soon && i >= w.from) n = w.n; return n; };
@@ -13855,6 +13948,13 @@ const WM_PATHS = {
     { at: [194, 74], via: [[154, 96]] },                      /* Machine Brickwilds */
     { at: [278, 116], via: [[234, 94]] },                     /* Studded Skyscraper Tower */
     { at: [374, 154], via: [[326, 138]] }                     /* BRICK-REX arena */
+  ],
+  8: [
+    { at: [44, 82] },                                         /* Badlands fossil dig */
+    { at: [112, 132], via: [[76, 106]] },                     /* Fern Jungle and baby-dino rescue */
+    { at: [196, 88], via: [[152, 108]] },                     /* Brachiosaurus River */
+    { at: [282, 126], via: [[238, 104]] },                    /* Raptor Canyon */
+    { at: [372, 154], via: [[328, 140]] }                     /* Alpha T-Rex nest */
   ]
 };
 /* the road trip: the 11 cities on a map of Canada (Worlds 3-11 are planned, not built yet) */

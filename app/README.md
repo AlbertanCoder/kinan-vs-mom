@@ -57,6 +57,11 @@
 > preserved. `tests/e2e/legacy-world7.spec.ts` covers recipes, all stages, the
 > four-projectile cap, and completion without a 3D morph.
 >
+> **World 8 — Prehistoric Dinosaur Adventure:** five real 2D stages add fossil
+> routes, temporary dinosaur-friend platforms, and a nonlethal protective Alpha
+> T-Rex reunion. `tests/e2e/legacy-world8.spec.ts` covers the map, Brachiosaurus
+> platform behavior, all stages, and completion without a 3D morph.
+>
 > The original skeleton notes are kept below for history.
 
 ---

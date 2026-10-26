@@ -1,5 +1,5 @@
 /* Kinan vs. Mom - offline cache */
-const CACHE = 'kinan-vs-mom-v23';   /* v23: World 7 LEGO Brick Realms and BRICK-REX */
+const CACHE = 'kinan-vs-mom-v24';   /* v24: World 8 dinosaur friends and Alpha reunion */
 const ASSETS = [
   './',
   './index.html',
