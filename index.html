@@ -3615,7 +3615,6 @@ function updateWorld() {
     }
   }
   if (LV[L.i].conveyor) L.conveyorOffset = (L.conveyorOffset || 0) + 0.35;
-  updateExplorer();
   for (const p of pops) { p.t--; p.y -= 0.55; }
   pops = pops.filter((p) => p.t > 0);
   for (const p of parts) {
@@ -4904,6 +4903,7 @@ function update() {
   if (smash) { updateSmash(); return; }
   frame++;
   pollGamepad();
+  if (L && L.explorer) { updateExplorer(); return; }   /* the world map runs its own top-down show */
   if (morph) {   /* the world goes 3D: the cutscene runs its own show */
     if (!paused) {
       morph.t++;
@@ -6564,6 +6564,7 @@ function draw() {
   if (builder) { drawBuilder(); return; }
   if (kart) { drawKart(); return; }
   if (smash) { drawSmash(); return; }
+  if (L && L.explorer) { drawExplorer(); return; }   /* the world map draws itself */
   if (morph) { drawMorph(); return; }   /* the 3D cutscene draws over everything */
   if (puzzle) { drawPuzzle(); return; }
   if (!L || !P) return;
@@ -6593,7 +6594,6 @@ function draw() {
   drawProps(th);
   drawBuildPads();
   drawConveyor();
-  if (L.explorer) drawExplorer();
   drawDinoFriend();
   drawVaderScout();
   drawGoal();
@@ -9440,62 +9440,89 @@ function petLoadoutScreen(back) {
 }
 const WORLD_ICONS = { 1: '🎂', 2: '🛢️', 3: '🎢', 4: '🤠', 5: '☔', 6: '🌧️', 7: '🧱', 8: '🦖', 9: '🚀', 10: '🎉', 11: '🌀' };
 /* ============================================================
-   WORLD EXPLORER — every world is one big continuous terrain.
-   Kinan walks and climbs freely (up / down / left / right), the
-   camera follows him, and every stage is a PLACE with a door you
-   walk into — the Super Mario World feel. It is built on the real
-   stage engine (the custom-level path), so the physics, camera
-   and rendering are the actual game, not a second system.
+   WORLD EXPLORER v2 — Super Mario World style overworld maps.
+   Each world is one big SCENIC MAP seen from above: winding
+   paths connect numbered level dots across a themed landscape
+   (grass, oilfield, rain city, LEGO, volcano, starbase...), the
+   world's boss lives in a castle node, and little Kinan walks
+   the map while the whole screen scrolls with him.
    ============================================================ */
-function explorerLevel(world) {
-  const w = WORLDS[world - 1];
-  const rng = kSeed(world * 7919 + 31);
-  const cols = 112, up = 12;   /* ~4 screens wide and ~2 screens tall */
-  const rows = ROWS + up;
-  const g = new Array(cols * rows).fill(0);
-  const set = (x, y, v) => { if (x >= 0 && x < cols && y >= 0 && y < rows) g[y * cols + x] = v; };
-  const get = (x, y) => (x >= 0 && x < cols && y >= 0 && y < rows) ? g[y * cols + x] : 1;
-  const top = [];
-  let h = ROWS - 3;
-  for (let x = 0; x < cols; x++) {
-    if (x % 9 === 0) h += rng() < 0.5 ? -1 : 1;
-    if (x > cols * 0.42 && x < cols * 0.58) h -= 1;   /* a tall middle climb */
-    if (x >= cols * 0.58 && x < cols * 0.70) h += 2;
-    h = clamp(h, up + 5, ROWS - 2);
-    top[x] = h;
-    for (let y = h; y < ROWS; y++) set(x, y, y === h ? 1 : 2);
+const OVER_THEMES = {
+  1: { grass: '#59b04a', grass2: '#6fc45c', path: '#d8b46a', water: '#3f8fe8', rock: '#9a8f7a', tree: '#2f8a3c', trunk: '#7a4f2f', sky: ['#8fd4ff', '#cdefff'], deco: '#ff6fae' },
+  2: { grass: '#c9a05a', grass2: '#d8b46a', path: '#e8cf90', water: '#3a6fd8', rock: '#6a5f52', tree: '#3a7a4a', trunk: '#5a4632', sky: ['#2b2f5e', '#8a6fd8'], deco: '#ff9a3f' },
+  3: { grass: '#4aa05a', grass2: '#5cb46c', path: '#c8c8d8', water: '#3f7fe8', rock: '#7a7f9a', tree: '#2f7a4c', trunk: '#6a4f2f', sky: ['#241f52', '#7a5fd8'], deco: '#f6c445' },
+  4: { grass: '#d8a848', grass2: '#e8bc5c', path: '#f0d890', water: '#4f9fe8', rock: '#a8824a', tree: '#6a9a3c', trunk: '#7a5628', sky: ['#e58a3f', '#ffd9a0'], deco: '#e0562c' },
+  5: { grass: '#3f9a5c', grass2: '#4fae6c', path: '#b8c4cf', water: '#2f6fd8', rock: '#6a7a86', tree: '#2a7a44', trunk: '#5a4a3a', sky: ['#4a5f9a', '#9ab4e8'], deco: '#7fd8ff' },
+  6: { grass: '#55b85a', grass2: '#68cc6e', path: '#f4f1e8', water: '#3f8fe8', rock: '#9a9aa6', tree: '#3a9a4c', trunk: '#7a4f2f', sky: ['#7fc4ff', '#d8f0ff'], deco: '#ff6fae' },
+  7: { grass: '#4f9e4a', grass2: '#62b25c', path: '#c8a45a', water: '#2f7fd8', rock: '#8a6f4a', tree: '#2c8a3c', trunk: '#6a4628', sky: ['#3a2f6e', '#c86fd8'], deco: '#f6c445' },
+  8: { grass: '#59b04a', grass2: '#72c45e', path: '#d8b46a', water: '#3a7fe8', rock: '#8a7f6a', tree: '#2f8a3c', trunk: '#7a4f2f', sky: ['#5a3a9a', '#e88a5a'], deco: '#7be3a3' },
+  9: { grass: '#3f7a6e', grass2: '#4f8a7e', path: '#8aa1c8', water: '#2f4fd8', rock: '#5a6a8a', tree: '#2a6a5c', trunk: '#4a5a7a', sky: ['#141232', '#4a3f8a'], deco: '#7be3a3' },
+  10: { grass: '#7a5fc0', grass2: '#8a6fd0', path: '#f0c0e0', water: '#4f3fd8', rock: '#5a4a9a', tree: '#6a4fae', trunk: '#4a3a7a', sky: ['#5b3c8a', '#c86fd8'], deco: '#f6c445' },
+  11: { grass: '#4a3f8a', grass2: '#5a4f9a', path: '#8a7fd8', water: '#3f2fc8', rock: '#3a2f6e', tree: '#5a4aae', trunk: '#3a2f6e', sky: ['#141232', '#4a2f8a'], deco: '#7be3a3' }
+};
+function overBuild(world) {
+  const w = WORLDS[world - 1], th = OVER_THEMES[world] || OVER_THEMES[1];
+  const rng = kSeed(world * 131 + 7);
+  const cols = 88, rows = 48;   /* ~3.3 x 3.2 screens: a real map to roam */
+  const tiles = new Uint8Array(cols * rows);   /* 0 grass, 1 grass2, 2 water, 3 path, 4 rock */
+  for (let y = 0; y < rows; y++) {
+    for (let x = 0; x < cols; x++) {
+      const r = rng();
+      tiles[y * cols + x] = r < 0.10 ? 1 : r > 0.985 ? 4 : 0;
+    }
   }
-  for (let k = 0; k < 30; k++) {   /* stair climbs and floating ledges: every height is reachable */
-    const x = 4 + Math.floor(rng() * (cols - 8));
-    const y = clamp(top[x] - 2 - Math.floor(rng() * 5), -up + 3, ROWS - 4);
-    set(x, y, 2); set(x + 1, y, 2);
-    if (rng() < 0.5) set(x + 2, y - 2, 2);
+  for (let lake = 0; lake < 3; lake++) {   /* ponds and a river bend */
+    const cx = 10 + Math.floor(rng() * (cols - 20)), cy = 8 + Math.floor(rng() * (rows - 16)), rad = 3 + Math.floor(rng() * 4);
+    for (let y = cy - rad; y <= cy + rad; y++) for (let x = cx - rad; x <= cx + rad; x++) {
+      if (x >= 0 && x < cols && y >= 0 && y < rows && Math.hypot(x - cx, y - cy) < rad) tiles[y * cols + x] = 2;
+    }
   }
-  const entrances = [];
+  /* the stage dots sit on a serpentine route across the map */
   const n = w.to - w.from + 1;
+  const nodes = [];
   for (let k = 0; k < n; k++) {
-    const x = 8 + Math.floor((cols - 20) * (k + 0.5) / n);
-    const y = top[x] - 1;
-    set(x, y + 1, 1); set(x + 1, y + 1, 1);   /* a solid porch under every door */
-    entrances.push({ x: x, y: y, stage: w.from + k, k: k });
+    const t = (k + 0.5) / n;
+    const x = Math.round(8 + t * (cols - 18) + Math.sin(k * 2.1 + world) * 3.5);
+    const y = Math.round(rows * 0.52 + Math.sin(t * Math.PI * 2.3 + world * 0.7) * rows * 0.30);
+    nodes.push({ x: x, y: y, stage: w.from + k, k: k, kind: LV[w.to] && LV[w.to].boss && k === n - 1 ? 'castle' : 'level' });
   }
-  const th = Object.assign({}, LV[w.from]);   /* the world's own first stage dresses its terrain */
-  return {
-    i: w.from, explorer: world, custom: true, th: th, g: g, w: cols, up: up,
-    foes: [], candles: [], gifts: {}, petSpot: null, ice: false, wind: false,
-    arenaX: cols - 3, arenaW: 2, startT: [3, top[3] - 1],
-    entrances: entrances, gates: [{ x: 2, to: world - 1 }, { x: cols - 2, to: world + 1 }], top: top,
-    src: { name: 'World Explorer' }, opts: {}, song: 'title'
+  /* carve the winding road: a 3-tile-wide path between every pair of dots */
+  const carve = (a, b) => {
+    const steps = Math.ceil(Math.hypot(b.x - a.x, b.y - a.y) * 2);
+    for (let s = 0; s <= steps; s++) {
+      const x = Math.round(a.x + (b.x - a.x) * s / steps + Math.sin(s * 0.35) * 1.2);
+      const y = Math.round(a.y + (b.y - a.y) * s / steps + Math.cos(s * 0.3) * 1.2);
+      for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+        const px = x + dx, py = y + dy;
+        if (px >= 0 && px < cols && py >= 0 && py < rows && tiles[py * cols + px] !== 2) tiles[py * cols + px] = 3;
+      }
+    }
   };
+  for (let k = 0; k < n - 1; k++) carve(nodes[k], nodes[k + 1]);
+  for (const nd of nodes) {   /* a clear plaza under every dot */
+    for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+      const px = nd.x + dx, py = nd.y + dy;
+      if (px >= 0 && px < cols && py >= 0 && py < rows) tiles[py * cols + px] = 3;
+    }
+  }
+  return { world: world, cols: cols, rows: rows, tiles: tiles, nodes: nodes, th: th };
 }
 function startExplorer(world, resume) {
   world = clamp(Math.floor(world) || 1, 1, 11);
-  showGame(true);   /* the explorer IS the game picture: reveal it like playStage does */
-  const Lx = explorerLevel(world);
-  startStage(Lx.i, true, Lx);
+  showGame(true);   /* the map IS the game picture: reveal it like playStage does */
+  const ov = overBuild(world);
+  const stub = {
+    i: WORLDS[world - 1].from, explorer: world, custom: true, th: LV[WORLDS[world - 1].from],
+    g: new Array(450).fill(0), w: 30, up: 0, foes: [], candles: [], gifts: {}, petSpot: null, ice: false, wind: false,
+    arenaX: 20, arenaW: 5, startT: [2, 12], src: { name: 'World map' }, opts: {}, song: 'title',
+    cols: ov.cols, rows: ov.rows, tiles: ov.tiles, nodes: ov.nodes, oth: ov.th
+  };
+  startStage(stub.i, true, stub);
   const ex = resume && progress.explorer && progress.explorer.world === world ? progress.explorer : null;
   if (ex) { P.x = ex.x; P.y = ex.y; P.vx = 0; P.vy = 0; }
-  camX = clamp(Math.round(P.x - W * 0.42), 0, Lx.w * T - W);
+  P.x = clamp(P.x, T, ov.cols * T - 2 * T); P.y = clamp(P.y, T, ov.rows * T - 2 * T);
+  camX = clamp(Math.round(P.x + P.w / 2 - W / 2), 0, ov.cols * T - W);
+  camY = clamp(Math.round(P.y + P.h / 2 - H / 2), 0, ov.rows * T - H);
   el.stageLbl.textContent = 'WORLD ' + world + ' · ' + WORLDS[world - 1].name.toUpperCase();
   const mbp = $('#mapBtnP'); if (mbp) mbp.textContent = 'World map';
   progress.explorer = { world: world, x: Math.round(P.x), y: Math.round(P.y) };
@@ -9503,60 +9530,129 @@ function startExplorer(world, resume) {
   Music.play('title');
   running = true; paused = false; last = 0; acc = 0;
   run();
-  if (!ex) toast('<b>WORLD ' + world + '</b> · ' + escAttr(WORLDS[world - 1].name) + ' — walk to a door to play a stage!', 2600);
+  if (!ex) toast('<b>WORLD ' + world + '</b> · ' + escAttr(WORLDS[world - 1].name) + ' — walk the path to a stage dot!', 2600);
 }
 function explorerWarp(world, side) {
   startExplorer(world);
-  P.x = side === 'right' ? (L.w - 4) * T : 4 * T;
-  P.y = (L.top[side === 'right' ? L.w - 4 : 4] - 1) * T;
-  camX = clamp(Math.round(P.x - W * 0.42), 0, L.w * T - W);
+  P.x = side === 'right' ? (L.cols - 3) * T : 3 * T;
+  P.y = Math.round(L.rows * T * 0.5);
+  camX = clamp(Math.round(P.x + P.w / 2 - W / 2), 0, L.cols * T - W);
+  camY = clamp(Math.round(P.y + P.h / 2 - H / 2), 0, L.rows * T - H);
+}
+function overWalk(x, y) {
+  const ok = (tx, ty) => {
+    if (tx < 0 || ty < 0 || tx >= L.cols || ty >= L.rows) return false;
+    const t = L.tiles[ty * L.cols + tx];
+    return t !== 2 && t !== 4;   /* water and rocks block the way */
+  };
+  const x0 = Math.floor(x / T), x1 = Math.floor((x + P.w - 1) / T), y0 = Math.floor(y / T), y1 = Math.floor((y + P.h - 1) / T);
+  return ok(x0, y0) && ok(x1, y0) && ok(x0, y1) && ok(x1, y1);
 }
 function updateExplorer() {
   if (!L || !L.explorer || paused || P.dead) return;
+  const sp = 1.55;
+  const dx = ((input.right || padIn.right) ? 1 : 0) - ((input.left || padIn.left) ? 1 : 0);
+  const dy = ((input.down || padIn.down) ? 1 : 0) - ((input.up || padIn.up) ? 1 : 0);
+  let mx = dx, my = dy;
+  if (dx && dy) { mx *= 0.72; my *= 0.72; }
+  if (mx && overWalk(P.x + mx * sp, P.y)) P.x += mx * sp;
+  if (my && overWalk(P.x, P.y + my * sp)) P.y += my * sp;
+  if (dx) P.face = dx > 0 ? 1 : -1;
+  P.x = clamp(P.x, T * 0.5, L.cols * T - T * 1.5);
+  P.y = clamp(P.y, T * 0.5, L.rows * T - T * 1.5);
+  camX = clamp(Math.round(P.x + P.w / 2 - W / 2), 0, L.cols * T - W);
+  camY = clamp(Math.round(P.y + P.h / 2 - H / 2), 0, L.rows * T - H);
   let at = null;
-  for (const e of L.entrances) {
-    const ex = e.x * T - 4, ey = e.y * T - 10;
-    if (P.x + P.w > ex && P.x < ex + 24 && P.y + P.h > ey && P.y < ey + 34) { at = e; break; }
+  for (const e of L.nodes) {
+    const cx = e.x * T + T / 2, cy = e.y * T + T / 2;
+    if (Math.hypot(P.x + P.w / 2 - cx, P.y + P.h / 2 - cy) < 15) { at = e; break; }
   }
   if (at) {
     L.enterT = (L.enterT || 0) + 1;
-    if (L.enterT > 34) {   /* stand on the doormat: walking past never traps you */
+    if (L.enterT > 34) {   /* stand on the dot: walking past never traps you */
       progress.explorer = { world: L.explorer, x: Math.round(P.x), y: Math.round(P.y) };
       save();
       playStage(at.stage);
       return;
     }
   } else L.enterT = 0;
-  if (P.x < 2 * T && worldOpen(L.explorer - 1)) { explorerWarp(L.explorer - 1, 'right'); return; }
-  if (P.x > (L.w - 2) * T && worldOpen(L.explorer + 1)) { explorerWarp(L.explorer + 1, 'left'); return; }
-  /* the camera climbs with Kinan (the world is two screens tall) */
-  const ty = clamp(Math.round(P.y - H * 0.55), -L.up * T, 0);
-  camY = Math.abs(ty - camY) < 0.6 ? ty : Math.round(camY + (ty - camY) * 0.12);
+  if (P.x < T * 1.2 && worldOpen(L.explorer - 1)) { explorerWarp(L.explorer - 1, 'right'); return; }
+  if (P.x > L.cols * T - T * 2.2 && worldOpen(L.explorer + 1)) { explorerWarp(L.explorer + 1, 'left'); return; }
   progress.explorer = { world: L.explorer, x: Math.round(P.x), y: Math.round(P.y) };
 }
 function drawExplorer() {
-  for (const e of L.entrances) {
-    const sx = e.x * T - Math.round(camX), sy = e.y * T;
-    if (sx < -70 || sx > W + 70) continue;
-    const open = stageOpen(e.stage), done = progress.beaten.includes(e.stage);
-    const pulse = 0.5 + 0.5 * Math.sin((frame + e.k * 40) / 24);
-    ctx.fillStyle = 'rgba(0,0,0,.28)'; ctx.fillRect(sx - 8, sy + 24, 28, 3);
-    ctx.fillStyle = open ? (done ? '#4ec98a' : '#f6c445') : '#565c86';
-    ctx.fillRect(sx - 6, sy + 2, 24, 22);
-    ctx.fillStyle = 'rgba(255,255,255,.35)'; ctx.fillRect(sx - 6, sy + 2, 24, 3);
-    ctx.fillStyle = 'rgba(0,0,0,.4)'; ctx.fillRect(sx + 1, sy + 9, 9, 15);
-    if (open && !done) { ctx.fillStyle = 'rgba(255,255,255,' + (0.25 + pulse * 0.5).toFixed(2) + ')'; ctx.fillRect(sx - 10, sy - 2, 32, 3); }
-    ctx.fillStyle = '#fff'; ctx.font = 'bold 9px monospace'; ctx.textAlign = 'center';
-    ctx.fillText(open ? (done ? '✓' : String(e.k + 1)) : '🔒', sx + 6, sy - 3);
+  const th = L.oth || OVER_THEMES[1];
+  const g = ctx.createLinearGradient(0, 0, 0, H);
+  g.addColorStop(0, th.sky[0]); g.addColorStop(1, th.sky[1]);
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  const x0 = Math.max(0, Math.floor(camX / T)), x1 = Math.min(L.cols - 1, Math.ceil((camX + W) / T));
+  const y0 = Math.max(0, Math.floor(camY / T)), y1 = Math.min(L.rows - 1, Math.ceil((camY + H) / T));
+  for (let ty = y0; ty <= y1; ty++) {
+    for (let tx = x0; tx <= x1; tx++) {
+      const t = L.tiles[ty * L.cols + tx];
+      const sx = tx * T - camX, sy = ty * T - camY;
+      const h = (tx * 7 + ty * 13) % 5;
+      if (t === 2) {
+        ctx.fillStyle = th.water; ctx.fillRect(sx, sy, T, T);
+        ctx.fillStyle = 'rgba(255,255,255,.22)';
+        const wob = Math.round(Math.sin((frame + tx * 9 + ty * 5) / 22) * 2);
+        ctx.fillRect(sx + 2 + wob, sy + 5, 7, 1); ctx.fillRect(sx + 8 - wob, sy + 11, 6, 1);
+        ctx.fillStyle = 'rgba(0,0,0,.12)'; ctx.fillRect(sx, sy + T - 2, T, 2);
+      } else {
+        ctx.fillStyle = t === 3 ? th.path : (t === 4 ? th.rock : (h % 2 ? th.grass : th.grass2));
+        ctx.fillRect(sx, sy, T, T);
+        if (t === 3) {
+          ctx.fillStyle = 'rgba(255,255,255,.30)'; ctx.fillRect(sx + 3, sy + 3, 2, 2);
+          ctx.fillStyle = 'rgba(0,0,0,.08)'; ctx.fillRect(sx, sy + T - 2, T, 2);
+        } else if (t === 4) {
+          ctx.fillStyle = 'rgba(255,255,255,.18)'; ctx.fillRect(sx + 2, sy + 1, 8, 3);
+          ctx.fillStyle = 'rgba(0,0,0,.22)'; ctx.fillRect(sx + 2, sy + 9, 10, 5);
+        } else {
+          ctx.fillStyle = 'rgba(255,255,255,.10)'; ctx.fillRect(sx + 2, sy + 2, 6, 1);
+          if (h === 0) { ctx.fillStyle = th.deco; ctx.fillRect(sx + 6, sy + 9, 2, 2); ctx.fillRect(sx + 11, sy + 4, 2, 2); }
+          if (h === 3) {
+            ctx.fillStyle = th.trunk; ctx.fillRect(sx + 7, sy + 9, 3, 6);
+            ctx.fillStyle = th.tree; ctx.fillRect(sx + 3, sy + 1, 11, 9);
+            ctx.fillStyle = 'rgba(255,255,255,.18)'; ctx.fillRect(sx + 5, sy + 2, 5, 2);
+          }
+        }
+        ctx.fillStyle = 'rgba(255,255,255,.07)'; ctx.fillRect(sx, sy, T, 1);
+        ctx.fillStyle = 'rgba(0,0,0,.07)'; ctx.fillRect(sx, sy + T - 1, T, 1);
+      }
+    }
   }
-  for (const gt of L.gates) {
-    const sx = gt.x * T - Math.round(camX);
-    if (sx < -90 || sx > W + 90) continue;
-    const open = gt.to >= 1 && gt.to <= 11 && worldOpen(gt.to);
-    ctx.fillStyle = open ? 'rgba(138,127,216,.85)' : 'rgba(86,92,134,.5)';
-    ctx.fillRect(Math.round(sx) - 4, (GROUND - 5) * T, 16, 5 * T);
-    ctx.fillStyle = '#fff'; ctx.font = 'bold 9px monospace'; ctx.textAlign = 'center';
-    ctx.fillText(open ? '➜ ' + gt.to : '🔒', Math.round(sx) + 4, (GROUND - 5) * T - 5);
+  for (const nd of L.nodes) {
+    const sx = nd.x * T + T / 2 - camX, sy = nd.y * T + T / 2 - camY;
+    if (sx < -50 || sx > W + 50 || sy < -50 || sy > H + 50) continue;
+    const open = stageOpen(nd.stage), done = progress.beaten.includes(nd.stage);
+    const pulse = 0.5 + 0.5 * Math.sin((frame + nd.k * 30) / 26);
+    ctx.fillStyle = 'rgba(0,0,0,.28)';
+    ctx.beginPath(); ctx.ellipse(sx, sy + 12, 15, 6, 0, 0, 6.284); ctx.fill();
+    if (nd.kind === 'castle') {
+      ctx.fillStyle = '#6a5f8a'; ctx.fillRect(Math.round(sx - 15), Math.round(sy - 22), 30, 30);
+      ctx.fillStyle = '#8a7fb8'; ctx.fillRect(Math.round(sx - 15), Math.round(sy - 22), 30, 5);
+      ctx.fillStyle = '#4a3f6a'; ctx.fillRect(Math.round(sx - 5), Math.round(sy - 2), 10, 16);
+      ctx.fillStyle = th.deco; ctx.fillRect(Math.round(sx - 2), Math.round(sy - 30), 3, 9);
+    }
+    ctx.fillStyle = open ? (done ? '#f6c445' : '#f4f1e8') : '#6a6f9a';
+    ctx.beginPath(); ctx.ellipse(sx, sy, 13, 11, 0, 0, 6.284); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,.35)';
+    ctx.beginPath(); ctx.ellipse(sx, sy - 3, 10, 6, 0, 0, 6.284); ctx.fill();
+    if (open && !done) {
+      ctx.strokeStyle = 'rgba(255,255,255,' + (0.35 + pulse * 0.5).toFixed(2) + ')';
+      ctx.lineWidth = 2; ctx.beginPath(); ctx.ellipse(sx, sy, 16 + pulse * 2, 13 + pulse * 2, 0, 0, 6.284); ctx.stroke();
+    }
+    ctx.fillStyle = '#241a05'; ctx.font = 'bold 10px monospace'; ctx.textAlign = 'center';
+    ctx.fillText(open ? (done ? '✓' : String(nd.k + 1)) : '🔒', sx, sy + 4);
+  }
+  const px = P.x + P.w / 2 - camX, py = P.y + P.h - camY;
+  const moving = input.left || input.right || input.up || input.down || padIn.left || padIn.right || padIn.up || padIn.down;
+  ctx.fillStyle = 'rgba(0,0,0,.3)';
+  ctx.beginPath(); ctx.ellipse(px, py + 2, 8, 3, 0, 0, 6.284); ctx.fill();
+  drawBig(moving && Math.floor(frame / 10) % 2 ? SP.sWalk : SP.sStand, px, py, P.face, 1);
+  if (L.enterT > 0) {
+    ctx.strokeStyle = '#f6c445'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.arc(px, py - 20, 7, -1.57, -1.57 + 6.284 * Math.min(1, L.enterT / 34)); ctx.stroke();
   }
 }
 function mapScreen() {
@@ -15351,10 +15447,10 @@ window.__k11 = window.__k11DevOnly() ? {
     look3d: L ? !!LV[L.i].look3d : false, glitchy: L && LV[L.i].boss ? !!LV[L.i].boss.glitchy : false,
     finalWorld: L ? (LV[L.i].finalWorld || 0) : 0, tier2: progress.wonWorlds.indexOf(10) >= 0, pending: progress.pendingCutscene || null }),
   explorerInfo: () => ({ world: L && L.explorer ? L.explorer : 0, onMap: !!(L && L.explorer), x: P ? Math.round(P.x) : 0, y: P ? Math.round(P.y) : 0,
-    camX: Math.round(camX), camY: Math.round(camY), entrances: L && L.entrances ? L.entrances.length : 0 }),
+    camX: Math.round(camX), camY: Math.round(camY), entrances: L && L.nodes ? L.nodes.length : 0 }),
   explorerTeleport: (x, y) => { if (L && L.explorer && P) { P.x = x; P.y = y; P.vx = 0; P.vy = 0; } return { x: P.x, y: P.y }; },
   explorerGo: (w) => { startExplorer(w); return { world: L.explorer }; },
-  explorerDoor: (k) => (L && L.entrances && L.entrances[k] ? { x: L.entrances[k].x * T, y: L.entrances[k].y * T, stage: L.entrances[k].stage } : null),
+  explorerDoor: (k) => (L && L.nodes && L.nodes[k] ? { x: L.nodes[k].x * T + T / 2, y: L.nodes[k].y * T + T / 2, stage: L.nodes[k].stage } : null),
   defaults: () => JSON.parse(JSON.stringify(DEFAULT_PROGRESS)),
   petSpot: () => (crate ? { x: crate.x, y: crate.y, pet: crate.pet } : null),
   toPet: () => { if (crate) { P.x = crate.x; P.y = crate.y; P.vx = 0; P.vy = 0; } },

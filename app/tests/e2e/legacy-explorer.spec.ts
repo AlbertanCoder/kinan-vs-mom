@@ -58,11 +58,11 @@ test.describe('World Explorer — big scrolling worlds with doors', () => {
     await seedOpen(page); await devReady(page);
     expect(await page.evaluate(() => (window as unknown as { __k11: Dev }).__k11.explorerGo(1))).toMatchObject({ world: 1 });
     expect(await page.evaluate(() => (window as unknown as { __k11: Dev }).__k11.explorerInfo())).toMatchObject({ world: 1, onMap: true, entrances: 11 });
-    await page.evaluate(() => (window as unknown as { __k11: Dev }).__k11.explorerTeleport(1500, -80));
+    await page.evaluate(() => (window as unknown as { __k11: Dev }).__k11.explorerTeleport(1100, 500));
     await page.evaluate(() => (window as unknown as { __k11: Dev }).__k11.auto(50));
     const info = await page.evaluate(() => (window as unknown as { __k11: Dev }).__k11.explorerInfo());
-    expect(info.camX).toBeGreaterThan(800);   /* the screen moved with him to the right */
-    expect(info.camY).toBeLessThan(-20);      /* ...and up the hill */
+    expect(info.camX).toBeGreaterThan(600);   /* the screen moved with him right... */
+    expect(info.camY).toBeGreaterThan(200);   /* ...and down the map */
     expect(errors).toEqual([]);
   });
 
@@ -96,7 +96,7 @@ test.describe('World Explorer — big scrolling worlds with doors', () => {
     const errors = watchErrors(page);
     await seedOpen(page); await devReady(page);
     await page.evaluate(() => (window as unknown as { __k11: Dev }).__k11.explorerGo(2));
-    await page.evaluate(() => (window as unknown as { __k11: Dev }).__k11.explorerTeleport(1765, 140));
+    await page.evaluate(() => (window as unknown as { __k11: Dev }).__k11.explorerTeleport(1378, 400));
     await page.evaluate(() => (window as unknown as { __k11: Dev }).__k11.auto(12));
     await expect.poll(() => page.evaluate(() => (window as unknown as { __k11: Dev }).__k11.explorerInfo().world)).toBe(3);
     expect(errors).toEqual([]);

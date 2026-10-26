@@ -61,7 +61,7 @@ test.describe('legacy game regression (real game, no downgrade)', () => {
       if (ctx === null) return 0;
       const data = ctx.getImageData(0, 0, cv.width, cv.height).data;
       const seen = new Set<number>();
-      for (let i = 0; i < data.length; i += 4 * 97) {
+      for (let i = 0; i < data.length; i += 4 * 13) {
         seen.add((data[i] << 16) | (data[i + 1] << 8) | data[i + 2]);
       }
       return seen.size;
