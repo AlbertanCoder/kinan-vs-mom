@@ -1,5 +1,5 @@
 /* Kinan vs. Mom - offline cache */
-const CACHE = 'kinan-vs-mom-v25';   /* v25: World 9 Starbase stages and Annie's kitchen cook-off */
+const CACHE = 'kinan-vs-mom-v26';   /* v26: map navigation game-feel pass (world cards, stage chips, stage card) */
 const ASSETS = [
   './',
   './index.html',

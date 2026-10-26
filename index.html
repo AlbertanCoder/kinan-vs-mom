@@ -327,7 +327,7 @@ html.sideways .pause .tiny{display:none}
 .kartrow{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin:4px 0 8px}.kartrow img{width:88px;height:auto;image-rendering:pixelated}
 .kartpick img{width:74px;height:auto;image-rendering:pixelated}
 .stage.kartmode .toast{top:calc(20% + 4px)}
-.worldtabs{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 10px}.worldtab{background:var(--panel);border:2px solid var(--panel2);border-radius:8px;color:var(--text);padding:7px 10px;font:inherit;font-size:13px;cursor:pointer;min-height:40px}.worldtab.on{border-color:var(--gold);box-shadow:inset 0 0 0 1px var(--gold)}.worldtab:disabled{opacity:.45;cursor:default}
+.worldtabs{display:flex;flex-wrap:nowrap;gap:6px;margin:4px 0 8px;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x proximity;scrollbar-width:thin;padding:2px 1px 6px}.worldtab{scroll-snap-align:center;flex:0 0 auto;min-width:118px;display:grid;gap:1px;justify-items:center;background:var(--panel);border:2px solid var(--panel2);border-radius:10px;color:var(--text);padding:6px 10px;font:inherit;font-size:13px;cursor:pointer;min-height:40px}.worldtab .wtrow{display:flex;align-items:center;gap:5px}.worldtab .wtico{font-size:17px;line-height:1}.worldtab .wtnum{font-family:var(--display);font-size:15px;font-weight:400;letter-spacing:.4px}.worldtab .wtn{display:block;font-size:11px;color:var(--dim);max-width:132px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.worldtab .wtp{display:block;font-size:10px;letter-spacing:.4px;color:var(--edge)}.worldtab.on{border-color:var(--gold);box-shadow:inset 0 0 0 1px var(--gold),0 4px 12px rgba(246,196,69,.25);background:linear-gradient(180deg,#2c2455,#191b38)}.worldtab.on .wtp{color:var(--gold)}.worldtab:hover:not(:disabled){transform:translateY(-1px);border-color:var(--edge)}.worldtab:active:not(:disabled){transform:translateY(1px)}.worldtab:disabled{opacity:.45;cursor:default}
 .lockcard{background:var(--panel);border:2px dashed var(--panel2);border-radius:10px;padding:10px 14px;margin:6px 0 10px}.codein.wide{width:min(260px,70vw);letter-spacing:.08em}
 .kwheel{display:none;touch-action:none;-webkit-user-select:none;user-select:none}.kwheel svg{width:100%;height:100%;display:block;transition:transform .05s linear}
 .pad button.spec{background:var(--panel);color:var(--gold);font-size:22px}.pad button.spec:not(:disabled){background:var(--gold);color:var(--night);animation:specglow 1s ease-in-out infinite}
@@ -463,7 +463,7 @@ html.sideways .stage{max-width:100%}
   html .logo{width:52px;height:52px}
   html .modebtn .mt{min-width:0}
   html .modebtn small{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .worldtab .wtn{display:none}
+  .worldtab .wtn{max-width:88px}
 }
 .mtool:hover{background:var(--panel2)}
 .mtool:active{transform:translateY(2px);box-shadow:0 1px 0 var(--shadow)}
@@ -477,8 +477,8 @@ html.sideways .stage{max-width:100%}
 .screen.mapmode>.scrv>.scrc{display:block;height:100%}
 .mapscr{height:100%;min-height:0;display:flex;flex-direction:column;justify-content:center;gap:7px}
 .mapsub{margin:0;font-size:12px;color:var(--dim);text-align:center}
-.maptop .worldtabs{margin:0;flex-wrap:nowrap;gap:5px}
-.maptop .worldtab{flex:1 1 0;min-width:0;min-height:38px;padding:4px 8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:12.5px}
+.maptop .worldtabs{margin:0 0 2px;flex-wrap:nowrap;gap:5px}
+.maptop .worldtab{min-width:112px;padding:4px 8px;min-height:38px}
 .mapmain{flex:0 0 auto;display:flex;flex-direction:column;gap:6px}
 .mapmain .wmap{flex:0 0 auto;margin:0;display:flex;flex-direction:column;gap:6px}
 .wmcan{flex:0 0 auto;display:flex;align-items:center;justify-content:center;overflow:hidden}
@@ -489,7 +489,7 @@ html.sideways .stage{max-width:100%}
 .mapscr .lockcard{margin:0;padding:8px 12px;font-size:13px}
 .mapscr .lockcard p{margin:0 0 4px}
 @media (orientation:landscape) and (max-height:560px){
-  .mapscr{display:grid;grid-template-columns:minmax(0,1fr) minmax(190px,31%);grid-template-rows:auto minmax(0,1fr) auto auto;grid-template-areas:"top top" "can bar" "can play" "tools tools";gap:6px 10px}
+  .mapscr{display:grid;grid-template-columns:minmax(0,1fr) minmax(190px,31%);grid-template-rows:auto minmax(0,1fr) auto auto auto;grid-template-areas:"top top" "can bar" "can play" "can chips" "tools tools";gap:6px 10px}
   .mapsub{display:none}
   .mapscr .mapmain,.mapscr .mapmain .wmap{display:contents}
   .mapscr .maptop{grid-area:top}
@@ -501,10 +501,38 @@ html.sideways .stage{max-width:100%}
   .mapscr .wmapbar .btn{flex:1 1 0;min-height:32px;padding:0 4px}
   .mapscr #wmPlay{min-height:36px;padding:4px 10px;font-size:14px}
   .mapscr .lockcard{grid-row:2 / 4;grid-column:2;align-self:start}
+  .mapscr .lvchips{grid-area:chips;flex-wrap:wrap;overflow-x:hidden;overflow-y:auto;max-height:104px}
+  .mapscr .lvchip{min-width:0;flex:1 1 46%;max-width:none;min-height:30px;font-size:10px;padding:2px 5px;gap:4px}
   .mapscr .maptools{grid-area:tools;grid-template-columns:repeat(7,1fr)}
   .mtool{min-height:38px;padding:2px}.mtool .ti{font-size:15px}.mtool .tl{font-size:10px}
   .gphead b{font-size:22px}
 }
+/* the map's game-feel pass: world cards, a big world title, always-visible stage chips and a
+   proper stage card — the map should read like a real game's world/level select */
+.maphead{margin:2px 0 0;text-align:center}
+.maptitle{margin:0;font-family:var(--display);font-size:clamp(19px,3.4vw,27px);font-weight:400;line-height:1.05;color:var(--gold);letter-spacing:.5px;text-shadow:0 2px 0 rgba(0,0,0,.45)}
+.mapsub{margin:2px 0 0;font-size:11.5px;color:var(--dim);text-align:center}
+.lvchips{display:flex;gap:5px;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x proximity;scrollbar-width:thin;padding:2px 1px 5px}
+.lvchip{scroll-snap-align:center;flex:0 0 auto;display:flex;align-items:center;gap:6px;min-height:38px;min-width:118px;max-width:196px;padding:4px 9px;background:var(--panel);border:2px solid var(--panel2);border-radius:9px;color:var(--text);font:inherit;font-size:11.5px;cursor:pointer;box-shadow:0 3px 0 var(--shadow)}
+.lvchip .cnum{font-family:var(--display);font-size:16px;color:var(--gold);min-width:19px;text-align:center;line-height:1}
+.lvchip .cname{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lvchip.done .cnum{color:#7be3a3}
+.lvchip[data-locked]{opacity:.5}
+.lvchip[data-locked] .cnum{font-size:12px}
+.lvchip.on{border-color:var(--gold);background:linear-gradient(180deg,#2c2455,#191b38);box-shadow:0 3px 10px rgba(246,196,69,.28)}
+.lvchip:hover{transform:translateY(-1px)}
+.lvchip:active{transform:translateY(1px);box-shadow:0 1px 0 var(--shadow)}
+.lvchips.off{opacity:.45;pointer-events:none}
+.mapscr.locked .lvchips{display:none}
+#wmInfo{display:grid;gap:1px;align-content:center;min-height:56px}
+#wmInfo .wmk{font-size:10.5px;letter-spacing:.6px;text-transform:uppercase;color:var(--gold)}
+#wmInfo .wmt{font-family:var(--display);font-size:17px;font-weight:400;line-height:1.1;color:var(--edge)}
+#wmInfo .wmd{font-size:11px;color:var(--dim)}
+#wmPlay{min-height:50px;font-size:16px;font-weight:700;letter-spacing:.6px;background:linear-gradient(180deg,#ffd76a,#e0a52e);color:#241a05;border-color:#8a6420;text-shadow:none;box-shadow:0 4px 0 #8a6420;animation:playpulse 1.6s ease-in-out infinite}
+#wmPlay:disabled{animation:none;filter:saturate(.35);opacity:.6}
+#wmPrev,#wmNext{min-width:52px;font-size:17px}
+@keyframes playpulse{50%{filter:brightness(1.12)}}
+@media (prefers-reduced-motion:reduce){#wmPlay{animation:none}}
 
 
 /* ============================================================
@@ -2270,6 +2298,7 @@ function loadProgress() {
   out.wonWorlds = Array.isArray(p.wonWorlds) ? p.wonWorlds.map(Number).filter((n) => n >= 2 && n <= 11) : [];
   out.builds = Array.isArray(p.builds) ? p.builds.filter(bNorm).slice(0, 50) : [];
   if (!out.mapSeen || typeof out.mapSeen !== 'object') out.mapSeen = {};
+  if (!out.mapSel || typeof out.mapSel !== 'object') out.mapSel = {};   /* where the player was on each world's map */
   out.bossLosses = {};
   if (p.bossLosses && typeof p.bossLosses === 'object') for (const k in p.bossLosses) { const n = Math.floor(Number(p.bossLosses[k])); if (LV[k] && n > 0 && n < 1000) out.bossLosses[k] = n; }
   /* a damaged or hand-edited save must never stop the game from starting: each field back to its own kind, or the default */
@@ -9081,6 +9110,7 @@ function petLoadoutScreen(back) {
   const done = back || titleScreen;
   $('#petsBack').addEventListener('click', () => { SFX.click(); done(); });
 }
+const WORLD_ICONS = { 1: '🎂', 2: '🛢️', 3: '🎢', 4: '🤠', 5: '☔', 6: '🌧️', 7: '🧱', 8: '🦖', 9: '🚀' };
 function mapScreen() {
   Music.play('title');
   const stars = totalStars();
@@ -9115,11 +9145,16 @@ function mapScreen() {
   const panel = (id, cls, title, sub, body, foot) => '<div class="gpanel' + (cls ? ' ' + cls : '') + '" id="' + id + '" role="dialog" aria-label="' + escAttr(title) + '" hidden>' +
     '<div class="gphead"><b>' + title + '</b><span>' + sub + '</span><button type="button" class="gpx" aria-label="Close">✕</button></div>' +
     '<div class="scrv"><div class="scrc">' + body + '</div></div><div class="scrfoot">' + (foot || '') + '</div></div>';
+  const wIcon = (n) => WORLD_ICONS[n] || '⭐';
+  const wShort = (nm) => nm.replace(/^Kinan vs\.\s*/i, '').replace(/^the\s+/i, '');
+  const wStars = (w) => { let s = 0; for (let i = w.from; i <= w.to; i++) if (LV[i]) s += progress.stars[i] || 0; return s + '/' + ((w.to - w.from + 1) * 3); };
   const tabs = '<div class="worldtabs">' + WORLDS.filter((w) => !w.soon).map((w) => '<button type="button" class="worldtab' + (w.n === mw ? ' on' : '') + '" data-world="' + w.n + '" title="World ' + w.n + ' · ' + escAttr(w.name) + '">' +
-    (worldOpen(w.n) ? '' : '🔒 ') + '<b>World ' + w.n + '</b><span class="wtn"> · ' + escAttr(w.name.replace(/^Kinan vs\.\s*/, '')) + '</span></button>').join('') + '</div>';
+    '<span class="wtrow"><span class="wtico">' + (worldOpen(w.n) ? wIcon(w.n) : '🔒') + '</span><b class="wtnum">World ' + w.n + '</b></span>' +
+    '<span class="wtn">' + escAttr(wShort(w.name)) + '</span><span class="wtp">★ ' + wStars(w) + '</span></button>').join('') + '</div>';
   showScreen(
     '<div class="mapscr' + (worldOpen(mw) ? '' : ' locked') + '">' +
-    '<div class="maptop">' + tabs + '<p class="mapsub">' + escAttr(wd.name) + ' · ' + clearedHere + ' of ' + here.length + ' cleared · ' + starsHere + ' of ' + here.length * 3 + ' ★</p></div>' +
+    '<div class="maptop">' + tabs + '<div class="maphead"><h2 class="maptitle">' + (worldOpen(mw) ? '' : '🔒 ') + 'World ' + mw + ' · ' + escAttr(wd.name) + '</h2>' +
+    '<p class="mapsub">' + escAttr(wd.where) + ' · ' + clearedHere + ' of ' + here.length + ' cleared · ' + starsHere + ' of ' + here.length * 3 + ' ★</p></div></div>' +
     '<div class="mapmain">' + wmapHTML(mw) + lock + '</div>' +
     '<div class="maptools">' + tool('stagesBtn', '📋', 'Stages') + tool('hatsBtn', '🎩', 'Hats') + tool('petsBtn', '🐾', 'Pets') + tool('shopBtnM', '🛍️', 'Shop') +
     tool('wmCanada', '🗺️', 'Canada') + tool('codeBtnM', '🎁', 'Code') + tool('titleBtn', '🏠', 'Home') + '</div>' +
@@ -9160,6 +9195,8 @@ function mapScreen() {
   $('#petsBtn').addEventListener('click', () => { AudioSys.init(); openPanel('panPets'); });
   $$('.gpanel .gpx', el.screen).forEach((b) => b.addEventListener('click', () => closePanel(b.closest('.gpanel'))));
   wmapStart(mw);
+  const at = el.screen.querySelector('.worldtab.on');
+  if (at && at.scrollIntoView) { try { at.scrollIntoView({ block: 'nearest', inline: 'center' }); } catch (e) { /* ignore */ } }
 }
 
 async function playStage(i, opts) {
@@ -14114,7 +14151,7 @@ function wmapFit(M) {
     if (getComputedStyle(scr).display === 'grid') { const r = box.getBoundingClientRect(); aw = r.width; ah = r.height; }   /* sideways: its own cell */
     else {
       let used = 0, n = 0;
-      scr.querySelectorAll(':scope > .maptop, :scope > .maptools, .wmapbar, .wmplayrow, .lockcard').forEach((e) => { if (e.offsetParent !== null) { used += e.getBoundingClientRect().height; n++; } });
+      scr.querySelectorAll(':scope > .maptop, :scope > .maptools, .lvchips, .wmapbar, .wmplayrow, .lockcard').forEach((e) => { if (e.offsetParent !== null) { used += e.getBoundingClientRect().height; n++; } });
       aw = scr.clientWidth; ah = scr.clientHeight - used - (n + 1) * 7;
     }
     if (aw > 0 && ah > 0) {
@@ -14138,12 +14175,21 @@ function wmapPos(s) {
   return P[P.length - 1].slice();
 }
 /* the map's part of the stage map page: world buttons, the picture, and the controls under it */
-function wmapHTML(mw) {   /* the picture, the stage bar and PLAY (the world tabs and the tools are the map screen's) */
+function wmapHTML(mw) {   /* the picture, the stage chips, the stage bar and PLAY (the world tabs and the tools are the map screen's) */
+  const w = WORLDS[mw - 1];
+  let chips = '';
+  if (w && !w.soon) for (let k = 0; k <= w.to - w.from; k++) {
+    const i = w.from + k, th = LV[i]; if (!th) continue;
+    const open = stageOpen(i), done = progress.beaten.includes(i);
+    chips += '<button type="button" class="lvchip' + (done ? ' done' : '') + '" data-stop="' + k + '"' + (open ? '' : ' data-locked="1"') + ' aria-label="Stage ' + (k + 1) + ' ' + escAttr(th.place) + '">' +
+      '<span class="cnum">' + (open ? (done ? '✓' : k + 1) : '🔒') + '</span><span class="cname">' + escAttr(th.place) + '</span></button>';
+  }
   return '<div class="wmap" id="wmap">' +
     '<div class="wmcan"><canvas id="wmCanvas" width="' + WM_W + '" height="' + WM_H + '" aria-label="World map: tap a stop to walk there"></canvas></div>' +
+    '<div class="lvchips" id="lvChips" aria-label="Stages in this world">' + chips + '</div>' +
     '<div class="wmapbar"><button type="button" class="btn" id="wmPrev" aria-label="Previous stop">◀</button><div id="wmInfo" aria-live="polite"></div>' +
     '<button type="button" class="btn" id="wmNext" aria-label="Next stop">▶</button></div>' +
-    '<div class="btnrow wmplayrow"><button class="btn go" type="button" id="wmPlay">▶ Play this stage</button></div></div>';
+    '<div class="btnrow wmplayrow"><button class="btn go" type="button" id="wmPlay">▶ PLAY STAGE</button></div></div>';
 }
 function wmapStart(world) {
   const cv = $('#wmCanvas'); if (!cv) return;
@@ -14156,9 +14202,15 @@ function wmapStart(world) {
   if (worldOpen(world)) for (let k = 0; k < stops.length; k++) if (stageOpen(w.from + k)) openN = k + 1;
   progress.mapSeen = progress.mapSeen || {};
   const seen = progress.mapSeen[world] != null ? Math.min(openN, progress.mapSeen[world]) : openN;
-  /* start on the stage to play next in this world, or the last open one */
+  /* start on the stage to play next in this world, or the last open one — but a stop the player
+     picked and hasn't beaten yet is where they actually are, so stay there instead of yanking back */
   const nx = nextStage();
   let sel = nx >= w.from && nx <= w.to ? nx - w.from : openN - 1;
+  const mem = progress.mapSel ? Math.floor(Number(progress.mapSel[world])) : NaN;
+  if (Number.isFinite(mem) && mem >= 0 && mem < openN) {
+    const memBeaten = progress.beaten.indexOf(w.from + mem) >= 0, selBeaten = progress.beaten.indexOf(w.from + sel) >= 0;
+    if (!memBeaten || selBeaten) sel = mem;
+  }
   sel = clamp(sel, 0, Math.max(0, openN - 1));
   const reveal = seen < openN && seen > 0;
   const start = reveal ? seen - 1 : sel;
@@ -14171,6 +14223,12 @@ function wmapStart(world) {
   $('#wmPrev').addEventListener('click', () => wmapStep(-1));
   $('#wmNext').addEventListener('click', () => wmapStep(1));
   $('#wmPlay').addEventListener('click', wmapPlay);
+  $$('#lvChips .lvchip').forEach((b) => b.addEventListener('click', () => {
+    const k = Number(b.dataset.stop);
+    if (!WM || WM.reveal || WM.canada) return;
+    if (k < WM.openN) wmapSelect(k);
+    else { SFX.click(); WM.note = '🔒 <b>Stage ' + (k + 1) + '</b> · beat stage ' + k + ' first'; wmapInfo(); }
+  }));
   $('#wmCanada').addEventListener('click', () => { SFX.click(); WM.canada = !WM.canada; WM.note = ''; wmapInfo(); });
   wmapInfo();
   requestAnimationFrame(wmapTick);
@@ -14197,8 +14255,9 @@ function wmapTick() {
 function wmapSelect(k, quiet) {
   const M = WM; if (!M || k < 0 || k >= M.openN) return;
   M.sel = k; M.target = M.stopS[k]; M.note = '';
+  progress.mapSel = progress.mapSel || {}; progress.mapSel[M.world] = k;
   if (!quiet) SFX.click();
-  wmapInfo();
+  save(); wmapInfo();
 }
 function wmapStep(dir) { if (WM && !WM.reveal && !WM.canada) wmapSelect(clamp(WM.sel + dir, 0, WM.openN - 1)); }
 function wmapPlay() {
@@ -14232,18 +14291,26 @@ function wmapInfo() {
   const M = WM, box = $('#wmInfo'), play = $('#wmPlay'), cb = $('#wmCanada');
   if (!M || !box) return;
   cb.innerHTML = '<span class="ti">' + (M.canada ? '↩' : '🗺️') + '</span><span class="tl">' + (M.canada ? 'World ' + M.world : 'Canada') + '</span>';
+  const chipsBox = $('#lvChips');
+  if (chipsBox) {
+    chipsBox.classList.toggle('off', !!M.canada);
+    $$('#lvChips .lvchip').forEach((c) => c.classList.toggle('on', !M.canada && Number(c.dataset.stop) === M.sel));
+  }
   if (M.canada) {
     box.innerHTML = M.note || 'The road trip across Canada. Tap a city.';
-    play.disabled = true; $('#wmPrev').disabled = $('#wmNext').disabled = true;
+    play.disabled = true; play.textContent = '▶ PLAY STAGE'; $('#wmPrev').disabled = $('#wmNext').disabled = true;
     return;
   }
   $('#wmPrev').disabled = M.sel <= 0; $('#wmNext').disabled = M.sel >= M.openN - 1;
-  if (!M.openN) { box.innerHTML = '<b>World ' + M.world + ' · ' + escAttr(M.w.name) + '</b><br>' + worldStatus(M.w); play.disabled = true; return; }
+  if (!M.openN) { box.innerHTML = '<b>World ' + M.world + ' · ' + escAttr(M.w.name) + '</b><br>' + worldStatus(M.w); play.disabled = true; play.textContent = '▶ PLAY STAGE'; return; }
   const i = M.w.from + M.sel, th = LV[i], st = progress.stars[i] || 0, bt = progress.bestTime && progress.bestTime[i];
-  box.innerHTML = M.note || ('<b>Stage ' + (M.sel + 1) + ' · ' + escAttr(th.place) + '</b><br>' + (th.boss ? 'Boss: ' + escAttr(th.boss.title) : 'Goal: ' + goalName(i)) +
+  box.innerHTML = M.note || ('<span class="wmk">Stage ' + (M.sel + 1) + ' of ' + M.openN + (progress.beaten.includes(i) ? ' · cleared ✓' : '') + '</span>' +
+    '<b class="wmt">' + escAttr(th.place) + '</b>' +
+    '<span class="wmd">' + (th.boss ? '👑 Boss: ' + escAttr(th.boss.title) : '🏁 Goal: ' + goalName(i)) +
     ' · ' + [0, 1, 2].map((k) => (k < st ? '★' : '☆')).join('') + ' · <i class="coin-ico"></i>' + goldCount(i) + '/3' +
-    (progress.beaten.includes(i) && bt ? ' · best ' + fmtTime(bt) : ''));
+    (progress.beaten.includes(i) && bt ? ' · best ' + fmtTime(bt) : '') + '</span>');
   play.disabled = !!M.reveal;
+  play.textContent = '▶ PLAY STAGE ' + (M.sel + 1);
 }
 /* ---- drawing ---- */
 function wmR(x, y, w, h, c) { WM.x.fillStyle = c; WM.x.fillRect(Math.round(x), Math.round(y), Math.round(w), Math.round(h)); }
