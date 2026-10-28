@@ -606,24 +606,21 @@ html.tier2 .iconbtn{border-color:var(--gold)}
    ============================================================ */
 html.sideways{--hudh:30px;--padL:max(10px,env(safe-area-inset-left,0px));--padR:max(10px,env(safe-area-inset-right,0px))}
 html.sideways .hud{padding:1px 8px;border-width:2px}html.sideways .hud .iconbtn{min-height:30px;height:30px}   /* a slimmer HUD bar: every pixel of height goes to the picture */
-@media (min-aspect-ratio:17/10){
-  html.sideways{--gut:clamp(92px,13.5vw,150px)}
-  html.sideways .stage:not(.smashmode):not(.kartmode):not(.buildmode){height:min(calc(var(--vh) - var(--hudh) - 20px),calc((100vw - var(--padL) - var(--padR) - 2 * var(--gut)) * 0.5556));width:auto;max-width:none;margin:0 auto}
-  html.sideways:not(.kartpad) .pad:not(.smashpad){top:calc(var(--hudh) + 5px);align-items:flex-end;padding:0}
-  html.sideways:not(.kartpad) .pad:not(.smashpad) .dpad{width:var(--gut);margin:0;padding:0;gap:6px;justify-content:center;align-items:flex-end}
-  html.sideways:not(.kartpad) .pad:not(.smashpad) .acts{width:var(--gut);margin:0;padding:0;gap:8px;flex-direction:column;align-items:center;justify-content:flex-end}   /* POW over JUMP: JUMP sits under the thumb */
-  html.sideways:not(.kartpad) .pad:not(.smashpad) .dpad button{width:calc((var(--gut) - 12px) / 2);height:clamp(76px,36vh,150px);border-radius:16px;opacity:.85}
-  html.sideways:not(.kartpad) .pad:not(.smashpad) .acts button.jump{width:calc(var(--gut) - 10px);height:calc(var(--gut) - 10px);opacity:.9}
-  html.sideways:not(.kartpad) .pad:not(.smashpad) .acts button.pow,html.sideways:not(.kartpad) .pad:not(.smashpad) .acts button.spec{width:calc(var(--gut) - 34px);height:calc(var(--gut) - 44px)}
-}
-@media (max-aspect-ratio:17/10){
-  html.sideways .stage:not(.smashmode):not(.kartmode):not(.buildmode){height:calc(var(--vh) - var(--hudh) - 112px);width:auto;max-width:100%;margin:0 auto}
-  html.sideways:not(.kartpad) .pad:not(.smashpad){position:static;height:88px;margin-top:4px;padding:0 6px;align-items:center;pointer-events:auto}
-  html.sideways:not(.kartpad) .pad:not(.smashpad) .dpad,html.sideways:not(.kartpad) .pad:not(.smashpad) .acts{margin:0;padding:0;gap:12px;align-items:center}
-  html.sideways:not(.kartpad) .pad:not(.smashpad) .dpad button{width:clamp(96px,13vw,150px);height:84px;border-radius:18px;opacity:.9}
-  html.sideways:not(.kartpad) .pad:not(.smashpad) .acts button{width:clamp(92px,12vw,140px);height:84px;border-radius:18px;opacity:.9}
-}
-html.sideways .stage:not(.smashmode):not(.kartmode) .dialog{bottom:7px}   /* no button under the story box any more */
+/* 2026-10-28 (Shad): phones AND tablets held sideways — the picture fills the screen and big see-through buttons sit ON it,
+   in the bottom corners: ◀ ▶ bottom-left, JUMP bottom-right with POW raised beside it. This replaces pass A's gutters/row. */
+html.sideways{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+html.sideways{--sth:min(calc(var(--vh) - 12px),calc((100vw - var(--padL) - var(--padR)) * 0.5556))}   /* the picture's height: the whole screen height (or width, on a squarer tablet) */
+html.sideways .stage:not(.smashmode):not(.kartmode):not(.buildmode){height:var(--sth);width:auto;max-width:none;margin:0 auto}
+html.sideways .app:has(.stage:not([hidden]):not(.smashmode):not(.kartmode):not(.buildmode)) .hud{position:absolute;top:0;left:50%;transform:translateX(-50%);width:calc(var(--sth) * 1.8 - 12px);box-sizing:border-box;z-index:7;background:rgba(14,16,44,.62);border-color:rgba(255,255,255,.35)}   /* in a level the thin top bar lies over the picture's top edge */
+html.sideways:not(.kartpad) .pad:not(.smashpad){position:absolute;top:auto;left:var(--padL);right:var(--padR);bottom:max(10px,env(safe-area-inset-bottom,0px));height:auto;display:flex;justify-content:space-between;align-items:flex-end;padding:0;margin:0;pointer-events:none;z-index:6}
+html.sideways:not(.kartpad) .pad:not(.smashpad) .dpad{display:flex;gap:12px;margin:0;padding:0;align-items:flex-end;pointer-events:auto}
+html.sideways:not(.kartpad) .pad:not(.smashpad) .acts{display:flex;flex-direction:row;align-items:flex-end;gap:12px;margin:0;padding:0;pointer-events:auto}
+html.sideways:not(.kartpad) .pad:not(.smashpad) button{background:rgba(14,16,44,.36);border:3px solid rgba(255,255,255,.62);color:#fff;text-shadow:0 2px 0 rgba(0,0,0,.65);box-shadow:none;opacity:.8}
+html.sideways:not(.kartpad) .pad:not(.smashpad) .dpad button{width:clamp(80px,11vw,128px);height:clamp(80px,11vw,128px);border-radius:24px;font-size:32px}
+html.sideways:not(.kartpad) .pad:not(.smashpad) .acts button.jump{order:2;width:clamp(98px,13.5vw,152px);height:clamp(98px,13.5vw,152px);border-radius:50%;font-size:19px;background:rgba(246,196,69,.45);border-color:rgba(255,236,170,.9)}
+html.sideways:not(.kartpad) .pad:not(.smashpad) .acts button.pow,html.sideways:not(.kartpad) .pad:not(.smashpad) .acts button.spec{order:1;width:clamp(68px,9vw,104px);height:clamp(68px,9vw,104px);border-radius:50%;font-size:14px;margin-bottom:clamp(40px,6vw,70px)}
+html.sideways:not(.kartpad) .pad:not(.smashpad) button.held{opacity:1;background:rgba(255,255,255,.32)}
+html.sideways .stage:not(.smashmode):not(.kartmode) .dialog{bottom:auto;top:calc(var(--hudh) + 12px)}   /* story boxes sit at the top: the bottom corners belong to the thumbs */
 /* pass A: the simple Pets screen — a picture, the name, one power line; tap to take along */
 .petgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:4px 0}
 .petcard{display:grid;justify-items:center;align-content:start;gap:4px;padding:10px 8px;background:var(--panel);border:3px solid var(--panel2);border-radius:12px;color:var(--text);font:inherit;cursor:pointer;text-align:center;min-height:44px}
@@ -4826,6 +4823,9 @@ function bindPad() {
   const noPhoneHold = (e) => { if (e.cancelable) e.preventDefault(); };   /* no magnifier, callout or scroll from a hold */
   pad.addEventListener('touchstart', noPhoneHold, { passive: false });
   pad.addEventListener('touchmove', noPhoneHold, { passive: false });
+  const cvEl = document.getElementById('cv');   /* 2026-10-28: the buttons sit on the picture now, so a long touch on it never brings up the iPhone magnifier either */
+  if (cvEl) { cvEl.addEventListener('touchstart', noPhoneHold, { passive: false }); cvEl.addEventListener('touchmove', noPhoneHold, { passive: false }); cvEl.addEventListener('contextmenu', (e) => e.preventDefault()); }
+  document.addEventListener('selectstart', (e) => { if (!el.stage.hidden) e.preventDefault(); });   /* nothing selects as text while a level is on screen */
 }
 
 let padPrev = {}, padIn = { left: false, right: false, jump: false, down: false, gas: false, fire: false };
@@ -12544,7 +12544,7 @@ function howToScreen(back) {   /* back: where Back goes (the title by default, o
     '<li><span class="ico">🧱</span><span><b>Builder:</b> make your own levels with ground, bricks, gift blocks, shelves, trampolines, candles and enemies (or start from a copy of a story stage), put down a start and a 🚩, and play them. Make them long and up to 3 screens tall. Up to 50 levels are kept on this device.</span></li>' +
     '<li><span class="ico">🏎️</span><span><b>Family Kart:</b> race the family in their real rides. Steer with ◀ ▶; hold <b>HOP</b> while turning to drift, let go after the sparks for a boost; <b>ITEM</b> uses what a gift box gave you. Beat story stages to unlock more tracks.</span></li>' +
     '</ul>' +
-    '<p class="tiny">Phone or tablet: turn it sideways; the buttons sit beside or under the picture, never on it. Keyboard: ← → move (Kinan runs by himself; hold SHIFT or X to walk) · SPACE jump · X pow · Esc or P opens the menu. Gamepad works too (B runs).</p>' +
+    '<p class="tiny">Phone or tablet: turn it sideways; the picture fills the screen and big see-through buttons sit in the bottom corners. Keyboard: ← → move (Kinan runs by himself; hold SHIFT or X to walk) · SPACE jump · X pow · Esc or P opens the menu. Gamepad works too (B runs).</p>' +
     '<div class="divider"></div>' +
     '<p class="eyebrow">Who\'s who · the family</p>' +
     '<ul class="credits">' +

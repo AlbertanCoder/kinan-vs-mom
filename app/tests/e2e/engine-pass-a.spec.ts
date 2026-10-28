@@ -608,7 +608,6 @@ async function layoutOf(page: Page): Promise<Layout> {
     };
   });
 }
-const overlaps = (a: Box, b: Box) => a.l < b.r && a.r > b.l && a.t < b.b && a.b > b.t;
 async function deviceLevel(browser: import('@playwright/test').Browser, device: string) {
   const ctx = await browser.newContext({ ...devices[device] });
   const page = await ctx.newPage();
@@ -618,30 +617,32 @@ async function deviceLevel(browser: import('@playwright/test').Browser, device: 
   await page.waitForTimeout(300);
   return { ctx, page, errors };
 }
-function expectButtonsOffThePicture(L: Layout) {
+/* 2026-10-28 (Shad): sideways phones and tablets get a full-screen picture with big see-through buttons ON it, in the
+   bottom corners (◀ ▶ bottom-left, POW + JUMP bottom-right); this replaced pass A's "never on the picture" gutters */
+function expectBigButtonsInTheCorners(L: Layout) {
   expect(L.sideways).toBe(true);
   expect(L.buttons.map((b) => b.k)).toEqual(expect.arrayContaining(['left', 'right', 'jump', 'fire']));
   for (const b of L.buttons) {
-    expect(overlaps(b, L.stage), `${b.k} button covers the picture`).toBe(false);
     expect(b.l).toBeGreaterThanOrEqual(0); expect(b.r).toBeLessThanOrEqual(L.vw + 0.5);
     expect(b.t).toBeGreaterThanOrEqual(0); expect(b.b).toBeLessThanOrEqual(L.vh + 0.5);
-    expect(Math.min(b.w, b.h), `${b.k} is thumb-sized`).toBeGreaterThanOrEqual(44);
+    expect(Math.min(b.w, b.h), `${b.k} is big enough for a thumb`).toBeGreaterThanOrEqual(64);
+    expect(b.t, `${b.k} sits in the lower part of the screen`).toBeGreaterThanOrEqual(L.vh * 0.45);
   }
+  const left = L.buttons.filter((b) => b.k === 'left' || b.k === 'right'), right = L.buttons.filter((b) => b.k === 'jump' || b.k === 'fire');
+  for (const b of left) expect(b.r, `${b.k} on the left`).toBeLessThanOrEqual(L.vw * 0.4);
+  for (const b of right) expect(b.l, `${b.k} on the right`).toBeGreaterThanOrEqual(L.vw * 0.6);
   expect(L.stage.b).toBeLessThanOrEqual(L.vh + 0.5);   /* the whole picture is on screen */
   expect(L.scrollW).toBeLessThanOrEqual(L.vw);          /* no sideways scroll */
 }
 
-test.describe('pass A · phones and tablets: the buttons never cover the play area', () => {
+test.describe('phones and tablets: a full-screen picture with big see-through buttons in the corners', () => {
   for (const device of ['iPhone 13 landscape', 'iPhone 14 landscape']) {
-    test(`${device} (WebKit): the picture fills the height, the buttons sit in the side gutters`, async ({ browser, browserName }) => {
+    test(`${device} (WebKit): the picture fills the height, big buttons sit in the bottom corners`, async ({ browser, browserName }) => {
       test.skip(browserName !== 'webkit', 'iPhone sizes are checked in WebKit');
       const { ctx, page, errors } = await deviceLevel(browser, device);
       const L = await layoutOf(page);
-      expectButtonsOffThePicture(L);
-      expect(L.stage.h).toBeGreaterThanOrEqual(L.vh * 0.82);     /* as big as the screen allows */
-      const left = L.buttons.filter((b) => b.k === 'left' || b.k === 'right'), right = L.buttons.filter((b) => b.k === 'jump' || b.k === 'fire');
-      for (const b of left) expect(b.r).toBeLessThanOrEqual(L.stage.l);
-      for (const b of right) expect(b.l).toBeGreaterThanOrEqual(L.stage.r);
+      expectBigButtonsInTheCorners(L);
+      expect(L.stage.h).toBeGreaterThanOrEqual(L.vh * 0.9);      /* the picture gets (nearly) the whole screen height */
       /* real thumbs: a touch on JUMP jumps */
       const jump = L.buttons.find((b) => b.k === 'jump')!;
       const y0 = await page.evaluate(() => (window as unknown as { __k11: { state: () => { py: number } } }).__k11.state().py);
@@ -664,14 +665,13 @@ test.describe('pass A · phones and tablets: the buttons never cover the play ar
     await ctx.close();
   });
 
-  test('Android tablet sideways (Chromium, Galaxy Tab S4): the picture runs full width, the buttons sit under it', async ({ browser, browserName }, info) => {
+  test('Android tablet sideways (Chromium, Galaxy Tab S4): the picture runs full width, big buttons in the bottom corners', async ({ browser, browserName }, info) => {
     test.skip(browserName !== 'chromium' || info.project.name !== 'touch-tablet-chromium', 'Android tablet sizes are checked in the touch Chromium project');
     for (const device of ['Galaxy Tab S4 landscape', 'Galaxy Tab S9 landscape']) {
       const { ctx, page, errors } = await deviceLevel(browser, device);
       const L = await layoutOf(page);
-      expectButtonsOffThePicture(L);
-      expect(L.stage.w, device).toBeGreaterThanOrEqual(L.vw * 0.8);
-      for (const b of L.buttons) expect(b.t, `${device} ${b.k}`).toBeGreaterThanOrEqual(L.stage.b);
+      expectBigButtonsInTheCorners(L);
+      expect(L.stage.w, device).toBeGreaterThanOrEqual(L.vw * 0.95);
       expect(errors).toEqual([]);
       await ctx.close();
     }
