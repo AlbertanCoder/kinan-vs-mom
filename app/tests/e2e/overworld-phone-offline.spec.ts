@@ -19,6 +19,9 @@ function watchErrors(page: Page, expected?: RegExp): string[] {
 async function openMap(page: Page): Promise<void> {
   await page.goto(BASE);
   await page.locator('#startBtn').click({ force: true });
+  /* 2026-10-28: a new save's first PLAY plays the opening cutscene first (c1-cutscenes.spec.ts); SKIP ends it */
+  await expect(page.locator('#cut')).toBeVisible();
+  await page.locator('#cutSkip').click();
   await page.waitForFunction(() => { const k = (window as unknown as Win).KINAN; return !!k && k.state().mounted && !k.state().busy; });
   await expect(page.locator('#owHost .km-canvas')).toBeVisible();
 }
@@ -29,7 +32,7 @@ async function layout(page: Page) {
   const vp = page.viewportSize()!;
   const canvas = (await page.locator('#owHost .km-canvas').boundingBox())!;
   const btns = await Promise.all(['#owPrev', '#owNext', '#owPlay'].map(async (id) => ({ id, box: (await page.locator(id).boundingBox())! })));
-  const tools = (await page.locator('#owTitle').boundingBox())!;
+  const tools = (await page.locator('#menuBtn').boundingBox())!;   /* 2026-10-28: the map's tool row became THE MENU button in the header's corner */
   const scroll = await page.evaluate(() => ({ w: document.documentElement.scrollWidth, h: document.documentElement.scrollHeight, iw: innerWidth, ih: innerHeight }));
   return { vp, canvas, btns, tools, scroll };
 }
@@ -55,7 +58,9 @@ function checkLayout(l: Awaited<ReturnType<typeof layout>>, side: 'beside' | 'un
   } else {                   /* upright phone / tablet: the buttons sit under the picture */
     expect(Math.min(prev.y, next.y, play.y)).toBeGreaterThanOrEqual(canvas.y + canvas.height - 1);
   }
-  expect(inside(tools, vp.width, vp.height), 'the tools row is on screen').toBe(true);
+  expect(inside(tools, vp.width, vp.height), 'the menu button is on screen').toBe(true);
+  expect(overlap(tools, canvas), 'the menu button never covers the map').toBe(false);
+  for (const b of btns) expect(overlap(tools, b.box), `the menu button never covers ${b.id}`).toBe(false);
 }
 
 test.describe('the map on phones and tablets', () => {
@@ -107,7 +112,8 @@ test.describe('offline after one load', () => {
     await page.waitForFunction(() => !!navigator.serviceWorker.controller, null, { timeout: 90_000 });
     const missing = await page.evaluate(async () => {
       const want = ['index.html', 'map/engine.js', 'map/worlds/w12_models.js', '3d/level-12-1.html', '3d/assets/models.js', 'map/worlds/vendor/three-0.160.0/build/three.module.js', 'fonts/pixelify-sans-latin.woff2', 'levels/w01/l01.js',
-        'audio/lines/lines.js', 'audio/lines/w01/w01_kinan_01.mp3', 'audio/lines/w05/w05_robin_05.mp3', 'audio/voice/w01_mom_03.mp3', 'audio/voice/w05_kinan_11.mp3'];   /* V1/V3: the Worlds 1-5 story and boss voices */
+        'audio/lines/lines.js', 'audio/lines/w01/w01_kinan_01.mp3', 'audio/lines/w05/w05_robin_05.mp3', 'audio/voice/w01_mom_03.mp3', 'audio/voice/w05_kinan_11.mp3',
+        'audio/lines/w01/w01_kinan_19.mp3', 'audio/lines/w01/w01_shad_05.mp3', 'audio/lines/w01/w01_mom_12.mp3', 'audio/lines/w06/w06_kinan_12.mp3'];   /* C1: the cutscene voices and a World 6-10 exit line   /* V1/V3: the Worlds 1-5 story and boss voices */
       const out: string[] = [];
       for (const f of want) if (!(await caches.match(f))) out.push(f);
       return out;
@@ -125,6 +131,9 @@ test.describe('offline after one load', () => {
     await page.reload();
     await expect(page.locator('#startBtn')).toBeVisible();
     await page.locator('#startBtn').click({ force: true });
+    /* offline too: the new save's opening cutscene starts from the cache, then SKIP */
+    await expect(page.locator('#cut')).toBeVisible();
+    await page.locator('#cutSkip').click();
     await page.waitForFunction(() => { const k = (window as unknown as Win).KINAN; return !!k && k.state().mounted && !k.state().busy; }, null, { timeout: 30_000 });
     await expect(page.locator('#owHost .km-canvas')).toBeVisible();
     await page.locator('#owPlay').click();

@@ -52,7 +52,7 @@ test.describe('World 7 — the Brick Realms', () => {
     const errors = watchErrors(page);
     await seedWorld7(page);
     await page.goto(PROD_URL);
-    await page.locator('#mapBtn').click();
+    await page.locator('#menuBtn').click(); await page.locator('#partyBtn').click(); await page.locator('#classicBtn').click();   /* 2026-10-28: Classic stages are in THE MENU's More games */
     await expect(page.locator('.worldtab[data-world="7"]')).toHaveClass(/on/);
     await expect(page.locator('.lvbtn')).toHaveCount(5);
     for (const name of ['Great Brick Bin', 'Fire-Truck Brick City', 'Machine Brickwilds', 'Studded Skyscraper Tower', 'BRICK-REX']) {
@@ -84,14 +84,14 @@ test.describe('World 7 — the Brick Realms', () => {
     page.on('request', (req) => requests.push(req.url()));
     await seedWorld7(page);
     await page.goto(PROD_URL);
-    await page.locator('#mapBtn').click();
+    await page.locator('#menuBtn').click(); await page.locator('#partyBtn').click(); await page.locator('#classicBtn').click();   /* 2026-10-28: Classic stages are in THE MENU's More games */
     for (let i = 57; i <= 61; i++) {
       await page.locator('#stagesBtn').click();
       await page.locator(`[data-lv="${i}"]`).click();
       await expect(page.locator('#stage')).toBeVisible();
       await expect(page.locator('#cv')).toBeVisible();
       await dismissStory(page);
-      await page.locator('#pauseBtn').click();
+      await page.locator('#menuBtn').click();
       await page.locator('#mapBtnP').click();
       await expect(page.locator('.lvbtn')).toHaveCount(5);
     }

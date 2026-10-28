@@ -44,9 +44,8 @@ function watchErrors(page: Page): string[] {
 async function seed(page: Page): Promise<void> {
   await page.addInitScript(({ key, raw }) => {
     const data = JSON.parse(raw);
-    /* KNOWN TRAPS: worlds 2-5 open via reward codes; the fixture leaks map
-       fields; pets grant a double jump — the base feel is measured petless. */
-    data.codes = [2, 3, 4, 5];
+    /* KNOWN TRAPS: the fixture leaks map fields; pets grant a double jump — the base feel is measured petless.
+       (Worlds 2-5 used to need reward codes here; since 2026-10-28 every world opens by playing.) */
     data.mapWorld = 1;
     data.mapSeen = {};
     data.mapSel = {};

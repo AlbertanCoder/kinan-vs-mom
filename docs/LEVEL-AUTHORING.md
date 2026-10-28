@@ -103,7 +103,7 @@ Hill shapes to draw with (§2.3): BROW, TERRACE, BOWL, RIDGE, MESA — **use at 
 - `goal: { col, row }` — the picket arch. When Kinan's middle crosses that column: a non-blocking **LEVEL CLEAR** banner, a 2-second victory lap (he can't be hurt), then back to the map (today: the title screen — the overworld map is not integrated yet). Exactly one per level.
 
 ### 4.5 What the engine adds for you
-Flat run-out ground after the goal and a world wall at the very end; the §1.1 feel, §2 slopes and §3 camera (every authored level runs the new engine); the legacy HUD, hearts, pause menu, pets and Shad's checkpoint drop-in.
+Flat run-out ground after the goal and a world wall at the very end; the §1.1 feel, §2 slopes and §3 camera (every authored level runs the new engine); the legacy HUD, hearts, the ☰ MENU (it is the pause), pets and Shad's checkpoint drop-in.
 
 ### 4.6 `theme` — borrowing a look
 `theme` is a stage index whose sky, backdrop and ground colours the level wears (World 1: 0 bedroom · 1 living room · 2 kitchen · 3 brick city · 4 photo studio · 5 front yard · 6 art room · 7 school playground · 8 dinner table · 9 bedtime castle · 10 cake volcano; later worlds: `__k11.worlds.stages()` in a dev page lists every index and place). Per-level palettes (§5.2) come with the M6 art pass.

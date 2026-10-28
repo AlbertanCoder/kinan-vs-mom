@@ -47,7 +47,7 @@ test.describe('World 6 — Vancouver and the Rain', () => {
     const errors = watchErrors(page);
     await seedWorld6(page);
     await page.goto(PROD_URL);
-    await page.locator('#mapBtn').click();
+    await page.locator('#menuBtn').click(); await page.locator('#partyBtn').click(); await page.locator('#classicBtn').click();   /* 2026-10-28: Classic stages are in THE MENU's More games */
     await expect(page.locator('.worldtab[data-world="6"]')).toHaveClass(/on/);
     await expect(page.locator('.lvbtn')).toHaveCount(5);
     for (const name of ['Sea-to-Sky', 'Stanley Park', 'Granville Science World', 'SkyTrain', 'Rainbow Observatory']) {
@@ -62,14 +62,14 @@ test.describe('World 6 — Vancouver and the Rain', () => {
     page.on('request', (req) => requests.push(req.url()));
     await seedWorld6(page);
     await page.goto(PROD_URL);
-    await page.locator('#mapBtn').click();
+    await page.locator('#menuBtn').click(); await page.locator('#partyBtn').click(); await page.locator('#classicBtn').click();   /* 2026-10-28: Classic stages are in THE MENU's More games */
     for (let i = 52; i <= 56; i++) {
       await page.locator('#stagesBtn').click();
       await page.locator(`[data-lv="${i}"]`).click();
       await expect(page.locator('#stage')).toBeVisible();
       await expect(page.locator('#cv')).toBeVisible();
       await dismissStory(page);
-      await page.locator('#pauseBtn').click();
+      await page.locator('#menuBtn').click();
       await page.locator('#mapBtnP').click();
       await expect(page.locator('.lvbtn')).toHaveCount(5);
     }

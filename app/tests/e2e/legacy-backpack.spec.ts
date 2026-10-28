@@ -14,7 +14,8 @@ test.describe('The Backpack and the Pets screen', () => {
   test('the 🐾 Pets button opens only the pets: six cards and Done', async ({ page }) => {
     const errors = watchErrors(page);
     await page.goto(GAME_URL);
-    await page.locator('#petsBtnT').click();
+    await page.locator('#menuBtn').click(); /* 2026-10-28: Pets / Shop / How to play are in THE MENU (c2-menu.spec.ts) */ 
+    await page.locator('#petsBtnP').click();
     await expect(page.locator('#screen h1.title')).toHaveText('Pets');
     await expect(page.locator('.petcard')).toHaveCount(6);
     await expect(page.locator('#screen .hatrow, #screen .shopgrid, #screen input')).toHaveCount(0);
@@ -26,6 +27,7 @@ test.describe('The Backpack and the Pets screen', () => {
   test('the Party Shop button opens the Backpack: friends, hats and the shop (no pet editor)', async ({ page }) => {
     const errors = watchErrors(page);
     await page.goto(GAME_URL);
+    await page.locator('#menuBtn').click(); /* 2026-10-28: Pets / Shop / How to play are in THE MENU (c2-menu.spec.ts) */ 
     await page.locator('#shopBtn').click();
     await expect(page.locator('#screen h1.title')).toHaveText(/Party Shop/);
     await expect(page.locator('.hatrow')).toBeVisible();

@@ -49,7 +49,7 @@ test.describe('World 8 — Prehistoric Dinosaur Adventure', () => {
     const errors = watchErrors(page);
     await seedWorld8(page);
     await page.goto(PROD_URL);
-    await page.locator('#mapBtn').click();
+    await page.locator('#menuBtn').click(); await page.locator('#partyBtn').click(); await page.locator('#classicBtn').click();   /* 2026-10-28: Classic stages are in THE MENU's More games */
     await expect(page.locator('.worldtab[data-world="8"]')).toHaveClass(/on/);
     await expect(page.locator('.lvbtn')).toHaveCount(5);
     for (const name of ['Badlands Fossil Dig', 'Fern Jungle', 'Brachiosaurus River', 'Raptor Canyon', 'Alpha T-Rex Nest']) {
@@ -76,14 +76,14 @@ test.describe('World 8 — Prehistoric Dinosaur Adventure', () => {
     page.on('request', (req) => requests.push(req.url()));
     await seedWorld8(page);
     await page.goto(PROD_URL);
-    await page.locator('#mapBtn').click();
+    await page.locator('#menuBtn').click(); await page.locator('#partyBtn').click(); await page.locator('#classicBtn').click();   /* 2026-10-28: Classic stages are in THE MENU's More games */
     for (let i = 62; i <= 66; i++) {
       await page.locator('#stagesBtn').click();
       await page.locator(`[data-lv="${i}"]`).click();
       await expect(page.locator('#stage')).toBeVisible();
       await expect(page.locator('#cv')).toBeVisible();
       await dismissStory(page);
-      await page.locator('#pauseBtn').click();
+      await page.locator('#menuBtn').click();
       await page.locator('#mapBtnP').click();
       await expect(page.locator('.lvbtn')).toHaveCount(5);
     }

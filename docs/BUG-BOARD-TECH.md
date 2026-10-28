@@ -65,7 +65,8 @@ helper (TECH-006) and K4 is reconciled with Contract §1.1 (TECH-007); (3) Slice
 local stage entry — production gating verified separately.
 
 - **Menu:** consistent pixel art, gold-framed portrait, clear icon buttons (Backpack / How to play /
-  Party Shop / Reward code / Install app), paged navigation. Clean, readable, on-style. ✓
+  Party Shop / Reward code / Install app), paged navigation. Clean, readable, on-style. ✓ *(2026-10-28: replaced by
+  PLAY / Start over / Menu and one ☰ MENU panel; the reward codes were removed: everything unlocks by playing.)*
 - **Explorer world (World 1):** SMW-style scrolling overworld — path tiles, houses, blossom trees,
   bushes, rocks at multiple depths; two frames show the scenery shifting with the camera (scroll
   confirmed). Touch d-pad + POW/JUMP overlay. ✓
@@ -92,7 +93,7 @@ local stage entry — production gating verified separately.
 | `window.__k11` (cheats) absent in production | ✅ gated | `AUTOMATED` code read `index.html:704-714, 15550`; asserted by `legacy-quarantine.spec.ts` |
 | `?w6` / `?creator=SHAD` blocked in production | ✅ gated | `AUTOMATED` code read `index.html:7108, 10002, 15532`; quarantine suite green in clean runs |
 | No `eval` / `new Function` | ✅ none | `AUTOMATED` grep count 0 |
-| Reward codes not shipped as plaintext | ✅ SHA-256+salt | `AUTOMATED` code read `index.html:7171-7180` (`crypto.subtle.digest`) |
+| Reward codes not shipped as plaintext | ✅ SHA-256+salt (2026-10-28: moot, the codes were removed) | `AUTOMATED` code read `index.html:7171-7180` (`crypto.subtle.digest`) |
 | Saves survive damage (backup-first, validation, k11v3 read-only migration) | ✅ by design + suite | `AUTOMATED` code read `index.html:749-771, 2436-2540`; `legacy-save-recovery.spec.ts` green in clean runs |
 | `sw.js` does not precache quarantined 3D code | ✅ cache `kinan-vs-mom-v30`, clean asset list | `AUTOMATED` file read |
 | Dev-hook leak: `window.__k11Draw` | ❌ leaks | see TECH-002 (POLISH) |

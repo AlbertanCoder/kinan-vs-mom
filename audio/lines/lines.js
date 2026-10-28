@@ -63,12 +63,16 @@ self.KINAN_STORY = {
   "w01_kinan_16": ["KINAN", "Chikastino! Good boy! Let's go, let's go!", 5.62, "audio/lines/w01/w01_kinan_16.mp3"],
   "w01_kinan_17": ["KINAN", "Baby Fin! My singing shark! I had this when I was one!", 6.34, "audio/lines/w01/w01_kinan_17.mp3"],
   "w01_kinan_18": ["KINAN", "He jumped in the school bus! Wait for me!", 4.27, "audio/lines/w01/w01_kinan_18.mp3"],
+  "w01_kinan_19": ["KINAN", "It's my birthday! I'm eleven!", 3.7, "audio/lines/w01/w01_kinan_19.mp3"],
+  "w01_kinan_20": ["KINAN", "Ready or not, Glitchy, here I come!", 3.77, "audio/lines/w01/w01_kinan_20.mp3"],
   "w01_mom_01": ["MOM", "Kinan! Nobody leaves this house until your room is clean.", 5.06, "audio/lines/w01/w01_mom_01.mp3"],
   "w01_mom_02": ["MOM", "Then catch them. Clean. Your. Room.", 6.31, "audio/lines/w01/w01_mom_02.mp3"],
+  "w01_mom_12": ["MOM", "Kinan, NO!", 2.02, "audio/lines/w01/w01_mom_12.mp3"],
   "w01_shad_01": ["SHAD", "Kinan... did you open it?!", 2.45, "audio/lines/w01/w01_shad_01.mp3"],
   "w01_shad_02": ["SHAD", "He's headed for the Bessborough, bud. Go, go, go!", 3.77, "audio/lines/w01/w01_shad_02.mp3"],
   "w01_shad_03": ["SHAD", "Huh. He left that for you. Why would he do that?", 3.5, "audio/lines/w01/w01_shad_03.mp3"],
   "w01_shad_04": ["SHAD", "Stay on him, bud. I'll guide you from here.", 3.17, "audio/lines/w01/w01_shad_04.mp3"],
+  "w01_shad_05": ["SHAD", "Don't open this until I get there!", 2.3, "audio/lines/w01/w01_shad_05.mp3"],
   "w02_aiden_01": ["AIDEN", "Dude, he's fast! Bet I can catch him.", 3.7, "audio/lines/w02/w02_aiden_01.mp3"],
   "w02_aiden_02": ["AIDEN", "Lockers are slamming! Duck and go!", 3.24, "audio/lines/w02/w02_aiden_02.mp3"],
   "w02_aiden_03": ["AIDEN", "Fire-safety obstacle course? I was born for this.", 4.18, "audio/lines/w02/w02_aiden_03.mp3"],
@@ -179,7 +183,20 @@ self.KINAN_STORY = {
   "w05_robin_02": ["DAD", "Fireworks are starting. Bronco's gonna hate this.", 4.63, "audio/lines/w05/w05_robin_02.mp3"],
   "w05_robin_04": ["DAD", "He pinned it to the window. Like he wanted you to find it.", 4.51, "audio/lines/w05/w05_robin_04.mp3"],
   "w05_robin_05": ["DAD", "Badlands, here we come.", 2.69, "audio/lines/w05/w05_robin_05.mp3"],
-  "w05_shad_01": ["SHAD", "Zip line, then the ski jump. Lean forward, bud!", 4.49, "audio/lines/w05/w05_shad_01.mp3"]
+  "w05_shad_01": ["SHAD", "Zip line, then the ski jump. Lean forward, bud!", 4.49, "audio/lines/w05/w05_shad_01.mp3"],
+  "w06_glitchy_02": ["GLITCHY", "Bye... bye! Beep!", 2.83, "audio/lines/w06/w06_glitchy_02.mp3"],
+  "w06_kinan_12": ["KINAN", "He's on the tour bus! Through the mountains!", 4.34, "audio/lines/w06/w06_kinan_12.mp3"],
+  "w06_robin_01": ["DAD", "Vancouver. Better pack an umbrella.", 3.82, "audio/lines/w06/w06_robin_01.mp3"],
+  "w07_glitchy_01": ["GLITCHY", "Plane! Beep beep!", 2.76, "audio/lines/w07/w07_glitchy_01.mp3"],
+  "w07_robin_03": ["DAD", "Guess he wanted express delivery.", 2.9, "audio/lines/w07/w07_robin_03.mp3"],
+  "w07_shad_04": ["SHAD", "He's hiding in a parcel... on a cargo plane!", 3.48, "audio/lines/w07/w07_shad_04.mp3"],
+  "w08_annie_02": ["ANNIE", "Montreal? Perfect. I'm already here. I'll be ready.", 7.3, "audio/lines/w08/w08_annie_02.mp3"],
+  "w08_annie_pa01": ["ANNIE", "No problem, Shad. I'll have it deleted by breakfast.", 5.69, "audio/lines/w08/w08_annie_pa01.mp3"],
+  "w08_glitchy_02": ["GLITCHY", "Choo... choo! Beep!", 3.05, "audio/lines/w08/w08_glitchy_02.mp3"],
+  "w08_kinan_13": ["KINAN", "He's in a hockey bag! On the train!", 3.96, "audio/lines/w08/w08_kinan_13.mp3"],
+  "w09_annie_19": ["ANNIE", "He's spooked! I've got him! ...Wait for me, little guy!", 6.36, "audio/lines/w09/w09_annie_19.mp3"],
+  "w09_glitchy_03": ["GLITCHY", "Bweee!", 1.9, "audio/lines/w09/w09_glitchy_03.mp3"],
+  "w09_robin_01": ["DAD", "Look at that. First one out the door.", 3.62, "audio/lines/w09/w09_robin_01.mp3"]
  },
  "intro": {
   "1": [
@@ -506,6 +523,35 @@ self.KINAN_STORY = {
    "gen_kinan_21",
    "gen_kinan_24"
   ]
+ },
+ "cutscene": [
+  "w01_kinan_19",
+  "w01_shad_05",
+  "w01_kinan_02",
+  "w01_glitchy_01",
+  "w01_kinan_03",
+  "w01_mom_12",
+  "w01_glitchy_02",
+  "gen_kinan_24",
+  "w01_kinan_20"
+ ],
+ "escape": {
+  "6": [
+   "w06_kinan_12",
+   "w06_glitchy_02",
+   "w06_robin_01"
+  ],
+  "7": [
+   "w07_shad_04",
+   "w07_glitchy_01",
+   "w07_robin_03"
+  ],
+  "8": ["w08_kinan_13", "w08_glitchy_02", "w08_annie_02", "w08_annie_pa01"],
+  "9": [
+   "w09_glitchy_03",
+   "w09_annie_19",
+   "w09_robin_01"
+  ]
  }
 };
 self.KINAN_STORY_FILES = [
@@ -568,12 +614,16 @@ self.KINAN_STORY_FILES = [
  "audio/lines/w01/w01_kinan_16.mp3",
  "audio/lines/w01/w01_kinan_17.mp3",
  "audio/lines/w01/w01_kinan_18.mp3",
+ "audio/lines/w01/w01_kinan_19.mp3",
+ "audio/lines/w01/w01_kinan_20.mp3",
  "audio/lines/w01/w01_mom_01.mp3",
  "audio/lines/w01/w01_mom_02.mp3",
+ "audio/lines/w01/w01_mom_12.mp3",
  "audio/lines/w01/w01_shad_01.mp3",
  "audio/lines/w01/w01_shad_02.mp3",
  "audio/lines/w01/w01_shad_03.mp3",
  "audio/lines/w01/w01_shad_04.mp3",
+ "audio/lines/w01/w01_shad_05.mp3",
  "audio/lines/w02/w02_aiden_01.mp3",
  "audio/lines/w02/w02_aiden_02.mp3",
  "audio/lines/w02/w02_aiden_03.mp3",
@@ -679,6 +729,19 @@ self.KINAN_STORY_FILES = [
  "audio/lines/w05/w05_robin_04.mp3",
  "audio/lines/w05/w05_robin_05.mp3",
  "audio/lines/w05/w05_shad_01.mp3",
+ "audio/lines/w06/w06_glitchy_02.mp3",
+ "audio/lines/w06/w06_kinan_12.mp3",
+ "audio/lines/w06/w06_robin_01.mp3",
+ "audio/lines/w07/w07_glitchy_01.mp3",
+ "audio/lines/w07/w07_robin_03.mp3",
+ "audio/lines/w07/w07_shad_04.mp3",
+ "audio/lines/w08/w08_annie_02.mp3",
+ "audio/lines/w08/w08_annie_pa01.mp3",
+ "audio/lines/w08/w08_glitchy_02.mp3",
+ "audio/lines/w08/w08_kinan_13.mp3",
+ "audio/lines/w09/w09_annie_19.mp3",
+ "audio/lines/w09/w09_glitchy_03.mp3",
+ "audio/lines/w09/w09_robin_01.mp3",
  "audio/voice/jk_w03_fort.mp3",
  "audio/voice/w01_kinan_14.mp3",
  "audio/voice/w01_mom_03.mp3",

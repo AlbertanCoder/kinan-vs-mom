@@ -63,6 +63,7 @@ test.describe('Friend Assist and checkpoint loadout', () => {
     await expect(page.locator('#stage')).toBeVisible();
     expect((await progress(page)).friendsUnlocked).toEqual(['milo', 'aiden']);
     await call(page, (k) => k.goHome());
+    await page.locator('#menuBtn').click();   /* 2026-10-28: the Shop is in THE MENU (c2-menu.spec.ts) */
     await expect(page.locator('#shopBtn')).toBeVisible();
     await page.locator('#shopBtn').click();   /* Friend Assist lives in the Backpack · Party Shop (pets have their own screen now) */
     await expect(page.locator('#screen h1.title')).toHaveText(/Backpack/);
@@ -119,14 +120,14 @@ test.describe('Friend Assist and checkpoint loadout', () => {
     await call(page, (k) => k.jumpToStage(0));
     await dismissStory(page);
     await call(page, (k) => k.petCheckpoint());
-    await page.locator('#pauseBtn').click();
-    await expect(page.locator('#pause')).toBeVisible();
+    await page.locator('#menuBtn').click();
+    await expect(page.locator('#menu')).toBeVisible();
     await expect(page.locator('#petsBtnP')).toBeEnabled();
     await page.locator('#petsBtnP').click();
     await expect(page.locator('#screen h1.title')).toHaveText('Pets');
     await page.locator('[data-equip="cat2"]').click();
     await page.locator('#petsBack').click();
-    await expect(page.locator('#pause')).toBeVisible();
+    await expect(page.locator('#menu')).toBeVisible();
     const swapped = await info(page);
     expect(swapped.checkpoint).toBe(true);
     expect(swapped.equippedCat).toBe('cat2');
@@ -141,7 +142,7 @@ test.describe('Friend Assist and checkpoint loadout', () => {
     await expect(page.locator('#toast')).toContainText('Pets can be changed');
     /* ...and the lock itself still holds: no loadout opens during the attempt */
     await expect(page.locator('#screen')).toBeHidden();
-    await expect(page.locator('#pause')).toBeVisible();
+    await expect(page.locator('#menu')).toBeVisible();
     expect((await info(page)).equippedCat).toBe('cat2');
     expect(errors).toEqual([]);
   });

@@ -26,7 +26,7 @@ async function seed(page: Page, o: { unlocked: number; beatenTo: number; wonWorl
 }
 async function openMap(page: Page): Promise<void> {
   await page.goto(PROD_URL);
-  await page.locator('#mapBtn').click();
+  await page.locator('#menuBtn').click(); await page.locator('#partyBtn').click(); await page.locator('#classicBtn').click();   /* 2026-10-28: Classic stages are in THE MENU's More games */
   await expect(page.locator('.maptitle')).toBeVisible();
 }
 async function dismissStory(page: Page): Promise<void> {
@@ -98,7 +98,7 @@ test.describe('Map navigation — world cards, stage chips and the stage card', 
     await expect(page.locator('#stage')).toBeVisible();
     await expect(page.locator('#cv')).toBeVisible();
     await dismissStory(page);
-    await page.locator('#pauseBtn').click();
+    await page.locator('#menuBtn').click();
     await expect(page.locator('#mapBtnP')).toBeVisible();
     await page.locator('#mapBtnP').click();
     await expect(page.locator('.maptitle')).toContainText('World 9');

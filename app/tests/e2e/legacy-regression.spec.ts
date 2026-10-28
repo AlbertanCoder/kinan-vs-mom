@@ -29,14 +29,19 @@ async function backToTitle(page: Page): Promise<void> {
 }
 
 test.describe('legacy game regression (real game, no downgrade)', () => {
-  test('title screen keeps every mode and tool', async ({ page }) => {
+  /* 2026-10-28 (Shad): the title is PLAY / Start over / Menu; every mode and tool moved into THE MENU (More games has
+     Family Brawl, Family Kart and Builder); the reward code button is gone (everything unlocks by playing) */
+  test('the title and its menu keep every mode and tool (no reward code)', async ({ page }) => {
     const errors = watchErrors(page);
     await openTitle(page);
-
-    for (const id of ['#startBtn', '#smashBtn', '#kartBtn', '#buildBtn', '#howBtn', '#shopBtn', '#codeBtn']) {
-      await expect(page.locator(id), `${id} must stay on the title screen`).toBeVisible();
-    }
+    await expect(page.locator('#startBtn')).toBeVisible();
+    await expect(page.locator('#titleMenuBtn')).toBeVisible();
     await expect(page.locator('#screen img.logo')).toBeVisible();
+    await page.locator('#menuBtn').click();
+    for (const id of ['#howBtn', '#shopBtn', '#petsBtnP', '#settingsBtn', '#introBtn']) await expect(page.locator(id), `${id} must be in the menu`).toBeVisible();
+    await page.locator('#partyBtn').click();
+    for (const id of ['#smashBtn', '#kartBtn', '#buildBtn']) await expect(page.locator(id), `${id} must be in the menu's More games`).toBeVisible();
+    await expect(page.locator('#codeBtn')).toHaveCount(0);
     expect(errors).toEqual([]);
   });
 
@@ -47,13 +52,16 @@ test.describe('legacy game regression (real game, no downgrade)', () => {
     /* START has a deliberate pulsing "beat" animation, so it is never
        "stable" for Playwright's actionability check; a person can still tap it. */
     await page.locator('#startBtn').click({ force: true });
+    /* 2026-10-28: a new save's first PLAY plays the opening cutscene first (c1-cutscenes.spec.ts); SKIP ends it */
+    await expect(page.locator('#cut')).toBeVisible();
+    await page.locator('#cutSkip').click();
     /* 2026-10-27 (Producer ruling, Contract §9): PLAY opens the overworld map first (it used to open
        the legacy World Explorer); the map's PLAY starts the real stage at Kinan's spot (1-1) */
     await expect(page.locator('#owHost .km-canvas')).toBeVisible();
     await page.locator('#owPlay').click();
     await expect(page.locator('#stage')).toBeVisible();
     await expect(page.locator('#cv')).toBeVisible();
-    await expect(page.locator('#pauseBtn')).toBeVisible();
+    await expect(page.locator('#menuBtn')).toBeVisible();   /* 2026-10-28: THE MENU is the pause */
 
     /* the game canvas is actually drawn (not a blank/single-colour frame);
        poll because the first painted frame can lag behind the click on WebKit */
@@ -84,6 +92,8 @@ test.describe('legacy game regression (real game, no downgrade)', () => {
     test(`${menu.name} still opens`, async ({ page }) => {
       const errors = watchErrors(page);
       await backToTitle(page);
+      await page.locator('#menuBtn').click();   /* 2026-10-28: every mode and tool is in THE MENU */
+      if (['#smashBtn', '#kartBtn', '#buildBtn'].includes(menu.button)) await page.locator('#partyBtn').click();
       await page.locator(menu.button).click();
       await expect(page.locator('#screen h1.title')).toHaveText(menu.heading);
       expect(errors).toEqual([]);

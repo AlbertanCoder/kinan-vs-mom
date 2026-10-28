@@ -43,14 +43,18 @@ async function boot(page: Page): Promise<void> {
 }
 
 test.describe('V3 · iOS: one voice player, unlocked on the first tap', () => {
-  test('the first tap makes the voice player and plays a silent blip on it; the map intro, a level opener and a boss line all reuse that one element', async ({ page }) => {
+  test('the first tap makes the voice player and plays a silent blip on it; the opening cutscene, the map intro, a level opener and a boss line all reuse that one element', async ({ page }) => {
     const errors = watchErrors(page);
     await spy(page);
     await boot(page);
     expect(await page.evaluate(() => (window as unknown as Win).__srcLog.length)).toBe(0);   /* the title: nothing yet */
     await page.locator('#startBtn').click({ force: true });
+    /* 2026-10-28: a new save opens with the cutscene (c1-cutscenes.spec.ts): its first line plays on the same element, then SKIP */
+    await expect(page.locator('#cut')).toBeVisible();
+    await expect.poll(() => page.evaluate(() => (window as unknown as Win).__srcLog.some((s) => s.endsWith('audio/lines/w01/w01_kinan_19.mp3'))), { timeout: 15_000 }).toBe(true);
+    await page.locator('#cutSkip').click();
     await page.waitForFunction(() => { const k = (window as unknown as Win).KINAN; return !!k && k.state().mounted && !k.state().busy; }, null, { timeout: 30_000 });
-    await expect.poll(() => page.evaluate(() => (window as unknown as Win).__k11.storyInfo().cur)).toBe('w01_kinan_01');
+    await expect.poll(() => page.evaluate(() => (window as unknown as Win).__k11.storyInfo().cur)).toBe('w01_shad_01');
     const r = await page.evaluate(() => {
       const w = window as unknown as Win, k = w.__k11;
       k.playLevel('1-castle'); k.godMode(); k.clearFoes();
@@ -60,7 +64,8 @@ test.describe('V3 · iOS: one voice player, unlocked on the first tap', () => {
       return { log: w.__srcLog.slice(), els: w.__els, voice: a.voiceLog.slice() };
     });
     expect(r.log[0]).toMatch(/^data:audio\/wav;base64,/);                       /* the unlock blip, on the tap */
-    expect(r.log.some((s) => s.endsWith('audio/lines/w01/w01_kinan_01.mp3'))).toBe(true);
+    expect(r.log.some((s) => s.endsWith('audio/lines/w01/w01_kinan_19.mp3'))).toBe(true);   /* the cutscene */
+    expect(r.log.some((s) => s.endsWith('audio/lines/w01/w01_shad_01.mp3'))).toBe(true);    /* the map intro */
     expect(r.log.some((s) => s.endsWith('audio/lines/w01/w01_shad_02.mp3'))).toBe(true);
     expect(r.voice.length).toBeGreaterThan(0);
     expect(r.log.some((s) => s.endsWith(`audio/voice/${r.voice[0]}.mp3`))).toBe(true);

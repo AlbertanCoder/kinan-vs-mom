@@ -15,7 +15,7 @@ const ROOT = fileURLToPath(new URL('../../../', import.meta.url));
 
 type Line = [string, string, number, string | null];
 type Story = { lines: Record<string, Line>; intro: Record<string, string[]>; exit: Record<string, string[]>; open: Record<string, string[]>;
-  clear: Record<string, string[]>; joke: Record<string, string>; bark: Record<string, string[]> };
+  clear: Record<string, string[]>; joke: Record<string, string>; bark: Record<string, string[]>; cutscene: string[] };
 type Info = { cur: string | null; kind: string | null; queue: string[]; log: { id: string; kind: string; src: string | null }[]; heard: string[];
   mapWorld: number; levelSub: string; mapSub: string; voSrc: string | null; loaded: boolean };
 type Probe = { x: number; y: number };
@@ -359,15 +359,22 @@ test.describe('V1 · the world intro on the map', () => {
 });
 
 test.describe('V1 · no robot voice', () => {
-  test('the new flow never calls speechSynthesis.speak, even with the device voice switched on: title, PLAY, the map intro, a level, LEVEL CLEAR, back to the map', async ({ page }) => {
+  test('the new flow never calls speechSynthesis.speak, even with the device voice switched on: title, PLAY, the opening cutscene, the map intro, a level, LEVEL CLEAR, back to the map', async ({ page }) => {
     test.setTimeout(90_000);
     const errors = watchErrors(page);
     await spy(page, [{ name: 'Microsoft Natural Voice (French)', lang: 'fr-FR' }, { name: 'English Natural', lang: 'en-US' }]);
     await seed(page, (d) => { d.deviceVoice = true; d.levelsBeaten = {}; d.wmap = null; });
     await boot(page);
+    const cut = () => page.evaluate(() => (window as unknown as { __k11: { cut: () => { on: boolean; lines: string[] } } }).__k11.cut());
+    await page.evaluate(() => (window as unknown as { __k11: { cutSpeed: (n: number) => number } }).__k11.cutSpeed(12));
     await page.locator('#startBtn').click({ force: true });   /* the title button bobs (never "stable"), like overworld-phone-offline */
+    /* 2026-10-28: a new save opens with the cutscene (c1-cutscenes.spec.ts): its voices are recorded clips as well */
+    expect((await cut()).on).toBe(true);
+    await expect.poll(async () => (await cut()).on, { timeout: 45_000 }).toBe(false);
+    expect((await cut()).lines).toEqual(STORY.cutscene);
     await mapReady(page);
-    await expect.poll(async () => (await info(page)).cur).toBe('w01_kinan_01');
+    /* World 1's map intro goes on after the bedroom (its first lines were the bedroom's own story) */
+    await expect.poll(async () => (await info(page)).cur).toBe('w01_shad_01');
     await page.evaluate(() => (window as unknown as Win).__k11.storyNext());
     await page.locator('#owPlay').click();
     await expect(page.locator('#stage')).toBeVisible();
@@ -379,7 +386,7 @@ test.describe('V1 · no robot voice', () => {
       for (let n = 0; n < 200 && !k.levelInfo().returned; n++) k.step(1, { right: true });
     });
     await mapReady(page);
-    expect((await info(page)).log.map((l) => l.id)).toEqual(expect.arrayContaining(['w01_kinan_01', 'w01_kinan_05']));
+    expect((await info(page)).log.map((l) => l.id)).toEqual(expect.arrayContaining(['w01_shad_01', 'w01_kinan_05']));
     expect(await page.evaluate(() => (window as unknown as Win).__speak)).toBe(0);
     expect(errors).toEqual([]);
   });
@@ -397,7 +404,8 @@ test.describe('V1 · no robot voice', () => {
     expect(r.saved.narration).toBeUndefined();
     expect(r.kid).toEqual({ name: 'Daniel', lang: 'en-GB' });   /* "natural" matches the French voice first: skipped, it is not English */
     expect(r.mom).toEqual({ name: 'Daniel', lang: 'en-GB' });
-    await page.locator('#vol').click();
+    await page.locator('#menuBtn').click();   /* 2026-10-28: the audio settings are THE MENU's Settings page */
+    await page.locator('#settingsBtn').click();
     await expect(page.locator('#volNarr')).not.toBeChecked();
     expect(errors).toEqual([]);
   });
@@ -417,9 +425,9 @@ test.describe('V1 · the classic stages speak with audio/vo2', () => {
     const requested: string[] = [];
     page.on('request', (req) => requested.push(req.url()));
     await spy(page);
-    await seed(page, (d) => { d.wonWorlds = []; d.codes = []; d.unlocked = 2; d.beaten = [0]; d.mapWorld = 0; d.mapSeen = {}; d.mapSel = {}; });
+    await seed(page, (d) => { d.won = false; d.wonWorlds = []; d.unlocked = 2; d.beaten = [0]; d.mapWorld = 0; d.mapSeen = {}; d.mapSel = {}; });   /* won = false: with the reward codes gone, a won World 1 opens World 2 (C2) */
     await page.goto(PROD_URL);
-    await page.locator('#mapBtn').click();
+    await page.locator('#menuBtn').click(); await page.locator('#partyBtn').click(); await page.locator('#classicBtn').click();   /* 2026-10-28: Classic stages are in THE MENU's More games */
     await page.locator('.lvchip[data-stop="0"]').click();
     await page.locator('#wmPlay').click();
     await expect(page.locator('#dialog')).toBeVisible({ timeout: 5000 });

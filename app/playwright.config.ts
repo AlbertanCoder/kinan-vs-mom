@@ -62,5 +62,9 @@ export default defineConfig({
       name: 'webkit',
       use: { ...devices['Desktop Safari'], viewport: { width: 1280, height: 720 } },
     },
+    /* D1 every-device pass (2026-10-28): phone and iPad profiles run only the device test */
+    { name: 'android-phone', testMatch: /devices-smoke\.spec\.ts/, use: { ...devices['Pixel 7'] } },
+    { name: 'iphone', testMatch: /devices-smoke\.spec\.ts/, use: { ...devices['iPhone 13'] } },
+    { name: 'ipad', testMatch: /devices-smoke\.spec\.ts/, use: { ...devices['iPad (gen 7) landscape'] } },
   ],
 });

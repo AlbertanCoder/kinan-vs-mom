@@ -16,9 +16,11 @@ function watchErrors(page: Page): string[] {
   page.on('pageerror', (err) => errors.push(`pageerror: ${err.message}`));
   return errors;
 }
+/* 2026-10-28: the audio settings are THE MENU's Settings page now (c2-menu.spec.ts) */
 async function openAudioBox(page: Page): Promise<void> {
-  await page.locator('#vol').click();
-  await expect(page.locator('#audioBox')).toBeVisible();
+  await page.locator('#menuBtn').click();
+  await page.locator('#settingsBtn').click();
+  await expect(page.locator('#menuSettings')).toBeVisible();
 }
 
 test.describe('Natural audio — channel controls, captions, clips-first voice', () => {
@@ -31,8 +33,8 @@ test.describe('Natural audio — channel controls, captions, clips-first voice',
     await expect(page.locator('#volVo')).toBeVisible();
     await expect(page.locator('#volNarr')).not.toBeChecked();   /* V1 (Shad, 2026-10-28): the device voice is OFF by default */
     await expect(page.locator('#volCaps')).toBeChecked();
-    await page.locator('#volX').click();
-    await expect(page.locator('#audioBox')).toBeHidden();
+    await page.locator('#menuX').click();
+    await expect(page.locator('#menu')).toBeHidden();
     expect(errors).toEqual([]);
   });
 
@@ -44,7 +46,7 @@ test.describe('Natural audio — channel controls, captions, clips-first voice',
     await page.locator('#volSfx').fill('60');
     await page.locator('#volVo').fill('20');
     await page.locator('#volNarr').check();   /* V1: off by default, so the switch that must persist is turning it ON */
-    await page.locator('#volX').click();
+    await page.locator('#menuX').click();
     await page.reload();
     await openAudioBox(page);
     await expect(page.locator('#volMusic')).toHaveValue('40');
@@ -64,7 +66,7 @@ test.describe('Natural audio — channel controls, captions, clips-first voice',
     expect(await page.evaluate(() => (window as unknown as { __k11: Dev }).__k11.audioCue('win'))).toMatchObject({ caption: '(victory jingle)' });
     await openAudioBox(page);
     await page.locator('#volCaps').uncheck();
-    await page.locator('#volX').click();
+    await page.locator('#menuX').click();
     expect(await page.evaluate(() => (window as unknown as { __k11: Dev }).__k11.audioCue('win'))).toMatchObject({ caption: null });
     expect(errors).toEqual([]);
   });
@@ -76,8 +78,8 @@ test.describe('Natural audio — channel controls, captions, clips-first voice',
     });
     await page.addInitScript(({ key, raw }) => {
       const data = JSON.parse(raw);
+      data.won = false;   /* with the reward codes gone (C2), a won World 1 would open World 2: this is a World 1 save */
       data.wonWorlds = [];
-      data.codes = [];
       data.unlocked = 2;
       data.beaten = [0];
       data.mapWorld = 0;
@@ -86,8 +88,11 @@ test.describe('Natural audio — channel controls, captions, clips-first voice',
       localStorage.setItem(key, JSON.stringify(data));
     }, { key: CURRENT, raw: fixture('kinan-remaster-v1.sample.json') });
     await page.goto(PROD_URL);
-    await expect(page.locator('#mapBtn')).toBeVisible();
-    await page.locator('#mapBtn').click();
+    /* 2026-10-28: the classic stages are in THE MENU's More games (c2-menu.spec.ts) */
+    await page.locator('#menuBtn').click();
+    await page.locator('#partyBtn').click();
+    await expect(page.locator('#classicBtn')).toBeVisible();
+    await page.locator('#classicBtn').click();
     await page.locator('.lvchip[data-stop="0"]').click();
     await page.locator('#wmPlay').click();
     await expect(page.locator('#stage')).toBeVisible();
@@ -103,9 +108,11 @@ test.describe('Natural audio — channel controls, captions, clips-first voice',
   test('the mute switch still toggles and persists', async ({ page }) => {
     const errors = watchErrors(page);
     await page.goto(PROD_URL);
+    await openAudioBox(page);   /* the sound switch is on the Settings page */
     await page.locator('#snd').click();
     await expect(page.locator('#snd')).toHaveAttribute('aria-pressed', 'false');
     await page.reload();
+    await openAudioBox(page);
     await expect(page.locator('#snd')).toHaveAttribute('aria-pressed', 'false');
     await page.locator('#snd').click();
     await expect(page.locator('#snd')).toHaveAttribute('aria-pressed', 'true');

@@ -226,7 +226,8 @@ test.describe('pass A · pets: one simple power each, automatic', () => {
     const p = await page.evaluate(() => (window as unknown as { __k11: PetDev }).__k11.petInfo());
     expect(p.names.cat1).toBe('Ginger');
     expect(p.equippedCat).toBe('cat1');
-    await page.locator('#petsBtnT').click();
+    await page.locator('#menuBtn').click(); /* 2026-10-28: Pets / Shop / How to play are in THE MENU (c2-menu.spec.ts) */ 
+    await page.locator('#petsBtnP').click();
     await expect(page.locator('#screen h1.title')).toHaveText('Pets');
     await expect(page.locator('[data-equip="cat1"]')).toContainText('Ginger');
     await expect(page.locator('#screen')).not.toContainText('Garfield');
@@ -240,7 +241,8 @@ test.describe('pass A · pets: one simple power each, automatic', () => {
   test('the Pets screen is simple: a picture, the name and one power line per pet; one cat + one dog', async ({ page }) => {
     const errors = watchErrors(page);
     await boot(page, withPets('cat1', 'dog1'));
-    await page.locator('#petsBtnT').click();
+    await page.locator('#menuBtn').click(); /* 2026-10-28: Pets / Shop / How to play are in THE MENU (c2-menu.spec.ts) */ 
+    await page.locator('#petsBtnP').click();
     const cards = page.locator('.petcard');
     await expect(cards).toHaveCount(6);
     await expect(page.locator('[data-equip="cat1"]')).toContainText('Jumps higher');
@@ -679,6 +681,7 @@ test.describe('pass A · phones and tablets: the buttons never cover the play ar
 test('the how-to says it plainly: on a keyboard, hold SHIFT to run — the 4- and 5-tile gaps need it', async ({ page }) => {
   const errors = watchErrors(page);
   await boot(page);
+  await page.locator('#menuBtn').click(); /* 2026-10-28: Pets / Shop / How to play are in THE MENU (c2-menu.spec.ts) */ 
   await page.locator('#howBtn').click();
   await expect(page.locator('#screen')).toContainText('hold SHIFT to run');
   await expect(page.locator('#screen')).toContainText('4 and 5 tiles wide');

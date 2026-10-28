@@ -15,6 +15,8 @@
                 "joins the team" lines (no level in the script = after the boss)
      joke[id]   Robin's dad joke for that level (Worlds 3-5), at the checkpoint (40% in when there is none)
      bark       Kinan's barks: a golden candle, a secret found, LEVEL CLEAR (only when nothing else talks)
+     cutscene   the opening cutscene (block "CUTSCENES"), in the order it plays: the bedroom, then the map (CUTSCENE)
+     escape[w]  Worlds 6-10's exit lines, for the end-of-world cutscene once those castles are built (Worlds 1-5 use exit[w])
    A line a boss arena already speaks (ARENA_LINES in index.html) is never an opener, clear line or joke:
    the arena plays it in the fight. Such a line in an intro/exit plays from audio/voice/ (no second copy). */
 import { readFileSync, writeFileSync, existsSync, mkdirSync, copyFileSync, readdirSync, rmSync, statSync } from 'node:fs';
@@ -32,6 +34,11 @@ const MEMORY_AT = { 1: '1-1', 2: '2-secret', 3: '3-6', 4: '4-2', 5: '5-7' };
 /* "Grandma Hunter's kitchen": "His Edmonton Grandma feeds the whole team" after the old neighbourhood (4-2) */
 const KITCHEN_AT = '4-2';
 const BARKS = { golden: ['gen_kinan_12', 'gen_kinan_13'], secret: ['gen_kinan_11'], clear: ['gen_kinan_22', 'gen_kinan_25', 'gen_kinan_23', 'gen_kinan_21', 'gen_kinan_24'] };
+/* the opening cutscene (Shad's picks, 2026-10-28), in playing order: Kinan wakes up, Shad's gift-card message, one
+   little peek, Glitchy bursts out, Kinan chases him, Mom in the doorway, out the window; then on the map Kinan calls
+   after him and says the mission. The four "Opening cutscene" lines were added to the voice script for this; the rest
+   are World 1's intro and exit lines and a general bark (Glitchy's two beeps). */
+const CUTSCENE = ['w01_kinan_19', 'w01_shad_05', 'w01_kinan_02', 'w01_glitchy_01', 'w01_kinan_03', 'w01_mom_12', 'w01_glitchy_02', 'gen_kinan_24', 'w01_kinan_20'];
 /* the subtitle's name for each speaker. Robin is Kinan's dad, so the subtitles call him DAD */
 const LABEL = { kinan: 'KINAN', glitchy: 'GLITCHY', shad: 'SHAD', mom: 'MOM', milo: 'MILO', aiden: 'AIDEN', robin: 'DAD',
   robinsmom: 'GRANDMA', grandpa: 'GRANDPA', annie: 'ANNIE', grandmahunter: 'GRANDMA HUNTER', chenoa: 'CHENOA' };
@@ -68,7 +75,7 @@ const use = (id) => {
   used.add(id);
   return id;
 };
-const intro = {}, exit = {}, open = {}, clear = {}, joke = {};
+const intro = {}, exit = {}, open = {}, clear = {}, joke = {}, escape = {};
 const push = (o, k, id) => { (o[k] = o[k] || []).push(use(id)); };
 const memory = {}, kitchen = [], team = {};
 for (const e of manifest.entries) {
@@ -86,6 +93,8 @@ for (const e of manifest.entries) {
     else if (/^Grandma Hunter's kitchen/.test(mo)) kitchen.push(e.id);
     continue;
   }
+  const em = /^w(0[6-9]|10)$/.exec(e.world);
+  if (em && e.moment === 'World exit') { push(escape, Number(em[1]), e.id); continue; }
   const jm = /^World ([345]):/.exec(e.moment);
   if (e.world === 'jokes' && jm && !ARENA.has(e.id)) joke[levelOf(Number(jm[1]), e.where)] = use(e.id);
 }
@@ -94,6 +103,7 @@ for (const id of kitchen) push(clear, KITCHEN_AT, id);
 for (const w of Object.keys(team)) for (const id of team[w]) push(clear, `${w}-castle`, id);
 const bark = {};
 for (const k of Object.keys(BARKS)) bark[k] = BARKS[k].map(use);
+const cutscene = CUTSCENE.map(use);
 
 /* the table: id -> [speaker, subtitle (English: Annie's Punjabi shows its translation), seconds, clip path or null] */
 const copies = [];
@@ -111,7 +121,7 @@ for (const id of [...used].sort()) {
   const secs = file ? Number(e.seconds) : Math.max(2.2, Math.round((e.subtitle.split(/\s+/).length * 0.4 + 1) * 10) / 10);
   lines[id] = [label, e.subtitle, secs, file];
 }
-const story = { lines, intro, exit, open, clear, joke, bark };
+const story = { lines, intro, exit, open, clear, joke, bark, cutscene, escape };
 /* precached by sw.js: these story clips and the boss-arena clips of Worlds 1-5 (audio/voice/), so Worlds 1-5 talk offline */
 const voiceDir = join(ROOT, 'audio', 'voice');
 const files = copies.map(([, to]) => to.slice(ROOT.length + 1).replace(/\\/g, '/'))

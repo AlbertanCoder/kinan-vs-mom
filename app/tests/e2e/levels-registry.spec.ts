@@ -49,7 +49,6 @@ function watchErrors(page: Page): string[] {
 async function seed(page: Page): Promise<void> {
   await page.addInitScript(({ key, raw }) => {
     const data = JSON.parse(raw);
-    data.codes = [2, 3, 4, 5];
     data.mapWorld = 1;
     data.mapSeen = {};
     data.mapSel = {};
@@ -164,8 +163,8 @@ test.describe('M4b levels as files — every registered level builds and plays',
     await page.evaluate(() => { const k = (window as unknown as Win).__k11; k.playLevel('1-5'); k.godMode(); k.clearFoes(); });
     /* cross the checkpoint (it autosaves in legacy stages) and pause (autosave too) */
     await page.evaluate(() => { const k = (window as unknown as Win).__k11; k.place(95 * 16, 150); k.step(20); k.step(40, { right: true }); });
-    await page.locator('#pauseBtn').click();
-    await expect(page.locator('#pause')).toBeVisible();
+    await page.locator('#menuBtn').click();
+    await expect(page.locator('#menu')).toBeVisible();
     const during = await page.evaluate(() => JSON.stringify((window as unknown as Win).__k11.progress().resume ?? null));
     expect(during).toBe(before);
     await page.locator('#restartBtn').click();

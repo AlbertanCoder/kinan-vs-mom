@@ -15,7 +15,7 @@ type Story = { cur: string | null; queue: string[]; log: { id: string }[] };
 type Dev = {
   playLevel: (id: string) => unknown; godMode: () => void; clearFoes: () => void; storyStop: () => void; freeze: (on: boolean) => void;
   auto: (n: number, o?: { run?: boolean }) => unknown; step: (n: number, o?: Record<string, boolean>) => { x: number; y: number; onGround: boolean }[];
-  place: (x: number, y: number) => unknown; levelInfo: () => { cleared: boolean; returned: boolean; toast: string };
+  place: (x: number, y: number) => unknown; levelInfo: () => { cleared: boolean; returned: boolean; toast: string }; cut: () => { on: boolean }; cutSkip: () => unknown;
   petSpot: () => { x: number; y: number; pet: string; open: boolean; hinted: boolean } | null; storyInfo: () => Story; storyNext: () => unknown;
   progress: () => { pets: { ids: string[]; equippedCat: string | null; equippedDog: string | null } };
 };
@@ -64,6 +64,7 @@ test.describe('QA fix: the six pets can be rescued', () => {
       /* let everything queued be said: the pet's line is heard to the end (a boss intro may cut it short; it comes back first) */
       const said = await page.evaluate((line) => {
         const k = (window as unknown as Win).__k11;
+        if (k.cut().on) k.cutSkip();   /* 2026-10-28: a castle (4-castle) ends in Glitchy's escape on the map: skipped, the story goes on */
         for (let i = 0; i < 12; i++) { const q = k.storyInfo(); if (!q.cur && !q.queue.length) break; k.storyNext(); }
         return (k.progress() as unknown as { storyHeard: Record<string, number> }).storyHeard[line] || 0;
       }, line);
@@ -153,7 +154,8 @@ test.describe('QA fix: the six pets can be rescued', () => {
     const errors = watchErrors(page);
     await boot(page);
     /* before: every card is locked */
-    await page.locator('#petsBtnT').click();
+    await page.locator('#menuBtn').click(); /* 2026-10-28: Pets / Shop / How to play are in THE MENU (c2-menu.spec.ts) */ 
+    await page.locator('#petsBtnP').click();
     await expect(page.locator('.petcard')).toHaveCount(6);
     await expect(page.locator('.petcard.locked')).toHaveCount(6);
     await page.locator('#petsBack').click();
@@ -171,7 +173,8 @@ test.describe('QA fix: the six pets can be rescued', () => {
     /* a fresh load (the rescues were saved), then Pets: all six found, none taken along yet */
     await page.goto(DEV_URL);
     await page.waitForFunction(() => !!(window as unknown as Win).__k11 && (window as unknown as Win).KinanLevels?.ready);
-    await page.locator('#petsBtnT').click();
+    await page.locator('#menuBtn').click(); /* 2026-10-28: Pets / Shop / How to play are in THE MENU (c2-menu.spec.ts) */ 
+    await page.locator('#petsBtnP').click();
     await expect(page.locator('.petcard.locked')).toHaveCount(0);
     for (const [, , name] of PETS) await expect(page.locator('.petcard').filter({ hasText: name })).toHaveCount(1);
     await expect(page.locator('.petcard.on')).toHaveCount(0);

@@ -26,7 +26,6 @@ async function seedOpen(page: Page): Promise<void> {
   await page.addInitScript(({ key, raw }) => {
     const data = JSON.parse(raw);
     data.wonWorlds = [2, 3, 4, 5, 6, 7, 8, 9, 10];
-    data.codes = [2, 3, 4, 5];   /* Worlds 2-5 open with reward codes */
     data.unlocked = 82;
     data.beaten = Array.from({ length: 78 }, (_, i) => i);
     data.mapWorld = 0;
@@ -50,11 +49,14 @@ test.describe('World Explorer — big scrolling worlds with doors', () => {
        legacy Explorer (the Explorer stays reachable through the dev hooks below and the old stage map);
        a stage started from the map still offers "World map" in its pause menu */
     await page.locator('#startBtn').click({ force: true });
+    /* 2026-10-28: a new save's first PLAY plays the opening cutscene first (c1-cutscenes.spec.ts); SKIP ends it */
+    await expect(page.locator('#cut')).toBeVisible();
+    await page.locator('#cutSkip').click();
     await expect(page.locator('#owHost .km-canvas')).toBeVisible();
     await page.locator('#owPlay').click();
     await expect(page.locator('#stage')).toBeVisible();
     await expect(page.locator('#cv')).toBeVisible();
-    await page.locator('#pauseBtn').click();
+    await page.locator('#menuBtn').click();
     await expect(page.locator('#mapBtnP')).toContainText('World map');
     expect(errors).toEqual([]);
   });

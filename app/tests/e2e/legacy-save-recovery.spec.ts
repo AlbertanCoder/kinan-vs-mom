@@ -59,11 +59,9 @@ test.describe('legacy save backup and recovery', () => {
     const current = JSON.parse((await readKey(page, CURRENT)) as string) as Progress;
     const backup = JSON.parse((await readKey(page, BACKUP)) as string) as Progress;
     expect(current.pets.ids).toHaveLength(6);
-    /* the dev page saves once at boot (the creator-pass check), so the previous current record is the
-       loaded save — which now carries the Ginger rename (Shad's ruling 27 Oct: a saved "Garfield" loads as Ginger) */
-    const previous = JSON.parse(v1);
-    previous.pets.names.cat1 = 'Ginger';
-    expect(backup).toMatchObject(previous);
+    /* the reward codes and their creator-pass boot save are gone (C2, 2026-10-28), so the first save is grantPets'
+       and the backup is the seeded record exactly as it was stored (the Ginger rename lands in the current save) */
+    expect(backup).toMatchObject(JSON.parse(v1));
     expect(await readKey(page, K11)).toBe(k11);
     expect(await readKey(page, SOUND)).toBe('true');
     expect(errors).toEqual([]);
@@ -159,6 +157,8 @@ test.describe('legacy save backup and recovery', () => {
     await page.goto(PRODUCTION_URL);
 
     expect(await page.evaluate(() => typeof (window as unknown as { __k11?: unknown }).__k11)).toBe('undefined');
+    await page.locator('#menuBtn').click();   /* 2026-10-28: the sound switch is on THE MENU's Settings page */
+    await page.locator('#settingsBtn').click();
     await page.locator('#snd').click();
 
     const current = JSON.parse((await readKey(page, CURRENT)) as string) as Progress & { sound: boolean };

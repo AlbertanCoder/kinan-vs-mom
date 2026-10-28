@@ -53,7 +53,7 @@ async function devStage(page: Page, stage: number): Promise<void> {
 test.describe('World 10 — Birthday Multiverse', () => {
   test('opens after World 9 with all five multiverse stages on the map', async ({ page }) => {
     const errors = watchErrors(page);
-    await seedWorld10(page); await page.goto(PROD_URL); await page.locator('#mapBtn').click();
+    await seedWorld10(page); await page.goto(PROD_URL); await page.locator('#menuBtn').click(); await page.locator('#partyBtn').click(); await page.locator('#classicBtn').click();   /* 2026-10-28: Classic stages are in THE MENU's More games */
     await expect(page.locator('.worldtab[data-world="10"]')).toHaveClass(/on/);
     await expect(page.locator('.lvbtn')).toHaveCount(5);
     await expect(page.locator('.lvchip')).toHaveCount(5);
@@ -66,13 +66,13 @@ test.describe('World 10 — Birthday Multiverse', () => {
   test('starts every multiverse stage in 2D without requesting the archived engine', async ({ page }) => {
     const errors = watchErrors(page); const requests: string[] = [];
     page.on('request', (req) => requests.push(req.url()));
-    await seedWorld10(page); await page.goto(PROD_URL); await page.locator('#mapBtn').click();
+    await seedWorld10(page); await page.goto(PROD_URL); await page.locator('#menuBtn').click(); await page.locator('#partyBtn').click(); await page.locator('#classicBtn').click();   /* 2026-10-28: Classic stages are in THE MENU's More games */
     for (let i = 72; i <= 76; i++) {
       await page.locator('#stagesBtn').click();
       await page.locator(`[data-lv="${i}"]`).click();
       await expect(page.locator('#stage')).toBeVisible(); await expect(page.locator('#cv')).toBeVisible();
       await dismissStory(page);
-      await page.locator('#pauseBtn').click(); await page.locator('#mapBtnP').click();
+      await page.locator('#menuBtn').click(); await page.locator('#mapBtnP').click();
       await expect(page.locator('.lvbtn')).toHaveCount(5);
     }
     expect(requests.filter((url) => url.includes('galaxy3d'))).toEqual([]);
@@ -118,7 +118,7 @@ test.describe('World 10 — Birthday Multiverse', () => {
   test('a refresh mid-cinematic resumes and clears the saved finale', async ({ page }) => {
     const errors = watchErrors(page);
     await seedWorld10(page, { pendingCutscene: 'w10-finale' }); await page.goto(PROD_URL);
-    await page.locator('#mapBtn').click();
+    await page.locator('#menuBtn').click(); await page.locator('#partyBtn').click(); await page.locator('#classicBtn').click();   /* 2026-10-28: Classic stages are in THE MENU's More games */
     await expect(page.locator('#dialog')).toBeVisible();   /* the interrupted cinematic comes back */
     await dismissStory(page);
     const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('kinan-remaster-v1') || '{}'));

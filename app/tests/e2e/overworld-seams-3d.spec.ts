@@ -40,6 +40,9 @@ async function settle(page: Page, timeout = 60_000): Promise<MapState> {
 async function standOn(page: Page, at: { w: number; at: number }, extra: Record<string, unknown> = {}): Promise<void> {
   await page.goto(DEV_URL);
   await ready(page);
+  /* 2026-10-28: this build releases Worlds 1-5 (World 6 waits behind its "coming soon" sign, c1-cutscenes.spec.ts);
+     these seams are in the later worlds, so the test opens every world's map (kept for this tab's session) */
+  expect(await page.evaluate(() => (window as unknown as { __k11: { owRelease: (n: number) => number } }).__k11.owRelease(12))).toBe(12);
   await page.evaluate(({ key, at, extra }) => {
     const ids = (window as unknown as Win).KinanLevels.list();
     localStorage.setItem(key, JSON.stringify(Object.assign({ unlocked: 1, beaten: [], levelsBeaten: Object.fromEntries(ids.map((id) => [id, 1])), wmap: at }, extra)));

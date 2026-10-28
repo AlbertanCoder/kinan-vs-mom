@@ -123,7 +123,7 @@ Status legend: ✅ pinned now (characterization) · 🟡 scaffolded, target valu
 
 | Trap | Mitigation |
 |---|---|
-| Worlds 2–5 open via reward codes | seeds set `data.codes=[2,3,4,5]` |
+| ~~Worlds 2–5 open via reward codes~~ (removed 2026-10-28: every world opens by playing) | seeds no longer set `data.codes` |
 | `nextStage()` scans the NEWEST open world first; `wonWorlds` must match `beaten` | seeds keep the shared sample fixture's consistent `wonWorlds`/`beaten` untouched |
 | save fixture leaks `mapWorld/mapSeen/mapSel/explorer` | every seed resets `mapWorld=1`, `mapSeen={}`, `mapSel={}`, deletes `explorer` |
 | fixture pets grant Garfield double jump (`airJumps=1`) | feel seeds clear `pets.ids` — base feel is measured petless |

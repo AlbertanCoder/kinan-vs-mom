@@ -491,9 +491,25 @@ test.describe('B2 · beating a castle opens that world\'s exit on the map', () =
       expect(info.state).toBe('open');
       expect(info.level.cleared).toBe(true);
       expect(info.level.returned).toBe(true);
+      /* 2026-10-28: back on the map Glitchy escapes into the next world first (c1-cutscenes.spec.ts); SKIP ends it */
+      await expect(page.locator('#cut')).toBeVisible();
+      await page.locator('#cutSkip').click();
+      await expect(page.locator('#cut')).toBeHidden();
       await page.waitForFunction(() => { const s = (window as unknown as Win).__k11.mapState(); return s.mounted && !s.busy; });
       const s2 = await page.evaluate(() => (window as unknown as Win).__k11.mapState());
       expect(s2.stops[10].state).toBe('beaten');
+      if (n === 5) {
+        /* Shad, 2026-10-28: World 6 is not in this build yet. The way on is a "WORLD 6 COMING SOON!" sign with Glitchy
+           waving (c1-cutscenes.spec.ts), and Kinan stays at the castle */
+        expect(s2.notice).toBe('WORLD 6 COMING SOON!');
+        expect((s2 as unknown as { gate: number | null }).gate).toBe(6);
+        await page.locator('#owNext').click();
+        await expect.poll(async () => (await page.evaluate(() => (window as unknown as Win).__k11.mapState())).banner).toBe('WORLD 6 COMING SOON!');
+        expect(await settle(page)).toMatchObject({ world: 5, at: 10 });
+        expect((await page.evaluate(() => (window as unknown as Win).__k11.progress().wmap))).toEqual({ w: 5, at: 10 });
+        expect(errors).toEqual([]);
+        return;
+      }
       expect(s2.notice).toBe('THE WAY ON TO THE NEXT WORLD IS OPEN!');
       await page.locator('#owNext').click();
       await expect.poll(async () => (await page.evaluate(() => (window as unknown as Win).__k11.mapState())).crossing).toBe(true);

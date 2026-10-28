@@ -40,7 +40,7 @@
    ============================================================ */
 KinanLevels.register({
   id: '3-castle', world: 3, slot: 11, kind: 'castle',
-  name: "NIGHT SHIFT AT ROBIN'S RIG",
+  name: "NIGHT SHIFT AT DAD'S RIG",
   theme: 20,                /* the rig at night: floodlights, a purple-black sky, red steel */
   cols: 117,
   heights: [

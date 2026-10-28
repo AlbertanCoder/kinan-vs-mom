@@ -10,7 +10,7 @@ import { describe, expect, it } from 'vitest';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
 type Line = [string, string, number, string | null];
 type Story = { lines: Record<string, Line>; intro: Record<string, string[]>; exit: Record<string, string[]>; open: Record<string, string[]>;
-  clear: Record<string, string[]>; joke: Record<string, string>; bark: Record<string, string[]> };
+  clear: Record<string, string[]>; joke: Record<string, string>; bark: Record<string, string[]>; cutscene: string[]; escape: Record<string, string[]> };
 const ctx: Record<string, unknown> = {}; ctx.self = ctx; createContext(ctx);
 runInContext(readFileSync(join(ROOT, 'audio', 'lines', 'lines.js'), 'utf8'), ctx);
 const S = ctx.KINAN_STORY as Story, FILES = ctx.KINAN_STORY_FILES as string[];
@@ -31,6 +31,18 @@ describe('the story line table', () => {
     expect(Object.keys(S.intro).sort()).toEqual(['1', '2', '3', '4', '5']);
     expect(Object.keys(S.exit).sort()).toEqual(['1', '2', '3', '4', '5']);
     expect(Object.keys(S.open).length).toBe(49);
+  });
+  it('C1 (2026-10-28): the opening cutscene plays nine lines in order, each a clip in the picked voices; Worlds 6-9 carry their exit lines for the castle escape', () => {
+    expect(S.cutscene).toEqual(['w01_kinan_19', 'w01_shad_05', 'w01_kinan_02', 'w01_glitchy_01', 'w01_kinan_03', 'w01_mom_12', 'w01_glitchy_02', 'gen_kinan_24', 'w01_kinan_20']);
+    for (const id of [...S.cutscene, ...Object.values(S.escape).flat()]) {
+      expect(S.lines[id], id).toBeTruthy();
+      expect(S.lines[id][3], id).toMatch(/^audio\/lines\/.+\.mp3$/);
+      expect(existsSync(join(ROOT, S.lines[id][3]!)), id).toBe(true);
+      expect(FILES, id).toContain(S.lines[id][3]);   /* precached: the cutscenes talk offline */
+    }
+    expect(S.lines.w01_shad_05.slice(0, 2)).toEqual(['SHAD', "Don't open this until I get there!"]);
+    expect(S.lines.w01_mom_12.slice(0, 2)).toEqual(['MOM', 'Kinan, NO!']);
+    expect(Object.keys(S.escape).sort()).toEqual(['6', '7', '8', '9']);
   });
   it('a line a boss arena speaks is never an opener, a LEVEL CLEAR line or a joke (the fight says it)', () => {
     for (const id of [...Object.values(S.open), ...Object.values(S.clear), Object.values(S.joke)].flat()) expect(ARENA.has(id), id).toBe(false);

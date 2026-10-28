@@ -125,13 +125,13 @@
     box('#4a4f57',X-6,Y-118,12,8);px('#fff3c4',X-4,Y-116,8,3);px('#1b1220',X,Y-130,1,12);
     box('#eee8d6',X+42,Y-22,30,22);for(let i=0;i<3;i++)px('#fff3c4',X+45+i*9,Y-18,6,5);px('#e8364b',X+42,Y-22,30,3);txt('DOGHOUSE',X+43,Y-8,'#2b2f45',5,1);
     box('#eee8d6',X-74,Y-14,28,14);px('#fff3c4',X-70,Y-10,8,4);px('#fff3c4',X-58,Y-10,8,4);
-    K.P.label(X+62,Y-120,"ROBIN'S RIG");};
+    K.P.label(X+62,Y-120,"DAD'S RIG");};
   K.A.w03_beacon=function(t,X,Y){if(Math.floor(t/500)%2===0){px('#ff3d3d',X-1,Y-1,3,3);const G=g();G.fillStyle='rgba(255,61,61,.35)';G.beginPath();G.arc(X+.5,Y+.5,4,0,Math.PI*2);G.fill();}else px('#7d1f33',X-1,Y-1,3,3);};
 
   const HWY=[[332,730],[332,660],[330,626],[322,560],[308,505],[302,470],[296,430],[288,390],[280,350],[278,325],[278,300],[282,262],[290,200],[305,140],[318,70],[325,-10]];
 
-  K.W.push({ n:3, hud:"ROBIN'S OILFIELD", name:'Kinan vs. the Safety Foreman',
-    where:"A road trip with Robin: from Grandma and Grandpa's place at Onion Lake, up Highway 63 to Fort McMurray, then down the gravel lease road through the boreal forest to the oil sands and Robin's drilling rig on the night shift.",
+  K.W.push({ n:3, hud:"DAD'S OILFIELD", name:'Kinan vs. the Safety Foreman',
+    where:"A road trip with Dad: from Grandma and Grandpa's place at Onion Lake, up Highway 63 to Fort McMurray, then down the gravel lease road through the boreal forest to the oil sands and Robin's drilling rig on the night shift.",
     marks:"Grandma and Grandpa's farm at Onion Lake, Highway 63, the Welcome to Fort McMurray sign, the Athabasca River, the work camp, a muddy lease road, pumpjacks, muskeg ponds, a big bull moose, hydro vac trucks, pipe racks, the oil sands mine with giant haul trucks, a flare stack and Robin's rig under the floodlights.",
     size:[1200,720], ground:'boreal', water:'blue', cliff:'dirt', path:'gravel',
     rivers:[{pts:[[-20,330],[100,318],[220,332],[340,318],[460,340],[560,382],[620,450],[650,540],[660,630],[670,740]],w:22}],
@@ -168,7 +168,7 @@
          still a spur off 3-8 (edge [9,8]): 3-8's old-mine-shaft exit opens it, and the trail walks past it until then */
       {at:[700,530], name:'SECRET  ATHABASCA RIVER RUN', st:'secret'},
       {at:[752,522], name:'3-8  THE BIG DIG', st:'lock'},
-      {at:[842,350], name:"CASTLE  NIGHT SHIFT AT ROBIN'S RIG  -  THE SAFETY FOREMAN", st:'boss'}],
+      {at:[842,350], name:"CASTLE  NIGHT SHIFT AT DAD'S RIG  -  THE SAFETY FOREMAN", st:'boss'}],
     edges:[
       [0,'H0'],
       ['H0',1,[[322,560],[308,505]],{road:1}],

@@ -85,7 +85,8 @@ test.describe('companion collection and loadout', () => {
     const errors = watchErrors(page);
     await openDev(page);
     await page.evaluate(() => (window as unknown as { __k11: Dev }).__k11.grantPets());
-    await page.locator('#petsBtnT').click();
+    await page.locator('#menuBtn').click(); /* 2026-10-28: Pets / Shop / How to play are in THE MENU (c2-menu.spec.ts) */ 
+    await page.locator('#petsBtnP').click();
     await expect(page.locator('#screen h1.title')).toHaveText('Pets');
     await expect(page.locator('[data-equip="cat1"]')).toContainText('Ginger');      /* the save said Garfield: renamed (Shad's ruling) */
     await expect(page.locator('[data-equip="dog1"]')).toContainText('Chikastino');

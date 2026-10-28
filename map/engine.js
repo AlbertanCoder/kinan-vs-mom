@@ -403,6 +403,18 @@ function goWorld(i,stop){wi=i;ensure(cur());const w=cur();at=stop==='last'?w.sto
     cv.classList.remove('three');cv.style.visibility='hidden';k3.mount(scr,w,k3opts(w,at));}
   else{if(k3&&k3.active)k3.unmount();cv.style.visibility='';cv.classList.toggle('three',w.n===12);}
   arrived();}
+/* a world the game has not released yet (the game marks it soon in opts.annotate): the next real world after this one
+   stays behind a "COMING SOON" sign at this world's way out, Glitchy waving beside it (Shad, 2026-10-28) */
+function gateAhead(){const w=cur();if(!w||w.travel)return null;for(let j=wi+1;j<W.length;j++){if(W[j].travel)continue;return W[j].soon?W[j]:null;}return null;}
+function drawGate(w,t,wave){if(w.travel||!w.outGeo||w!==cur())return;const g=gateAhead();if(!g)return;
+  const o=w.outGeo,L=segLen(o),p=along(o,Math.max(0,Math.min(L-30,64)));   /* on the road out, a few steps from the castle, where Kinan sees it */const X=Math.round(Math.max(40,Math.min(w.WW-40,p[0]))),Y=Math.round(Math.max(36,Math.min(w.WH-8,p[1])));
+  shadow(X,Y+2,22,4);for(const dx of[-16,10]){px('#1b1220',dx+X,Y-9,7,9);px('#ff8a3d',dx+X+1,Y-8,5,8);px('#ffffff',dx+X+1,Y-5,5,1);}
+  px('#1b1220',X-20,Y-10,40,4);for(let k=0;k<5;k++)px(k%2?'#ffffff':'#e8364b',X-19+k*8,Y-9,8,2);
+  px('#1b1220',X-1,Y-34,3,24);const s1='WORLD '+g.n,s2='COMING SOON!',bw=Math.max(bfWidth(s1,7),bfWidth(s2,7))+12;
+  px('#1b1220',X-bw/2-1,Y-51,bw+2,20);px('#f6c445',X-bw/2,Y-50,bw,18);px('#fff3c4',X-bw/2,Y-50,bw,1);
+  txt(s1,X-bfWidth(s1,7)/2,Y-47,'#1b1220',7,1);txt(s2,X-bfWidth(s2,7)/2,Y-40,'#7d1f33',7,1);
+  if(!wave)return;const gx=X+30,gy=Y-2+Math.round(Math.sin(t/260)*2);glitchySpr(gx,gy,t,1);
+  const up=Math.floor(t/220)%2;G.save();G.translate(gx,gy);G.scale(1.3,1.3);px('#7a2fd0',-11,up?-14:-11,3,up?6:3);px('#1b1220',-11,up?-15:-12,3,1);G.restore();}
 function edgeSide(w,p){return p[0]<=1?'left':p[0]>=w.WW-1?'right':p[1]<=1?'top':'bottom';}
 /* walk off this world's edge into the next one (or back); A = the world that exits, B = the one entered */
 function startCross(dir){const w=cur(),j=wi+dir,o=W[j];ensure(o);
@@ -412,12 +424,13 @@ function startCross(dir){const w=cur(),j=wi+dir,o=W[j];ensure(o);
   if(dir>0){offO=off;pts=A.outGeo.concat(B.inGeo.map(([a,b])=>[a+off[0],b+off[1]]));}
   else{offO=[-off[0],-off[1]];pts=B.inGeo.slice().reverse().concat(A.outGeo.slice().reverse().map(([a,b])=>[a+offO[0],b+offO[1]]));}
   cross={dir,other:j,off:offO,pts,d:0,len:segLen(pts),ride:A.exitPath.ride||null};}
-function canCross(dir){const j=wi+dir,o=W[j];if(!o)return false;const A=dir>0?cur():o,B=dir>0?o:cur();return !!(A.exitPath&&B.entryPath&&A.n<10);}
+function canCross(dir,from){const c=from==null?wi:from,j=c+dir,o=W[j];if(!o)return false;const A=dir>0?W[c]:o,B=dir>0?o:W[c];return !!(A.exitPath&&B.entryPath&&A.n<10);}
 function go(dir){if(!mounted||busy)return;if(window.KINAN3D&&KINAN3D.active){KINAN3D.go(dir);return;}
   if(walk||banner||cross)return;const w=cur();let ni=at+dir;
   while(ni>=0&&ni<w.stops.length&&skip(w.stops[ni]))ni+=dir;
   if(ni>=w.stops.length){
     if(!worldDone(w)){hint('BEAT THE CASTLE TO OPEN THE WAY ON');return;}
+    const g=gateAhead();if(g){banner={t:0,txt:'WORLD '+g.n+' COMING SOON!',sub:'Glitchy is waiting there. Its levels are on the way!',ok:false,soon:true,dur:2600};return;}
     if(canCross(1)){startCross(1);return;}
     if(w.n===10){banner={t:0,txt:'WAIT... DID THE WORLD JUST GLITCH?',ok:true,glitch:true,then:()=>goWorld(wi+1,0)};return;}
     if(w.n===11){const j=idxOf(12);if(j<0)return;busy=true;
@@ -435,6 +448,102 @@ function play(){if(!mounted||busy)return;if(window.KINAN3D&&KINAN3D.active){KINA
   if(s.state==='locked'){banner={t:0,txt:'LOCKED  -  BEAT THE YELLOW DOT FIRST',ok:false,dur:1400};return;}
   if(s.built===false){banner={t:0,txt:'COMING SOON!',sub:'This level is still being built. Walk on past it!',ok:false,soon:true,dur:2200};return;}
   const i=at;banner={t:0,txt:"LET'S GO!  "+s.name.split('  -  ')[0],ok:true,dur:800,then:()=>{if(mounted&&opts.onPlay)opts.onPlay(w.n,i,s);}};}
+/* ---- CUTSCENES (index.html block "CUTSCENES"): Glitchy runs across the map and the camera follows him ----
+   fly(kind,o) plays one; the map is busy (no walking, no PLAY) until it ends, then Kinan stands where he was.
+   'intro'  (the opening cutscene): from Kinan's stop 0 Glitchy hops stop to stop through the world, past the castle
+            and off the map edge, then the camera glides back to Kinan.
+   'escape' (after a castle win): Glitchy pops out at the castle, runs off the edge into the next world (through a
+            road trip if one is in between; the camera follows him over the seam), hops through that world's first
+            stops and vanishes on the way to its castle; then a quick fade back to Kinan at the castle.
+   o.onEvent(name,{world}) fires at 'start', 'castle' (intro: past the castle), 'seam' (escape: into the next world),
+   'gone' (out of sight); o.onDone(skipped) once, unless the map is unmounted first. A secret spur is never hopped. */
+let fly=null;
+function flyStops(w,from,to){const ids=[];for(let i=from;i<=to;i++){if(i!==from&&i!==to&&kindOf(w.stops[i])==='secret')continue;ids.push(i);}
+  let pts=[];const marks=[0];
+  for(let k=1;k<ids.length;k++){const r=w.route(ids[k-1],ids[k]);const seg=r.pts.length>1?r.pts:[w.stops[ids[k-1]].at,w.stops[ids[k]].at];pts=pts.concat(pts.length?seg.slice(1):seg);marks.push(segLen(pts));}
+  if(pts.length<2)pts=[w.stops[from].at,w.stops[from].at];return {pts,marks};}
+/* bounce marks every ~step px for a stretch with no stops in it (an exit road, a seam) */
+function evenMarks(len,step){const n=Math.max(1,Math.round(len/step)),m=[];for(let i=0;i<=n;i++)m.push(len*i/n);return m;}
+/* a leg: the world drawn (wi), maybe the next world beside it (other {wi,off}), the path, where each bounce lands */
+function legOf(wi,pts,marks,extra){const len=Math.max(1,segLen(pts));return Object.assign({wi,pts,len,marks:marks||evenMarks(len,64)},extra||{});}
+function crossLeg(i){const A=W[i],B=W[i+1];ensure(B);const ex=A.exitPath.to,en=B.entryPath.from,side=edgeSide(A,ex);
+  const off=side==='right'?[A.WW,ex[1]-en[1]]:side==='left'?[-B.WW,ex[1]-en[1]]:side==='bottom'?[ex[0]-en[0],A.WH]:[ex[0]-en[0],-B.WH];
+  return legOf(i,A.outGeo.concat(B.inGeo.map(([a,b])=>[a+off[0],b+off[1]])),null,{other:{wi:i+1,off}});}
+function flyLegs(kind,hi,at){const w=W[hi];ensure(w);const legs=[];
+  if(kind==='intro'){
+    const last=w.stops.length-1,tr=flyStops(w,at,last);legs.push(legOf(hi,tr.pts,tr.marks,{ev:'start'}));
+    if(w.outGeo&&w.outGeo.length>1){const o=w.outGeo,a=o[o.length-2],b=o[o.length-1],d=Math.hypot(b[0]-a[0],b[1]-a[1])||1;
+      legs.push(legOf(hi,o.concat([[b[0]+(b[0]-a[0])/d*90,b[1]+(b[1]-a[1])/d*90]]),null,{ev:'castle'}));}
+    return legs;}
+  /* escape: off the edge, over the seam (and through a road trip), into the next real world */
+  let i=hi;
+  for(let g=0;g<3;g++){const B=W[i+1];if(!B||B.n===12)return null;ensure(B);
+    if(canCross(1,i)){legs.push(crossLeg(i));i++;
+      if(B.travel){const tr=flyStops(B,0,B.stops.length-1);legs.push(legOf(i,tr.pts,tr.marks));continue;}break;}
+    /* no road over this seam (World 10 glitches into 11): run off the edge, then a quick cut */
+    const A=W[i],p0=A.stops[A.stops.length-1].at,out=A.outGeo&&A.outGeo.length>1?A.outGeo:[p0,[A.WW+40,p0[1]]];
+    legs.push(legOf(i,out,null,{ev:g===0?'start':null,cut:true}));i++;break;}
+  const B=W[i];if(!B||B.travel||B.n===12)return null;
+  const reg=[];B.stops.forEach((s,k)=>{if(kindOf(s)!=='secret'&&kindOf(s)!=='travel')reg.push(k);});
+  const k3=reg[Math.min(3,reg.length-2)]||0,tr=flyStops(B,0,k3);legs.push(legOf(i,tr.pts,tr.marks,{ev:'seam'}));
+  const cas=B.stops[B.stops.length-1].at,p=B.stops[k3].at;legs.push(legOf(i,[p,cas],null,{fade:true}));
+  return legs;}
+function fly1(kind,o){if(!mounted||fly||walk||cross||(window.KINAN3D&&KINAN3D.active))return false;o=o||{};
+  const legs=flyLegs(kind,wi,at);if(!legs||!legs.length)return false;
+  const total=legs.reduce((s,l)=>s+l.len,0),ms=kind==='intro'?13000:10000;
+  banner=null;busy=true;
+  fly={kind,legs,li:0,d:0,v:Math.max(0.06,Math.min(0.4,total/ms)),phase:'appear',t:0,a:1,home:{wi,at},o,trail:[],sent:{}};
+  return true;}
+function flyEv(name){const f=fly;if(!f||f.sent[name])return;f.sent[name]=1;try{if(f.o.onEvent)f.o.onEvent(name,{world:W[f.legs[f.li].wi].n});}catch(e){console.error('[map]',e);}}
+function flyEnd(skipped){const f=fly;if(!f)return;fly=null;busy=false;wi=f.home.wi;at=f.home.at;walk=null;cross=null;banner=null;
+  if(skipped||f.kind==='escape'){snapCam();fade=skipped?0.5:1;}
+  try{if(f.o.onDone)f.o.onDone(!!skipped);}catch(e){console.error('[map]',e);}}
+function flyPos(){const f=fly,L=f.legs[f.li],d=Math.min(f.d,L.len),p=along(L.pts,d);let h=0;
+  for(let k=1;k<L.marks.length;k++)if(d<=L.marks[k]){const m0=L.marks[k-1],m1=L.marks[k],s=m1-m0;if(s>0.5)h=Math.sin(Math.PI*(d-m0)/s)*Math.max(6,Math.min(24,s*0.2));break;}
+  return [p[0],p[1],h];}
+/* Glitchy, the same pixel creature as World 11's map: purple, a magenta top, a cyan band, one big eye, three antennae */
+function glitchySpr(X,Y,t,a){const j=Math.floor(t/90)%7===0?2:0,x0=-7+j,y0=-13;G.save();G.globalAlpha=a;G.translate(Math.round(X),Math.round(Y));G.scale(1.3,1.3);   /* Kinan's map size */
+  
+  px('#1b1220',x0-1,y0-1,16,14);px('#7a2fd0',x0,y0,14,12);px('#ff3df0',x0,y0,14,2);px('#00ffd0',x0+(j?2:0),y0+9,14,2);
+  px('#ffffff',x0+4,y0+3,6,5);px('#1b1220',x0+6+(j?1:0),y0+4,2,2);px('#1b1220',x0+4,y0+8,6,1);
+  px('#7a2fd0',x0-3,y0+4,3,2);px('#7a2fd0',x0+14,y0+4,3,2);[[2,-3],[6,-4],[10,-3]].forEach(([u,v])=>px('#00ffd0',x0+u,y0+v,1,3));
+  if(Math.floor(t/140)%9===0){px('rgba(255,61,240,.7)',x0-4,y0+5,22,1);px('rgba(0,255,208,.7)',x0+2,y0+2,16,1);}G.restore();}
+function drawFly(t,dt){const f=fly;dt=Math.min(100,dt)*speed;f.t+=dt;
+  if(f.phase==='appear'&&f.t>(f.kind==='escape'?900:500)){f.phase='run';f.t=0;flyEv('start');if(f.legs[0].ev&&f.legs[0].ev!=='start')flyEv(f.legs[0].ev);}
+  if(f.phase==='run'){f.d+=dt*f.v;let L=f.legs[f.li];
+    while(f.d>=L.len){if(f.li>=f.legs.length-1){f.d=L.len;f.phase='gone';f.t=0;flyEv('gone');break;}
+      f.d-=L.len;if(L.other){camX-=L.other.off[0];camY-=L.other.off[1];}f.li++;const N=f.legs[f.li];
+      if(L.cut){fade=1;const q=N.pts[0];camX=q[0]-VW/2;camY=q[1]-VH*0.55;}
+      if(N.ev)flyEv(N.ev);L=N;}}
+  if(f.phase==='gone'&&f.t>600){if(f.kind==='escape'){f.phase='fadeout';f.t=0;}else{f.phase='back';f.t=0;}}
+  if(f.phase==='fadeout'&&f.t>380){flyEnd(false);return;}
+  const L=f.legs[f.li],w=W[L.wi],home=W[f.home.wi].stops[f.home.at].at;wi=L.wi;
+  const p=flyPos();
+  if(L.fade)f.a=Math.max(0,1-Math.max(0,f.d/L.len-0.35)/0.4);else if(f.phase==='gone'&&f.kind==='intro')f.a=0;
+  let tx,ty;
+  if(f.phase==='back'){tx=Math.max(0,Math.min(w.WW-VW,home[0]-VW/2));ty=Math.max(0,Math.min(w.WH-VH,home[1]-VH*0.55));}
+  else if(L.other){tx=p[0]-VW/2;ty=p[1]-VH*0.55;}
+  else{tx=Math.max(0,Math.min(w.WW-VW,p[0]-VW/2));ty=Math.max(0,Math.min(w.WH-VH,p[1]-VH*0.55));}
+  const k=f.phase==='back'?0.07:0.12;camX+=(tx-camX)*k;camY+=(ty-camY)*k;
+  if(f.phase==='back'&&((Math.abs(tx-camX)<1.5&&Math.abs(ty-camY)<1.5)||f.t>2600)){flyEnd(false);return;}
+  const cx=Math.round(camX),cy=Math.round(camY);
+  x.fillStyle=WATER[w.water].a;x.fillRect(0,0,VW,VH);x.drawImage(w.base,-cx,-cy);
+  const O=L.other?W[L.other.wi]:null;if(O)x.drawImage(O.base,L.other.off[0]-cx,L.other.off[1]-cy);
+  x.save();x.translate(-cx,-cy);G=x;
+  for(const a of (w.anim||[]))A[a[0]](t,...a.slice(1));w.stops.forEach(s=>node(s,t));drawWorldText(w);if(L.wi===f.home.wi)drawGate(w,t,false);
+  if(O){x.save();x.translate(L.other.off[0],L.other.off[1]);for(const a of (O.anim||[]))A[a[0]](t,...a.slice(1));O.stops.forEach(s=>node(s,t));drawWorldText(O);x.restore();}
+  if(L.wi===f.home.wi&&!w.travel){const S=1.25,fc=p[0]<home[0]?-1:1,kx=home[0]-8*S,ky=home[1]-18*S+2;
+    G.fillStyle='rgba(0,0,0,.38)';G.beginPath();G.ellipse(home[0]+.5,home[1]+3,9,3,0,0,Math.PI*2);G.fill();
+    spr(KINAN,kx,ky,PAL,S,fc<0);spr(LEGS.stand,kx,ky+15*S,PAL,S,fc<0);}
+  if(f.a>0){const gy=p[1]-p[2]-(f.phase==='appear'?Math.max(0,1-f.t/400)*30:0);
+    if(f.phase!=='appear'&&Math.floor(t/60)%2===0){f.trail.push([p[0],gy,t]);if(f.trail.length>14)f.trail.shift();}
+    for(const q of f.trail){const age=(t-q[2])/700;if(age<1){G.globalAlpha=(1-age)*f.a;px(age<0.5?'#ff3df0':'#00ffd0',q[0]-1+Math.sin(q[2])*4,q[1]-6+age*6,2,2);G.globalAlpha=1;}}
+    if(f.phase==='appear')for(let i=0;i<10;i++){const r=6+f.t/30,ang=i*Math.PI/5+t/200;px(i%2?'#ff3df0':'#00ffd0',p[0]+Math.cos(ang)*r,gy-6+Math.sin(ang)*r*0.7,2,2);}
+    G.globalAlpha=0.3*f.a;G.fillStyle='#000';G.beginPath();G.ellipse(p[0],p[1]+2,6,2,0,0,Math.PI*2);G.fill();G.globalAlpha=1;
+    glitchySpr(p[0],gy,t,f.a);}
+  x.restore();G=x;fx(t,p[0]);hud();
+  if(f.phase==='fadeout'){x.fillStyle='rgba(0,0,0,'+Math.min(1,f.t/380)+')';x.fillRect(0,0,VW,VH);}
+  overlays(dt);}
 addEventListener('keydown',e=>{if(!mounted||!cv.isConnected||e.ctrlKey||e.metaKey||e.altKey)return;const t=e.target;if(t&&(t.tagName==='INPUT'||t.tagName==='TEXTAREA'||t.isContentEditable))return;
   const k=e.key;if(['ArrowRight','ArrowUp'].includes(k)){go(1);e.preventDefault();}else if(['ArrowLeft','ArrowDown'].includes(k)){go(-1);e.preventDefault();}
   else if(k==='Enter'||k===' '){if(document.activeElement&&document.activeElement.tagName==='BUTTON'&&!document.activeElement.classList.contains('km-btn'))return;play();e.preventDefault();}});
@@ -473,7 +582,7 @@ function mount(host,o){unmount();opts=o||{};W.sort((a,b)=>a.n-b.n);css();
   return api.state();}
 function unmount(){if(!mounted&&!root)return;mounted=false;busy=false;if(raf)cancelAnimationFrame(raf);raf=0;
   if(window.KINAN3D&&KINAN3D.active)KINAN3D.unmount();
-  if(ro){ro.disconnect();ro=null;}if(root&&root.parentNode)root.parentNode.removeChild(root);root=null;scr=null;banner=null;walk=null;cross=null;}
+  if(ro){ro.disconnect();ro=null;}if(root&&root.parentNode)root.parentNode.removeChild(root);root=null;scr=null;banner=null;walk=null;cross=null;fly=null;}
 
 /* vehicles Kinan rides on long trips between worlds */
 function drawRide(kind,X,Y,f,t){const g=G;g.save();g.translate(Math.round(X),Math.round(Y));if(f<0)g.scale(-1,1);const wh=Math.floor(t/90)%2;
@@ -510,8 +619,8 @@ function glitchFx(t,strong,lvl){lvl=lvl||0;const a=0.08+0.1*lvl;for(let y=0;y<VH
   if(lvl>0.75){x.globalAlpha=0.16+0.1*(lvl-0.75)*4;x.drawImage(cv,0,0,VW*SC,VH*SC,Math.round(2+3*lvl),0,VW,VH);x.globalAlpha=1;}}
 function rainFx(t,heavy){x.fillStyle=heavy?'rgba(20,30,60,.22)':'rgba(20,30,60,.10)';x.fillRect(0,0,VW,VH);const n=heavy?140:70;for(let i=0;i<n;i++){const X=(hash(i,1)*VW+t*0.05)%VW,Y=(hash(i,2)*VH+t*0.32)%VH;x.fillStyle='rgba(180,205,240,.7)';x.fillRect(Math.round(X),Math.round(Y),1,heavy?6:4);}
   if(heavy&&(t%3100)<90){x.fillStyle='rgba(255,255,240,.45)';x.fillRect(0,0,VW,VH);}}
-function fx(t){const w=cur();let kind=w.fx;
-  if(w.weather){const px0=pos()[0];const z=w.weather.find(z=>px0>=z[0]&&px0<z[1]);kind=z?z[2]:null;}
+function fx(t,atX){const w=cur();let kind=w.fx;
+  if(w.weather){const px0=atX!=null?atX:pos()[0];const z=w.weather.find(z=>px0>=z[0]&&px0<z[1]);kind=z?z[2]:null;}
   if(kind==='rain')rainFx(t,false);
   if(kind==='storm')rainFx(t,true);
   if(kind==='snow'){x.fillStyle='rgba(230,240,255,.08)';x.fillRect(0,0,VW,VH);for(let i=0;i<100;i++){const X=(hash(i,5)*VW+Math.sin(t/900+i)*8+t*0.008)%VW,Y=(hash(i,6)*VH+t*0.04)%VH;x.fillStyle='rgba(255,255,255,.92)';x.fillRect(Math.round(X),Math.round(Y),2,2);}}
@@ -523,9 +632,10 @@ let last=0;
 function frame(t){raf=0;if(!mounted)return;if(!cv.isConnected){unmount();return;}
   try{draw(t);}catch(e){console.error('[map]',e);unmount();throw e;}
   if(mounted)raf=requestAnimationFrame(frame);}
-function draw(t){const dt=Math.min(50,t-(last||t));last=t;let w=cur();
+function draw(t){const dt0=t-(last||t),dt=Math.min(50,dt0);last=t;let w=cur();
   if(window.KINAN3D&&KINAN3D.active&&w.n===12)return;   /* the 3D map draws itself */
   x.setTransform(SC,0,0,SC,0,0);x.imageSmoothingEnabled=false;
+  if(fly){drawFly(t,dt0);return;}   /* a cutscene: Glitchy runs and the camera follows him */
   if(cross){cross.d+=dt*(cross.ride?0.16:0.09)*speed;if(cross.d>=cross.len){const o=W[cross.other],cd=cross.dir;camX-=cross.off[0];camY-=cross.off[1];wi=cross.other;at=cd>0?0:o.stops.length-1;cross=null;w=cur();if(o.travel)go(cd);else arrived();}}
   if(walk){walk.d+=dt*(w.travel?0.2:0.09)*speed;if(walk.d>=walk.len){const wd=walk.dir;at=walk.to;walk=null;
     /* road trips carry straight on into the next world */
@@ -540,7 +650,7 @@ function draw(t){const dt=Math.min(50,t-(last||t));last=t;let w=cur();
   x.save();x.translate(-cx,-cy);G=x;
   const wat=WATER[w.water];for(let i=0;i<150;i++){const X=Math.round((hash(i,1)*w.WW+t*0.012*(i%3+1))%w.WW),Y=Math.round(hash(i,2)*w.WH);if(!w.M(X,Y)&&!w.M(X,Y-CLIFF)&&!w.M(X,Y-5)&&!onBridge(w,X,Y)&&Math.sin(t/300+i)>0)px(wat.sh,X,Y,w.water==='space'||w.water==='void'?1:3,1);}
   for(const a of (w.anim||[]))A[a[0]](t,...a.slice(1));
-  w.stops.forEach(s=>node(s,t));drawCelebrate(w,t,dt);drawWorldText(w);
+  w.stops.forEach(s=>node(s,t));drawCelebrate(w,t,dt);drawWorldText(w);drawGate(w,t,!walk&&!cross);
   if(cross){const o=W[cross.other];x.save();x.translate(cross.off[0],cross.off[1]);for(const a of (o.anim||[]))A[a[0]](t,...a.slice(1));o.stops.forEach(s=>node(s,t));drawWorldText(o);x.restore();}
   if(w.travel&&!cross){drawRide(w.ride||'bus',p[0],p[1],face,t);drawOvers(w,p);x.restore();G=x;fx(t);hud();plaque(w.hud);overlays(dt);return;}
   if(cross&&cross.ride){drawRide(cross.ride,p[0],p[1],face,t);x.restore();G=x;fx(t);hud();plaque(crossLabel(W[cross.other],cross.dir));overlays(dt);return;}
@@ -572,10 +682,15 @@ const api={
   state:()=>{const w=cur(),k3=window.KINAN3D,k3on=!!(k3&&k3.active),ks=k3on&&k3.state?k3.state():null;
     return {mounted,busy,world:w?w.n:null,at:k3on&&ks?ks.at:at,walking:!!walk||!!(ks&&ks.walking),crossing:!!cross,three:k3on,threeReady:!!(ks&&ks.ready),
       banner:banner?banner.txt:(ks&&ks.banner?'3D':null),notice:notice?notice.txt:null,celebrate:celebrate?celebrate.k:null,
+      gate:(()=>{const g=mounted&&!fly?gateAhead():null;return g?g.n:null;})(),
+      fly:fly?{kind:fly.kind,phase:fly.phase,leg:fly.li,legs:fly.legs.length,world:W[fly.legs[fly.li].wi].n,home:W[fly.home.wi].n+':'+fly.home.at}:null,
       stops:w?w.stops.map(s=>({name:s.name,kind:s.kind,id:s.id||null,built:s.built!==false,state:s.state||null})):[]};},
   /* developer tools: drop Kinan on a world's stop */
   warp:(n,k)=>{const i=idxOf(n);if(i<0||!mounted)return null;goWorld(i,k||0);return api.state();},
-  speed:(v)=>{speed=Math.max(0.25,Math.min(12,Number(v)||1));return speed;},   /* tests: long road trips at a multiple of the walking speed */
+  speed:(v)=>{speed=Math.max(0.25,Math.min(12,Number(v)||1));return speed;},
+  /* cutscenes (see CUTSCENES above): fly('intro'|'escape', {onEvent, onDone}) -> started?; flySkip() ends one now */
+  fly:(kind,o)=>fly1(kind,o),flySkip:()=>{if(!fly)return false;flyEnd(true);return true;},
+  notice:(txt,dur)=>{if(mounted&&txt)notice={t:0,txt:String(txt),dur:dur||2600};},   /* tests: long road trips at a multiple of the walking speed */
   worlds:()=>W.slice().sort((a,b)=>a.n-b.n).map(w=>({n:w.n,travel:!!w.travel,hud:w.hud,stops:w.stops.map(s=>({name:s.name,st:s.st,kind:kindOf(s)}))}))
 };
 /* world files register with KINAN.W.push({...}) and use the drawing helpers below */

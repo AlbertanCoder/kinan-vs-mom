@@ -67,14 +67,16 @@ test.describe('V2 · auto-run', () => {
     expect(errors).toEqual([]);
   });
 
-  test('the Auto-run switch in the pause menu turns it OFF: classic hold-to-run (no key walks, SHIFT runs); the save keeps it', async ({ page }) => {
+  test('the Auto-run switch in the menu\'s Settings turns it OFF: classic hold-to-run (no key walks, SHIFT runs); the save keeps it', async ({ page }) => {
     const errors = watchErrors(page);
     await boot(page);
     await floor(page);
-    await page.locator('#pauseBtn').click();
+    await page.locator('#menuBtn').click();   /* 2026-10-28: THE MENU is the pause; Auto-run is on its Settings page */
+    await page.locator('#settingsBtn').click();
     await expect(page.locator('#autoRunBtn')).toHaveText('Auto-run: ON');
     await page.locator('#autoRunBtn').click();
     await expect(page.locator('#autoRunBtn')).toHaveText('Auto-run: OFF');
+    await page.locator('#menuBack').click();
     await page.locator('#resumeBtn').click();
     expect((await page.evaluate(() => (window as unknown as Win).__k11.progress())).autoRun).toBe(false);
     await expect(page.locator('#keys')).toContainText('hold SHIFT to run');
@@ -102,9 +104,10 @@ test.describe('V2 · auto-run', () => {
     };
     expect(await padSpeed(false)).toBe(3.2);
     expect(await padSpeed(true)).toBe(3.2);
-    await page.locator('#pauseBtn').click();
+    await page.locator('#menuBtn').click();
+    await page.locator('#settingsBtn').click();
     await page.locator('#autoRunBtn').click();
-    await page.locator('#resumeBtn').click();
+    await page.locator('#menuX').click();
     expect(await padSpeed(true)).toBe(3.2);
     /* with a mouse-and-keyboard device the stick alone walks then, so B is what runs (a touch device always runs) */
     if (await page.evaluate(() => matchMedia('(any-pointer: fine)').matches)) expect(await padSpeed(false)).toBe(1.9);
@@ -119,7 +122,8 @@ test.describe('V2 · auto-run', () => {
     if (fine) await expect(page.locator('#keys')).toContainText('Kinan runs by himself');
     expect(await page.locator('#keys').textContent()).toContain('hold SHIFT or X to walk');
     await page.evaluate(() => (window as unknown as { __k11: { worldMap: () => void } }).__k11.worldMap());
-    await page.locator('#owHow').click();
+    await page.locator('#menuBtn').click();   /* 2026-10-28: How to play is in THE MENU */
+    await page.locator('#howBtn').click();
     await expect(page.locator('.howto')).toContainText('Kinan runs by himself');
     await expect(page.locator('#howAutoRun')).toHaveText(/Auto-run: ON/);
     if (testInfo.project.name === 'desktop-chromium') {   /* page 2 of How to play holds the switch */

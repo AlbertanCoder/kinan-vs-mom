@@ -102,8 +102,8 @@ test.describe('legacy orientation safety', () => {
     try {
       await startStage(page);
       await dismissStory(page);
-      await page.locator('#pauseBtn').click();
-      await expect(page.locator('#pause')).toBeVisible();
+      await page.locator('#menuBtn').click();
+      await expect(page.locator('#menu')).toBeVisible();
       await expect.poll(() => paused(page)).toBe(true);
 
       await page.setViewportSize(PORTRAIT);
@@ -111,7 +111,7 @@ test.describe('legacy orientation safety', () => {
       await page.setViewportSize(LANDSCAPE);
       await expect(page.locator('#portraitGate')).toBeHidden();
       await expect.poll(() => paused(page)).toBe(true);
-      await expect(page.locator('#pause')).toBeVisible();
+      await expect(page.locator('#menu')).toBeVisible();
       expect(errors).toEqual([]);
     } finally {
       await context.close();

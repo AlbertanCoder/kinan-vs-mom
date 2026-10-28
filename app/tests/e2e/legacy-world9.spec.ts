@@ -55,7 +55,7 @@ async function devStage(page: Page, stage: number): Promise<void> {
 test.describe('World 9 — Starbase & Annie’s Arrival', () => {
   test('opens after World 8 with all five Starbase stages on the map', async ({ page }) => {
     const errors = watchErrors(page);
-    await seedWorld9(page); await page.goto(PROD_URL); await page.locator('#mapBtn').click();
+    await seedWorld9(page); await page.goto(PROD_URL); await page.locator('#menuBtn').click(); await page.locator('#partyBtn').click(); await page.locator('#classicBtn').click();   /* 2026-10-28: Classic stages are in THE MENU's More games */
     await expect(page.locator('.worldtab[data-world="9"]')).toHaveClass(/on/);
     await expect(page.locator('.lvbtn')).toHaveCount(5);
     for (const name of ['Twin-Sun Outpost', 'Droid Factory', 'Laser Corridors', '2D Trench Run', "Annie's Galactic Kitchen"]) {
@@ -67,13 +67,13 @@ test.describe('World 9 — Starbase & Annie’s Arrival', () => {
   test('starts every Starbase stage in 2D without requesting the archived engine', async ({ page }) => {
     const errors = watchErrors(page); const requests: string[] = [];
     page.on('request', (req) => requests.push(req.url()));
-    await seedWorld9(page); await page.goto(PROD_URL); await page.locator('#mapBtn').click();
+    await seedWorld9(page); await page.goto(PROD_URL); await page.locator('#menuBtn').click(); await page.locator('#partyBtn').click(); await page.locator('#classicBtn').click();   /* 2026-10-28: Classic stages are in THE MENU's More games */
     for (let i = 67; i <= 71; i++) {
       await page.locator('#stagesBtn').click();
       await page.locator(`[data-lv="${i}"]`).click();
       await expect(page.locator('#stage')).toBeVisible(); await expect(page.locator('#cv')).toBeVisible();
       await dismissStory(page);
-      await page.locator('#pauseBtn').click(); await page.locator('#mapBtnP').click();
+      await page.locator('#menuBtn').click(); await page.locator('#mapBtnP').click();
       await expect(page.locator('.lvbtn')).toHaveCount(5);
     }
     expect(requests.filter((url) => url.includes('galaxy3d'))).toEqual([]);
@@ -139,7 +139,7 @@ test.describe('World 9 — Starbase & Annie’s Arrival', () => {
   });
 
   test('World 9 map and progression preserve the earlier world ranges', async ({ page }) => {
-    const errors = watchErrors(page); await seedWorld9(page); await page.goto(PROD_URL); await page.locator('#mapBtn').click();
+    const errors = watchErrors(page); await seedWorld9(page); await page.goto(PROD_URL); await page.locator('#menuBtn').click(); await page.locator('#partyBtn').click(); await page.locator('#classicBtn').click();   /* 2026-10-28: Classic stages are in THE MENU's More games */
     await expect(page.locator('.worldtab[data-world="9"]')).toHaveClass(/on/);
     await page.locator('.worldtab[data-world="8"]').click(); await expect(page.locator('.lvbtn')).toHaveCount(5);
     await page.locator('.worldtab[data-world="7"]').click(); await expect(page.locator('.lvbtn')).toHaveCount(5);

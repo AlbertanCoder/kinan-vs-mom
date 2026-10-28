@@ -18,7 +18,7 @@ type Dev = {
   mapState: () => MapState; levelInfo: () => { id: string | null; cleared: boolean; returned: boolean; secretExit: { tx: number; ty: number; open: boolean } | null };
   playLevel: (id: string) => unknown; godMode: () => void; clearFoes: () => void; freeze: (on: boolean) => void; tile: (c: number, r: number) => number;
   place: (x: number, y: number) => unknown; step: (n: number, o?: Record<string, boolean>) => unknown[];
-  progress: () => Record<string, unknown> & { levelsBeaten: Record<string, number>; pets: { ids: string[] }; wallet: number; codes: number[]; wmap: unknown };
+  progress: () => Record<string, unknown> & { levelsBeaten: Record<string, number>; pets: { ids: string[] }; wallet: number; codes?: number[]; wmap: unknown };
 };
 type Def = { id: string; world: number; slot: number; secrets?: { col: number; row: number; exit?: string }[] };
 type Win = Window & { __k11: Dev; KinanLevels: { ready: boolean; list: () => string[]; get: (id: string) => Def } };
@@ -92,6 +92,7 @@ test.describe('QA fix: the texts match the game', () => {
   test('How to play explains today\'s rules: candles and golden candles, no game over, auto-run (SHIFT/X walks), pets that work by themselves, bosses that get smarter', async ({ page }) => {
     const errors = watchErrors(page);
     await boot(page);
+    await page.locator('#menuBtn').click(); /* 2026-10-28: Pets / Shop / How to play are in THE MENU (c2-menu.spec.ts) */ 
     await page.locator('#howBtn').click();
     const t = (await page.locator('#screen').innerText()).replace(/\s+/g, ' ');
     for (const want of ['The story and the moves', 'Kinan runs by himself', 'SHIFT or X to walk', 'golden candle', 'No game over', 'checkpoint flag',
@@ -115,7 +116,7 @@ test.describe('QA fix: the texts match the game', () => {
     expect(errors).toEqual([]);
   });
 
-  test('Start over asks first: "No" keeps the game, "Yes" starts a brand-new save (Builder levels and reward codes stay)', async ({ page }) => {
+  test('Start over asks first: "No" keeps the game, "Yes" starts a brand-new save (Builder levels stay; an old save\'s reward codes are gone, 2026-10-28)', async ({ page }) => {
     const errors = watchErrors(page);
     await page.addInitScript((key) => {
       if (sessionStorage.getItem('qa4-seeded')) return;
@@ -136,13 +137,18 @@ test.describe('QA fix: the texts match the game', () => {
     await expect(page.locator('#startBtn')).toContainText('START');
     await expect(page.locator('#goldTip')).toContainText('No golden candles yet');
     p = await page.evaluate(() => (window as unknown as Win).__k11.progress());
-    expect(p).toMatchObject({ levelsBeaten: {}, wmap: null, wallet: 0, goldenCandles: {}, unlockedLevels: [], codes: [3] });
+    expect(p).toMatchObject({ levelsBeaten: {}, wmap: null, wallet: 0, goldenCandles: {}, unlockedLevels: [] });
+    expect(p.codes).toBeUndefined();   /* 2026-10-28: no reward codes any more; everything unlocks by playing */
     expect(p.pets.ids).toEqual([]);
     /* it is saved: a reload is still the new game, and PLAY opens the map at World 1, stop 1 */
     await page.reload();
     await page.waitForFunction(() => !!(window as unknown as Win).__k11 && (window as unknown as Win).KinanLevels?.ready);
     expect(Object.keys((await page.evaluate(() => (window as unknown as Win).__k11.progress())).levelsBeaten)).toEqual([]);
     await page.locator('#startBtn').click({ force: true });
+    /* 2026-10-28: a brand-new save, so its first PLAY plays the opening cutscene again (c1-cutscenes.spec.ts) */
+    await expect(page.locator('#cut')).toBeVisible();
+    await page.locator('#cutSkip').click();
+    await expect(page.locator('#cut')).toBeHidden();
     const s = await settle(page);
     expect(s).toMatchObject({ world: 1, at: 0 });
     expect(errors).toEqual([]);

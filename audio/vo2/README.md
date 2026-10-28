@@ -61,7 +61,7 @@ bold name at the start of a line. `BOSS` lines take the boss's face key.
 | Key | Character in the text | Voice (edge-tts) | Picked by Shad? |
 |---|---|---|---|
 | `k` | Kinan | en-US-AnaNeural +4% / -18Hz | yes |
-| `m` | Mom (also "MOM (DEBBIE)") | en-US-JennyNeural -5% / -14Hz | yes |
+| `m` | Mom | en-US-JennyNeural -5% / -14Hz | yes |
 | `c` | Chenoa | en-CA-ClaraNeural +4% / -4Hz | yes |
 | `d` | Dad = Robin (also "DAD (on the phone)", "ROBIN") | en-US-RogerNeural -2% / -6Hz | yes |
 | `s` | Shad; also the one "SHAD AND CHENOA" line | en-US-BrianNeural +0% / -4Hz | yes |

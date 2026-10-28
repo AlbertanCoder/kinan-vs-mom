@@ -17,6 +17,9 @@ function watchErrors(page: Page): string[] {
 async function openMap(page: Page): Promise<void> {
   await page.goto(BASE);
   await page.locator('#startBtn').click({ force: true });
+  /* 2026-10-28: a new save's first PLAY plays the opening cutscene first (c1-cutscenes.spec.ts); SKIP ends it */
+  await expect(page.locator('#cut')).toBeVisible();
+  await page.locator('#cutSkip').click();
   await page.waitForFunction(() => { const k = (window as unknown as Win).KINAN; return !!k && k.state().mounted && !k.state().busy; });
   await expect(page.locator('#owHost .km-canvas')).toBeVisible();
   await page.waitForTimeout(300);   /* the picture is fitted on the next frame (ResizeObserver) */
@@ -32,13 +35,14 @@ async function noScroll(page: Page): Promise<void> {
 for (const vp of [{ width: 750, height: 342 }, { width: 844, height: 390 }]) {
   test.describe(`QA fix: the map uses a sideways phone's screen (${vp.width} x ${vp.height})`, () => {
     test.use({ viewport: vp, hasTouch: true });
-    test('the picture is big (QA measured 361 x 201 at 750 x 342), the buttons sit beside it and the tools in a column, nothing covers it', async ({ page }) => {
+    test('the picture is big (QA measured 361 x 201 at 750 x 342), the buttons sit beside it, the menu button is up in the corner, nothing covers it', async ({ page }) => {
       const errors = watchErrors(page);
       await openMap(page);
       const canvas = (await page.locator('#owHost .km-canvas').boundingBox())!;
       const btn = async (id: string): Promise<Box> => (await page.locator(id).boundingBox())!;
       const [prev, next, play] = [await btn('#owPrev'), await btn('#owNext'), await btn('#owPlay')];
-      const tools = await Promise.all(['#owTitle', '#owPets', '#owShop', '#owHow'].map(btn));
+      /* 2026-10-28: the four map tools (Title, Pets, Shop, How to play) moved into THE MENU: one button in the header's corner */
+      const tools = [await btn('#menuBtn')];
       await noScroll(page);
       expect(inside(canvas, vp.width, vp.height)).toBe(true);
       expect(canvas.width / canvas.height).toBeGreaterThan(1.7);
@@ -53,12 +57,15 @@ for (const vp of [{ width: 750, height: 342 }, { width: 844, height: 390 }]) {
       expect(next.x + next.width).toBeLessThanOrEqual(canvas.x + 1);   /* ◀ ▶ left of the picture */
       expect(play.x).toBeGreaterThanOrEqual(canvas.x + canvas.width - 1);   /* PLAY right of it */
       for (const t of tools) {
-        expect(inside(t, vp.width, vp.height), 'every tool on screen').toBe(true);
-        expect(overlap(t, canvas) || overlap(t, play) || overlap(t, prev) || overlap(t, next), 'tools never cover the picture or a button').toBe(false);
-        expect(t.x, 'the tools stand right of the picture').toBeGreaterThanOrEqual(canvas.x + canvas.width - 1);
-        expect(Math.min(t.width, t.height), 'still easy to tap').toBeGreaterThanOrEqual(44);
+        expect(inside(t, vp.width, vp.height), 'the menu button is on screen').toBe(true);
+        expect(overlap(t, canvas) || overlap(t, play) || overlap(t, prev) || overlap(t, next), 'it never covers the picture or a button').toBe(false);
+        expect(t.y + t.height, 'it sits above the picture, in the slim top bar').toBeLessThanOrEqual(canvas.y + 1);
+        expect(t.x + t.width, 'in the right corner').toBeGreaterThan(vp.width - 80);
+        expect(t.width, 'a wide target').toBeGreaterThanOrEqual(60);
+        expect(t.height, 'as tall as the slim top bar allows (its tap area reaches 8 px further above and below)').toBeGreaterThanOrEqual(28);
       }
-      await page.locator('#owHow').tap();
+      await page.locator('#menuBtn').tap();
+      await page.locator('#howBtn').tap();
       await expect(page.locator('#screen')).toContainText('The story and the moves');
       expect(errors).toEqual([]);
     });

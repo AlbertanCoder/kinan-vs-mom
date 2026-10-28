@@ -44,8 +44,11 @@ async function boot(page: Page): Promise<void> {
   await page.waitForFunction(() => !!(window as unknown as Win).__k11 && (window as unknown as Win).KinanLevels?.ready);
 }
 const mapState = (page: Page): Promise<MapState> => page.evaluate(() => (window as unknown as Win).__k11.mapState());
-async function openMap(page: Page): Promise<MapState> {
+async function openMap(page: Page, o: { intro?: boolean } = {}): Promise<MapState> {
   await page.locator('#startBtn').click({ force: true });   /* PLAY pulses (the "beat" animation) */
+  /* 2026-10-28: a new save's first PLAY plays the opening cutscene (c1-cutscenes.spec.ts); these map tests skip it */
+  if (o.intro) await expect(page.locator('#cut')).toBeVisible();
+  if (await page.locator('#cut').isVisible()) { await page.locator('#cutSkip').click(); await expect(page.locator('#cut')).toBeHidden(); }
   await page.waitForFunction(() => { const s = (window as unknown as Win).__k11.mapState(); return s.mounted && !s.busy; });
   await expect(page.locator('#owHost .km-canvas')).toBeVisible();
   return mapState(page);
@@ -65,11 +68,11 @@ const FINISH = `() => {
 }`;
 
 test.describe('the overworld map between levels', () => {
-  test('a new save: title PLAY -> the map at World 1 stop 1 -> 1-1 -> LEVEL CLEAR -> back on the map with 1-2 open', async ({ page }) => {
+  test('a new save: title PLAY -> (the opening cutscene, skipped) -> the map at World 1 stop 1 -> 1-1 -> LEVEL CLEAR -> back on the map with 1-2 open', async ({ page }) => {
     const errors = watchErrors(page);
     await boot(page);
     await expect(page.locator('#startBtn')).toContainText('PLAY');
-    const s0 = await openMap(page);
+    const s0 = await openMap(page, { intro: true });   /* a new save: the opening plays first */
     expect(s0).toMatchObject({ world: 1, at: 0 });
     expect(s0.stops[0]).toMatchObject({ id: '1-1', state: 'open', built: true });
     expect(s0.stops[1]).toMatchObject({ id: '1-2', state: 'locked' });
@@ -205,6 +208,10 @@ test.describe('the overworld map between levels', () => {
     });
     expect(info.cleared).toBe(true);
     expect(info.returned).toBe(true);
+    /* 2026-10-28: back on the map Glitchy escapes into World 2 first (c1-cutscenes.spec.ts); SKIP ends it */
+    await expect(page.locator('#cut')).toBeVisible();
+    await page.locator('#cutSkip').click();
+    await expect(page.locator('#cut')).toBeHidden();
     await page.waitForFunction(() => { const s = (window as unknown as Win).__k11.mapState(); return s.mounted && !s.busy; });
     const s2 = await mapState(page);
     expect(s2.stops[10].state).toBe('beaten');
@@ -221,6 +228,9 @@ test.describe('the overworld map between levels', () => {
   test('a "Coming soon" stop is safe: PLAY says so and launches nothing, and it never blocks the trail', async ({ page }) => {
     const errors = watchErrors(page);
     await boot(page);
+    /* 2026-10-28: this build releases Worlds 1-5 (World 6 waits behind its "coming soon" sign, c1-cutscenes.spec.ts).
+       The stops and castles with no level file are in the later worlds, so this test opens every world's map first */
+    expect(await page.evaluate(() => (window as unknown as { __k11: { owRelease: (n: number) => number } }).__k11.owRelease(12))).toBe(12);
     await openMap(page);
     /* level files keep arriving: find the first stop with no file yet and the first castle with no file yet */
     const plan = await page.evaluate(() => {
@@ -235,8 +245,11 @@ test.describe('the overworld map between levels', () => {
     });
     expect(plan.soon).not.toBeNull();
     expect(plan.castle).not.toBeNull();
-    /* every built level beaten: the whole trail up to there is open */
-    await page.evaluate(({ key, ids, at }) => {
+    /* every built level beaten: the whole trail up to there is open. Written by an init script on the reload, so a
+       story line finishing on the old page (it saves) can never write over it (2026-10-28: a firefox race) */
+    await page.addInitScript(({ key, ids, at }) => {
+      if (sessionStorage.getItem('ow-soon-seeded')) return;
+      sessionStorage.setItem('ow-soon-seeded', '1');
       localStorage.setItem(key, JSON.stringify({ unlocked: 1, beaten: [], levelsBeaten: Object.fromEntries(ids.map((id) => [id, 1])), wmap: { w: at.n, at: at.i } }));
     }, { key: CURRENT, ids: plan.ids, at: plan.soon! });
     await page.reload();
@@ -271,7 +284,7 @@ test.describe('the overworld map between levels', () => {
     await openMap(page);
     await page.locator('#owPlay').click();
     await expect(page.locator('#stage')).toBeVisible();
-    await page.locator('#pauseBtn').click();
+    await page.locator('#menuBtn').click();
     await expect(page.locator('#mapBtnP')).toContainText('World map');
     await page.locator('#mapBtnP').click();
     await page.waitForFunction(() => { const s = (window as unknown as Win).__k11.mapState(); return s.mounted && !s.busy; });
