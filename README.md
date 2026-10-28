@@ -1,14 +1,16 @@
 # Kinan vs. Mom — Birthday Remaster
 
-An expanding birthday platformer made by Shad for Kinan.
+A birthday platformer made by Shad for his little brother Kinan's 11th birthday.
 
 **Play online:** https://albertancoder.github.io/kinan-vs-mom/
 
-- Original five worlds plus Vancouver, the Brick Realms, prehistoric dinosaurs, Starbase & Annie’s Arrival, the Birthday Multiverse, and the Glitch — eleven worlds in all
-- 4 cats and 2 dogs to rescue — equip one cat and one dog, or go solo; only equipped pets follow and grant their perks.
-- Stars, hats, best times, combo scoring, touch + keyboard + gamepad
-- Installable on iPhone, iPad, Android and tablets; works offline after the first load
-- One self-contained HTML file: no external fonts, images or trackers
+- Five worlds across Canada so far: Saskatoon, School, Dad's Oilfield, Edmonton and the Calgary Stampede (55 levels, 10 bosses)
+- An animated opening, and a cutscene after every world as Glitchy escapes into the next one; more worlds are coming
+- Pets to rescue (one cat and one dog at a time), candles and golden candles, voiced story lines
+- One Menu button; everything unlocks by playing
+- Plays on iPhone, iPad, Android, tablets and computers (touch, keyboard or gamepad); works offline after the first load
+
+**Support future worlds:** if you'd like to help, there's a Ko-fi page: https://ko-fi.com/albertancoder. The game is free and always will be.
 
 ## Install it like an app
 
@@ -24,9 +26,9 @@ It then opens full-screen and runs offline.
 | Jump | Space / ↑ / W (hold = higher) | JUMP |
 | Pow | X / J | POW |
 | Friend Assist | E | FRIEND |
-| Pause | P / Esc | ⏸ |
+| Menu / pause | P / Esc | ☰ MENU |
 
-Phones and tablets use landscape gameplay. Portrait shows an upright rotate-device prompt and pauses play; the page itself never rotates.
+Phones and tablets play sideways. Held upright, a level pauses behind a rotate screen with a "Play sideways" button (Android) and help for a locked screen; menus and the map work upright.
 
 ## Run it locally
 
@@ -37,4 +39,4 @@ Open `index.html` directly, or serve this folder with any static server
 
 - Progress is saved on the device (stars, pets, names, hats, best scores), with a verified last-known-good backup and automatic recovery from a damaged current save.
 - `robots.txt` and a `noindex` meta tag keep the page out of search engines.
-- No analytics, no ads, no network calls at runtime.
+- No analytics, no ads, no network calls at runtime (the Ko-fi link only opens when you tap it).
