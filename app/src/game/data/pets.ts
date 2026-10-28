@@ -28,7 +28,7 @@ export interface PetDef {
 
 export const PETS: PetDef[] = [
   {
-    id: 'pet-garfield', name: 'Garfield', species: 'cat',
+    id: 'pet-ginger', name: 'Ginger', species: 'cat',
     identity: 'Youngest orange tabby; playful kitten energy',
     abilityName: 'Kitten Zoomies', ability: 'air-jump',
     abilityText: 'One extra air jump; three clean landings grant a speed boost.',
@@ -81,7 +81,7 @@ export interface FriendDef {
 export const FRIENDS: FriendDef[] = [
   {
     id: 'friend-milo', name: 'Milo',
-    identity: 'LEGO-loving classmate',
+    identity: 'brick-building classmate',
     assistText: 'Builds a temporary platform for eight seconds (25s cooldown).',
   },
   {
@@ -102,6 +102,6 @@ export function friendById(id: FriendId): FriendDef | null {
 /**
  * Tuxedo is a black cat per the master document despite the name.
  * The species split for the loadout rule lives in shared/ids.ts
- * (cats = Garfield, Vader, Duchess, Tuxedo; dogs = Chikastino, Hunter).
+ * (cats = Ginger, Vader, Duchess, Tuxedo; dogs = Chikastino, Hunter).
  */
 export { CAT_IDS, DOG_IDS };

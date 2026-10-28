@@ -22,8 +22,8 @@ function watchErrors(page: Page): string[] {
   page.on('pageerror', (err) => errors.push(`pageerror: ${err.message}`));
   return errors;
 }
-async function seedWorld11(page: Page, wonWorlds?: number[]): Promise<void> {
-  await page.addInitScript(({ key, raw, won }) => {
+async function seedWorld11(page: Page, wonWorlds?: number[], extra?: Record<string, unknown>): Promise<void> {
+  await page.addInitScript(({ key, raw, won, extra }) => {
     const data = JSON.parse(raw);
     data.wonWorlds = won;
     data.codes = [];
@@ -32,8 +32,9 @@ async function seedWorld11(page: Page, wonWorlds?: number[]): Promise<void> {
     data.mapWorld = 0;
     data.mapSeen = {};
     data.mapSel = {};
+    Object.assign(data, extra);
     localStorage.setItem(key, JSON.stringify(data));
-  }, { key: CURRENT, raw: fixture('kinan-remaster-v1.sample.json'), won: wonWorlds || [2, 3, 4, 5, 6, 7, 8, 9, 10] });
+  }, { key: CURRENT, raw: fixture('kinan-remaster-v1.sample.json'), won: wonWorlds || [2, 3, 4, 5, 6, 7, 8, 9, 10], extra: extra || {} });
 }
 async function dismissStory(page: Page): Promise<void> {
   await expect(page.locator('#dialog')).toBeVisible({ timeout: 5000 });
@@ -102,6 +103,17 @@ test.describe('World 11 — Kinan vs. the Glitch (flat-plane 3D, saved game fina
     expect((await page.evaluate(() => (window as unknown as { __k11: Dev }).__k11.world11Info())).pending).toBe('w11-finale');
     await dismissStory(page);
     expect((await page.evaluate(() => (window as unknown as { __k11: Dev }).__k11.world11Info())).pending).toBeNull();
+    expect(errors).toEqual([]);
+  });
+
+  test('a refresh mid-cinematic resumes and clears the saved game finale', async ({ page }) => {
+    const errors = watchErrors(page);
+    await seedWorld11(page, undefined, { pendingCutscene: 'w11-finale' }); await page.goto(PROD_URL);
+    await page.locator('#mapBtn').click();
+    await expect(page.locator('#dialog')).toBeVisible();   /* the interrupted game finale comes back */
+    await dismissStory(page);
+    const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('kinan-remaster-v1') || '{}'));
+    expect(saved.pendingCutscene == null).toBe(true);
     expect(errors).toEqual([]);
   });
 

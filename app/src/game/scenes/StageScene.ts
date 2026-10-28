@@ -126,7 +126,7 @@ export class StageScene extends Phaser.Scene {
     /* pet passives shape the controller config (master doc 6.1) */
     const { equippedCat, equippedDog } = runtime.save.pets;
     this.cfg = { ...DEFAULT_PLAYER_CONFIG };
-    if (equippedCat === 'pet-garfield' || equippedDog === 'pet-garfield') {
+    if (equippedCat === 'pet-ginger' || equippedDog === 'pet-ginger') {
       this.cfg.maxExtraJumps = 1; /* Kitten Zoomies */
     }
     if (equippedCat === 'pet-tuxedo' || equippedDog === 'pet-tuxedo') {

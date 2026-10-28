@@ -47,10 +47,12 @@ test.describe('legacy game regression (real game, no downgrade)', () => {
     /* START has a deliberate pulsing "beat" animation, so it is never
        "stable" for Playwright's actionability check; a person can still tap it. */
     await page.locator('#startBtn').click({ force: true });
+    /* 2026-10-27 (Producer ruling, Contract §9): PLAY opens the overworld map first (it used to open
+       the legacy World Explorer); the map's PLAY starts the real stage at Kinan's spot (1-1) */
+    await expect(page.locator('#owHost .km-canvas')).toBeVisible();
+    await page.locator('#owPlay').click();
     await expect(page.locator('#stage')).toBeVisible();
     await expect(page.locator('#cv')).toBeVisible();
-    /* Story mode opens the World Explorer — a big scrolling world with stage
-       doors (the story dialog appears when a stage is actually entered) */
     await expect(page.locator('#pauseBtn')).toBeVisible();
 
     /* the game canvas is actually drawn (not a blank/single-colour frame);

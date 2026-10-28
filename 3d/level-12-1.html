@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Kinan's 3D House</title>
+<link rel="stylesheet" href="../fonts/fonts.css">
+<link rel="stylesheet" href="css/level.css">
+<script type="importmap">
+{ "imports": {
+  "three": "../map/worlds/vendor/three-0.160.0/build/three.module.js",
+  "three/addons/": "../map/worlds/vendor/three-0.160.0/examples/jsm/"
+} }
+</script>
+</head>
+<!-- World 12's 3D levels (in the game since 2026-10-27: the World 12 map opens ?level=<file>&id=<stop id>,
+     and a clear or BACK TO THE MAP returns to ../index.html on the 3D map). Another level: write levels/<id>.js -->
+<body data-level="12-1">
+<div id="game"></div>
+
+<div id="hud-left" class="hud">
+  <div class="counter panel"><svg viewBox="0 0 26 34" aria-hidden="true"><path d="M13 1c3 4 5 6 5 9a5 5 0 0 1-10 0c0-3 2-5 5-9Z" fill="#ffb83a"/><path d="M13 5c1.6 2.4 2.6 3.6 2.6 5.2a2.6 2.6 0 0 1-5.2 0c0-1.6 1-2.8 2.6-5.2Z" fill="#fff3b0"/><rect x="11.8" y="13" width="2.4" height="3" fill="#3a2a20"/><rect x="7" y="16" width="12" height="17" rx="3" fill="#ff8fb8"/><path d="M7 21l12-4v4L7 25Zm0 7 12-4v4l-12 4Z" fill="#fff"/></svg><b id="hud-candles">0</b><small id="hud-candle-total">/0</small></div>
+  <div id="hud-stars" class="panel"></div>
+</div>
+<div id="hud-right" class="hud"><div id="hud-hearts" class="panel"></div><div id="hud-powers"></div><div id="hud-pets"></div></div>
+<button id="btn-pause" type="button" aria-label="Pause">II</button>
+
+<div id="toast" class="hud"></div>
+<div id="banner" class="hud panel"><h2>CANDLE STAR!</h2><p id="banner-sub"></p></div>
+<div id="hint" class="hud panel"><div class="face" aria-hidden="true"></div><div id="hint-text"></div></div>
+
+<div id="titlecard" class="overlay">
+  <div class="card panel">
+    <div class="world">WORLD 12-1</div>
+    <h1>KINAN'S 3D HOUSE</h1>
+    <p class="sub">Explore every room, now with a back side!</p>
+    <div class="howto">
+      <div class="keys key-only"><b>WASD / ARROWS</b><span>move &middot; SHIFT runs</span><b>SPACE</b><span>jump &middot; again in the air = DOUBLE JUMP</span><b>F (or J)</b><span>ACTION: lift, throw, grab &middot; in the air: BUTT SLAM</span><b>Q / E or drag</b><span>turn the camera &middot; P pause &middot; M music</span></div>
+      <div class="keys touch-only"><b>LEFT THUMB</b><span>move (push far = run)</span><b>JUMP</b><span>jump &middot; tap again in the air = DOUBLE JUMP</span><b>ACTION</b><span>lift, throw, grab &middot; in the air: BUTT SLAM</span><b>RIGHT SIDE DRAG</b><span>turn the camera</span></div>
+      <div class="keys pad-only"><b>LEFT STICK</b><span>move (all the way = run)</span><b>A</b><span>jump &middot; again in the air = DOUBLE JUMP</span><b>B / X</b><span>ACTION: lift, throw, grab &middot; in the air: BUTT SLAM</span><b>RIGHT STICK</b><span>camera &middot; START pause</span></div>
+      <p class="moves">Jump into a wall and jump again = <b>WALL JUMP</b> &middot; push into shelves = <b>CLIMB</b> &middot; Kinan grabs edges by himself</p>
+    </div>
+    <p class="go">PRESS ANY KEY OR TAP TO START</p>
+  </div>
+</div>
+
+<div id="pause" class="overlay">
+  <div class="card panel">
+    <h2>PAUSED</h2>
+    <div class="howto">
+      <div class="keys key-only"><b>WASD</b><span>move &middot; SHIFT run</span><b>SPACE</b><span>jump &middot; double jump</span><b>F</b><span>action &middot; slam in the air</span><b>Q / E</b><span>camera &middot; M music</span></div>
+      <div class="keys touch-only"><b>STICK</b><span>move</span><b>JUMP</b><span>jump &middot; double jump</span><b>ACTION</b><span>lift / throw / grab &middot; slam in the air</span></div>
+      <div class="keys pad-only"><b>STICK</b><span>move</span><b>A</b><span>jump &middot; double jump</span><b>B / X</b><span>action &middot; slam in the air</span><b>START</b><span>keep playing</span></div>
+      <p class="moves">WALL JUMP: slide down a wall, press jump &middot; CLIMB: push into a shelf</p>
+    </div>
+    <button id="btn-resume" class="btn" type="button">KEEP PLAYING</button>
+    <button id="btn-map-p" class="btn btn-no" type="button">BACK TO THE MAP</button>
+  </div>
+</div>
+
+<div id="clear" class="overlay">
+  <div class="card panel">
+    <h2>LEVEL CLEAR!</h2>
+    <div id="clear-stats"></div>
+    <button id="btn-map" class="btn" type="button">BACK TO THE MAP</button>
+    <button id="btn-again" class="btn btn-no" type="button">PLAY AGAIN</button>
+  </div>
+</div>
+
+<div id="ask" class="overlay">
+  <div class="card panel">
+    <div class="glitchy-face" aria-hidden="true"></div>
+    <p id="ask-text">That part is tricky! Want Glitchy to show you the way?</p>
+    <div class="ask-btns"><button id="btn-yes" class="btn" type="button">YES, SHOW ME</button><button id="btn-no" class="btn btn-no" type="button">NO THANKS</button></div>
+    <p class="ask-keys key-only">Y = yes &middot; N = no</p>
+  </div>
+</div>
+
+<div id="touch">
+  <div id="stick-hint">MOVE<br>HERE</div>
+  <div id="stick"><div id="stick-knob"></div></div>
+  <div id="btn-action" class="tbtn">ACTION</div>
+  <div id="btn-jump" class="tbtn">JUMP</div>
+</div>
+
+<div id="fade" class="overlay"></div>
+<div id="fps" hidden></div>
+<div id="loading" class="overlay"><p>Loading Kinan's house...</p></div>
+
+<script type="module" src="js/main.js"></script>
+</body>
+</html>

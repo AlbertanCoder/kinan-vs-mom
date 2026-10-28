@@ -123,7 +123,7 @@ describe('fixed-timestep platformer controller', () => {
     expect(s.y).toBeCloseTo(500 - s.h, 3);
   });
 
-  it('grants Garfield-style extra air jumps from config', () => {
+  it('grants Ginger-style extra air jumps from config', () => {
     const cfg = { ...DEFAULT_PLAYER_CONFIG, maxExtraJumps: 1 };
     let s = settle(createPlayerState(100, 100), FLAT_GROUND, cfg);
     s = stepPlayer(s, jumpNow, FLAT_GROUND, FIXED_DT_MS, cfg).state;

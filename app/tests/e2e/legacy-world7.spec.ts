@@ -47,7 +47,7 @@ async function dismissStory(page: Page): Promise<void> {
   await expect(page.locator('#dialog')).toBeHidden();
 }
 
-test.describe('World 7 — LEGO Brick Realms', () => {
+test.describe('World 7 — the Brick Realms', () => {
   test('opens after World 6 with all five brick stages on the map', async ({ page }) => {
     const errors = watchErrors(page);
     await seedWorld7(page);
@@ -55,7 +55,7 @@ test.describe('World 7 — LEGO Brick Realms', () => {
     await page.locator('#mapBtn').click();
     await expect(page.locator('.worldtab[data-world="7"]')).toHaveClass(/on/);
     await expect(page.locator('.lvbtn')).toHaveCount(5);
-    for (const name of ['Great LEGO Bin', 'Fire-Truck Brick City', 'Machine Brickwilds', 'Studded Skyscraper Tower', 'BRICK-REX']) {
+    for (const name of ['Great Brick Bin', 'Fire-Truck Brick City', 'Machine Brickwilds', 'Studded Skyscraper Tower', 'BRICK-REX']) {
       await expect(page.locator('.lvbtn').filter({ hasText: name })).toHaveCount(1);
     }
     expect(errors).toEqual([]);

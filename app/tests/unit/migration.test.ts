@@ -68,11 +68,12 @@ describe('legacy save migration (master doc 11.1)', () => {
   it('maps legacy pet slots and custom names by documented order', () => {
     const s = storageWithLegacy();
     const { save } = migrateFromLegacy(s);
-    /* fixture: cat1, cat2, dog1 owned; cat1 named "Garfield", dog1 "Chikastino" */
-    expect(save.pets.owned).toContain('pet-garfield');
+    /* fixture: cat1, cat2, dog1 owned; cat1 named "Garfield" (an old save's own name, carried over as
+       written), dog1 "Chikastino". The orange kitten's id is now pet-ginger. */
+    expect(save.pets.owned).toContain('pet-ginger');
     expect(save.pets.owned).toContain('pet-vader');
     expect(save.pets.owned).toContain('pet-chikastino');
-    expect(save.pets.customNames['pet-garfield']).toBe('Garfield');
+    expect(save.pets.customNames['pet-ginger']).toBe('Garfield');
     expect(save.pets.customNames['pet-chikastino']).toBe('Chikastino');
   });
 

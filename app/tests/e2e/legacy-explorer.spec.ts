@@ -45,8 +45,13 @@ test.describe('World Explorer — big scrolling worlds with doors', () => {
   test('title PLAY drops the player into an explorable world', async ({ page }) => {
     const errors = watchErrors(page);
     await seedOpen(page); await page.goto(PROD_URL);
-    /* START pulses (the "beat" animation), so force the click like the regression suite does */
+    /* START pulses (the "beat" animation), so force the click like the regression suite does.
+       2026-10-27 (Producer ruling, Contract §9): title PLAY opens the overworld map (map/engine.js), not the
+       legacy Explorer (the Explorer stays reachable through the dev hooks below and the old stage map);
+       a stage started from the map still offers "World map" in its pause menu */
     await page.locator('#startBtn').click({ force: true });
+    await expect(page.locator('#owHost .km-canvas')).toBeVisible();
+    await page.locator('#owPlay').click();
     await expect(page.locator('#stage')).toBeVisible();
     await expect(page.locator('#cv')).toBeVisible();
     await page.locator('#pauseBtn').click();

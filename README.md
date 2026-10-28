@@ -4,7 +4,7 @@ An expanding birthday platformer made by Shad for Kinan.
 
 **Play online:** https://albertancoder.github.io/kinan-vs-mom/
 
-- Original five worlds plus Vancouver, LEGO Brick Realms, prehistoric dinosaurs, Starbase & Annie’s Arrival, the Birthday Multiverse, and the Glitch — eleven worlds in all
+- Original five worlds plus Vancouver, the Brick Realms, prehistoric dinosaurs, Starbase & Annie’s Arrival, the Birthday Multiverse, and the Glitch — eleven worlds in all
 - 4 cats and 2 dogs to rescue — equip one cat and one dog, or go solo; only equipped pets follow and grant their perks.
 - Stars, hats, best times, combo scoring, touch + keyboard + gamepad
 - Installable on iPhone, iPad, Android and tablets; works offline after the first load

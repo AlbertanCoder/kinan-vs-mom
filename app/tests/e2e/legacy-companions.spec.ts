@@ -27,8 +27,8 @@ type Dev = {
   petEquip: (cat: string | null, dog: string | null) => PetInfo | null;
   petFreeze: () => boolean;
   petVader: () => PetInfo;
-  petHunter: () => { started: boolean; info: PetInfo };
-  petSave: () => { hunterT: number };
+  petHunter: () => { saved: boolean; info: PetInfo };
+  petSave: () => { hunterT: number; hunterUsed: boolean };
   petFood: () => PetInfo;
   petCheckpoint: (reset?: boolean) => PetInfo;
   petTux: () => { stun: number; charge: number; info: PetInfo } | null;
@@ -81,48 +81,42 @@ test.describe('companion collection and loadout', () => {
     expect(errors).toEqual([]);
   });
 
-  test('title menu replaces per-species slots and Solo removes all followers', async ({ page }) => {
+  test('the Pets screen replaces the old per-species slots; tapping an equipped pet again sends it home (solo)', async ({ page }) => {
     const errors = watchErrors(page);
     await openDev(page);
     await page.evaluate(() => (window as unknown as { __k11: Dev }).__k11.grantPets());
     await page.locator('#petsBtnT').click();
-    await expect(page.locator('#screen h1.title')).toHaveText(/Pet loadout|Backpack/);
-    await expect(page.locator('input[data-pet="cat1"]')).toHaveValue('Garfield');
-    await expect(page.locator('input[data-pet="dog1"]')).toHaveValue('Chikastino');
+    await expect(page.locator('#screen h1.title')).toHaveText('Pets');
+    await expect(page.locator('[data-equip="cat1"]')).toContainText('Ginger');      /* the save said Garfield: renamed (Shad's ruling) */
+    await expect(page.locator('[data-equip="dog1"]')).toContainText('Chikastino');
     await page.locator('[data-equip="cat2"]').click();
     expect((await progress(page)).pets.equippedCat).toBe('cat2');
     await page.locator('[data-equip="cat3"]').click();
     expect((await progress(page)).pets.equippedCat).toBe('cat3');
     await page.locator('[data-equip="dog2"]').click();
     expect((await progress(page)).pets.equippedDog).toBe('dog2');
-    await expect(page.locator('.petname.equipped')).toHaveCount(2);
-    await page.locator('#soloPets').click();
+    await expect(page.locator('.petcard.on')).toHaveCount(2);
+    await page.locator('[data-equip="cat3"]').click();                               /* tap again: home */
+    await page.locator('[data-equip="dog2"]').click();
     expect((await progress(page)).pets.equippedCat).toBeNull();
     expect((await progress(page)).pets.equippedDog).toBeNull();
-    await expect(page.locator('#petLoadoutStatus')).toContainText('Solo');
+    await expect(page.locator('.petcard.on')).toHaveCount(0);
     await startStage(page);
     expect((await info(page)).liveCats).toBe(0);
     expect((await info(page)).liveDogs).toBe(0);
     expect(errors).toEqual([]);
   });
 
-  test('Garfield triggers 2.5-second Zoomies after three landings with a 15-second cooldown', async ({ page }) => {
+  test('Ginger has one power (the higher jump): no Kitten Zoomies and no double jump any more', async ({ page }) => {
     const errors = watchErrors(page);
     await openDev(page);
     await startStage(page);
-    expect((await page.evaluate(() => (window as unknown as { __k11: Dev }).__k11.petLand())).cleanLandings).toBe(1);
-    expect((await page.evaluate(() => (window as unknown as { __k11: Dev }).__k11.petLand())).cleanLandings).toBe(2);
-    const triggered = await page.evaluate(() => (window as unknown as { __k11: Dev }).__k11.petLand());
-    expect(triggered.zoomies).toBe(150);
-    expect(triggered.zoomiesCooldown).toBe(900);
-    expect((await page.evaluate(() => (window as unknown as { __k11: Dev }).__k11.petAbilityTick(150))).zoomies).toBe(0);
-    expect((await info(page)).zoomiesCooldown).toBe(750);
-    await page.evaluate(() => (window as unknown as { __k11: Dev }).__k11.petLand());
-    expect((await info(page)).zoomies).toBe(0);
-    expect((await page.evaluate(() => (window as unknown as { __k11: Dev }).__k11.petAbilityTick(750))).zoomiesCooldown).toBe(0);
-    await page.evaluate(() => (window as unknown as { __k11: Dev }).__k11.petLand());
-    await page.evaluate(() => (window as unknown as { __k11: Dev }).__k11.petLand());
-    expect((await page.evaluate(() => (window as unknown as { __k11: Dev }).__k11.petLand())).zoomies).toBe(150);
+    for (let n = 0; n < 3; n++) await page.evaluate(() => (window as unknown as { __k11: Dev }).__k11.petLand());
+    const after = await info(page);
+    expect(after.equippedCat).toBe('cat1');
+    expect(after.zoomies).toBe(0);
+    expect(after.zoomiesCooldown).toBe(0);
+    expect(await page.evaluate(() => (window as unknown as { __k11: { state: () => { airJumps: number } } }).__k11.state().airJumps)).toBe(0);
     expect(errors).toEqual([]);
   });
 
@@ -142,14 +136,14 @@ test.describe('companion collection and loadout', () => {
     expect(errors).toEqual([]);
   });
 
-  test('Chikastino warns about off-screen threats without stunning them', async ({ page }) => {
+  test('Chikastino has one power: no off-screen warning any more, and an enemy off screen is never stunned', async ({ page }) => {
     const errors = watchErrors(page);
     await openDev(page);
     await startStage(page);
-    const warning = await page.evaluate(() => (window as unknown as { __k11: Dev }).__k11.petBark(true));
-    expect(warning?.warning).toBeGreaterThan(0);
-    expect(warning?.stun).toBe(0);
-    expect(warning?.alive).toBe(true);
+    const far = await page.evaluate(() => (window as unknown as { __k11: Dev }).__k11.petBark(true));
+    expect(far?.warning).toBe(0);
+    expect(far?.stun).toBe(0);
+    expect(far?.alive).toBe(true);
     expect((await info(page)).stunnedFoes).toHaveLength(0);
     expect(errors).toEqual([]);
   });
@@ -171,60 +165,52 @@ test.describe('companion collection and loadout', () => {
     expect(errors).toEqual([]);
   });
 
-  test('Hunter returns with exactly one heart after six seconds and consumes the level rescue', async ({ page }) => {
+  test('Hunter saves Kinan once when a hit would take his last heart (and only once per level)', async ({ page }) => {
     const errors = watchErrors(page);
     await openDev(page);
     await page.evaluate(() => (window as unknown as { __k11: Dev }).__k11.grantPets());
     await startStage(page);
     await page.evaluate(() => (window as unknown as { __k11: Dev }).__k11.petEquip(null, 'dog2'));
     await page.evaluate(() => (window as unknown as { __k11: Dev }).__k11.petFreeze());
-    const started = await page.evaluate(() => (window as unknown as { __k11: Dev }).__k11.petHunter());
-    expect(started.started).toBe(true);
-    expect(started.info.hunterT).toBe(360);
-    expect((await page.evaluate(() => (window as unknown as { __k11: Dev }).__k11.petSave())).hunterT).toBe(360);
-    const almost = await page.evaluate(() => (window as unknown as { __k11: Dev }).__k11.petTickPets(359));
-    expect(almost.hunterT).toBe(1);
-    expect(almost.hp).toBe(1);
-    const finished = await page.evaluate(() => (window as unknown as { __k11: Dev }).__k11.petTickPets(1));
-    expect(finished.hunterT).toBe(0);
-    expect(finished.hp).toBe(2);
-    expect(finished.hunterUsed).toBe(true);
-    const again = await page.evaluate(() => (window as unknown as { __k11: Dev }).__k11.petHunter());
-    expect(again.info.hunterT).toBe(0);
+    const first = await page.evaluate(() => (window as unknown as { __k11: Dev }).__k11.petHunter());
+    expect(first.saved).toBe(true);
+    expect(first.info.hp).toBe(1);
+    expect(first.info.hunterUsed).toBe(true);
+    expect((await page.evaluate(() => (window as unknown as { __k11: Dev }).__k11.petSave())).hunterUsed).toBe(true);
+    const second = await page.evaluate(() => (window as unknown as { __k11: Dev }).__k11.petHunter());
+    expect(second.saved).toBe(false);                 /* used up: this hit takes the last heart */
+    expect(second.info.hp).toBe(0);
     expect(errors).toEqual([]);
   });
 
-  test('Duchess adds food healing and one checkpoint snack that is saved', async ({ page }) => {
+  test('Duchess brings a snack that heals one heart every 12 seconds while one is missing (no food bonus, no checkpoint rest)', async ({ page }) => {
     const errors = watchErrors(page);
     await openDev(page);
     await page.evaluate(() => (window as unknown as { __k11: Dev }).__k11.grantPets());
     await startStage(page);
     await page.evaluate(() => (window as unknown as { __k11: Dev }).__k11.petEquip('cat3', 'dog1'));
-    expect((await page.evaluate(() => (window as unknown as { __k11: Dev }).__k11.petFood())).hp).toBe(3);
+    await page.evaluate(() => (window as unknown as { __k11: Dev }).__k11.petFreeze());   /* frame-exact from here */
+    expect((await page.evaluate(() => (window as unknown as { __k11: Dev }).__k11.petFood())).hp).toBe(2);   /* a heart is one heart */
     const rested = await page.evaluate(() => (window as unknown as { __k11: Dev }).__k11.petCheckpoint());
-    expect(rested.hp).toBe(3);
-    expect(rested.duchessUsed).toBe(true);
-    expect((await progress(page)).resume?.duchessUsed).toBe(true);
-    const again = await page.evaluate(() => (window as unknown as { __k11: Dev }).__k11.petCheckpoint(false));
-    expect(again.hp).toBe(1);
-    expect(again.duchessUsed).toBe(true);
+    expect(rested.hp).toBe(1);                        /* no checkpoint snack */
+    expect((await page.evaluate(() => (window as unknown as { __k11: Dev }).__k11.petTickPets(719))).hp).toBe(1);
+    expect((await page.evaluate(() => (window as unknown as { __k11: Dev }).__k11.petTickPets(1))).hp).toBe(2);
+    expect((await page.evaluate(() => (window as unknown as { __k11: Dev }).__k11.petTickPets(720))).hp).toBe(3);
     expect(errors).toEqual([]);
   });
 
-  test('Tuxedo interrupts for two seconds and reduces knockback by twenty percent', async ({ page }) => {
+  test('Tuxedo shrugs off hits: half the knockback, and no more Senior Glare', async ({ page }) => {
     const errors = watchErrors(page);
     await openDev(page);
     await page.evaluate(() => (window as unknown as { __k11: Dev }).__k11.grantPets());
     await startStage(page);
     await page.evaluate(() => (window as unknown as { __k11: Dev }).__k11.petEquip('cat4', 'dog1'));
     const glare = await page.evaluate(() => (window as unknown as { __k11: Dev }).__k11.petTux());
-    expect(glare?.stun).toBe(120);
-    expect(glare?.charge).toBe(0);
-    expect(glare?.info.tuxCooldown).toBe(960);
-    expect((await page.evaluate(() => (window as unknown as { __k11: Dev }).__k11.petAbilityTick(960))).tuxCooldown).toBe(0);
+    expect(glare?.stun).toBe(0);
+    expect(glare?.charge).toBe(30);
     const hit = await page.evaluate(() => (window as unknown as { __k11: Dev }).__k11.petHurt());
-    expect(hit.vx).toBeCloseTo(-1.76, 2);
-    expect(hit.vy).toBeCloseTo(-2.72, 2);
+    expect(hit.vx).toBeCloseTo(-1.1, 2);              /* legacy HURT_VX 2.2 x 0.5 */
+    expect(hit.vy).toBeCloseTo(-1.7, 2);              /* legacy HURT_VY -3.4 x 0.5 */
     expect(errors).toEqual([]);
   });
 });

@@ -32,7 +32,7 @@ describe('stable IDs', () => {
     expect(isStableId('')).toBe(false);
     expect(isStableId(7)).toBe(false);
     expect(isStableId(null)).toBe(false);
-    expect(isStableId('pet--garfield')).toBe(false);
+    expect(isStableId('pet--ginger')).toBe(false);
   });
 
   it('flags duplicates', () => {

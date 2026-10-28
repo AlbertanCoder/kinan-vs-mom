@@ -1,0 +1,17 @@
+/* The game's Google fonts, kept here so everything works offline (sw.js precaches this folder).
+   Downloaded 2026-10-27 from fonts.googleapis.com (latin subset; both are variable fonts, so one file covers 400-700).
+   Pixelify Sans and Nunito are licensed under the SIL Open Font License 1.1 (https://openfontlicense.org). */
+@font-face {
+  font-family: 'Pixelify Sans';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url(pixelify-sans-latin.woff2) format('woff2');
+}
+@font-face {
+  font-family: 'Nunito';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url(nunito-latin.woff2) format('woff2');
+}

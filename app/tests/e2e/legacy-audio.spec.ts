@@ -29,7 +29,7 @@ test.describe('Natural audio — channel controls, captions, clips-first voice',
     await expect(page.locator('#volMusic')).toBeVisible();
     await expect(page.locator('#volSfx')).toBeVisible();
     await expect(page.locator('#volVo')).toBeVisible();
-    await expect(page.locator('#volNarr')).toBeChecked();
+    await expect(page.locator('#volNarr')).not.toBeChecked();   /* V1 (Shad, 2026-10-28): the device voice is OFF by default */
     await expect(page.locator('#volCaps')).toBeChecked();
     await page.locator('#volX').click();
     await expect(page.locator('#audioBox')).toBeHidden();
@@ -43,17 +43,17 @@ test.describe('Natural audio — channel controls, captions, clips-first voice',
     await page.locator('#volMusic').fill('40');
     await page.locator('#volSfx').fill('60');
     await page.locator('#volVo').fill('20');
-    await page.locator('#volNarr').uncheck();
+    await page.locator('#volNarr').check();   /* V1: off by default, so the switch that must persist is turning it ON */
     await page.locator('#volX').click();
     await page.reload();
     await openAudioBox(page);
     await expect(page.locator('#volMusic')).toHaveValue('40');
     await expect(page.locator('#volSfx')).toHaveValue('60');
     await expect(page.locator('#volVo')).toHaveValue('20');
-    await expect(page.locator('#volNarr')).not.toBeChecked();
+    await expect(page.locator('#volNarr')).toBeChecked();
     const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('kinan-remaster-v1') || '{}'));
     expect(saved.vol).toMatchObject({ music: 40, sfx: 60, vo: 20 });
-    expect(saved.narration).toBe(false);
+    expect(saved.deviceVoice).toBe(true);
     expect(errors).toEqual([]);
   });
 

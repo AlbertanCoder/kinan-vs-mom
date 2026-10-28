@@ -63,9 +63,9 @@ test.describe('Friend Assist and checkpoint loadout', () => {
     await expect(page.locator('#stage')).toBeVisible();
     expect((await progress(page)).friendsUnlocked).toEqual(['milo', 'aiden']);
     await call(page, (k) => k.goHome());
-    await expect(page.locator('#petsBtnT')).toBeVisible();
-    await page.locator('#petsBtnT').click();
-    await expect(page.locator('#screen h1.title')).toHaveText(/Pet loadout|Backpack/);
+    await expect(page.locator('#shopBtn')).toBeVisible();
+    await page.locator('#shopBtn').click();   /* Friend Assist lives in the Backpack · Party Shop (pets have their own screen now) */
+    await expect(page.locator('#screen h1.title')).toHaveText(/Backpack/);
     await page.locator('[data-friend="milo"]').click();
     expect((await progress(page)).friendAssist).toBe('milo');
     await page.locator('[data-friend="aiden"]').click();
@@ -113,7 +113,7 @@ test.describe('Friend Assist and checkpoint loadout', () => {
     expect(errors).toEqual([]);
   });
 
-  test('checkpoint swaps preserve the paused stage and boss attempts lock swapping', async ({ page }) => {
+  test('checkpoint swaps preserve the paused stage and boss attempts explain instead of locking (round-2 P14)', async ({ page }) => {
     const errors = watchErrors(page);
     await openDev(page);
     await call(page, (k) => k.jumpToStage(0));
@@ -123,7 +123,7 @@ test.describe('Friend Assist and checkpoint loadout', () => {
     await expect(page.locator('#pause')).toBeVisible();
     await expect(page.locator('#petsBtnP')).toBeEnabled();
     await page.locator('#petsBtnP').click();
-    await expect(page.locator('#screen h1.title')).toHaveText('Pet loadout');
+    await expect(page.locator('#screen h1.title')).toHaveText('Pets');
     await page.locator('[data-equip="cat2"]').click();
     await page.locator('#petsBack').click();
     await expect(page.locator('#pause')).toBeVisible();
@@ -134,7 +134,15 @@ test.describe('Friend Assist and checkpoint loadout', () => {
     expect(swapped.liveCats).toBe(1);
     expect(swapped.liveDogs).toBe(1);
     await call(page, (k) => k.petSetBoss('fight'));
-    await expect(page.locator('#petsBtnP')).toBeDisabled();
+    /* round-2 P14: the button stays tappable — during a boss attempt a tap
+       explains where pets can change instead of showing a dead button */
+    await expect(page.locator('#petsBtnP')).toBeEnabled();
+    await page.locator('#petsBtnP').click();
+    await expect(page.locator('#toast')).toContainText('Pets can be changed');
+    /* ...and the lock itself still holds: no loadout opens during the attempt */
+    await expect(page.locator('#screen')).toBeHidden();
+    await expect(page.locator('#pause')).toBeVisible();
+    expect((await info(page)).equippedCat).toBe('cat2');
     expect(errors).toEqual([]);
   });
 });

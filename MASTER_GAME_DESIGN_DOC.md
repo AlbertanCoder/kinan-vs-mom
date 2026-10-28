@@ -77,7 +77,7 @@ This is the controlling design and safety document for the ground-up overhaul. I
 
 - Use original high-resolution 2D cartoon art, light anime-inspired expressions, bold outlines, smooth animation, and richly layered painted backgrounds.
 - Kinan’s likeness is based on reference photos/details supplied and approved by the user. References are for authoring only and are never shipped.
-- Default outfit: refined red star-emblem T-shirt, blue jeans, and sneakers. Unlockable LEGO, dinosaur, sci-fi, and family-themed costumes are cosmetic and do not change collision geometry.
+- Default outfit: refined red star-emblem T-shirt, blue jeans, and sneakers. Unlockable toy-brick, dinosaur, sci-fi, and family-themed costumes are cosmetic and do not change collision geometry.
 - Use expressive hand-authored animations for idle, run, skid, crouch, jump/fall, landing, abilities, interactions, damage, celebrations, and cutscenes. Gameplay simulation remains 60 Hz; use subtle squash-and-stretch without harming timing.
 
 ### 5.2 World 11 Art
@@ -112,17 +112,17 @@ This is the controlling design and safety document for the ground-up overhaul. I
 
 ### 6.2 Fictional School Friends
 
-- **Milo:** LEGO-loving classmate unlocked in World 2. Once every 25 seconds, Kinan can call him to build a temporary platform or staircase for eight seconds. In the LEGO world he also unlocks optional bonus recipes.
+- **Milo:** brick-building classmate unlocked in World 2. Once every 25 seconds, Kinan can call him to build a temporary platform or staircase for eight seconds. In the toy-brick world he also unlocks optional bonus recipes.
 - **Aiden:** Sporty classmate unlocked in World 2. Once per checkpoint, he appears briefly with a healing snack and distracts nearby enemies for three seconds. He has special narrative opportunities in playground and Bronco encounters.
 
 ## 7. Kinan’s Interests, Food, and Humor
 
-- **LEGO:** Star Wars, Super Mario, Horizon, and probably fire trucks (tentative); no exact sets were confirmed. Use authored quick-build recipes at build pads, collectible bricks, bridges/stairs/ladders/ramps/shields/fire-truck equipment, destructible bounded chunks, rebuildable objectives, hinges/gears/water routes, and shape-plus-stud cues. No unrestricted voxel building.
+- **Toy bricks:** Star Wars, Super Mario, Horizon, and probably fire trucks (tentative); no exact sets were confirmed. Use authored quick-build recipes at build pads, collectible bricks, bridges/stairs/ladders/ramps/shields/fire-truck equipment, destructible bounded chunks, rebuildable objectives, hinges/gears/water routes, and shape-plus-stud cues. No unrestricted voxel building.
 - **Star Wars:** Original-trilogy inspiration—Luke, Darth Vader, Yoda, droids, stormtroopers, X-wings, and space-station locations. Kinan uses a rechargeable Energy Blade for timed laser deflection and Force pull/push on marked objects. Combat is cartoon-stunning/dismantling with no gore.
 - **Dinosaurs:** T-Rex, Triceratops, Velociraptor, Brachiosaurus, Ankylosaurus, and Stegosaurus have distinct roles. Include fossil assembly, baby rescue, short herbivore rides, species-specific routes, Raptor line-of-sight/decoy puzzles, and checkpointed T-Rex chases. Most dinosaurs are friends or misunderstood, not targets to injure.
 - **Other play:** Exploration, collecting, secrets, machine/robot encounters, and light environmental puzzles connect Mario and Horizon. School/hobby details emphasize science, space, dinosaurs, machines, computers, and building.
 - **Food:** Cookies and chicken nuggets restore one heart; pepperoni pizza restores one heart plus ability energy; cheeseburgers restore two hearts; milkshakes refill the ability meter; rare birthday cake fully heals and grants five seconds of invincibility.
-- **Humor:** Use confirmed pet antics, angry LEGO/socks, dinosaur chaos, machine mishaps, favorite food, and genre crossovers. Use affectionate slapstick and harmless broccoli/slime gross-out moments, followed by reconciliation. No private conflicts, cruel humiliation, ethnic stereotypes, or jokes about real bodies/appearance.
+- **Humor:** Use confirmed pet antics, angry toy-brick/socks, dinosaur chaos, machine mishaps, favorite food, and genre crossovers. Use affectionate slapstick and harmless broccoli/slime gross-out moments, followed by reconciliation. No private conflicts, cruel humiliation, ethnic stereotypes, or jokes about real bodies/appearance.
 - **Ultimate payoff:** A playable crossover birthday festival with family, all six pets, Milo and Aiden, favorite foods, fireworks, attractions from every world, a group photo, and joyful credits—no final combat.
 
 ## 8. Worlds 1–10 Blueprint
@@ -132,14 +132,14 @@ Baseline scope is four focused story stages, one boss stage, and one optional ch
 ### World 1 — Saskatoon Home & Neighborhood
 
 - **Stages:** Bedroom Chaos; House Hijinks; Front-Yard/Neighborhood; Backyard Party; Mom boss; optional challenge.
-- **Mechanics:** Teach through play with sock sorting, LEGO bridge builds, cake/candle sequences, and fence/gate routing. Introduce Mom, Robin, pets, and neighbours.
+- **Mechanics:** Teach through play with sock sorting, toy-brick bridge builds, cake/candle sequences, and fence/gate routing. Introduce Mom, Robin, pets, and neighbours.
 - **Unlocks:** Garfield in Bedroom Chaos; Chikastino in the neighborhood. The neighbour’s wife has a healing cameo.
 - **Boss content:** Fence-Line Feud midboss and Mom’s two-phase Birthday Room Inspection.
 
 ### World 2 — Fictionalized Saskatoon School
 
 - **Stages:** School Street/Bus Stop; Classroom & Science Lab; Gym & Fire-Safety Visit; Playground Games; boss; optional challenge. No real school name, logo, staff identity, or layout.
-- **Mechanics:** Hands-on circuits/magnets, simple machines, LEGO fire-truck ladder/hose routing, safe obstacle courses, dodgeball timing, and soccer bank-shot puzzles.
+- **Mechanics:** Hands-on circuits/magnets, simple machines, toy-brick fire-truck ladder/hose routing, safe obstacle courses, dodgeball timing, and soccer bank-shot puzzles.
 - **Unlocks:** Vader, Milo, and Aiden. Vader scouts secrets, Milo assists builds, and Aiden supports play.
 - **Boss content:** A two-phase principal Bell Schedule Challenge and a three-round goalie match. Exact placement within the stage flow is a level-design detail, not permission to increase scope silently.
 
@@ -167,9 +167,9 @@ Baseline scope is four focused story stages, one boss stage, and one optional ch
 - **Mechanics:** Limited umbrella gliding, redirected rain/waterwheels, puddle-wave timing, banana-slug traction, market pulleys, magnets/circuits, and transit route puzzles. Reduced rain/flash intensity is available; weather never hides hazards.
 - **Ending:** Drizzle’s rainbow and a 2D postcard lead to World 7. There is no early 3D handoff.
 
-### World 7 — The LEGO Brick Realms
+### World 7 — The Brick Realms
 
-- **Stages:** The Great LEGO Bin; Fire-Truck Brick City; Horizon-inspired Machine Brickwilds; Studded Skyscraper Tower; 2D BRICK-REX boss; optional Super Mario-inspired brick-remix challenge.
+- **Stages:** The Great Brick Bin; Fire-Truck Brick City; Horizon-inspired Machine Brickwilds; Studded Skyscraper Tower; 2D BRICK-REX boss; optional Super Mario-inspired brick-remix challenge.
 - **Mechanics:** Shape/stud-coded recipes, hinges, gears, ladders, water routes, machine-part overrides, bounded authored debris, and rebuildable objectives. Milo unlocks optional bonus recipes.
 - **IP boundary:** Use original brick builds and original artwork, not copied commercial models or set instructions.
 
@@ -218,7 +218,7 @@ Baseline scope is four focused story stages, one boss stage, and one optional ch
 - **Annie’s presentation:** Use “Annie” normally and “Amandeep” in formal introductions/credits. She is warm, competitive, clever, heroic, and Shad’s girlfriend. Food art and original bhangra/dhol-inspired music require Annie/knowledgeable review. No accent imitation, religious jokes, or sacred symbols as weapons.
 - **Grandmothers (W10):** Two distinct looks, voices, and specialties appear in solo phases, followed by a checkpoint and coordinated tag-team finale. Use shared team meters, not two health sponges. Address each as “Grandma” unless preferred names are supplied.
 - **Grandmothers’ attacks:** A steady but capped stream of complaint bubbles pushes Kinan and can be popped with POW; fantasy cane/walker boomerangs have safe return lanes; giant cheek-pinch/hug-and-kiss zones have clear warnings and escape windows. Kinan finally accepts one enormous affectionate hug. Never mock real disability or use endless unskippable audio.
-- **Mom (W10):** Ultimate Multi-Tasker combines laundry baskets, order tickets, sweeping gusts, and sorting counters. World-Remix Gauntlet briefly combines rain, conveyors, roti deflection, and LEGO barriers. Birthday Rift uses candle sequences, present shields, and telegraphed “Mom Radar” markers before the affectionate resolution.
+- **Mom (W10):** Ultimate Multi-Tasker combines laundry baskets, order tickets, sweeping gusts, and sorting counters. World-Remix Gauntlet briefly combines rain, conveyors, roti deflection, and toy-brick barriers. Birthday Rift uses candle sequences, present shields, and telegraphed “Mom Radar” markers before the affectionate resolution.
 - **Family motive:** A birthday anomaly caused the chaos. Family battles are playful challenges or protective tests. Mom fears Kinan is not ready, then chooses trust. Shad guides/builds, Robin supports, and Chenoa/Annie become teammates. The later 3D shift surprises everyone; it was not Mom’s intentional doing and the adventure is not “only a dream.”
 
 ## 10. World 11 — Dimension 11
@@ -313,7 +313,7 @@ Asset/audio production and world content may have smaller submilestones, but non
 - **Garfield** is a provisional name for the youngest orange tabby; **Tuxedo** is the corrected spelling for the black-and-white cat.
 - The Grandmothers’ preferred individual display names were not supplied; “Grandma” is acceptable until then.
 - Kinan’s likeness references still require user-provided material and approval. No reference photos ship.
-- Fire-truck interest is tentative; exact LEGO set names were not supplied.
+- Fire-truck interest is tentative; exact toy-brick set names were not supplied.
 - Neural voice provider, exact licensed voices, and final casting require asset-stage selection/review; runtime API integration is not approved.
 - Annie or a knowledgeable contributor must review cultural food/music/art details before final release.
 - Friend Assist’s exact input gesture, World 2’s two-boss stage placement, World 11 anomaly mechanics, and detailed asset budgets are milestone-level design tasks.
@@ -357,7 +357,7 @@ This log records the final controlling interpretation. “Superseded” entries 
 | 28 | **A plus correction:** Tuxedo — Senior Glare; name is **Tuxedo**, not Tuxcedo. |
 | 29 | **A:** Garfield (provisional) — Kitten Zoomies, extra air jump, landing-triggered acceleration. |
 | 30 | **Custom, both A and B:** Unlock both Milo and Aiden; equip one Friend Assist at a time. |
-| 31 | **Custom:** LEGO interests are Star Wars, Super Mario, Horizon, and probably fire trucks. |
+| 31 | **Custom:** Toy-brick interests are Star Wars, Super Mario, Horizon, and probably fire trucks. |
 | 32 | **A:** Authored quick-build recipes and bounded destructible structures; no freeform voxel sandbox. |
 | 33 | **A:** Original-trilogy Star Wars inspiration with original artwork. |
 | 34 | **A:** Rechargeable Energy Blade deflection and marked-object Force pull/push; no gore. |
@@ -385,7 +385,7 @@ This log records the final controlling interpretation. “Superseded” entries 
 | 55 | **A:** Pancakes, rhythm, marked lasso, wagon routes, ricochets, moving barrels; animal-friendly. |
 | 56 | **A:** Four-stage Vancouver world with 2D rainbow/postcard ending and no early 3D. |
 | 57 | **A:** Umbrella/rain/waterwheel/puddle/traction/magnet/transit puzzles with accessible weather. |
-| 58 | **A:** LEGO Bin, Fire-Truck City, Machine Brickwilds, Skyscraper, 2D BRICK-REX, brick remix. |
+| 58 | **A:** Brick Bin, Fire-Truck City, Machine Brickwilds, Skyscraper, 2D BRICK-REX, brick remix. |
 | 59 | **A:** Coded recipes, hinges/gears/water, bounded debris, rebuildable objectives, Milo bonuses. |
 | 60 | **A:** Badlands/jungle/river/canyon dinosaur stages and nonlethal Alpha encounter. |
 | 61 | **A:** Fossils, contextual species friendships, rides, Raptor puzzles, checkpointed chases and assists. |

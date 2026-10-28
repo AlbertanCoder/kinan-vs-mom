@@ -35,10 +35,10 @@ describe('new save schema scaffolding', () => {
     expect(isLoadoutValid(pets)).toBe(true);
 
     /* equipped pets must be owned */
-    pets.equippedCat = 'pet-garfield';
+    pets.equippedCat = 'pet-ginger';
     expect(isLoadoutValid(pets)).toBe(false);
 
-    pets.owned.push('pet-garfield', 'pet-chikastino');
+    pets.owned.push('pet-ginger', 'pet-chikastino');
     expect(isLoadoutValid(pets)).toBe(true);
 
     /* Tuxedo is a black cat (master doc 6.1) — he cannot fill the dog slot */
@@ -85,7 +85,7 @@ describe('new save schema scaffolding', () => {
       { ...valid, settings: { ...valid.settings, touchScale: 2 } },
       {
         ...valid,
-        pets: { ...valid.pets, owned: ['pet-garfield', 'pet-garfield'] },
+        pets: { ...valid.pets, owned: ['pet-ginger', 'pet-ginger'] },
       },
       { ...valid, pets: { ...valid.pets, customNames: { unknown: 'name' } } },
       { ...valid, friendAssist: 'friend-nobody' },

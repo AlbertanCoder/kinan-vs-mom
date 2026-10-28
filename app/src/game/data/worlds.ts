@@ -107,11 +107,11 @@ export const WORLDS: WorldDef[] = [
   },
   {
     id: 'world-07-lego-brick-realms',
-    name: 'World 7 — LEGO Brick Realms',
+    name: 'World 7 — the Brick Realms',
     subtitle: 'Brick Realms',
     sky: 0x2b4fd8, ground: 0xe8c33c, accent: 0xff4d4d,
     stages: [
-      s('w07-great-lego-bin', 'The Great LEGO Bin'),
+      s('w07-great-lego-bin', 'The Great Brick Bin'),
       s('w07-fire-truck-city', 'Fire-Truck Brick City'),
       s('w07-machine-brickwilds', 'Machine Brickwilds'),
       s('w07-studded-tower', 'Studded Skyscraper Tower'),
@@ -150,7 +150,7 @@ export const WORLDS: WorldDef[] = [
     subtitle: 'The Finale',
     sky: 0xb46bff, ground: 0x7a4fd8, accent: 0xff6bd8,
     stages: [
-      s('w10-remix-home', 'Remix: Home & LEGO'),
+      s('w10-remix-home', 'Remix: Home & Bricks'),
       s('w10-remix-rain', 'Remix: Rain & Rodeo'),
       s('w10-remix-kitchen', 'Remix: Kitchen & Canyon'),
       s('w10-remix-starbase', 'Remix: Starbase Run'),

@@ -8,7 +8,7 @@
  *   new-schema record is committed.
  *
  * Provisional mapping assumptions (documented, reversible):
- * - Legacy pet slots map in acquisition order: cat1..cat4 -> Garfield, Vader,
+ * - Legacy pet slots map in acquisition order: cat1..cat4 -> Ginger, Vader,
  *   Duchess, Tuxedo; dog1..dog2 -> Chikastino, Hunter. Custom names carry over.
  * - Each beaten legacy stage clears one stage of the new stage order.
  * - Legacy candles carry over as coins.
@@ -27,7 +27,7 @@ import { STAGE_ORDER, worldIdForStage } from '../game/data/worlds';
 import type { PetId } from './ids';
 
 export const LEGACY_PET_MAP: Readonly<Record<string, PetId>> = {
-  cat1: 'pet-garfield',
+  cat1: 'pet-ginger',
   cat2: 'pet-vader',
   cat3: 'pet-duchess',
   cat4: 'pet-tuxedo',
@@ -109,8 +109,8 @@ function migrateLegacyInto(
 
   const k11 = parseLegacyK11v3(raw);
   applyStageProgress(save, k11.beaten.length, k11.totalCandles, 0);
-  if (k11.hasCat && !save.pets.owned.includes('pet-garfield')) {
-    save.pets.owned.push('pet-garfield');
+  if (k11.hasCat && !save.pets.owned.includes('pet-ginger')) {
+    save.pets.owned.push('pet-ginger');
   }
   if (k11.hasDog && !save.pets.owned.includes('pet-chikastino')) {
     save.pets.owned.push('pet-chikastino');

@@ -21,7 +21,7 @@ export type WorldId =
   | 'world-11-dimension-11';
 
 export type PetId =
-  | 'pet-garfield'
+  | 'pet-ginger'
   | 'pet-chikastino'
   | 'pet-vader'
   | 'pet-hunter'
@@ -45,7 +45,7 @@ export const WORLD_IDS: readonly WorldId[] = [
 ];
 
 export const PET_IDS: readonly PetId[] = [
-  'pet-garfield',
+  'pet-ginger',
   'pet-chikastino',
   'pet-vader',
   'pet-hunter',
@@ -55,7 +55,7 @@ export const PET_IDS: readonly PetId[] = [
 
 /** Species split for the loadout rule (one cat AND one dog) — master doc 6.1. */
 export const CAT_IDS: readonly PetId[] = [
-  'pet-garfield',
+  'pet-ginger',
   'pet-vader',
   'pet-duchess',
   'pet-tuxedo',

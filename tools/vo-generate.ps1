@@ -31,7 +31,7 @@ $LINES = @(
 @('mom', '<b>MOM:</b> Bring it home, sweetie. ...How do we get home?'),
 @('dad', '<b>DAD:</b> One planet at a time, guys. One planet at a time.'),
 @('shad', '<b>SHAD:</b> Can we PLEASE keep the 3D?'),
-@('kinan', '<b>KINAN:</b> My socks are WALKING. My Lego is ANGRY. And why are there COINS everywhere?!'),
+@('kinan', '<b>KINAN:</b> My socks are WALKING. My toy bricks are ANGRY. And why are there COINS everywhere?!'),
 @('mom', '<b>MOM (DEBBIE):</b> Good morning, birthday boy! ...Going somewhere?'),
 @('mom', '<b>MOM:</b> Nobody leaves this room until it''s clean. CLEAN. YOUR. ROOM.'),
 @('mom', '<b>MOM:</b> Fine, it''s clean ENOUGH. Now take your time out there, okay? No rush. NO rush.'),

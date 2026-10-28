@@ -59,7 +59,11 @@ test.describe('legacy save backup and recovery', () => {
     const current = JSON.parse((await readKey(page, CURRENT)) as string) as Progress;
     const backup = JSON.parse((await readKey(page, BACKUP)) as string) as Progress;
     expect(current.pets.ids).toHaveLength(6);
-    expect(backup).toMatchObject(JSON.parse(v1));
+    /* the dev page saves once at boot (the creator-pass check), so the previous current record is the
+       loaded save — which now carries the Ginger rename (Shad's ruling 27 Oct: a saved "Garfield" loads as Ginger) */
+    const previous = JSON.parse(v1);
+    previous.pets.names.cat1 = 'Ginger';
+    expect(backup).toMatchObject(previous);
     expect(await readKey(page, K11)).toBe(k11);
     expect(await readKey(page, SOUND)).toBe('true');
     expect(errors).toEqual([]);
