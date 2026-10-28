@@ -282,48 +282,52 @@ test.describe('C1 · Glitchy escapes after a castle', () => {
     expect(errors).toEqual([]);
   });
 
-  test('World 6 is not in this build: past the World 5 castle the way on is a "WORLD 6 COMING SOON!" sign with Glitchy waving, and Kinan cannot walk past it', async ({ page }) => {
-    test.setTimeout(90_000);
+  /* 2026-10-28: World 6 (Drumheller) is released (OW_RELEASED 6), so the "coming soon" sign moved one world on: it was
+     "World 6 is not in this build" past the 5-castle; the same checks now stand past the 6-castle for World 7. The
+     road out of World 6 is the bus road trip (6.5), so the last step crosses it on the way into World 7 */
+  test('World 7 is not in this build: past the World 6 castle the way on is a "WORLD 7 COMING SOON!" sign with Glitchy waving, and Kinan cannot walk past it', async ({ page }) => {
+    test.setTimeout(120_000);
     const errors = watchErrors(page);
     await boot(page);
-    /* every World 1-5 level beaten, the escape already seen, standing on the 5-castle (World 6's level files may or may not exist yet) */
+    /* every World 1-6 level beaten, the escape already seen, standing on the 6-castle (World 7's level files may or may not exist yet) */
     await page.evaluate((key) => {
-      const ids = (window as unknown as Win).KinanLevels.list().filter((id) => Number(id.split('-')[0]) <= 5);
-      localStorage.setItem(key, JSON.stringify({ unlocked: 1, beaten: [], introSeen: true, escapes: { 5: 1 }, levelsBeaten: Object.fromEntries(ids.map((id) => [id, 1])), wmap: { w: 5, at: 10 } }));
+      const ids = (window as unknown as Win).KinanLevels.list().filter((id) => Number(id.split('-')[0]) <= 6);
+      localStorage.setItem(key, JSON.stringify({ unlocked: 1, beaten: [], introSeen: true, escapes: { 6: 1 }, levelsBeaten: Object.fromEntries(ids.map((id) => [id, 1])), unlockedLevels: ['6-secret'], wmap: { w: 6, at: 10 } }));
     }, CURRENT);
     await page.reload();
     await page.waitForFunction(() => !!(window as unknown as Win).__k11 && (window as unknown as Win).KinanLevels?.ready);
     await page.locator('#startBtn').click({ force: true });
     const s0 = await settle(page);
-    expect(s0).toMatchObject({ world: 5, at: 10 });
-    expect(s0.stops[10]).toMatchObject({ id: '5-castle', state: 'beaten' });
-    expect((s0 as unknown as { gate: number | null }).gate).toBe(6);   /* the sign stands on the road out */
+    expect(s0).toMatchObject({ world: 6, at: 10 });
+    expect(s0.stops[10]).toMatchObject({ id: '6-castle', state: 'beaten' });
+    expect((s0 as unknown as { gate: number | null }).gate).toBe(7);   /* the sign stands on the road out */
     await page.locator('#owNext').click();
-    await expect.poll(async () => (await mapState(page)).banner).toBe('WORLD 6 COMING SOON!');
-    expect(await settle(page)).toMatchObject({ world: 5, at: 10, crossing: false });
-    expect((await progress(page)).wmap).toEqual({ w: 5, at: 10 });
+    await expect.poll(async () => (await mapState(page)).banner).toBe('WORLD 7 COMING SOON!');
+    expect(await settle(page)).toMatchObject({ world: 6, at: 10, crossing: false });
+    expect((await progress(page)).wmap).toEqual({ w: 6, at: 10 });
     /* the sign and Glitchy are drawn (gold board, Glitchy's purple), and they are gone once the world is released */
     const colours = () => page.evaluate(() => { const c = document.querySelector('#owHost .km-canvas') as HTMLCanvasElement; const d = c.getContext('2d')!.getImageData(0, 0, c.width, c.height).data; let gold = 0, purple = 0; for (let i = 0; i < d.length; i += 4) { if (d[i] === 0xf6 && d[i + 1] === 0xc4 && d[i + 2] === 0x45) gold++; if (d[i] === 0x7a && d[i + 1] === 0x2f && d[i + 2] === 0xd0) purple++; } return { gold, purple }; });
     const withSign = await colours();
     expect(withSign.purple).toBeGreaterThan(50);
-    await page.evaluate(() => (window as unknown as { __k11: { owRelease: (n: number) => number } }).__k11.owRelease(6));
+    await page.evaluate(() => (window as unknown as { __k11: { owRelease: (n: number) => number } }).__k11.owRelease(7));
     await page.waitForTimeout(300);
     const without = await colours();
     expect(without.purple).toBeLessThan(withSign.purple / 4);
     expect(without.gold).toBeLessThan(withSign.gold);
-    await page.evaluate(() => (window as unknown as { __k11: { owRelease: (n: number) => number } }).__k11.owRelease(5));
-    /* a save that somehow stands in World 6 comes back to the furthest open stop: the 5-castle */
+    await page.evaluate(() => (window as unknown as { __k11: { owRelease: (n: number) => number } }).__k11.owRelease(6));
+    /* a save that somehow stands in World 7 comes back to the furthest open stop: the 6-castle */
     await page.evaluate(() => (window as unknown as { __k11: { storyStop: () => boolean } }).__k11.storyStop());   /* no story line can save over the edit below */
-    await page.evaluate((key) => { const d = JSON.parse(localStorage.getItem(key)!); d.wmap = { w: 6, at: 0 }; localStorage.setItem(key, JSON.stringify(d)); }, CURRENT);
+    await page.evaluate((key) => { const d = JSON.parse(localStorage.getItem(key)!); d.wmap = { w: 7, at: 0 }; localStorage.setItem(key, JSON.stringify(d)); }, CURRENT);
     await page.reload();
     await page.waitForFunction(() => !!(window as unknown as Win).__k11 && (window as unknown as Win).KinanLevels?.ready);
     await page.locator('#startBtn').click({ force: true });
-    expect(await settle(page)).toMatchObject({ world: 5, at: 10 });
-    /* when World 6 is released (OW_RELEASED in index.html), the same road leads on into it */
-    await page.evaluate(() => (window as unknown as { __k11: { owRelease: (n: number) => number } }).__k11.owRelease(6));
+    expect(await settle(page)).toMatchObject({ world: 6, at: 10 });
+    /* when World 7 is released (OW_RELEASED in index.html), the same road leads on into it (over the 6.5 road trip) */
+    await page.evaluate(() => (window as unknown as { __k11: { owRelease: (n: number) => number } }).__k11.owRelease(7));
     await page.locator('#owNext').click();
     await expect.poll(async () => (await mapState(page)).crossing, { timeout: 10_000 }).toBe(true);
-    expect(await settle(page)).toMatchObject({ world: 6, at: 0 });
+    await expect.poll(async () => { const s = await mapState(page); return s.world === 7 && !s.walking && !s.crossing ? s.at : null; }, { timeout: 90_000, intervals: [250] }).toBe(0);
+    expect(await settle(page)).toMatchObject({ world: 7, at: 0 });
     expect(errors).toEqual([]);
   });
 

@@ -2699,8 +2699,20 @@ function buildLevel(def) {
   const hiddenGifts = new Set();
   secretList.forEach((s) => { const gk = s.row * w + s.col; if (s.kind === 'hidden' && s.glint240 && gifts[gk]) hiddenGifts.add(gk); });
   const sp = spawn || { col: 2, row: 11 };
+  /* World 6: talk [col, 'WHO', 'text', seconds?] — a story line (subtitle only, no recording) as Kinan passes that
+     column, once per visit. Each one joins the story lines (block "STORY LINES") under its own id. */
+  const talk = [];
+  let talkBase = 0;
+  list.forEach((a) => {
+    (a.talk || []).forEach((t, k) => {
+      const id = 'talk_' + def.id + '_' + talk.length;
+      if (STORY && STORY.lines) STORY.lines[id] = [t[1], t[2], t[3] || Math.max(2.4, Math.min(6, t[2].length / 15)), null];
+      talk.push({ x: (talkBase + t[0]) * T, id: id, done: false });
+    });
+    talkBase += a.cols;
+  });
   return {
-    i: 0, g, w, foes, candles, gifts, checkpoint, petSpot: null, petCrate,
+    i: 0, g, w, foes, candles, gifts, checkpoint, petSpot: null, petCrate, talk,
     arenaX: w + 4, arenaW: 28, len: cols, buildPads: [], ice: false, wind: false, up: 0,   /* no arena: the boss gate can never fire */
     startT: [sp.col, sp.row], newWorld: true, th: levelTheme(def.theme),
     src: { name: def.id + ' ' + def.name },
@@ -2808,11 +2820,12 @@ const OW_3D_FILES = ['map/worlds/w12_models.js', 'map/worlds/w12_3d.js'];
 /* World 12 stop id → 3D level file (3d/levels/<file>.js). BIG BRICK's arena stands in for the castle until the Bessborough level exists. */
 const OW_3D_LEVELS = { '12-1': '12-1', '12-2': '12-2', '12-3': '12-3', '12-castle': '12-arena' };
 let owEngineP = null, ow3DP = null, owToken = 0, owOn = false, owDefs = null;
-/* THE WORLDS IN THIS BUILD (Shad, 2026-10-28): Worlds 1-5 are released. A world after OW_RELEASED stays on the map behind
-   a friendly "WORLD 6 COMING SOON!" sign with Glitchy waving, and Kinan never walks past it, whether or not some of its
-   level files exist yet (World 6 is being built; it opens when it is complete: raise this number then). Developer tests
-   reach the later worlds' map with __k11.owRelease(n) (?devtools=1 on localhost only, kept for the tab's session). */
-const OW_RELEASED = 5;
+/* THE WORLDS IN THIS BUILD (Shad, 2026-10-28): Worlds 1-6 are released (World 6, Drumheller, complete 2026-10-28: its
+   11 levels, the magpie flock and Robo-Rex). A world after OW_RELEASED stays on the map behind a friendly "WORLD 7
+   COMING SOON!" sign with Glitchy waving, and Kinan never walks past it, whether or not some of its level files exist
+   yet (raise this number when the next world is complete). Developer tests reach the later worlds' map with
+   __k11.owRelease(n) (?devtools=1 on localhost only, kept for the tab's session). */
+const OW_RELEASED = 6;
 let owReleased = OW_RELEASED;
 try { if (window.__k11DevOnly && window.__k11DevOnly()) { const v = Number(sessionStorage.getItem('kv-ow-release')); if (v >= 1 && v <= 12) owReleased = v; } } catch (e) { /* no session storage: the build's number */ }
 function owScripts(list) {
@@ -3279,6 +3292,9 @@ function cutFinish(skipped) {
 }
 /* something else took the screen (a level, a menu screen): the cutscene simply stops */
 function cutAbort() { if (Cut.on && !Cut.moving) cutStop(true); }
+/* how Glitchy leaves a world on the road legs of his escape (story bible): World 6, he jumps onto a tour bus heading
+   west through the mountains to Vancouver ("He's on the tour bus! Through the mountains!"). Worlds 1-5 run on foot. */
+const CUT_ESCAPE_RIDE = { 6: 'bus' };
 /* the escape after a castle win: false when it can't play here (then the notice shows as before) */
 function cutEscape(n, notice) {
   if (Cut.on || !window.KINAN || !window.KINAN.fly || !(n >= 1 && n <= 10)) return false;
@@ -3291,6 +3307,7 @@ function cutEscape(n, notice) {
   Cut.phase = 'map'; Cut.world = n; Cut.notice = notice || null; Cut.replay = false; Cut.back = null;
   if (window.KINAN.speed) window.KINAN.speed(Cut.speed);
   const ok = window.KINAN.fly('escape', {
+    ride: CUT_ESCAPE_RIDE[n] || null,   /* World 6: he leaves on the tour bus west, through the mountains */
     onEvent: (name) => { if (name === 'start') cutQueue(ids.length ? ids : ['w01_glitchy_02']); },
     onDone: (skipped) => cutFinish(skipped)
   });
@@ -3608,7 +3625,26 @@ const ARENA_LINES = {
   w05_kinan_02: ['KINAN', "He's not mean. He's just scared. ...Like Glitchy.", 5.59],
   t_bronco_02: ['BRONCO', '...mmrrf. (He lies down in the straw. The music is nice.)', 3, true],
   w05_robin_03: ['DAD', "Look at that. He's calming down. You did that, bud.", 5.35],
-  w05_kinan_11: ['KINAN', "Bronco's my friend now! Who wants a ride?", 4.34]
+  w05_kinan_11: ['KINAN', "Bronco's my friend now! Who wants a ride?", 4.34],
+  /* World 6 — Drumheller. No recordings yet (text only, Shad 2026-10-28): every line is a subtitle */
+  t_magpie_01: ['THE MAGPIE FLOCK', 'KAK-KAK-KAK! (Shiny! Shiny! Mine!)', 2.8, true],
+  t_w6_kinan_01: ['KINAN', 'Hey! Those are my birthday candles!', 2.6, true],
+  t_magpie_02: ['THE MAGPIE FLOCK', 'KAK! KAK! KAK! (The whole flock dives at once!)', 2.8, true],
+  t_magpie_03: ['THE MAGPIE FLOCK', 'KAK-KAK! (Here come the swoops!)', 2.4, true],
+  t_magpie_04: ['THE MAGPIE FLOCK', '...kak? (The big magpie drops your candles at your feet. A present!)', 3.6, true],
+  t_w6_chenoa_01: ['CHENOA', 'Magpies remember faces, little bro. Now they think you are cool.', 4, true],
+  t_rex_01: ['ROBO-REX', 'GRRZZZT! RAWR-RR-RR! (Sparks fly from its back.)', 3, true],
+  t_w6_kinan_02: ['KINAN', "Whoa! The museum's T-Rex is ALIVE!", 2.8, true],
+  t_w6_shad_01: ['SHAD', "Kinan, it isn't attacking you! Its wires are scrambled. See the one sparking on its back?", 5, true],
+  t_w6_shad_02: ['SHAD', "When it stops to cool down, hop on its back and plug that wire in. Fix it, don't fight it!", 5, true],
+  t_rex_02: ['ROBO-REX', 'STOMP! STOMP! (The floor shakes. Jump the shockwave!)', 3, true],
+  t_rex_03: ['ROBO-REX', 'RRROOOAAARRR! (Static blasts out of its speaker.)', 3, true],
+  t_rex_04: ['ROBO-REX', 'WHUMP! (Its tail swings low across the floor.)', 2.8, true],
+  t_w6_shad_03: ['SHAD', "One wire fixed! Hang on, bud, I'm building you a platform!", 3.6, true],
+  t_w6_kinan_03: ['KINAN', "One more wire, Rex. Hold still, I'm fixing you!", 3.4, true],
+  t_rex_05: ['ROBO-REX', 'beep... boop... purrrr. (Its eyes go from red to green.)', 3.4, true],
+  t_w6_shad_04: ["SHAD", "All three wires! You didn't fight it, Kinan. You fixed it.", 4, true],
+  t_w6_kinan_04: ['KINAN', 'Robo-Rex is my friend now! Can I ride him?', 3, true]
 };
 /* the bosses. A phase is how the boss plays between two hits:
      walk     pacing speed (px/frame)          windup  the tell before each attack (frames, >= 36)
@@ -3773,11 +3809,51 @@ const ARENA_KINDS = {
       { walk: 0.95, windup: 44, rest: 36, tired: 110, pattern: ['roll', 'rain', 'charge2', 'rain'], n: 5, speed: 1.4, feint: true, calm: 2, minions: 3 },
       { walk: 1.15, windup: 38, rest: 28, tired: 88, pattern: ['rain', 'wave', 'roll', 'charge2', 'wave', 'rain'], n: 6, speed: 1.65, feint: true, predict: true, calm: 2, minions: 3 }
     ]
+  },
+  /* ---- World 6, Drumheller (2026-10-28). A step up from World 5 again: the fort's tells 54/42 (Barker 56/44), the
+     castle's 52/42/36 (Bronco 54/44/38), never under 0.6 s. New World 6 moves (engine below):
+       swoop   magpies dive in V-shaped arcs onto shadows marked on the floor and climb away; one that touches
+               Kinan grabs a candle (thief: the flock gives them all back when befriended). throwN magpies per swoop.
+       sweep   a low tail sweep round the boss: a wide band on the floor shows its reach for the whole wind-up and
+               the sweep (stand outside it, or jump it)
+     Boss keys: hover (px: a flying boss floats that high and comes down to the floor only when tired, dizzy or
+     befriended: "stomp the one that dips low") · wires (the loose wire on Robo-Rex's back: one is fixed per hit) ·
+     ride (once the gates are down the befriended boss gives Kinan a ride to the goal; jump to hop off) · rowFit
+     (a row of shadows slides to fit inside the arena instead of piling up against a gate) ---- */
+  magpies: {
+    name: 'THE MAGPIE FLOCK', who: 'THE FLOCK', she: 'HE', w: 24, h: 16, scale: 1, draw: 'magpie', hover: 46, thief: true, rowFit: true,
+    shot: 'trinket', rainShot: 'trinket', roller: 'trinket', minion: 'gopher', bonk: 'KAK!', hugWord: 'FRIENDS!',
+    soon: 'NOT YET! WAIT TILL THE BIG ONE DIPS LOW',
+    hint: 'Watch the floor: a magpie dives onto every shadow. Step off it! When the big magpie dips low to peck, <b>STOMP!</b>',
+    smarter: ['They FAKE a swoop now and aim where you are GOING. Three dive at once, the flock drops shiny junk on the shadows, and two gophers pop up to help!'],
+    friend: '🐦 <b>THE MAGPIE FLOCK IS YOUR FRIEND NOW!</b> The big magpie gives your candles back.',
+    lines: { intro: ['t_magpie_01', 't_w6_kinan_01'], retry: ['t_magpie_01'], phase: [null, 't_magpie_02'], first: { swoop: 't_magpie_03' }, defeat: ['t_magpie_04', 't_w6_chenoa_01'] },
+    phases: [
+      { walk: 0.6, windup: 54, rest: 52, tired: 148, pattern: ['swoop', 'swoop'], n: 1, speed: 1.2 },
+      { walk: 0.85, windup: 42, rest: 42, tired: 120, pattern: ['rain', 'swoop', 'swoop'], n: 4, throwN: 3, speed: 1.4, feint: true, predict: true, minions: 2 }
+    ]
+  },
+  'robo-rex': {
+    name: 'ROBO-REX RUNS WILD', who: 'ROBO-REX', she: 'HE', w: 36, h: 36, scale: 1, draw: 'rex', drawScale: 1.25, wires: true, ride: true, rowFit: true,
+    shot: 'bone', rainShot: 'bone', roller: 'gear', wave: 'quake', minion: 'babydino', pat: 'FIX', bonk: 'WIRE FIXED!', hugWord: 'FRIENDS!',
+    sweep: 76,   /* the tail's reach from his middle (px): past where he likes to stand, so a kid has to step back or jump */
+    platforms: [[3, 3, 3], [18, 3, 3]],   /* Shad's platforms from phase 2: [first column, rows above the floor, width] */
+    soon: 'NOT YET! WAIT TILL HE COOLS DOWN',
+    hint: 'He isn\'t mean, his wires are scrambled! Jump the stomp shockwaves and stay out of reach of his tail. When he stops to cool down, a loose wire sparks on his back: land on it to <b>FIX</b> it!',
+    smarter: ['One wire fixed! Now he ROARS (it pushes you back), shakes bones off the exhibits, kicks bones at you and FAKES a stomp. Three baby dino robots wake up. Shad built you two platforms!', 'Two wires fixed! He aims where you are GOING, and then he CHARGES, turns and charges BACK. Jump him twice, and fix the last wire while he is dizzy!'],
+    friend: '🦖 <b>ROBO-REX IS FIXED!</b> His eyes turn green and he purrs. Hop on his back for a ride!',
+    lines: { intro: ['t_rex_01', 't_w6_kinan_02', 't_w6_shad_01', 't_w6_shad_02'], retry: ['t_rex_01', 't_w6_shad_02'], phase: [null, 't_w6_shad_03', 't_w6_kinan_03'],
+      first: { wave: 't_rex_02', blow: 't_rex_03', sweep: 't_rex_04' }, defeat: ['t_rex_05', 't_w6_shad_04', 't_w6_kinan_04'] },
+    phases: [
+      { walk: 0.7, windup: 52, rest: 42, tired: 132, pattern: ['wave', 'sweep', 'wave'], n: 1, speed: 1.25 },
+      { walk: 0.95, windup: 42, rest: 34, tired: 108, pattern: ['blow', 'wave', 'rain', 'toss', 'sweep', 'wave', 'rain'], n: 5, throwN: 2, speed: 1.45, feint: true, platforms: true, minions: 3 },
+      { walk: 1.15, windup: 36, rest: 26, tired: 86, pattern: ['wave', 'rain', 'toss', 'sweep', 'blow', 'wave', 'rain', 'charge2'], n: 6, throwN: 2, speed: 1.65, feint: true, predict: true, minions: 3 }
+    ]
   }
 };
 const ARENA_PHASE_KEYS = ['walk', 'windup', 'rest', 'tired', 'pattern', 'n', 'speed', 'feint', 'predict', 'minions', 'heal', 'bounce', 'platforms', 'calm', 'throwN'];
 /* B2: the size of each rolling thing [w, h] (the floor rollers and the blower's roller) */
-const ARENA_ROLLERS = { gnome: [10, 12], laundry: [14, 10], bell: [10, 9], ball: [10, 9], log: [18, 9], pipe: [16, 8], car: [16, 11], trolley: [14, 10], prize: [10, 10], pinwheel: [10, 10] };
+const ARENA_ROLLERS = { gnome: [10, 12], laundry: [14, 10], bell: [10, 9], ball: [10, 9], log: [18, 9], pipe: [16, 8], car: [16, 11], trolley: [14, 10], prize: [10, 10], pinwheel: [10, 10], gear: [10, 10], trinket: [8, 8] };
 /* buildLevel(): the arena declared by one area of a level (cols are that area's own) */
 function makeArena(d, base, H, set) {
   const kind = ARENA_KINDS[d.boss] ? d.boss : 'mom', K = ARENA_KINDS[kind];
@@ -3803,7 +3879,8 @@ function makeArena(d, base, H, set) {
     cp: { x: cpCol * T, tx: cpCol, ty: cpRow }, cpHit: false, state: 'wait', gateLT: 0, gateRT: 99, openT: 0,
     boss: b, shots: [], marks: [], ring: null, spawnQ: [], log: [], lineQ: [], line: null, lineT: 0, voiceLog: [],
     tries: 0, helped: false, glitchy: null, spotX: (gateL - 1) * T, said: {}, wonT: 0, hugged: false, music: null,
-    note: null, noteGot: false, built: null };   /* B2: the calming music (calm), the shelves built in a phase (platforms) */
+    note: null, noteGot: false, built: null,   /* B2: the calming music (calm), the shelves built in a phase (platforms) */
+    stolen: 0, riding: false, rideDone: false };   /* World 6: candles the magpies grabbed (given back at the befriend); Robo-Rex's ride */
 }
 const arenaLive = () => !!(L && L.arena && L.arena.state === 'fight');
 const arenaIsGate = (tx) => !!(L && L.arena && (tx === L.arena.gateL || tx === L.arena.gateR));
@@ -3847,6 +3924,7 @@ function arenaStart(A) {
   Object.assign(b, { phase: 1, hp: b.max, x: b.homeX, vx: 0, state: 'intro', t: A.tries === 1 ? 150 : 70, atk: 0, attackN: 0, cur: null, feintAt: 0, inv: 0, flash: 0 });
   b.h = A.K.h; b.y = A.floorY - b.h;
   A.music = Music.name; Music.play('boss'); SFX.boss();
+  Story.q = Story.q.filter((x) => !/^talk_/.test(x.id));   /* World 6: a level's story bubbles not said yet stay on the way in */
   A.lineQ = []; for (const id of (A.tries === 1 ? A.K.lines.intro : A.K.lines.retry)) arenaSay(A, id);
   toastHold = 0;
   toast('<b>' + A.K.name + '!</b> ' + A.K.hint + (A.helped ? '<br>✨ Glitchy is bugging ' + (A.K.she === 'SHE' ? 'her' : 'him') + ' for you.' : ''), 3200, true);
@@ -3928,6 +4006,15 @@ function arenaUnbuild(A) {
   A.built = null;
 }
 function arenaWind(A, ph) { return Math.max(ARENA_TELL_MIN, Math.round(ph.windup * (A.helped ? 1.3 : 1))); }
+/* World 6 (rowFit): a row of n shadows `gap` px apart, centred on aim, slides as a whole to fit between lo and hi,
+   so the shadows never pile up on one spot against a gate where Kinan is cornered (there is always a gap between
+   two of them to stand in). Bosses without rowFit (Worlds 1-5) keep their rows exactly as they were: shift 0. */
+function arenaRowFit(A, aim, n, gap, lo, hi) {
+  if (!A.K.rowFit) return 0;
+  const first = aim - (n - 1) / 2 * gap, lastX = aim + (n - 1) / 2 * gap;
+  if (lastX - first > hi - lo) return 0;
+  return first < lo ? lo - first : lastX > hi ? hi - lastX : 0;
+}
 function arenaChoose(b, ph, A) {
   const atk = ph.pattern[b.atk % ph.pattern.length], wind = arenaWind(A, ph);
   b.cur = atk; b.state = 'windup'; b.t = wind; b.attackN++; b.turned = false;
@@ -3939,12 +4026,29 @@ function arenaMarks(b, ph, A, wind) {
   A.marks = []; A.ring = null;
   if (b.cur === 'rain') {
     const aim = arenaAim(A, ph, Math.min(50, wind)), lo = (A.gateL + 1) * T + 6, hi = A.gateR * T - 6;
-    for (let k = 0; k < ph.n; k++) { const x = clamp(aim + (k - (ph.n - 1) / 2) * 48, lo, hi); A.marks.push({ x: x, y: arenaFloorAt(A, x) }); }
+    const shift = arenaRowFit(A, aim, ph.n, 48, lo, hi);
+    for (let k = 0; k < ph.n; k++) { const x = clamp(aim + shift + (k - (ph.n - 1) / 2) * 48, lo, hi); A.marks.push({ x: x, y: arenaFloorAt(A, x) }); }
   } else if (b.cur === 'slam') {
     A.ring = { x: arenaAim(A, ph, Math.min(46, wind)), y: A.floorY };
+  } else if (b.cur === 'swoop') {
+    /* World 6: a shadow on the floor where each magpie will dive (they are 56 px apart) */
+    const cnt = ph.throwN || ph.n || 1, aim = arenaAim(A, ph, Math.min(50, wind)), lo = (A.gateL + 1) * T + 6, hi = A.gateR * T - 6;
+    const shift = arenaRowFit(A, aim, cnt, 56, lo, hi);
+    for (let k = 0; k < cnt; k++) { const x = clamp(aim + shift + (k - (cnt - 1) / 2) * 56, lo, hi); A.marks.push({ x: x, y: arenaFloorAt(A, x), swoop: true }); }
+  } else if (b.cur === 'sweep') {
+    /* World 6: the tail's reach, a wide band round the boss for the whole wind-up and the sweep */
+    A.ring = { x: b.x + b.w / 2, y: A.floorY, rw: A.K.sweep || 60 };
   }
 }
 function arenaShot(A, o) { A.shots.push(Object.assign({ w: 8, h: 8, vx: 0, vy: 0, g: 0.18, life: 600, spin: 0 }, o)); }
+/* World 6 (thief): a swooping magpie that touches Kinan grabs a candle; the flock keeps them until it is befriended */
+function arenaSteal(A, s) {
+  if (A.K.thief && got > 0) {
+    got--; A.stolen++; s.loot = 1; updHud();
+    pop(s.x - 6, s.y - 10, '-1 candle!', 34, '#ff6b6b');
+  }
+  arenaLog(A, 'steal', { stolen: A.stolen });
+}
 function arenaAttack(b, ph, A) {
   const K = A.K, atk = b.cur, bc = b.x + b.w / 2, sp = ph.speed || 1;
   const dir = sign((P.x + P.w / 2) - bc);
@@ -3987,6 +4091,19 @@ function arenaAttack(b, ph, A) {
     b.state = 'blow'; b.t = 110;
     const [w, h] = K.roller === 'gnome' ? [10, 12] : (ARENA_ROLLERS[K.roller] || [10, 12]);
     arenaShot(A, { kind: K.roller, roll: true, w: w, h: h, x: bc - w / 2 + dir * 10, y: A.floorY - h, vx: dir * 1.4 * sp, g: 0 });
+  } else if (atk === 'swoop') {
+    /* World 6: the flock comes in high from the boss's side, each magpie dives onto its shadow and climbs away
+       (a V: 150 px up at both ends, on the floor only at its shadow); one after another, 14 frames apart */
+    const from = sign(bc - (A.gateL + A.gateR + 1) / 2 * T) || 1, dur = Math.round(70 / sp);
+    A.marks.forEach((m, k) => {
+      const x0 = m.x + from * 110, x1 = m.x - from * 110;
+      arenaShot(A, { kind: 'magpie', swoop: true, w: 12, h: 8, x: x0 - 6, y: -60, x0: x0, x1: x1, dip: m.y, top: 150, k: -k * 14, dur: dur, tx: m.x, vx: (x1 - x0) / dur, g: 0, life: dur + k * 14 + 20 });
+    });
+    SFX.pew();
+    b.state = 'recover'; b.t = 30;
+  } else if (atk === 'sweep') {
+    b.state = 'sweep'; b.t = 30;
+    SFX.thud(); shake = Math.max(shake, 2);
   }
 }
 function arenaNext(b, ph, A) {
@@ -4092,6 +4209,14 @@ function arenaBossAI(A) {
       if (b.t <= 0) arenaNext(b, ph, A);
       break;
     }
+    case 'sweep': {
+      /* World 6: the tail swings low round him: it hurts on the floor inside the band, never up on a jump or a shelf */
+      const reach = A.ring ? A.ring.rw : (A.K.sweep || 60);
+      if (!P.dead && P.y + P.h > A.floorY - 12 && Math.abs((P.x + P.w / 2) - (b.x + b.w / 2)) < reach) hurt(b.x + b.w / 2);
+      if (frame % 3 === 0) dust(b.x + b.w / 2 - b.face * reach * Math.cos(b.t / 4), A.floorY, 1);
+      if (b.t <= 0) { A.ring = null; arenaNext(b, ph, A); }
+      break;
+    }
     case 'tired': case 'dizzy':
       b.vx = 0;
       if (b.t <= 0) {
@@ -4111,6 +4236,10 @@ function arenaBossAI(A) {
       break;
     }
     case 'friend': faceK(); break;
+  }
+  if (A.K.hover) {   /* World 6: a flying boss floats up high and only dips down to the floor when it is tired or dizzy */
+    const want = A.floorY - b.h - (b.state === 'tired' || b.state === 'dizzy' ? 0 : A.K.hover);
+    b.y += clamp(want - b.y, -2.5, 3);
   }
 }
 /* a new phase: the minions are called in (a puff marks each spot first), the neighbour's wife tosses a cookie */
@@ -4133,7 +4262,15 @@ function arenaShots(A) {
   const lo = (A.gateL + 1) * T, hi = A.gateR * T;
   for (const s of A.shots) {
     s.life--; s.spin++;
-    if (s.roll) {
+    if (s.swoop) {
+      /* World 6: a magpie's dive, a V from high on one side down to its shadow and up the other side */
+      s.k++;
+      if (s.k < 0) { s.y = -60; continue; }   /* still waiting its turn, up out of sight */
+      const u = s.k / s.dur;
+      s.x = lerp(s.x0, s.x1, u) - s.w / 2;
+      s.y = s.dip - s.h - s.top * Math.abs(2 * u - 1);
+      if (s.k >= s.dur) s.gone = true;
+    } else if (s.roll) {
       s.x += s.vx; s.y = A.floorY - s.h;
       if (s.x < lo - 2 || s.x + s.w > hi + 2) { s.gone = true; dust(s.x + s.w / 2, A.floorY, 4); }
     } else {
@@ -4153,10 +4290,13 @@ function arenaShots(A) {
     }
     if (s.life <= 0) s.gone = true;
     if (s.gone || s.friendly) continue;
-    if (!P.dead && overlap(P, s)) {
-      s.gone = true;
-      if (P.power === 'popper' || P.rush > 0) { SFX.pop(); sparks(s.x + 4, s.y + 4, 6, ['#ff6fae', '#fff']); }
-      else hurt(s.x + s.w / 2);
+    if (!P.dead && !s.stole && overlap(P, s)) {
+      if (!s.swoop) s.gone = true;
+      if (P.power === 'popper' || P.rush > 0) { s.gone = true; SFX.pop(); sparks(s.x + 4, s.y + 4, 6, ['#ff6fae', '#fff']); }
+      else {
+        if (s.swoop && P.inv <= 0) { s.stole = true; arenaSteal(A, s); }   /* World 6: the magpie grabs a candle and flies on */
+        hurt(s.x + s.w / 2);
+      }
     }
     for (const bl of blasts) if (bl.life > 0 && overlap(bl, s)) { s.gone = true; bl.life = 0; SFX.pop(); sparks(s.x + 4, s.y + 4, 6, ['#ff6fae', '#fff']); }
   }
@@ -4171,7 +4311,7 @@ function arenaShots(A) {
   }
   A.spawnQ = A.spawnQ.filter((q) => q.t > 0);
 }
-const ARENA_BUSY = { pace: 1, windup: 1, feint: 1, recover: 1, charge: 1, leap: 1, blow: 1 };
+const ARENA_BUSY = { pace: 1, windup: 1, feint: 1, recover: 1, charge: 1, leap: 1, blow: 1, sweep: 1 };
 function arenaContact(A) {
   const b = A.boss;
   if (b.state === 'wait' || P.dead) return;
@@ -4226,6 +4366,12 @@ function arenaBefriend(A) {
   for (const id of A.K.lines.defeat) arenaSay(A, id);
   if (A.music) Music.play(A.music);
   SFX.win();
+  if (A.stolen > 0) {   /* World 6: the magpies give back every candle they grabbed, a present at Kinan's feet */
+    addCandle(A.stolen);
+    pop(b.x - 20, b.y - 30, '+' + A.stolen + (A.stolen === 1 ? ' candle' : ' candles') + ' back!', 70, '#f6c445');
+    arenaLog(A, 'giveback', { n: A.stolen });
+    A.stolen = 0;
+  }
   toastHold = 0;
   toast(A.K.friend, 3200, true);
   arenaLog(A, 'befriend');
@@ -4287,9 +4433,33 @@ function arenaUpdate() {
   if (A.state === 'friend' || A.state === 'open') {
     const b = A.boss;
     if (overlap(P, b)) arenaHug(A);
-    if (Math.abs((P.x + P.w / 2) - (b.x + b.w / 2)) > 2) b.face = sign((P.x + P.w / 2) - (b.x + b.w / 2));
+    if (A.K.ride) arenaRide(A);
+    else if (Math.abs((P.x + P.w / 2) - (b.x + b.w / 2)) > 2) b.face = sign((P.x + P.w / 2) - (b.x + b.w / 2));
   }
   arenaLines(A);
+}
+/* World 6 (ride): a second after he is befriended, the boss (Robo-Rex) walks over to Kinan and Kinan hops onto his
+   back; once the gates are down he carries him out towards the goal. A jump hops off (the ride is over then); the
+   ride ends at LEVEL CLEAR or a few tiles past the boss door. Runs after the player's own update, so the ride has
+   the last word on where Kinan is this frame. */
+function arenaRide(A) {
+  const b = A.boss, pc = P.x + P.w / 2, bc = b.x + b.w / 2;
+  if (P.dead || L.cleared || A.rideDone) { if (A.riding) { A.riding = false; A.rideDone = true; } b.vx = 0; return; }
+  if (!A.riding) {
+    if (A.state === 'friend' && A.wonT < 60) { b.vx = 0; return; }   /* the befriend moment first: hearts, his purr */
+    if (Math.abs(pc - bc) > 8) { b.vx = sign(pc - bc) * 1.2; b.x += b.vx; b.face = sign(b.vx); } else b.vx = 0;
+    if (A.state !== 'open') b.x = clamp(b.x, (A.gateL + 1) * T, A.gateR * T - b.w);   /* the doors are still shut */
+    if (overlap(P, b) && P.vy >= 0 && (A.state === 'open' || !A.lineQ.length)) {   /* on "Can I ride him?", the last line */
+      A.riding = true;
+      pop(b.x - 6, b.y - 26, 'HOP ON!', 60, '#7be3a3'); SFX.spring();
+      arenaLog(A, 'ride');
+    }
+    return;
+  }
+  if (P.vy < -1 || b.x > (A.gateR + 10) * T) { A.riding = false; A.rideDone = true; b.vx = 0; return; }   /* he jumped off / far enough */
+  if (A.state === 'open') { b.vx = 1.3; b.x += b.vx; b.face = 1; if (frame % 10 === 0) dust(b.x + 4, A.floorY, 1); }
+  else b.vx = 0;   /* waits with Kinan on his back until the gates are down */
+  P.x = b.x + b.w / 2 - P.w / 2; P.y = b.y - P.h + 6; P.vx = b.vx; P.vy = 0; P.onGround = true;
 }
 
 function build(i) {
@@ -7653,6 +7823,7 @@ function update() {
       SFX.win();
     }
   }
+  if (L.talk) for (const t of L.talk) if (!t.done && P.x > t.x) { t.done = true; Story.add([t.id], 'open'); }   /* World 6: a level's story lines */
   /* M4b: the goal — a non-blocking LEVEL CLEAR, a short victory lap, then back to the map */
   if (L.goal && boss === 'off') {
     if (!L.cleared) { if (P.x + P.w / 2 >= L.goal.x) levelClear(); }
@@ -9225,6 +9396,8 @@ function arenaSprites(kind) {
 /* B2: the bosses drawn by a legacy drawing (the moose, Bronco, the conductor in his coaster car). The legacy
    drawings put their own "!" over a wind-up; the arena draws its tells itself, so they get a quiet pose. */
 function drawArenaDrawn(A, b, bsx, sqX, sqY) {
+  if (A.K.draw === 'magpie') { drawArenaMagpie(A, b, bsx, sqX, sqY); return; }   /* World 6: the magpie flock */
+  if (A.K.draw === 'rex') { drawArenaRex(A, b, bsx, sqX, sqY); return; }   /* World 6: Robo-Rex */
   const K = A.K, bottom = Math.round(b.y + b.h), bcx = bsx + b.w / 2;
   const pose = { w: b.w, h: b.h, face: b.face, vx: b.vx, onGround: true, kind: K.draw === 'bull' ? 'bronco' : K.draw,
     state: b.state === 'charge' ? 'charge' : 'pose' };
@@ -9306,10 +9479,10 @@ function drawArena() {
     ctx.beginPath(); ctx.ellipse(mx, m.y - 1, 10, 4, 0, 0, 6.284); ctx.stroke();
   }
   if (A.ring) {
-    const rx = Math.round(A.ring.x - cx), a = 0.45 + Math.abs(Math.sin(frame / 5)) * 0.4;
+    const rx = Math.round(A.ring.x - cx), a = 0.45 + Math.abs(Math.sin(frame / 5)) * 0.4, rw = A.ring.rw || 24;   /* World 6: a tail sweep's band is wider */
     ctx.strokeStyle = 'rgba(255,59,59,' + a.toFixed(2) + ')'; ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.ellipse(rx, A.ring.y - 2, 24, 6, 0, 0, 6.284); ctx.stroke(); ctx.lineWidth = 1;
-    ctx.fillStyle = 'rgba(255,59,59,.18)'; ctx.beginPath(); ctx.ellipse(rx, A.ring.y - 2, 24, 6, 0, 0, 6.284); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(rx, A.ring.y - 2, rw, 6, 0, 0, 6.284); ctx.stroke(); ctx.lineWidth = 1;
+    ctx.fillStyle = 'rgba(255,59,59,.18)'; ctx.beginPath(); ctx.ellipse(rx, A.ring.y - 2, rw, 6, 0, 0, 6.284); ctx.fill();
   }
   for (const q of A.spawnQ) {   /* a minion is on its way: a puff and a "!" mark the spot first */
     const qx = Math.round(q.x - cx) + 6;
@@ -9518,8 +9691,8 @@ function drawArenaShotB2(s, sx, sy, spin) {
     ctx.fillStyle = '#f6c445'; ctx.fillRect(sx, sy + 2, s.w, 2); ctx.fillStyle = '#b71f33'; ctx.fillRect(sx, sy + s.h - 5, s.w, 2);
     ctx.fillStyle = '#1b1220'; ctx.fillRect(sx + 2, sy + s.h - 3, 4, 3); ctx.fillRect(sx + s.w - 6, sy + s.h - 3, 4, 3);
     ctx.fillStyle = spin ? '#9aa1ab' : '#1b1220'; ctx.fillRect(sx + 3, sy + s.h - 2, 1, 1); ctx.fillRect(sx + s.w - 5, sy + s.h - 2, 1, 1);
-  } else if (k === 'whistle' || k === 'shock' || k === 'dust') {   /* a shockwave along the floor (whistle: gold; Chenoa's ground pound: white; Bronco's stamp: dirt) */
-    const c = k === 'whistle' ? '246,196,69' : k === 'dust' ? '201,162,106' : '244,241,232';
+  } else if (k === 'whistle' || k === 'shock' || k === 'dust' || k === 'quake') {   /* a shockwave along the floor (whistle: gold; Chenoa's ground pound: white; Bronco's stamp: dirt; World 6 Robo-Rex's stomp: orange) */
+    const c = k === 'whistle' ? '246,196,69' : k === 'dust' ? '201,162,106' : k === 'quake' ? '255,150,70' : '244,241,232';
     ctx.fillStyle = 'rgba(' + c + ',.85)'; ctx.beginPath(); ctx.ellipse(sx + s.w / 2, sy + s.h, s.w / 2 + 1, s.h, 0, Math.PI, 0); ctx.fill();
     ctx.fillStyle = 'rgba(255,255,255,.6)'; ctx.beginPath(); ctx.ellipse(sx + s.w / 2, sy + s.h, s.w / 4, s.h / 2, 0, Math.PI, 0); ctx.fill();
     ctx.strokeStyle = 'rgba(' + c + ',.45)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(sx - sign(s.vx) * 6, sy + s.h - 1); ctx.lineTo(sx + s.w / 2, sy + s.h - 1); ctx.stroke();
@@ -9549,7 +9722,93 @@ function drawArenaShotB2(s, sx, sy, spin) {
     ctx.fillStyle = '#f6c445'; ctx.fillRect(-5, -1, 10, 2); ctx.fillStyle = '#ff6fae'; ctx.fillRect(-1, -5, 2, 10);
     ctx.restore();
     glowDisc(sx + 5, sy + 5, 7, 'rgba(255,200,90,.55)', 0.7);
+  } else if (k === 'magpie') {   /* World 6: a magpie of the flock, diving; it carries off the candle it grabbed */
+    if (sy > -20) drawArenaMiniMagpie(sx + s.w / 2, sy + s.h / 2, sign(s.vx) || 1, Math.floor(s.spin / 4) % 2, s.loot);
+  } else if (k === 'trinket') {   /* World 6: shiny junk the flock drops (a bottle cap, a lost key) */
+    glowDisc(sx + 4, sy + 4, 6, 'rgba(255,255,255,.45)', 0.6);
+    if (spin) { ctx.fillStyle = '#c9c9cf'; ctx.beginPath(); ctx.arc(sx + 4, sy + 4, 4, 0, 6.284); ctx.fill(); ctx.fillStyle = '#9aa1ab'; ctx.fillRect(sx + 1, sy + 3, 6, 1); }
+    else { ctx.fillStyle = '#f6c445'; ctx.fillRect(sx + 1, sy + 3, 6, 2); ctx.beginPath(); ctx.arc(sx + 2, sy + 4, 2.4, 0, 6.284); ctx.fill(); ctx.fillStyle = '#1b1220'; ctx.fillRect(sx + 1, sy + 4, 1, 1); }
+    ctx.fillStyle = '#fff'; ctx.fillRect(sx + 2, sy + 1, 1, 1);
+  } else if (k === 'gear') {   /* World 6: a loose gear rolling off Robo-Rex while he roars */
+    ctx.save(); ctx.translate(sx + 5, sy + 5); ctx.rotate(s.spin / 5 * sign(s.vx || 1));
+    ctx.fillStyle = '#9aa1ab'; for (let t = 0; t < 4; t++) { ctx.rotate(Math.PI / 4); ctx.fillRect(-1.5, -5.5, 3, 11); }
+    ctx.beginPath(); ctx.arc(0, 0, 3.6, 0, 6.284); ctx.fill(); ctx.fillStyle = '#4a4f57'; ctx.beginPath(); ctx.arc(0, 0, 1.4, 0, 6.284); ctx.fill();
+    ctx.restore();
+  } else if (k === 'bone') {   /* World 6: a replica fossil bone shaken off the exhibits, falling on its shadow */
+    ctx.save(); ctx.translate(sx + 5, sy + 5); ctx.rotate(s.spin / 8);
+    ctx.fillStyle = '#efe3c2'; ctx.fillRect(-4, -1, 8, 2);
+    ctx.beginPath(); ctx.arc(-4, -1.5, 1.8, 0, 6.284); ctx.arc(-4, 1.5, 1.8, 0, 6.284); ctx.arc(4, -1.5, 1.8, 0, 6.284); ctx.arc(4, 1.5, 1.8, 0, 6.284); ctx.fill();
+    ctx.restore();
   }
+}
+/* World 6: a small magpie (the flock round the big one, the divers): black and white, a blue-black wing, a long tail */
+function drawArenaMiniMagpie(cx, cy, f, flap, loot) {
+  const x = Math.round(cx), y = Math.round(cy);
+  ctx.fillStyle = '#1b1220'; ctx.beginPath(); ctx.ellipse(x, y, 5, 3.4, 0, 0, 6.284); ctx.fill();
+  ctx.beginPath(); ctx.arc(x + f * 4, y - 2, 2.5, 0, 6.284); ctx.fill();
+  ctx.fillRect(f > 0 ? x - 10 : x + 4, y - 1, 6, 2);   /* the long tail */
+  ctx.fillStyle = '#4a4f57'; ctx.fillRect(f > 0 ? x + 6 : x - 8, y - 2, 2, 1);   /* the beak */
+  ctx.fillStyle = '#f4f1e8'; ctx.fillRect(x - 2, y, 4, 2);   /* the white belly */
+  ctx.fillStyle = '#3f63a8'; ctx.fillRect(x - 3, flap ? y - 6 : y - 2, 6, flap ? 4 : 2);
+  ctx.fillStyle = '#f4f1e8'; ctx.fillRect(x - 2, flap ? y - 5 : y - 2, 2, 1);
+  ctx.fillStyle = '#fff'; ctx.fillRect(x + f * 4, y - 3, 1, 1);
+  if (loot) { const ci = candleImg(frame); ctx.drawImage(ci, Math.round(x + f * 7 - ci.width / 2), y - 1); }
+}
+/* World 6: the big magpie, the flock's leader (twice a small one), up in the air with the flock circling it; when it
+   is tired it dips down to the floor and pecks at a shiny candle: that is the stomp window */
+function drawArenaMagpie(A, b, bsx, sqX, sqY) {
+  const bottom = Math.round(b.y + b.h), bcx = Math.round(bsx + b.w / 2), f = b.face < 0 ? -1 : 1;
+  const low = b.state === 'tired' || b.state === 'dizzy' || b.state === 'friend';
+  const flap = low ? 0 : Math.floor(frame / 5) % 2, peck = low && b.state !== 'friend' && frame % 24 < 8 ? 2 : 0;
+  if (!low && A.state === 'fight') for (let k = 0; k < 3; k++) {   /* the rest of the flock circles the big one */
+    const a = frame / 22 + k * 2.09;
+    drawArenaMiniMagpie(bcx + Math.cos(a) * 30, b.y - 2 + Math.sin(a) * 9, -Math.sin(a) > 0 ? 1 : -1, (Math.floor(frame / 5) + k) % 2, false);
+  }
+  if (low && b.state !== 'friend') { const ci = candleImg(frame); ctx.drawImage(ci, bcx + f * 15 - Math.floor(ci.width / 2), A.floorY - ci.height); }   /* the shiny thing it pecks at */
+  ctx.save();
+  ctx.translate(bcx, bottom); ctx.scale(f * sqX * 2, sqY * 2);
+  ctx.fillStyle = '#1b1220'; ctx.beginPath(); ctx.ellipse(0, -4, 5, 3.5, 0, 0, 6.284); ctx.fill();
+  ctx.beginPath(); ctx.arc(4, -6 + peck, 2.6, 0, 6.284); ctx.fill();
+  ctx.fillRect(-11, -5, 7, 2);   /* the long tail */
+  ctx.fillStyle = '#3f63a8'; ctx.fillRect(-12, -5, 2, 2);
+  ctx.fillStyle = '#4a4f57'; ctx.fillRect(6, -6.5 + peck, 2, 1);   /* the beak */
+  ctx.fillStyle = '#f4f1e8'; ctx.fillRect(-1, -3, 4, 2);   /* the white belly */
+  ctx.fillStyle = '#3f63a8'; ctx.fillRect(-3, flap ? -10 : -6, 6, flap ? 4 : 2);   /* the blue-black wing */
+  ctx.fillStyle = '#f4f1e8'; ctx.fillRect(-2, flap ? -9 : -6, 2, 1);
+  ctx.fillStyle = '#fff'; ctx.fillRect(4.5, -7 + peck, 1, 1);
+  if (low) { ctx.fillStyle = '#4a4f57'; ctx.fillRect(-1, -1, 1, 1); ctx.fillRect(1, -1, 1, 1); }   /* standing on the bridge */
+  ctx.restore();
+}
+/* World 6: Robo-Rex, the dinosaur museum's robot T-Rex (the legacy drawRex, 1.25x). Three wire sockets on his back:
+   a fixed wire is plugged in green; the loose one sparks, and glows bright while he cools down (the FIX window).
+   Befriended, his eyes go from red to green. */
+function drawArenaRex(A, b, bsx, sqX, sqY) {
+  const s = A.K.drawScale || 1, bottom = Math.round(b.y + b.h), bcx = Math.round(bsx + b.w / 2), f = b.face < 0 ? -1 : 1;
+  const st = b.state === 'blow' ? 'roar' : b.state === 'sweep' ? 'sweep' : 'pose';
+  const x0 = bcx - 15, y0 = bottom - 34, tired = b.state === 'tired' || b.state === 'dizzy';
+  ctx.save();
+  ctx.translate(bcx, bottom); ctx.scale(sqX * s, sqY * s); ctx.translate(-bcx, -bottom);
+  drawRex({ w: 30, h: 34, face: b.face, vx: b.state === 'charge' ? 2 : b.vx, state: st }, x0, y0);
+  const hx = bcx + f * 6, hy = y0 + 2 + (st === 'roar' ? 12 : 0);
+  if (b.state === 'friend') { ctx.fillStyle = '#7be3a3'; ctx.fillRect(f > 0 ? hx + 7 : hx - 9, hy + 3, 3, 3); glowDisc(f > 0 ? hx + 8 : hx - 8, hy + 4, 5, 'rgba(123,227,163,.7)', 0.7); }
+  const fixed = b.state === 'friend' ? b.max : b.max - b.hp, cols = ['#ff4a4a', '#f6c445', '#6fc8ff'];
+  for (let k = 0; k < b.max; k++) {
+    const wx = bcx - f * (8 - k * 5), wy = y0 + 11 + (k === 0 ? 1 : 0);
+    ctx.fillStyle = '#4a4f57'; ctx.fillRect(wx - 2, wy - 1, 4, 2);   /* the socket */
+    if (k < fixed) { ctx.fillStyle = '#7be3a3'; ctx.fillRect(wx - 1, wy - 4, 3, 3); ctx.fillStyle = '#2f7a4a'; ctx.fillRect(wx - 1, wy - 2, 3, 1); }
+    else if (k === fixed && A.state === 'fight') {
+      const c = cols[k % 3];
+      if (tired) {   /* cooling down: the loose wire stands up and glows, a jump away */
+        glowDisc(wx, wy - 8, 9, 'rgba(255,240,170,.75)', 0.6 + Math.abs(Math.sin(frame / 6)) * 0.4);
+        ctx.fillStyle = c; ctx.fillRect(wx, wy - 10, 2, 10); ctx.fillRect(wx - 1, wy - 12, 4, 3);
+        if (frame % 6 < 3) { ctx.fillStyle = '#fff3b0'; ctx.fillRect(wx - 3, wy - 14, 2, 2); ctx.fillRect(wx + 3, wy - 13, 2, 2); }
+      } else {   /* running wild: it dangles and sparks */
+        ctx.fillStyle = c; ctx.fillRect(wx, wy - 3, 2, 3); ctx.fillRect(wx + f * -2, wy - 4, 3, 2); ctx.fillRect(wx + f * -4, wy - 3, 2, 4);
+        if (frame % 20 < 4) { ctx.fillStyle = '#fff3b0'; ctx.fillRect(wx + f * -5, wy - 1, 2, 2); }
+      }
+    }
+  }
+  ctx.restore();
 }
 /* ============================================================
    RENDER — projectiles, particles, overlays
@@ -19009,9 +19268,9 @@ function arenaBotInput() {
   } else {
     /* the safest spot nearest to Kinan: clear of every mark, every throw's landing spot, the ring and the boss */
     const danger = [];
-    for (const m of A.marks) danger.push([m.x, 22]);
+    for (const m of A.marks) danger.push([m.x, m.swoop ? 34 : 22]);   /* World 6: a diving magpie's V is wider than a falling thing */
     for (const s of A.shots) if (!s.roll && !s.friendly && s.tx != null) danger.push([s.tx, 24]);
-    if (A.ring) danger.push([A.ring.x, 46]);
+    if (A.ring) danger.push([A.ring.x, A.ring.rw ? A.ring.rw + 12 : 46]);   /* World 6: the tail sweep's band */
     for (const q of A.spawnQ) danger.push([q.x + 6, 30]);
     const keep = b.state === 'charge' ? 0 : 76;
     /* B2 calm: a kid goes for the music when nothing is coming down or rolling at him (dodge first) */
@@ -19033,7 +19292,7 @@ function arenaBotInput() {
     if (note && !rollerComing && b.state !== 'charge' && Math.abs(note.x - pc) < 10 && note.y < A.floorY - 24) jump = true;   /* the high music: jump for it */
     if (rollerNear || foeNear) jump = true;
     if (rollerBehind) dir = 0;   /* B2: never run along with a roller catching up: stand and let it pass under the jump */
-    if (dir && dir === sign(dx) && Math.abs(dx) < b.w / 2 + 22 && ARENA_BUSY[b.state]) jump = true;   /* hop over a busy boss */
+    if (dir && dir === sign(dx) && Math.abs(dx) < b.w / 2 + 22 && ARENA_BUSY[b.state] && !A.K.hover) jump = true;   /* hop over a busy boss (World 6: walk under a flying one) */
     if (b.state === 'charge' && Math.abs(dx) < 60 && sign(-dx) === b.dir) jump = true;
   }
   input.left = dir < 0; input.right = dir > 0;
@@ -19262,6 +19521,8 @@ window.__k11 = window.__k11DevOnly() ? {
       minions: foes.filter((f) => f.arena && f.alive).length, spawnQ: A.spawnQ.length,
       note: A.note ? { x: Math.round(A.note.x), y: Math.round(A.note.y) } : null, noteGot: A.noteGot,   /* B2 calm */
       built: A.built ? A.built.map((c) => c.slice()) : [], pat: A.K.pat || 'STOMP',   /* B2 platforms; the word on the arrow */
+      stolen: A.stolen, riding: A.riding, wires: A.K.wires ? (b.state === 'friend' ? b.max : b.max - b.hp) : 0,   /* World 6: candles the flock holds; Robo-Rex's ride and fixed wires */
+      ringW: A.ring ? (A.ring.rw || 24) : 0,
       log: A.log.slice(), line: A.line, lineQ: A.lineQ.slice(), voiceLog: A.voiceLog.slice(),
       subtitle: el.bossLine && !el.bossLine.hidden ? el.bossLine.textContent : '',
       hud: { shown: !el.bossHud.hidden, name: el.bossName.textContent, pips: el.bossPips.querySelectorAll('.pip').length, live: el.bossPips.querySelectorAll('.pip:not(.dead)').length },

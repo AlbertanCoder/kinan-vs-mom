@@ -498,18 +498,10 @@ test.describe('B2 · beating a castle opens that world\'s exit on the map', () =
       await page.waitForFunction(() => { const s = (window as unknown as Win).__k11.mapState(); return s.mounted && !s.busy; });
       const s2 = await page.evaluate(() => (window as unknown as Win).__k11.mapState());
       expect(s2.stops[10].state).toBe('beaten');
-      if (n === 5) {
-        /* Shad, 2026-10-28: World 6 is not in this build yet. The way on is a "WORLD 6 COMING SOON!" sign with Glitchy
-           waving (c1-cutscenes.spec.ts), and Kinan stays at the castle */
-        expect(s2.notice).toBe('WORLD 6 COMING SOON!');
-        expect((s2 as unknown as { gate: number | null }).gate).toBe(6);
-        await page.locator('#owNext').click();
-        await expect.poll(async () => (await page.evaluate(() => (window as unknown as Win).__k11.mapState())).banner).toBe('WORLD 6 COMING SOON!');
-        expect(await settle(page)).toMatchObject({ world: 5, at: 10 });
-        expect((await page.evaluate(() => (window as unknown as Win).__k11.progress().wmap))).toEqual({ w: 5, at: 10 });
-        expect(errors).toEqual([]);
-        return;
-      }
+      /* 2026-10-28: World 6 is in this build now (OW_RELEASED 6), so the 5-castle opens the way on like the others (it
+         used to end at a "WORLD 6 COMING SOON!" sign; that sign now stands past the 6-castle: c1-cutscenes.spec.ts,
+         w6-world.spec.ts) */
+      expect((s2 as unknown as { gate: number | null }).gate ?? null).toBeNull();
       expect(s2.notice).toBe('THE WAY ON TO THE NEXT WORLD IS OPEN!');
       await page.locator('#owNext').click();
       await expect.poll(async () => (await page.evaluate(() => (window as unknown as Win).__k11.mapState())).crossing).toBe(true);

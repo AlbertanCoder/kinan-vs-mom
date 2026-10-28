@@ -20,7 +20,8 @@
   var GIFT_PRIZES = ['candle', 'popper', 'cake', 'heart', 'hat', 'lasso', 'umbrella', 'gold'];
   /* B1 boss arenas (docs/LEVEL-AUTHORING.md §4.7): the bosses index.html knows (ARENA_KINDS) */
   var ARENA_BOSSES = ['mom', 'principal', 'neighbour', 'goalie',
-    'moose', 'foreman', 'conductor', 'chenoa', 'barker', 'bronco'];   /* B2: Worlds 3-5 */
+    'moose', 'foreman', 'conductor', 'chenoa', 'barker', 'bronco',   /* B2: Worlds 3-5 */
+    'magpies', 'robo-rex'];   /* World 6: the magpie flock (6-fort), Robo-Rex (6-castle) */
   /* the six family pets (index.html PET_DEFS): cat1 Ginger, dog1 Chikastino, cat2 Vader, dog2 Hunter, cat3 Duchess, cat4 Tuxedo */
   var PET_IDS = ['cat1', 'dog1', 'cat2', 'dog2', 'cat3', 'cat4'];
   var GAP_CAP = [3, 4, 5];   /* Playbook §2: widest pit in act 1 / 2 / 3 (thirds of the level) */
@@ -109,6 +110,11 @@
         pets++;
         if (!a.pet || typeof a.pet !== 'object' || PET_IDS.indexOf(a.pet.id) < 0 || !inside([a.pet.col, a.pet.row])) out.push(tag + 'pet must be { id: ' + PET_IDS.join(' | ') + ', col, row } inside the area');
       }
+      (a.talk || []).forEach(function (t) {   /* World 6: a story line as Kinan passes a column (LEVEL-AUTHORING §4.4) */
+        if (!Array.isArray(t) || !isInt(t[0]) || t[0] < 0 || t[0] >= a.cols || typeof t[1] !== 'string' || !t[1] || typeof t[2] !== 'string' || !t[2] || t[2].length > 140 || (t[3] != null && !(typeof t[3] === 'number' && t[3] > 0 && t[3] <= 8))) {
+          out.push(tag + 'talk ' + JSON.stringify(t) + " must be [col, 'WHO', 'what they say' (up to 140 letters), seconds?] inside the area");
+        }
+      });
       if (a.goal) goals++;
       if (a !== def && a.spawn) spawns++;
       if (a.arena != null) { arenas++; arenaProblems(a, tag, H, inside, out, function (end) { arenaEnd = base + end; }); }
