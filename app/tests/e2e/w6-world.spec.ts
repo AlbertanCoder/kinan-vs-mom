@@ -9,8 +9,9 @@ import { expect, test, type ConsoleMessage, type Page } from '@playwright/test';
    - the fort mini-boss (the magpie flock, 2 phases) and the castle boss (Robo-Rex, 3 phases) follow the B1/B2 rules
      (dumb first, smarter after every hit with a banner, every tell 0.6 s or more, no game over, Glitchy after 5 lost
      fights, a befriend moment, LEVEL CLEAR) and are beaten by __k11.arenaBot through the real input state,
-   - beating 5-castle opens World 6 on the map; beating 6-castle shows World 7's "coming soon" sign and Glitchy's
-     escape (the tour bus west),
+   - beating 5-castle opens World 6 on the map; beating 6-castle plays Glitchy's escape (the tour bus west) and opens
+     the way on to World 7 (it showed World 7's "coming soon" sign until World 7 was released, 2026-10-28: see
+     w7-world.spec.ts; World 8's sign is checked there),
    - no page errors anywhere. */
 
 const BASE = 'http://127.0.0.1:4174/index.html';
@@ -489,7 +490,7 @@ test.describe('World 6 · no game over in a boss fight, and Glitchy helps after 
   }
 });
 
-/* ---- the map: World 6 opens after the 5-castle; the 6-castle opens the way west to World 7's "coming soon" sign ---- */
+/* ---- the map: World 6 opens after the 5-castle; the 6-castle opens the way west to World 7 (released 2026-10-28) ---- */
 type Fly = { kind: string; phase: string; leg: number; legs: number; world: number; home: string; riding: string | null } | null;
 type MapS = MapState & { fly: Fly };
 type CutS = { on: boolean; mode: string | null; lines: string[] };
@@ -563,7 +564,7 @@ test.describe('World 6 · on the map', () => {
     expect(errors).toEqual([]);
   });
 
-  test('the 6-castle: the exit stays shut until Robo-Rex is fixed; then Glitchy escapes on the tour bus west over the road trip toward World 7, and the way on is a "WORLD 7 COMING SOON!" sign', async ({ page }) => {
+  test('the 6-castle: the exit stays shut until Robo-Rex is fixed; then Glitchy escapes on the tour bus west over the road trip toward World 7, and the way on into World 7 is open', async ({ page }) => {
     test.setTimeout(240_000);
     const errors = watchErrors(page);
     await seedSave(page, `(ids) => ({ unlocked: 1, beaten: [], introSeen: true, levelsBeaten: Object.fromEntries(ids.filter((id) => Number(id.split('-')[0]) <= 6 && id !== '6-castle').map((id) => [id, 1])), unlockedLevels: ['1-secret', '2-secret', '3-secret', '4-secret', '5-secret', '6-secret'], escapes: { 1: 1, 2: 1, 3: 1, 4: 1, 5: 1 }, wmap: { w: 6, at: 10 } })`);
@@ -601,13 +602,16 @@ test.describe('World 6 · on the map', () => {
     const s2 = await settle(page);
     expect(s2).toMatchObject({ world: 6, at: 10 });
     expect(s2.stops[10].state).toBe('beaten');
-    expect(s2.notice).toBe('WORLD 7 COMING SOON!');
-    expect(s2.gate).toBe(7);
+    /* 2026-10-28: World 7 is released (OW_RELEASED 7), so the way on is open (it was a "WORLD 7 COMING SOON!" sign:
+       that sign moved on past the 7-castle for World 8, w7-world.spec.ts and c1-cutscenes.spec.ts) and leads over the
+       6.5 road trip into World 7 */
+    expect(s2.notice).toBe('THE WAY ON TO THE NEXT WORLD IS OPEN!');
+    expect(s2.gate ?? null).toBeNull();
     expect(await page.evaluate(() => (window as unknown as Win).__k11.progress() as unknown as { escapes: Record<string, number> })).toMatchObject({ escapes: { 6: 1 } });
     await page.locator('#owNext').click();
-    await expect.poll(async () => (await mapNow(page)).banner).toBe('WORLD 7 COMING SOON!');
-    expect(await settle(page)).toMatchObject({ world: 6, at: 10 });
-    expect(await page.evaluate(() => (window as unknown as Win).__k11.progress().wmap)).toEqual({ w: 6, at: 10 });
+    await expect.poll(async () => (await mapNow(page)).crossing).toBe(true);
+    expect(await settle(page, 90_000)).toMatchObject({ world: 7, at: 0 });
+    expect(await page.evaluate(() => (window as unknown as Win).__k11.progress().wmap)).toEqual({ w: 7, at: 0 });
     expect(errors).toEqual([]);
   });
 

@@ -542,7 +542,8 @@ function drawFly(t,dt){const f=fly;dt=Math.min(100,dt)*speed;f.t+=dt;
     if(f.o.ride&&L.road&&f.phase!=='appear'){   /* o.ride (World 6): on the road legs he rides away in the vehicle (the tour bus west), waving from its window */
       const q=along(L.pts,Math.min(L.len,f.d+4));G.globalAlpha=f.a;drawRide(f.o.ride,p[0],p[1],q[0]<p[0]-0.01?-1:1,t,'glitchy');G.globalAlpha=1;}
     else{G.globalAlpha=0.3*f.a;G.fillStyle='#000';G.beginPath();G.ellipse(p[0],p[1]+2,6,2,0,0,Math.PI*2);G.fill();G.globalAlpha=1;
-    glitchySpr(p[0],gy,t,f.a);}}
+    glitchySpr(p[0],gy,t,f.a);
+    if(f.o.ride==='cargo'&&f.phase==='appear'){G.globalAlpha=f.a;box('#c98f52',p[0]-9,p[1]-11,18,11);px('#8a5a2a',p[0]-9,p[1]-7,18,2);px('#8a5a2a',p[0]-1,p[1]-11,2,11);G.globalAlpha=1;}}}   /* World 7: Glitchy climbs into a parcel before the cargo plane takes it */
   x.restore();G=x;fx(t,p[0]);hud();
   if(f.phase==='fadeout'){x.fillStyle='rgba(0,0,0,'+Math.min(1,f.t/380)+')';x.fillRect(0,0,VW,VH);}
   overlays(dt);}
@@ -599,6 +600,10 @@ function drawRide(kind,X,Y,f,t,rider){const g=G;g.save();g.translate(Math.round(
   else if(kind==='train'){box('#2b3f8f',-22,-17,44,14);px('#f6c445',-22,-9,44,2);for(let i=0;i<5;i++)box('#cfeeff',-18+i*8,-15,5,4);box('#2b3f8f',16,-21,8,6);head(-2,-14);for(const a of[-16,-6,6,16])wheel(a);}
   else if(kind==='boat'){g.fillStyle='#1b1220';g.beginPath();g.moveTo(-20,-6);g.lineTo(20,-6);g.lineTo(14,2);g.lineTo(-16,2);g.fill();g.fillStyle='#2a5bd7';g.beginPath();g.moveTo(-19,-5);g.lineTo(19,-5);g.lineTo(13,1);g.lineTo(-15,1);g.fill();box('#f4f1e8',-10,-14,18,8);box('#cfeeff',-7,-12,4,3);box('#cfeeff',0,-12,4,3);head(-1,-14);if(Math.sin(t/200)>0)px('#ffffff',-22,0,4,1);}
   else if(kind==='plane'){const b=-24+Math.round(Math.sin(t/300));box('#f4f1e8',-18,b,36,8);box('#e8364b',-20,b-6,6,8);box('#dfe5ee',-4,b+2,14,4);box('#dfe5ee',-4,b-4,10,4);for(let i=0;i<4;i++)box('#7ec8ff',2+i*4,b+2,2,2);head(10,b+1);}
+  else if(kind==='cargo'){const b=-24+Math.round(Math.sin(t/300));   /* World 7's escape: a grey cargo plane flying east; in its open cargo door, the parcel Glitchy hides in, his eye peeking out */
+    box('#9aa3b2',-20,b,40,9);box('#6b6f7a',-22,b-7,7,9);box('#c9d3dd',-4,b+3,15,4);box('#c9d3dd',-4,b-4,11,4);box('#7ec8ff',15,b+2,3,2);
+    box('#3b2618',-16,b+1,11,7);box('#c98f52',-15,b+2,9,6);px('#8a5a2a',-15,b+4,9,1);px('#8a5a2a',-11,b+2,1,6);
+    px('#ffffff',-14,b+1,3,2);px('#1b1220',-13,b+1,1,1);px('#00ffd0',-14,b-1,1,2);px('#00ffd0',-12,b-1,1,2);}
   g.restore();}
 /* the pixel box of a walk-behind layer, plus the map words that fall inside it (redrawn on top of the layer) */
 function overBox(w,c,y){const d=c.getContext('2d').getImageData(0,0,c.width,c.height).data;let x0=c.width,y0=c.height,x1=-1,y1=-1;

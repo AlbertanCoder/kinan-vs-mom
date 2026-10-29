@@ -2621,6 +2621,7 @@ function buildLevel(def) {
   const set = (x, y, v) => { if (x >= 0 && x < w && y >= 0 && y < ROWS) g[y * w + x] = v; };
   const foes = [], candles = [], gifts = {}, areas = [], seams = [], pipes = [], secretList = [];
   let checkpoint = null, golden = null, goal = null, spawn = def.spawn || null, base = 0, lastH = 192, arenaAt = null, petCrate = null;
+  const tw = { on: false, t: 0, movers: [], pairs: [], swAt: {}, onB: [], offB: [], sw: 0, swCd: 0, magnets: [], signCols: [], signs: null, skins: [], rush: !!def.rush, storm: def.storm == null ? null : def.storm };
   list.forEach((a, k) => {
     if (a.arena && !arenaAt) arenaAt = { d: a.arena, base: base, H: a.heights };   /* B1: one boss arena per level */
     const id = list.length > 1 ? a.id : def.id, name = list.length > 1 ? a.name : def.name;
@@ -2659,6 +2660,7 @@ function buildLevel(def) {
       foes.push({ tx: base + fx, ty: fy, type: t });
     }
     for (const [px, py] of a.pipes || []) pipes.push([base + px, py]);
+    twistsOf(def, a, base, tw, w, set);   /* World 7: the level's own trick (wind, slime, moss, waves, sway, planks, pulleys, circuits, signs ...) */
     for (const s of a.secrets || []) secretList.push(Object.assign({}, s, { col: base + s.col }));
     if (a.goldenCandle) golden = { col: base + a.goldenCandle.col, row: a.goldenCandle.row };
     if (a.pet && !petCrate) petCrate = { id: a.pet.id, tx: base + a.pet.col, ty: a.pet.row };   /* QA fix: the pet rescued in this level (LEVEL-AUTHORING §4.4) */
@@ -2720,6 +2722,7 @@ function buildLevel(def) {
     area: areas[0].id, areas, seams, pipes, secretList, golden, goal, cleared: false, clearT: 0, returned: false,
     secretAt, secretPrizes, secretExit, secretsFound: secretList.map(() => false), hiddenGifts,
     toyBricks: !!def.toyBricks,   /* 1-4 Brick City: its bricks are the floor, stairs and bridges — they never break */
+    tw: tw.on || tw.rush || tw.storm != null ? tw : null,   /* World 7 twists (null: the level plays exactly as before) */
     arena: arena   /* B1: the boss arena (null in a level without one); its gates are its own — arenaX stays out of reach */
   };
 }
@@ -2820,12 +2823,13 @@ const OW_3D_FILES = ['map/worlds/w12_models.js', 'map/worlds/w12_3d.js'];
 /* World 12 stop id → 3D level file (3d/levels/<file>.js). BIG BRICK's arena stands in for the castle until the Bessborough level exists. */
 const OW_3D_LEVELS = { '12-1': '12-1', '12-2': '12-2', '12-3': '12-3', '12-castle': '12-arena' };
 let owEngineP = null, ow3DP = null, owToken = 0, owOn = false, owDefs = null;
-/* THE WORLDS IN THIS BUILD (Shad, 2026-10-28): Worlds 1-6 are released (World 6, Drumheller, complete 2026-10-28: its
-   11 levels, the magpie flock and Robo-Rex). A world after OW_RELEASED stays on the map behind a friendly "WORLD 7
-   COMING SOON!" sign with Glitchy waving, and Kinan never walks past it, whether or not some of its level files exist
-   yet (raise this number when the next world is complete). Developer tests reach the later worlds' map with
-   __k11.owRelease(n) (?devtools=1 on localhost only, kept for the tab's session). */
-const OW_RELEASED = 6;
+/* THE WORLDS IN THIS BUILD (Shad, 2026-10-28): Worlds 1-7 are released (World 6, Drumheller, complete 2026-10-28: its
+   11 levels, the magpie flock and Robo-Rex; World 7, Vancouver, complete 2026-10-28: its 11 levels, the Giant Banana
+   Slug and Drizzle). A world after OW_RELEASED stays on the map behind a friendly "WORLD 8 COMING SOON!" sign with
+   Glitchy waving, and Kinan never walks past it, whether or not some of its level files exist yet (raise this number
+   when the next world is complete). Developer tests reach the later worlds' map with __k11.owRelease(n) (?devtools=1
+   on localhost only, kept for the tab's session). */
+const OW_RELEASED = 7;
 let owReleased = OW_RELEASED;
 try { if (window.__k11DevOnly && window.__k11DevOnly()) { const v = Number(sessionStorage.getItem('kv-ow-release')); if (v >= 1 && v <= 12) owReleased = v; } } catch (e) { /* no session storage: the build's number */ }
 function owScripts(list) {
@@ -3293,8 +3297,10 @@ function cutFinish(skipped) {
 /* something else took the screen (a level, a menu screen): the cutscene simply stops */
 function cutAbort() { if (Cut.on && !Cut.moving) cutStop(true); }
 /* how Glitchy leaves a world on the road legs of his escape (story bible): World 6, he jumps onto a tour bus heading
-   west through the mountains to Vancouver ("He's on the tour bus! Through the mountains!"). Worlds 1-5 run on foot. */
-const CUT_ESCAPE_RIDE = { 6: 'bus' };
+   west through the mountains to Vancouver ("He's on the tour bus! Through the mountains!"); World 7, he climbs into a
+   parcel that is loaded onto a cargo plane flying east to Toronto ("He's hiding in a parcel... on a cargo plane!").
+   Worlds 1-5 run on foot. */
+const CUT_ESCAPE_RIDE = { 6: 'bus', 7: 'cargo' };
 /* the escape after a castle win: false when it can't play here (then the notice shows as before) */
 function cutEscape(n, notice) {
   if (Cut.on || !window.KINAN || !window.KINAN.fly || !(n >= 1 && n <= 10)) return false;
@@ -3644,7 +3650,31 @@ const ARENA_LINES = {
   t_w6_kinan_03: ['KINAN', "One more wire, Rex. Hold still, I'm fixing you!", 3.4, true],
   t_rex_05: ['ROBO-REX', 'beep... boop... purrrr. (Its eyes go from red to green.)', 3.4, true],
   t_w6_shad_04: ["SHAD", "All three wires! You didn't fight it, Kinan. You fixed it.", 4, true],
-  t_w6_kinan_04: ['KINAN', 'Robo-Rex is my friend now! Can I ride him?', 3, true]
+  t_w6_kinan_04: ['KINAN', 'Robo-Rex is my friend now! Can I ride him?', 3, true],
+  /* World 7 — Vancouver. Text only, like World 6 (no recordings): every line is a subtitle */
+  t_slug_01: ['THE GIANT BANANA SLUG', 'SLLLURRRP. (A banana slug as big as a car rears up. It looks GRUMPY.)', 3.4, true],
+  t_w7_kinan_01: ['KINAN', "Whoa! That's the biggest banana slug in the whole world!", 3, true],
+  t_w7_dad_01: ['DAD', 'Careful, bud. That shiny slime on the snow is slippery!', 3, true],
+  t_slug_02: ['THE GIANT BANANA SLUG', 'HRRRMPH! (It rears up and flops forward. SPLAT!)', 3, true],
+  t_slug_03: ['THE GIANT BANANA SLUG', 'ROLL-ROLL-ROLL! (It curls into a big yellow ball. Jump it!)', 3, true],
+  t_slug_04: ['THE GIANT BANANA SLUG', 'PTOO! PTOO! (It spits slime blobs up into the air!)', 3, true],
+  t_slug_05: ['THE GIANT BANANA SLUG', 'GRRR-SLURP! (Now it is really awake!)', 2.6, true],
+  t_slug_06: ['THE GIANT BANANA SLUG', '...mmm. (It yawns. It was only grumpy about all the noise up here.)', 3.8, true],
+  t_w7_kinan_02: ['KINAN', 'Sorry we woke you up, slug. Go have a nice nap in the cedars!', 3.4, true],
+  t_drizzle_01: ['DRIZZLE', '*sniff* ...Why does everybody always run away from me? *sniff*', 3.6, true],
+  t_w7_kinan_03: ['KINAN', "Drizzle isn't mean. Drizzle is SAD!", 2.6, true],
+  t_w7_shad_01: ['SHAD', "Kinan, it's Shad on the radio. See the three sun lamps on the pier? Switch one on every time Drizzle stops to rest!", 5.2, true],
+  t_w7_shad_02: ['SHAD', 'Stand between the rain lanes. Switch on a sun lamp when Drizzle rests!', 4, true],
+  t_drizzle_02: ['DRIZZLE', 'Drip... drip... DOWNPOUR! (The drips show where the rain lanes will pour.)', 3.6, true],
+  t_drizzle_03: ['DRIZZLE', 'Plip! Plop! (Big raindrops fall onto the shadows.)', 2.8, true],
+  t_drizzle_04: ['DRIZZLE', 'WHOOOOSH! (A big gust! Hold on tight!)', 2.8, true],
+  t_drizzle_05: ['DRIZZLE', 'RUMBLE... (A flashing spot on the floor means lightning. Step off it!)', 3.6, true],
+  t_w7_shad_03: ['SHAD', 'One lamp on! Look, flowers are growing where the rain lands! Grab that umbrella for the gusts!', 4.8, true],
+  t_w7_kinan_04: ['KINAN', "Two lamps! Don't cry, Drizzle. One more and I'll show you something cool!", 4, true],
+  t_drizzle_06: ['DRIZZLE', '...a rainbow? I made a RAINBOW? *sniff* Nobody ever stayed to talk to me before.', 4.6, true],
+  t_w7_kinan_05: ['KINAN', "I'll stay! Rain makes flowers AND rainbows. You're awesome, Drizzle!", 3.8, true],
+  t_drizzle_07: ['DRIZZLE', '(Drizzle stops crying and smiles. The clouds roll away and the sun comes out over the harbour.)', 4.2, true],
+  t_w7_shad_04: ['SHAD', 'You did it, bud. You turned a storm into a friend.', 3.4, true]
 };
 /* the bosses. A phase is how the boss plays between two hits:
      walk     pacing speed (px/frame)          windup  the tell before each attack (frames, >= 36)
@@ -3849,11 +3879,53 @@ const ARENA_KINDS = {
       { walk: 0.95, windup: 42, rest: 34, tired: 108, pattern: ['blow', 'wave', 'rain', 'toss', 'sweep', 'wave', 'rain'], n: 5, throwN: 2, speed: 1.45, feint: true, platforms: true, minions: 3 },
       { walk: 1.15, windup: 36, rest: 26, tired: 86, pattern: ['wave', 'rain', 'toss', 'sweep', 'blow', 'wave', 'rain', 'charge2'], n: 6, throwN: 2, speed: 1.65, feint: true, predict: true, minions: 3 }
     ]
+  },
+  /* ---- World 7, Vancouver (2026-10-28). A step up from World 6 again: the fort's tells 52/40 (the magpies 54/42), the
+     castle's 50/40/36 (Robo-Rex 52/42/36; 36 frames is the 0.6 s floor, so the last phase can't go lower), shorter
+     rests, longer patterns. New World 7 moves (engine below):
+       curl    the slug curls into a ball and rolls across to the far gate (jump it), then uncurls and carries on
+       lanes   columns of rain: drips show each lane for the whole wind-up, then it pours (stand between them)
+       bolt    lightning: a flashing target on the floor for the whole wind-up, then the bolts strike one by one
+     Boss keys: slime (frames: the slug leaves slippery slime where it crawls, rolls and lands; the old World 5
+     slip) · lunge (px: a slam is a short flop, never further than this from where it stands, leapH px high) ·
+     tall (px: its height while tired: it stretches up and shows its head) · roll ([w, h]: its size curled up) ·
+     nap (befriended, it slides off through the open door) · lamps (arena columns of the sun lamps: the hit is
+     switching on the next lamp while the boss rests, never a stomp) · soft (its body never hurts: a cloud) ·
+     gust (the blow: an umbrella keeps Kinan steady) · lowHover (how high a hover boss rests) ---- */
+  'banana-slug': {
+    name: 'THE GIANT BANANA SLUG', who: 'THE SLUG', she: 'IT', w: 38, h: 18, scale: 1, draw: 'slug', rowFit: true,
+    shot: 'slimeball', rainShot: 'slimeball', roller: 'slimesplash', puff: 'slimesplash', minion: 'slug', bonk: 'SQUISH!', hugWord: 'SLIMY HUG!',
+    slime: 240, lunge: 112, leapH: 26, tall: 28, roll: [20, 20], nap: true,
+    soon: 'NOT YET! WAIT TILL IT STRETCHES UP',
+    hint: 'It\'s only grumpy! Jump its slime splashes and its big roll, and mind the slippery slime. When it stretches up to catch its breath, <b>STOMP</b> its head!',
+    smarter: ['It FAKES a lunge now and aims where you are GOING. It spits slime blobs onto the shadows, and two little banana slugs crawl in to help!'],
+    friend: '🐌 <b>THE GIANT BANANA SLUG IS YOUR FRIEND NOW!</b> It was only grumpy about the noise. Nap time!',
+    lines: { intro: ['t_slug_01', 't_w7_kinan_01', 't_w7_dad_01'], retry: ['t_slug_01'], phase: [null, 't_slug_05'],
+      first: { slam: 't_slug_02', curl: 't_slug_03', rain: 't_slug_04' }, defeat: ['t_slug_06', 't_w7_kinan_02'] },
+    phases: [
+      { walk: 0.5, windup: 52, rest: 48, tired: 140, pattern: ['slam', 'curl', 'slam'], n: 1, speed: 1.2 },
+      { walk: 0.7, windup: 40, rest: 38, tired: 116, pattern: ['rain', 'slam', 'curl', 'rain', 'slam'], n: 3, speed: 1.4, feint: true, predict: true, minions: 2 }
+    ]
+  },
+  drizzle: {
+    name: 'DRIZZLE, THE BIG STORM', who: 'DRIZZLE', she: 'IT', w: 56, h: 30, scale: 1, draw: 'drizzle', rowFit: true, soft: true, gust: true,
+    hover: 72, lowHover: 54, lamps: [4, 19, 12], shot: 'raindrop', rainShot: 'raindrop', roller: 'puddle', pat: 'SUN LAMP', bonk: 'SUN LAMP ON!', hugWord: 'FRIENDS!',
+    soon: 'NOT YET! WAIT TILL DRIZZLE RESTS',
+    hint: 'Drizzle is sad, not mean! Watch the drips: a rain lane pours where they fall, so stand between the lanes. When Drizzle stops to rest, run to the glowing <b>SUN LAMP</b> and switch it on!',
+    smarter: ['One lamp on! Now Drizzle blows big GUSTS that push you (grab the umbrella: it keeps you steady, and you float if you hold JUMP) and FAKES a downpour.', 'Two lamps on! Drizzle aims where you are GOING, and LIGHTNING strikes where the floor flashes. Step off the flashing spots!'],
+    friend: '🌈 <b>DRIZZLE IS YOUR FRIEND NOW!</b> The rain turns into a rainbow and the sky clears.',
+    lines: { intro: ['t_drizzle_01', 't_w7_kinan_03', 't_w7_shad_01'], retry: ['t_drizzle_01', 't_w7_shad_02'], phase: [null, 't_w7_shad_03', 't_w7_kinan_04'],
+      first: { lanes: 't_drizzle_02', rain: 't_drizzle_03', blow: 't_drizzle_04', bolt: 't_drizzle_05' }, defeat: ['t_drizzle_06', 't_w7_kinan_05', 't_drizzle_07', 't_w7_shad_04'] },
+    phases: [
+      { walk: 0.6, windup: 50, rest: 36, tired: 136, pattern: ['lanes', 'rain', 'lanes'], n: 3, lanes: 2, speed: 1.2 },
+      { walk: 0.8, windup: 40, rest: 28, tired: 112, pattern: ['blow', 'lanes', 'rain', 'blow', 'lanes', 'rain', 'lanes'], n: 4, lanes: 3, speed: 1.4, feint: true, umbrella: true },
+      { walk: 1.0, windup: 36, rest: 22, tired: 96, pattern: ['bolt', 'lanes', 'blow', 'bolt', 'rain', 'lanes', 'bolt', 'blow'], n: 4, lanes: 3, bolts: 3, speed: 1.6, feint: true, predict: true }
+    ]
   }
 };
-const ARENA_PHASE_KEYS = ['walk', 'windup', 'rest', 'tired', 'pattern', 'n', 'speed', 'feint', 'predict', 'minions', 'heal', 'bounce', 'platforms', 'calm', 'throwN'];
+const ARENA_PHASE_KEYS = ['walk', 'windup', 'rest', 'tired', 'pattern', 'n', 'speed', 'feint', 'predict', 'minions', 'heal', 'bounce', 'platforms', 'calm', 'throwN', 'lanes', 'bolts', 'umbrella'];
 /* B2: the size of each rolling thing [w, h] (the floor rollers and the blower's roller) */
-const ARENA_ROLLERS = { gnome: [10, 12], laundry: [14, 10], bell: [10, 9], ball: [10, 9], log: [18, 9], pipe: [16, 8], car: [16, 11], trolley: [14, 10], prize: [10, 10], pinwheel: [10, 10], gear: [10, 10], trinket: [8, 8] };
+const ARENA_ROLLERS = { gnome: [10, 12], laundry: [14, 10], bell: [10, 9], ball: [10, 9], log: [18, 9], pipe: [16, 8], car: [16, 11], trolley: [14, 10], prize: [10, 10], pinwheel: [10, 10], gear: [10, 10], trinket: [8, 8], slimesplash: [12, 8], puddle: [14, 7] };
 /* buildLevel(): the arena declared by one area of a level (cols are that area's own) */
 function makeArena(d, base, H, set) {
   const kind = ARENA_KINDS[d.boss] ? d.boss : 'mom', K = ARENA_KINDS[kind];
@@ -3880,7 +3952,24 @@ function makeArena(d, base, H, set) {
     boss: b, shots: [], marks: [], ring: null, spawnQ: [], log: [], lineQ: [], line: null, lineT: 0, voiceLog: [],
     tries: 0, helped: false, glitchy: null, spotX: (gateL - 1) * T, said: {}, wonT: 0, hugged: false, music: null,
     note: null, noteGot: false, built: null,   /* B2: the calming music (calm), the shelves built in a phase (platforms) */
-    stolen: 0, riding: false, rideDone: false };   /* World 6: candles the magpies grabbed (given back at the befriend); Robo-Rex's ride */
+    stolen: 0, riding: false, rideDone: false,   /* World 6: candles the magpies grabbed (given back at the befriend); Robo-Rex's ride */
+    lamps: (K.lamps || []).map((c) => ({ x: (c0 + c) * T + 8, lit: false })), napped: false, flowers: [] };   /* World 7: Drizzle's sun lamps; the slug's nap; the flowers the rain grows */
+}
+/* World 7: a boss changes shape (the slug curled up, stretched up): same middle, feet on the floor */
+function arenaSize(A, w, h) {
+  const b = A.boss, c = b.x + b.w / 2;
+  b.w = w; b.h = h; b.x = c - w / 2; b.y = A.floorY - h;
+}
+/* World 7: a fresh fight (a start, a reset): every sun lamp off, the flowers gone, the slime dried up */
+function arenaFresh(A) {
+  for (const l of A.lamps) l.lit = false;
+  A.flowers = []; A.lampHint = 0;
+  if (A.K.slime) L.slimeT = null;
+}
+/* World 7: once a sun lamp shines, the rain that falls in a lane grows flowers on the pier (a picture only) */
+function arenaGrow(A) {
+  if (!A.lamps.some((l) => l.lit)) return;
+  for (const m of A.marks) if (m.lane) for (const o of [-10, 0, 10]) if (A.flowers.length < 40) A.flowers.push({ x: m.x + o + rand(-3, 3), c: A.flowers.length % 3, t: 0 });
 }
 const arenaLive = () => !!(L && L.arena && L.arena.state === 'fight');
 const arenaIsGate = (tx) => !!(L && L.arena && (tx === L.arena.gateL || tx === L.arena.gateR));
@@ -3923,6 +4012,7 @@ function arenaStart(A) {
   for (const f of foes) if (f.alive && !f.arena && f.x > A.gateL * T && f.x < (A.gateR + 1) * T) { f.alive = false; f.dead = 0; sparks(f.x + 6, f.y + 6, 6, ['#fff', '#7be3a3']); }
   Object.assign(b, { phase: 1, hp: b.max, x: b.homeX, vx: 0, state: 'intro', t: A.tries === 1 ? 150 : 70, atk: 0, attackN: 0, cur: null, feintAt: 0, inv: 0, flash: 0 });
   b.h = A.K.h; b.y = A.floorY - b.h;
+  b.w = A.K.w; arenaFresh(A);   /* World 7: the slug's own shape, every lamp off, no slime, no flowers */
   A.music = Music.name; Music.play('boss'); SFX.boss();
   Story.q = Story.q.filter((x) => !/^talk_/.test(x.id));   /* World 6: a level's story bubbles not said yet stay on the way in */
   A.lineQ = []; for (const id of (A.tries === 1 ? A.K.lines.intro : A.K.lines.retry)) arenaSay(A, id);
@@ -3939,6 +4029,7 @@ function arenaReset(A) {
   const b = A.boss;
   Object.assign(b, { phase: 1, hp: b.max, x: b.homeX, vx: 0, state: 'wait', t: 0, atk: 0, attackN: 0, inv: 0, flash: 0 });
   b.h = A.K.h; b.y = A.floorY - b.h;
+  b.w = A.K.w; arenaFresh(A);   /* World 7: the fight starts fresh: lamps off, slime and flowers gone */
   A.shots = []; A.marks = []; A.ring = null; A.spawnQ = []; A.note = null; A.noteGot = false;
   arenaUnbuild(A);   /* B2: the fight starts fresh, so the shelves built in it come down */
   for (const f of foes) if (f.arena) f.alive = false;
@@ -4030,6 +4121,22 @@ function arenaMarks(b, ph, A, wind) {
     for (let k = 0; k < ph.n; k++) { const x = clamp(aim + shift + (k - (ph.n - 1) / 2) * 48, lo, hi); A.marks.push({ x: x, y: arenaFloorAt(A, x) }); }
   } else if (b.cur === 'slam') {
     A.ring = { x: arenaAim(A, ph, Math.min(46, wind)), y: A.floorY };
+    if (A.K.lunge) { const bc = b.x + b.w / 2; A.ring.x = clamp(A.ring.x, bc - A.K.lunge, bc + A.K.lunge); }   /* World 7: the slug's flop is short */
+  } else if (b.cur === 'lanes') {
+    /* World 7: rain lanes, 32 px wide and 104 px apart: the first one on Kinan (or where he is going), the rest
+       spread out on the roomier side, so there is always dry floor between two lanes to stand on */
+    const cnt = ph.lanes || 2, gap = 104, lo = (A.gateL + 1) * T + 16, hi = A.gateR * T - 16, aim = arenaAim(A, ph, Math.min(50, wind));
+    const side = aim - lo > hi - aim ? -1 : 1, xs = [];
+    for (let k = 0; xs.length < cnt && k < 8; k++) {
+      const off = k === 0 ? 0 : (k % 2 ? side : -side) * Math.ceil(k / 2) * gap, x = aim + off;
+      if (x >= lo && x <= hi) xs.push(x);
+    }
+    for (const x of xs) A.marks.push({ x: x, y: A.floorY, lane: 16 });
+  } else if (b.cur === 'bolt') {
+    /* World 7: lightning targets 72 px apart, the first on Kinan (or where he is going); they flash for the whole wind-up */
+    const cnt = ph.bolts || 1, aim = arenaAim(A, ph, Math.min(50, wind)), lo = (A.gateL + 1) * T + 10, hi = A.gateR * T - 10;
+    const shift = arenaRowFit(A, aim, cnt, 72, lo, hi);
+    for (let k = 0; k < cnt; k++) { const x = clamp(aim + shift + (k - (cnt - 1) / 2) * 72, lo, hi); A.marks.push({ x: x, y: arenaFloorAt(A, x), bolt: true, k: k }); }
   } else if (b.cur === 'swoop') {
     /* World 6: a shadow on the floor where each magpie will dive (they are 56 px apart) */
     const cnt = ph.throwN || ph.n || 1, aim = arenaAim(A, ph, Math.min(50, wind)), lo = (A.gateL + 1) * T + 6, hi = A.gateR * T - 6;
@@ -4104,6 +4211,19 @@ function arenaAttack(b, ph, A) {
   } else if (atk === 'sweep') {
     b.state = 'sweep'; b.t = 30;
     SFX.thud(); shake = Math.max(shake, 2);
+  } else if (atk === 'curl') {
+    /* World 7: the slug curls up into a ball and rolls at Kinan, all the way to the gate on his side (jump it) */
+    if (A.K.roll) arenaSize(A, A.K.roll[0], A.K.roll[1]);
+    b.dir = dir || -b.face; b.state = 'charge'; b.t = 400;
+    SFX.pew();
+  } else if (atk === 'lanes') {
+    /* World 7: the rain lanes pour (they hurt only inside their drips' columns) */
+    b.state = 'pour'; b.t = 50;
+    SFX.boss();
+  } else if (atk === 'bolt') {
+    /* World 7: the bolts strike their flashing targets one by one, 10 frames apart */
+    b.state = 'zap'; b.t = 16 + 10 * Math.max(0, A.marks.length - 1); b.zapT = 0;
+    shake = Math.max(shake, 3);
   }
 }
 function arenaNext(b, ph, A) {
@@ -4116,6 +4236,8 @@ function arenaTired(b, ph, A, how) {
   A.marks = []; A.ring = null;
   if (ph.calm) { A.noteGot = false; for (let k = 0; k < 6; k++) part(b.x + b.w / 2 + rand(-12, 12), b.y + rand(-4, 8), { vx: rand(-0.4, 0.4), vy: rand(-1, -0.4), g: -0.01, life: 70, max: 70, size: 3, color: '#f6c445', type: 'heart' }); }   /* the music worked: he settles */
   if (A.kind === 'goalie') { b.h = 14; b.y = A.floorY - b.h; }
+  if (A.K.tall) arenaSize(A, A.K.w, A.K.tall);   /* World 7: the slug stretches up to catch its breath: its head is the soft spot */
+  if (A.K.lamps) { if (!A.saidStomp) { A.saidStomp = true; const l = A.lamps[b.max - b.hp]; if (l) pop(l.x - 30, A.floorY - 52, 'SWITCH ON THE SUN LAMP!', 80, '#f6c445'); } arenaLog(A, how); return; }   /* World 7: Drizzle rests: a lamp, not a stomp */
   if (!A.saidStomp) { A.saidStomp = true; pop(b.x - 8, b.y - 26, (A.K.pat || 'STOMP') + ' NOW!', 70, '#f6c445'); }
   arenaLog(A, how);
 }
@@ -4170,6 +4292,11 @@ function arenaBossAI(A) {
       if (b.x <= lo || b.x >= hi) {
         b.x = clamp(b.x, lo, hi); b.vx = 0;
         SFX.thud(); sparks(b.x + (b.dir > 0 ? b.w : 0), b.y + 6, 10, ['#f6c445', '#fff']);
+        if (b.cur === 'curl') {   /* World 7: the slug bumps the gate, uncurls (away from the gate) and carries on */
+          arenaSize(A, A.K.w, A.K.h); b.x = clamp(b.x, lo, A.gateR * T - b.w); b.face = -b.dir;
+          arenaNext(b, ph, A);
+          break;
+        }
         if (b.cur === 'charge2' && !b.turned) {
           /* B2: he turns at the gate and comes back: a fresh "!" tell first (never under 0.6 s) */
           b.turned = true; b.feintAt = 0;
@@ -4187,10 +4314,11 @@ function arenaBossAI(A) {
     case 'leap': {
       const k = 1 - Math.max(0, b.t) / b.leap;
       b.x = lerp(b.from, b.to, k);
-      b.y = A.floorY - b.h - Math.sin(k * Math.PI) * 70;
+      b.y = A.floorY - b.h - Math.sin(k * Math.PI) * (A.K.leapH || 70);   /* World 7: the slug's lunge is a low flop */
       if (b.t <= 0) {
         b.y = A.floorY - b.h; A.ring = null;
         SFX.thud(); dust(b.x + b.w / 2, A.floorY, 10);
+        if (A.K.slime) for (let k2 = -1; k2 <= 1; k2++) slimeAt(b.x + b.w / 2 + k2 * T, A.K.slime);   /* World 7: SPLAT, a puddle of slime */
         rings.push({ x: b.x + b.w / 2, y: A.floorY - 2, r: 6, t: 22 });
         /* the landing hurts on the floor only (B2: Kinan up on a shelf is safe from it) */
         if (P.onGround && Math.abs(P.y + P.h - A.floorY) < 4 && Math.abs((P.x + P.w / 2) - (b.x + b.w / 2)) < 24) hurt(b.x + b.w / 2);
@@ -4204,7 +4332,7 @@ function arenaBossAI(A) {
     case 'blow': {
       faceK();
       /* the leaf blower: a push away from him, never damage (Kinan can always walk against it) */
-      if (Math.abs(dx) < 220 && Math.abs((P.y + P.h) - A.floorY) < 60) P.vx = clamp(P.vx + sign(dx) * 0.14, -2.6, 2.6);
+      if (Math.abs(dx) < 220 && Math.abs((P.y + P.h) - A.floorY) < 60) P.vx = clamp(P.vx + sign(dx) * (A.K.gust && P.umbrella ? 0.05 : 0.14), -2.6, 2.6);   /* World 7: Drizzle's gust; an umbrella keeps Kinan steady */
       if (frame % 4 === 0) part(b.x + b.w / 2 + b.face * 12, b.y + 10, { vx: b.face * 3.2, vy: rand(-0.5, 0.5), g: 0, life: 22, size: 2, color: 'rgba(210,235,255,.8)' });
       if (b.t <= 0) arenaNext(b, ph, A);
       break;
@@ -4217,10 +4345,33 @@ function arenaBossAI(A) {
       if (b.t <= 0) { A.ring = null; arenaNext(b, ph, A); }
       break;
     }
+    case 'pour': {
+      /* World 7: the rain lanes pour: inside a lane's column it hurts (high or low: rain falls from the sky) */
+      const pc = P.x + P.w / 2, wet = A.marks.find((m) => m.lane && Math.abs(pc - m.x) < m.lane + P.w / 2 - 2);
+      if (!P.dead && wet) hurt(wet.x);
+      if (frame % 3 === 0) for (const m of A.marks) if (m.lane) dust(m.x + rand(-m.lane, m.lane), A.floorY, 1, 'rgba(160,210,255,.8)');
+      if (b.t <= 0) { arenaGrow(A); A.marks = []; arenaNext(b, ph, A); }
+      break;
+    }
+    case 'zap': {
+      /* World 7: each bolt strikes its target in turn; a strike hurts only right on its target, for 8 frames */
+      b.zapT++;
+      const pc = P.x + P.w / 2;
+      for (const m of A.marks) {
+        if (!m.bolt) continue;
+        const at = b.zapT - m.k * 10;
+        if (at === 1) { SFX.thud(); sparks(m.x, m.y - 2, 10, ['#fff8c0', '#f6c445', '#fff']); rings.push({ x: m.x, y: m.y - 2, r: 4, t: 16 }); }
+        if (at >= 1 && at <= 8 && !P.dead && Math.abs(pc - m.x) < 13) hurt(m.x);
+        m.struck = at >= 1; m.gone = at > 8;
+      }
+      if (b.t <= 0) { A.marks = []; arenaNext(b, ph, A); }
+      break;
+    }
     case 'tired': case 'dizzy':
       b.vx = 0;
       if (b.t <= 0) {
         if (A.kind === 'goalie') { b.h = A.K.h; b.y = A.floorY - b.h; }
+        if (A.K.tall) arenaSize(A, A.K.w, A.K.h);   /* World 7: the slug lies back down */
         b.atk = 0; arenaPace(b, ph, A);
       }
       break;
@@ -4238,9 +4389,11 @@ function arenaBossAI(A) {
     case 'friend': faceK(); break;
   }
   if (A.K.hover) {   /* World 6: a flying boss floats up high and only dips down to the floor when it is tired or dizzy */
-    const want = A.floorY - b.h - (b.state === 'tired' || b.state === 'dizzy' ? 0 : A.K.hover);
+    const want = A.floorY - b.h - (b.state === 'tired' || b.state === 'dizzy' ? (A.K.lowHover || 0) : A.K.hover);   /* World 7: Drizzle only sinks a little to rest */
     b.y += clamp(want - b.y, -2.5, 3);
   }
+  /* World 7: the slug leaves a trail of slippery slime where it crawls and rolls */
+  if (A.K.slime && (b.state === 'pace' || b.state === 'charge') && frame % 4 === 0) slimeAt(b.x + b.w / 2, A.K.slime);
 }
 /* a new phase: the minions are called in (a puff marks each spot first), the neighbour's wife tosses a cookie */
 function arenaPhaseStart(b, A) {
@@ -4252,6 +4405,10 @@ function arenaPhaseStart(b, A) {
     A.spawnQ.push({ x: x, t: 45, type: A.K.minion });
   }
   if (ph.platforms) arenaBuild(A);   /* B2: Shad builds Kinan a platform or two */
+  if (ph.umbrella && !P.umbrella) {   /* World 7: an umbrella floats down near Kinan for Drizzle's gusts */
+    const x = clamp(pc + (pc < (A.gateL + A.gateR) / 2 * T ? 40 : -40), (A.gateL + 2) * T, (A.gateR - 2) * T);
+    arenaShot(A, { kind: 'umbrella', gift: 'umbrella', friendly: true, x: x - 6, y: -16, w: 12, h: 12, vx: 0, vy: 0.4, g: 0.03, tx: x, life: 900 });
+  }
   if (ph.heal) {
     arenaSay(A, A.K.healLine || 't_neighbour_wife');
     const x0 = (A.gateR) * T, tx = (A.gateL + A.gateR) / 2 * T, tf = 70, y0 = A.floorY - 70, g = 0.16, yT = A.floorY - 12;
@@ -4279,8 +4436,8 @@ function arenaShots(A) {
       const land = s.vy > 0 && (solid(fx, fy) || (tileAt(fx, fy) === 7 && s.y + s.h - s.vy <= fy * T + 1));
       if (land) {
         s.y = fy * T - s.h;
-        if (s.kind === 'cookie') {   /* the cookie lands and waits: it is a heart */
-          items.push({ x: s.x, y: s.y - 2, w: 12, h: 12, kind: 'heart', rise: 0, got: false, arena: true });
+        if (s.kind === 'cookie' || s.gift) {   /* the cookie lands and waits: it is a heart (World 7: the umbrella lands and waits) */
+          items.push({ x: s.x, y: s.y - 2, w: 12, h: 12, kind: s.gift || 'heart', rise: 0, got: false, arena: true });
           s.gone = true; continue;
         }
         if (s.bounce > 0.8) { s.vy = -s.bounce; s.bounce *= 0.55; }
@@ -4312,9 +4469,28 @@ function arenaShots(A) {
   A.spawnQ = A.spawnQ.filter((q) => q.t > 0);
 }
 const ARENA_BUSY = { pace: 1, windup: 1, feint: 1, recover: 1, charge: 1, leap: 1, blow: 1, sweep: 1 };
+/* World 7: Kinan walks into the next sun lamp. While Drizzle rests it switches on (that is the hit); before that it
+   only says "not yet" */
+function arenaLampTouch(A) {
+  const b = A.boss, l = A.lamps[b.max - b.hp];
+  if (!l || l.lit || !overlap(P, { x: l.x - 9, y: A.floorY - 30, w: 18, h: 30 })) return;
+  if (b.state === 'tired' && b.inv <= 0) { l.lit = true; arenaHit(b, A, l); return; }
+  if (b.hintT <= 0 && A.lampHint !== b.phase) {   /* once a phase is enough: the lamp's arrow says when */
+    A.lampHint = b.phase; b.hintT = 100;
+    pop(clamp(l.x, (A.gateL + 1) * T + 84, A.gateR * T - 84), A.floorY - 46, A.K.soon, 70, '#9fe0ff'); SFX.click();   /* (a pop is centred on its x) */
+  }
+}
 function arenaContact(A) {
   const b = A.boss;
   if (b.state === 'wait' || P.dead) return;
+  if (A.K.lamps) arenaLampTouch(A);
+  if (A.K.soft) {   /* World 7: Drizzle is a cloud: touching it never hurts, landing on it is a soft bounce (never a hit) */
+    if (A.state === 'fight' && P.vy > 0 && overlap(P, b) && P.prevBottom <= b.y + 8) {
+      P.vy = -4.6; P.y = b.y - P.h; P.cuttable = false;
+      if (b.hintT <= 0) { b.hintT = 100; pop(b.x - 6, b.y - 14, 'SQUISH! CLOUDS ARE SOFT', 60, '#9fe0ff'); SFX.click(); }
+    }
+    return;
+  }
   const feetY = P.y + P.h, headY = b.y;
   const nearSide = P.x < b.x + b.w + 3 && P.x + P.w > b.x - 3;
   const fellOn = P.vy > 0 && nearSide && feetY >= headY - 2 && feetY <= headY + 12 && P.prevBottom <= headY + 8;
@@ -4336,18 +4512,26 @@ function arenaContact(A) {
     P.x += sign((P.x + P.w / 2) - (b.x + b.w / 2)) * 1.2;   /* tired, dizzy or hurt: a gentle push, never damage */
   }
 }
-function arenaHit(b, A) {
+function arenaHit(b, A, lamp) {
   const F = feel();
   b.hp--; b.inv = 40; b.flash = 10;
-  hitStop = F.BOSS_HITSTOP; SFX.hit(); SFX.stomp();
-  P.vy = (input.jump || padIn.jump) ? F.STOMP_HIGH : F.STOMP_LOW; P.y = b.y - P.h; P.cuttable = false; P.squash = 5;
-  sparks(b.x + b.w / 2, b.y + 2, 16, ['#f6c445', '#fff', '#ff6fae']);
-  pop(b.x - 4, b.y - 14, A.K.bonk || 'BONK!', 40, '#ff6fae');
-  arenaLog(A, 'hit', { hp: b.hp });
+  hitStop = F.BOSS_HITSTOP;
+  if (lamp) {   /* World 7: Kinan switches on a sun lamp: no stomp, nobody gets hurt; its light reaches Drizzle */
+    SFX.power(); SFX.gift();
+    sparks(lamp.x, A.floorY - 26, 18, ['#fff3b0', '#f6c445', '#fff']);
+    pop(lamp.x - 30, A.floorY - 48, A.K.bonk || 'ON!', 50, '#f6c445');
+  } else {
+    SFX.hit(); SFX.stomp();
+    P.vy = (input.jump || padIn.jump) ? F.STOMP_HIGH : F.STOMP_LOW; P.y = b.y - P.h; P.cuttable = false; P.squash = 5;
+    sparks(b.x + b.w / 2, b.y + 2, 16, ['#f6c445', '#fff', '#ff6fae']);
+    pop(b.x - 4, b.y - 14, A.K.bonk || 'BONK!', 40, '#ff6fae');
+  }
+  arenaLog(A, 'hit', lamp ? { hp: b.hp, lamp: true } : { hp: b.hp });
   A.shots = A.shots.filter((s) => s.friendly); A.marks = []; A.ring = null; A.note = null; A.noteGot = false;
   if (b.hp <= 0) { arenaBefriend(A); return; }
   b.phase++; b.attackN = 0; b.atk = 0; b.state = 'hurt'; b.t = 80;
   if (A.kind === 'goalie') { b.h = A.K.h; b.y = A.floorY - b.h; }
+  if (A.K.tall) arenaSize(A, A.K.w, A.K.h);   /* World 7: the slug lies back down */
   toastHold = 0;
   toast('🧠 <b>' + A.K.who + ' IS GETTING ' + (b.phase >= 3 ? 'SMARTEST' : 'SMARTER') + '!</b> ' + (A.K.smarter[b.phase - 2] || ''), 3400, true);
   arenaSay(A, A.K.lines.phase[b.phase - 1]);
@@ -4366,6 +4550,11 @@ function arenaBefriend(A) {
   for (const id of A.K.lines.defeat) arenaSay(A, id);
   if (A.music) Music.play(A.music);
   SFX.win();
+  if (A.K.lamps) {   /* World 7: the third lamp is the rainbow: Drizzle stops crying and the sky clears (the rain stops) */
+    for (const l of A.lamps) l.lit = true;
+    L.sunny = true;
+    for (let k = 0; k < 14 && A.flowers.length < 60; k++) A.flowers.push({ x: (A.gateL + 1) * T + rand(4, A.n * T - 4), c: k % 3, t: 0 });
+  }
   if (A.stolen > 0) {   /* World 6: the magpies give back every candle they grabbed, a present at Kinan's feet */
     addCandle(A.stolen);
     pop(b.x - 20, b.y - 30, '+' + A.stolen + (A.stolen === 1 ? ' candle' : ' candles') + ' back!', 70, '#f6c445');
@@ -4375,6 +4564,7 @@ function arenaBefriend(A) {
   toastHold = 0;
   toast(A.K.friend, 3200, true);
   arenaLog(A, 'befriend');
+  if (A.K.lamps) arenaLog(A, 'rainbow');   /* World 7: the sky cleared */
   arenaHud(A);
 }
 function arenaHug(A) {
@@ -4391,6 +4581,8 @@ function arenaUpdate() {
   if (!A) return;
   if (A.gateLT < 99) A.gateLT++;
   if (A.gateRT < 99) A.gateRT++;
+  if (A.K.slime && L.slimeT) for (let k = A.gateL; k <= A.gateR; k++) if (L.slimeT[k] > 0) L.slimeT[k]--;   /* World 7: the slug's slime dries up */
+  for (const fl of A.flowers) if (fl.t < 40) fl.t++;   /* World 7: the flowers grow */
   if (!A.cpHit && P.x > A.cp.x) {
     A.cpHit = true; cpHit = true;
     spawn = { x: A.cp.x, y: (A.cp.ty - 1) * T };
@@ -4434,9 +4626,17 @@ function arenaUpdate() {
     const b = A.boss;
     if (overlap(P, b)) arenaHug(A);
     if (A.K.ride) arenaRide(A);
+    else if (A.K.nap && A.state === 'open') arenaNap(A);
     else if (Math.abs((P.x + P.w / 2) - (b.x + b.w / 2)) > 2) b.face = sign((P.x + P.w / 2) - (b.x + b.w / 2));
   }
   arenaLines(A);
+}
+/* World 7 (nap): once the gates are down, the befriended slug slides off through the boss door to nap in the cedars */
+function arenaNap(A) {
+  const b = A.boss;
+  if (A.napped) return;
+  b.vx = 0.9; b.x += b.vx; b.face = 1;
+  if (b.x > (A.gateR + 14) * T) { A.napped = true; b.vx = 0; arenaLog(A, 'nap'); }
 }
 /* World 6 (ride): a second after he is befriended, the boss (Robo-Rex) walks over to Kinan and Kinan hops onto his
    back; once the gates are down he carries him out towards the goal. A jump hops off (the ride is over then); the
@@ -5856,13 +6056,15 @@ function updatePlayer() {
   tickCompanionTimers();
   const rush = P.rush > 0;
   const left = input.left || padIn.left, right = input.right || padIn.right;
-  const ice = !!(L.ice && P.onGround && boss === 'off');   /* the Mall Ice Rink: slow to get going, slow to stop (never in a boss arena: the lumberjack show has a sawdust floor) */
+  const twC = L.tw ? clamp(Math.floor((P.x + P.w / 2) / T), 0, L.w - 1) : 0;   /* World 7 twists: the column under Kinan */
+  const ice = !!((L.ice || (L.tw && L.tw.ice && L.tw.ice[twC])) && P.onGround && boss === 'off');   /* the Mall Ice Rink: slow to get going, slow to stop (never in a boss arena: the lumberjack show has a sawdust floor) */
   const slime = !ice && P.onGround && onSlime(P.x + P.w / 2);   /* a giant banana slug's slime: a bit slippery */
   const F = feel(), newFeel = F === FEEL;
   const acc = (P.onGround ? (ice ? 0.16 : (slime ? 0.3 : 0.55)) : 0.38) * (P.zoomiesT > 0 ? 1.65 : 1), max = rush ? 3.7 : (input.runHeld ? 4.2 : RUN_MAX);   /* hold SHIFT to run (round-2 P10) */
   const accN = newFeel ? (P.onGround ? (ice ? F.ACC_ICE : (slime ? F.ACC_SLIME : F.ACC_GROUND)) : F.ACC_AIR) * (P.zoomiesT > 0 ? 1.65 : 1) : acc;
   const run = wantRun();   /* §1.1 WALK_MAX / RUN_MAX: which input means "run" is the Auto-run setting's (V2) */
   let maxN = newFeel ? (rush ? F.RUSH_MAX : (run ? F.RUN_MAX : F.WALK_MAX)) : max;
+  if (L.tw && L.tw.moss && L.tw.moss[twC] && P.onGround && boss === 'off' && Math.abs(P.y + P.h - L.tw.floorY[twC]) < 6) maxN = Math.min(maxN, F.WALK_MAX * 0.6);   /* World 7: sticky moss — a slow walk across it (the feel numbers stay the table's) */
   /* §2.1 #3 + §2.2: on a slope the walk slows so each frame's step-up stays
      inside the 2 px snap tolerance — 1:1 halves the speed going up, and no
      slope allows more than run speed (rush on a 2:1 would step 2.1 px). */
@@ -5892,6 +6094,10 @@ function updatePlayer() {
   if (L.wind && boss === 'off' && (frame % 300) < 90) {   /* the Calgary Tower: a gust of wind pushes you back */
     P.vx = Math.max(-F.RUN_MAX, P.vx - 0.12);
     if (frame % 300 === 0) toast('💨 <b>WIND!</b> Keep running!', 1200);
+  }
+  if (L.tw && L.tw.gust > 0) {   /* World 7: a warned gust pushes Kinan back: weaker in the air, never past a slow walk, never off a ledge he stands on */
+    const g = L.tw.gust * (P.onGround ? 0.12 : 0.05), bx = Math.floor((P.x - 4) / T), fy = Math.floor((P.y + P.h + 2) / T);
+    if (!P.onGround || solid(bx, fy) || tileAt(bx, fy) === 7 || isSlope(tileAt(bx, fy)) || isSlope(tileAt(bx, fy - 1))) P.vx = P.vx < -1.2 ? P.vx : Math.max(-1.2, P.vx - g);
   }
   if (P.onGround) {
     P.coyote = 7;
@@ -5970,7 +6176,8 @@ function updatePlayer() {
   P.prevBottom = P.y + P.h;
   const fallVy = P.vy;
   const head = moveY(P);
-  if (P.onGround && frame % 10 === 0) lastSafe = { x: P.x, y: P.y };
+  if (L.tw) moverLand();   /* World 7: a plank, pulley or boat is floor too */
+  if (P.onGround && !P.rideM && frame % 10 === 0) lastSafe = { x: P.x, y: P.y };
   if (P.onGround && P.landTile === 6) {
     P.vy = -10.4; P.onGround = false; P.springy = true;
     P.cuttable = false; P.springStretch = true; P.stretch = 8;   /* §1.2 spring deform */
@@ -5981,6 +6188,7 @@ function updatePlayer() {
   }
   if (head && tileAt(head.tx, head.ty) === 3) hitGift(head.tx, head.ty);
   else if (head && tileAt(head.tx, head.ty) === 2 && L.authored && !L.toyBricks) breakBrick(head.tx, head.ty);
+  else if (head && L.tw && L.tw.swAt[head.ty * L.w + head.tx]) flipCircuit(head.tx, head.ty);   /* World 7: a circuit switch */
   if (!wasGround && P.onGround) {
     P.landT = 7; P.squash = 6;
     if (newFeel) P.squash = F.LAND_SQUASH_F;
@@ -7801,6 +8009,7 @@ function update() {
   if (glitchyOffer) { updateFx(); return; }   /* Glitchy's question waits for an answer */
   if (paused) { updateFx(); return; }
   if (puzzle) { updatePuzzle(); return; }   /* the stage clock waits while you are in a puzzle room */
+  if (L.tw) twistsPre();   /* World 7: planks, pulleys and boats move (and carry Kinan), gusts, magnets */
   updatePlayer();
   if (P.dead) { updateFx(); return; }
   stageTime++;
@@ -7809,6 +8018,7 @@ function update() {
   updateFoes();
   updateShots();
   updateWorld5();
+  if (L.tw) twistsPost();   /* World 7: slug slime, the seawall waves, the bridge sway, the overhead signs */
   updatePets();
   if (L.helper) updateGlitchyHelper();
   if (L.arena) arenaUpdate();   /* B1: the boss arena of an authored level */
@@ -9398,6 +9608,8 @@ function arenaSprites(kind) {
 function drawArenaDrawn(A, b, bsx, sqX, sqY) {
   if (A.K.draw === 'magpie') { drawArenaMagpie(A, b, bsx, sqX, sqY); return; }   /* World 6: the magpie flock */
   if (A.K.draw === 'rex') { drawArenaRex(A, b, bsx, sqX, sqY); return; }   /* World 6: Robo-Rex */
+  if (A.K.draw === 'slug') { drawArenaSlug(A, b, bsx, sqX, sqY); return; }   /* World 7: the Giant Banana Slug */
+  if (A.K.draw === 'drizzle') { drawArenaDrizzle(A, b, bsx, sqX, sqY); return; }   /* World 7: Drizzle */
   const K = A.K, bottom = Math.round(b.y + b.h), bcx = bsx + b.w / 2;
   const pose = { w: b.w, h: b.h, face: b.face, vx: b.vx, onGround: true, kind: K.draw === 'bull' ? 'bronco' : K.draw,
     state: b.state === 'charge' ? 'charge' : 'pose' };
@@ -9470,9 +9682,13 @@ function drawArena() {
       }
     }
   }
+  if (A.K.slime || A.flowers.length) drawArenaFloor7(A, cx);   /* World 7: the slug's slime, the flowers */
+  if (A.lamps.length) drawArenaLamps(A, cx);   /* World 7: Drizzle's sun lamps */
   /* floor marks: where the rain will land, where the slam will land (shown for the whole wind-up and fall) */
   for (const m of A.marks) {
     const mx = Math.round(m.x - cx), pulse = 0.5 + Math.sin(frame / 4) * 0.2;
+    if (m.lane) { drawArenaLane(A, m, mx, b.state === 'pour'); continue; }   /* World 7: a rain lane */
+    if (m.bolt) { drawArenaBolt(A, m, mx); continue; }   /* World 7: a lightning target */
     ctx.fillStyle = 'rgba(0,0,0,' + (0.25 + pulse * 0.25).toFixed(2) + ')';
     ctx.beginPath(); ctx.ellipse(mx, m.y - 1, 8, 3, 0, 0, 6.284); ctx.fill();
     ctx.strokeStyle = 'rgba(255,90,90,' + pulse.toFixed(2) + ')'; ctx.lineWidth = 1;
@@ -9584,6 +9800,12 @@ function drawArena() {
     ctx.fillRect(nx + 1, ny - 7, 2, 10); ctx.fillRect(nx + 1, ny - 7, 6, 2); ctx.fillRect(nx + 5, ny - 7, 2, 5);
   }
   ctx.globalAlpha = 1;
+  if (A.K.gust && P.umbrella && !P.dead && (P.floating || (b.state === 'blow' && A.state === 'fight'))) {   /* World 7: Kinan's umbrella, open (tilted into Drizzle's gust) */
+    const ux = Math.round(P.x + P.w / 2 - cx), uy = Math.round(P.y - 10), tilt = b.state === 'blow' ? sign((b.x + b.w / 2) - (P.x + P.w / 2)) * 3 : 0;
+    ctx.strokeStyle = '#2b2f45'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(ux, uy + 10); ctx.lineTo(ux + tilt, uy); ctx.stroke();
+    ctx.fillStyle = '#e8364b'; ctx.beginPath(); ctx.moveTo(ux + tilt - 10, uy + tilt * 0.3); ctx.quadraticCurveTo(ux + tilt, uy - 11, ux + tilt + 10, uy - tilt * 0.3); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#f6c445'; ctx.beginPath(); ctx.moveTo(ux + tilt - 3, uy); ctx.quadraticCurveTo(ux + tilt, uy - 10, ux + tilt + 3, uy); ctx.closePath(); ctx.fill();
+  }
   if (A.glitchy && A.state === 'fight') {   /* little Glitchy, buzzing round the boss */
     const g = A.glitchy, gx = Math.round(g.x - cx), gy = Math.round(g.y), j = (frame >> 2) % 3 === 0 ? 1 : 0;
     glowDisc(gx + 6, gy + 6, 12, 'rgba(123,227,163,.5)', 0.7);
@@ -9607,7 +9829,14 @@ function drawArenaTells() {
   } else if (b.state === 'charge' && frame % 6 < 3) {
     ctx.font = 'bold 12px monospace'; ctx.fillStyle = '#ff4a4a'; ctx.fillText('!!', bcx, headY);
   }
-  if (tired) {
+  const lamp = tired && A.lamps.length ? A.lamps[b.max - b.hp] : null;
+  if (lamp) {   /* World 7: Drizzle rests: the gold arrow points at the sun lamp to switch on (never at Drizzle) */
+    const lx = Math.round(lamp.x - cx), ly = A.floorY - 34, bob = Math.round(Math.sin(frame / 6) * 2);
+    ctx.fillStyle = '#f6c445'; ctx.beginPath(); ctx.moveTo(lx - 5, ly - 7 + bob); ctx.lineTo(lx + 5, ly - 7 + bob); ctx.lineTo(lx, ly + bob); ctx.fill();
+    const word = A.K.pat || 'SUN LAMP';
+    ctx.font = 'bold 7px monospace'; ctx.fillStyle = '#1b1220'; ctx.fillText(word, lx + 1, ly - 9 + bob); ctx.fillStyle = '#fff3b0'; ctx.fillText(word, lx, ly - 10 + bob);
+    if (frame % 80 < 50) { ctx.font = 'bold 7px monospace'; ctx.fillStyle = '#cfe6ff'; ctx.fillText('*sniff*', bcx, headY + 4); }
+  } else if (tired) {
     for (let k = 0; k < 3; k++) {   /* dizzy stars circle the head */
       const a = frame / 9 + k * 2.09;
       ctx.fillStyle = k % 2 ? '#fff3b0' : '#f6c445';
@@ -9734,6 +9963,21 @@ function drawArenaShotB2(s, sx, sy, spin) {
     ctx.fillStyle = '#9aa1ab'; for (let t = 0; t < 4; t++) { ctx.rotate(Math.PI / 4); ctx.fillRect(-1.5, -5.5, 3, 11); }
     ctx.beginPath(); ctx.arc(0, 0, 3.6, 0, 6.284); ctx.fill(); ctx.fillStyle = '#4a4f57'; ctx.beginPath(); ctx.arc(0, 0, 1.4, 0, 6.284); ctx.fill();
     ctx.restore();
+  } else if (k === 'slimeball') {   /* World 7: a blob of slime the slug spat up, coming down on its shadow */
+    ctx.fillStyle = '#d8e65a'; ctx.beginPath(); ctx.ellipse(sx + 5, sy + 5, 5, 4 + (spin ? 1 : 0), 0, 0, 6.284); ctx.fill();
+    ctx.fillStyle = '#9fb02a'; ctx.fillRect(sx + 2, sy + 7, 6, 1); ctx.fillStyle = '#fff'; ctx.fillRect(sx + 3, sy + 2, 2, 1);
+  } else if (k === 'slimesplash') {   /* World 7: a wave of slime splashing out along the floor (jump it) */
+    ctx.fillStyle = 'rgba(216,230,90,.9)'; ctx.beginPath(); ctx.ellipse(sx + s.w / 2, sy + s.h, s.w / 2 + 1, s.h, 0, Math.PI, 0); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,220,.7)'; ctx.fillRect(sx + 3, sy + 2 + spin, 2, 2); ctx.fillRect(sx + s.w - 5, sy + 3 - spin, 2, 2);
+  } else if (k === 'raindrop') {   /* World 7: a big fat raindrop falling on its shadow */
+    ctx.fillStyle = '#7fc8ff'; ctx.beginPath(); ctx.moveTo(sx + 5, sy); ctx.quadraticCurveTo(sx + 10, sy + 7, sx + 5, sy + 10); ctx.quadraticCurveTo(sx, sy + 7, sx + 5, sy); ctx.fill();
+    ctx.fillStyle = '#e6f5ff'; ctx.fillRect(sx + 3, sy + 5, 1, 2);
+  } else if (k === 'puddle') {   /* World 7: a puddle wave rolling along the pier in the gust (jump it) */
+    ctx.fillStyle = 'rgba(111,200,255,.85)'; ctx.beginPath(); ctx.ellipse(sx + s.w / 2, sy + s.h, s.w / 2 + 1, s.h, 0, Math.PI, 0); ctx.fill();
+    ctx.fillStyle = 'rgba(230,245,255,.85)'; ctx.fillRect(sx + 2 + spin * 2, sy + 1, 3, 1); ctx.fillRect(sx + s.w - 6, sy + 2, 3, 1);
+  } else if (k === 'umbrella') {   /* World 7: the umbrella floating down for the gusts */
+    glowDisc(sx + 6, sy + 6, 11, 'rgba(255,230,140,.55)', 0.7);
+    drawPickup('umbrella', sx, sy, 0);
   } else if (k === 'bone') {   /* World 6: a replica fossil bone shaken off the exhibits, falling on its shadow */
     ctx.save(); ctx.translate(sx + 5, sy + 5); ctx.rotate(s.spin / 8);
     ctx.fillStyle = '#efe3c2'; ctx.fillRect(-4, -1, 8, 2);
@@ -9809,6 +10053,204 @@ function drawArenaRex(A, b, bsx, sqX, sqY) {
     }
   }
   ctx.restore();
+}
+/* World 7: the Giant Banana Slug (the World 5 slug's colours, drawn in poses): flat when it crawls, rearing up for a
+   lunge (the "!"), stretched up tall with droopy eyes when it is tired (its head is the soft spot), a rolling ball when it
+   curls up; befriended it smiles, and once the gates are down it slides off to nap ("Zzz") and fades into the cedars */
+function drawSlugBody(cx, bottom, f, rise, mood) {
+  const Y = '#e8c83a', D = '#d4b02e', S = '#9a7a1a';
+  const hx = cx + f * (15 - 9 * rise), hy = bottom - 8 - 21 * rise, wob = Math.sin(frame / 8) * (mood === 'tired' ? 0.4 : 1);
+  ctx.fillStyle = 'rgba(240,250,180,.55)'; ctx.fillRect(Math.round(cx - 21), bottom - 2, 40, 2);   /* its slime sheen */
+  ctx.fillStyle = Y; ctx.beginPath(); ctx.ellipse(cx - f * 7, bottom - 6, 13 + wob, 6, 0, 0, 6.284); ctx.fill();   /* the back half */
+  ctx.strokeStyle = Y; ctx.lineCap = 'round'; ctx.lineWidth = 11;
+  ctx.beginPath(); ctx.moveTo(cx + f * 1, bottom - 6); ctx.lineTo(hx - f * 2, hy + 3); ctx.stroke();   /* the front half, raised as far as `rise` */
+  ctx.lineCap = 'butt'; ctx.lineWidth = 1;
+  ctx.fillStyle = Y; ctx.beginPath(); ctx.arc(hx, hy, 7, 0, 6.284); ctx.fill();   /* the head */
+  ctx.fillStyle = D; ctx.fillRect(Math.round(cx - f * 14 - 3), bottom - 11, 12, 2);
+  ctx.fillStyle = S; [[-15, -8], [-8, -10], [-2, -7], [-11, -4]].forEach(([x, y]) => ctx.fillRect(Math.round(cx + f * x), bottom + y, 3, 2));
+  if (rise > 0.6) { ctx.fillStyle = 'rgba(255,240,170,.55)'; ctx.beginPath(); ctx.arc(hx, hy - 1, 4, 0, 6.284); ctx.fill(); }   /* the soft spot shines */
+  /* eye stalks: up and curious, droopy when tired */
+  const droop = mood === 'tired' ? 4 : 0, e1 = [hx + f * 1, hy - 12 + droop], e2 = [hx + f * 6, hy - 10 + droop];
+  ctx.strokeStyle = Y; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(hx, hy - 5); ctx.lineTo(e1[0], e1[1]); ctx.moveTo(hx + f * 3, hy - 5); ctx.lineTo(e2[0], e2[1]); ctx.stroke(); ctx.lineWidth = 1;
+  ctx.fillStyle = '#1b1220';
+  if (mood === 'tired' || mood === 'nap') { ctx.fillRect(Math.round(e1[0]) - 1, Math.round(e1[1]), 3, 1); ctx.fillRect(Math.round(e2[0]) - 1, Math.round(e2[1]), 3, 1); }
+  else { ctx.fillRect(Math.round(e1[0]) - 1, Math.round(e1[1]) - 1, 3, 3); ctx.fillRect(Math.round(e2[0]) - 1, Math.round(e2[1]) - 1, 3, 3); }
+  const mx = Math.round(hx + f * 3), my = Math.round(hy + 2);
+  if (mood === 'happy' || mood === 'nap') { ctx.fillRect(mx - 2, my + 1, 4, 1); ctx.fillRect(mx - 3, my, 1, 1); ctx.fillRect(mx + 2, my, 1, 1); }   /* a smile */
+  else if (mood === 'tired') { ctx.fillRect(mx - 1, my - 1, 2, 3); }   /* panting */
+  else { ctx.fillRect(mx - 2, my, 4, 1); ctx.fillRect(mx - 3, my + 1, 1, 1); ctx.fillRect(mx + 2, my + 1, 1, 1); }   /* grumpy */
+  if (mood === 'grumpy') { ctx.fillRect(Math.round(e1[0]) - 2, Math.round(e1[1]) - 3, 3, 1); ctx.fillRect(Math.round(e2[0]) - 1, Math.round(e2[1]) - 3, 3, 1); }   /* cross little brows */
+}
+function drawArenaSlug(A, b, bsx, sqX, sqY) {
+  const bottom = Math.round(b.y + b.h), bcx = Math.round(bsx + b.w / 2), f = b.face < 0 ? -1 : 1;
+  if (A.napped) return;
+  let alpha = 1;
+  if (A.K.nap && A.state === 'open') alpha = clamp(((A.gateR + 14) * T - b.x) / 60, 0, 1);   /* sliding off into the cedars */
+  ctx.save(); ctx.globalAlpha *= alpha;
+  if (b.state === 'charge' && b.cur === 'curl') {   /* curled up: a rolling yellow ball */
+    const r = b.w / 2, cy = bottom - r, a = (b.x / r) * (b.dir || 1);
+    ctx.fillStyle = '#e8c83a'; ctx.beginPath(); ctx.arc(bcx, cy, r, 0, 6.284); ctx.fill();
+    ctx.strokeStyle = '#9a7a1a'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(bcx, cy, r * 0.55, a, a + 4.2); ctx.stroke();
+    ctx.beginPath(); ctx.arc(bcx, cy, r * 0.85, a + 3, a + 5.6); ctx.stroke(); ctx.lineWidth = 1;
+    ctx.fillStyle = '#fff3b0'; ctx.fillRect(bcx - 4, cy - r + 3, 3, 2);
+    ctx.fillStyle = 'rgba(232,240,160,.8)'; for (let k = 0; k < 4; k++) ctx.fillRect(Math.round(bcx - (b.dir || 1) * (r + 4 + k * 5)), bottom - 2 - k, 4, 1);   /* slime spray behind it */
+    ctx.restore();
+    return;
+  }
+  const tired = b.state === 'tired' || b.state === 'dizzy';
+  let rise = 0, mood = 'grumpy';
+  if (b.state === 'windup' && (b.cur === 'slam' || b.cur === 'rain')) rise = 0.5 + Math.sin(frame / 3) * 0.06;   /* rearing up: the lunge (or the spit) is coming */
+  else if (b.state === 'windup' && b.cur === 'curl') { sqX *= 0.8; sqY *= 1.12; }   /* bunching up to curl */
+  else if (b.state === 'leap') rise = 0.2;
+  else if (tired) { rise = 1; mood = 'tired'; }
+  else if (b.state === 'friend') mood = A.state === 'open' && b.vx > 0 ? 'nap' : 'happy';
+  else if (b.state === 'hurt') mood = 'tired';
+  if (b.state === 'leap') { sqX *= 1.15; sqY *= 0.85; }
+  ctx.translate(bcx, bottom); ctx.scale(sqX, sqY); ctx.translate(-bcx, -bottom);
+  drawSlugBody(bcx, bottom, f, rise, mood);
+  ctx.restore();
+  if (b.state === 'windup' && b.cur === 'rain' && frame % 8 < 4) { ctx.fillStyle = '#e8f096'; ctx.fillRect(bcx + f * 12, bottom - 30, 3, 3); }   /* a slime blob ready to spit */
+  if (mood === 'nap' && frame % 60 < 40) { ctx.fillStyle = '#f4f1e8'; ctx.font = 'bold 8px monospace'; ctx.textAlign = 'center'; ctx.globalAlpha = alpha; ctx.fillText('Zzz', bcx + 6, bottom - 26 - (frame % 60) / 8); ctx.globalAlpha = 1; ctx.textAlign = 'left'; }
+}
+/* World 7: Drizzle, a big soft storm cloud (about twice Kinan's width, nothing like the little raincloud foes) with a
+   sad face: worried brows, a wobbly frown and tears that run down and drip off. Each sun lamp lights the cloud up a
+   shade; resting, it closes its eyes and sniffles; befriended it turns white, smiles and makes a rainbow */
+function drawArenaDrizzle(A, b, bsx, sqX, sqY) {
+  const lit = b.state === 'friend' ? 3 : A.lamps.filter((l) => l.lit).length;
+  const body = ['#4a5468', '#66728a', '#8d99ad', '#eef3f8'][lit], hi = ['#5e6a80', '#7f8ba2', '#a9b4c5', '#ffffff'][lit], lo = ['#363e4e', '#4f5a6e', '#727e93', '#c9d3dd'][lit];
+  const cx = Math.round(bsx + b.w / 2), cy = Math.round(b.y + b.h / 2), s = 1.15;
+  const rest = b.state === 'tired' || b.state === 'dizzy', happy = b.state === 'friend', gust = b.state === 'blow';
+  if (happy) {   /* the rainbow, from the cloud down to the pier */
+    const cols = ['#ff6b6b', '#ff9f43', '#f6c445', '#7be3a3', '#6fc8ff', '#9b7ae3'];
+    ctx.lineWidth = 3;
+    cols.forEach((c, q) => { ctx.strokeStyle = c; ctx.globalAlpha = 0.75; ctx.beginPath(); ctx.arc(cx + 60, A.floorY, 70 - q * 3, Math.PI, 2 * Math.PI); ctx.stroke(); });
+    ctx.globalAlpha = 1; ctx.lineWidth = 1;
+  }
+  if (!rest && !happy && A.state === 'fight') {   /* it is always drizzling under Drizzle */
+    ctx.fillStyle = 'rgba(111,200,255,.7)';
+    for (let k = 0; k < 9; k++) { const d = (frame * 3 + k * 13) % 50; ctx.fillRect(Math.round(cx - 26 + k * 6.5), Math.round(cy + 14 + d), 1, 4); }
+  }
+  ctx.save();
+  ctx.translate(cx, cy); ctx.scale(sqX * s, sqY * s);
+  const puffs = [[-22, 5, 10], [-11, -5, 13], [5, -9, 14], [20, -1, 11], [-14, 8, 9], [2, 7, 12], [17, 8, 9]];
+  ctx.fillStyle = lo; for (const [x, y, r] of puffs) { ctx.beginPath(); ctx.arc(x, y + 2, r, 0, 6.284); ctx.fill(); }
+  ctx.fillStyle = body; for (const [x, y, r] of puffs) { ctx.beginPath(); ctx.arc(x, y, r, 0, 6.284); ctx.fill(); }
+  ctx.fillStyle = hi; ctx.beginPath(); ctx.arc(-9, -10, 6, 0, 6.284); ctx.arc(6, -15, 5, 0, 6.284); ctx.fill();
+  /* the face */
+  const look = clamp(((P.x + P.w / 2) - (b.x + b.w / 2)) / 60, -1, 1);
+  ctx.fillStyle = '#1b1220';
+  if (happy) {
+    ctx.fillRect(-11, -1, 6, 1); ctx.fillRect(-12, 0, 1, 1); ctx.fillRect(-5, 0, 1, 1); ctx.fillRect(5, -1, 6, 1); ctx.fillRect(4, 0, 1, 1); ctx.fillRect(11, 0, 1, 1);   /* happy closed eyes */
+    ctx.beginPath(); ctx.arc(0, 4, 5, 0.15, Math.PI - 0.15); ctx.lineWidth = 1.5; ctx.strokeStyle = '#1b1220'; ctx.stroke(); ctx.lineWidth = 1;   /* a big smile */
+    ctx.fillStyle = 'rgba(255,111,174,.6)'; ctx.fillRect(-16, 3, 4, 2); ctx.fillRect(12, 3, 4, 2);
+  } else if (rest) {
+    ctx.fillRect(-11, 0, 6, 1); ctx.fillRect(5, 0, 6, 1);   /* eyes shut */
+    ctx.fillRect(-12, -5, 4, 1); ctx.fillRect(-8, -6, 3, 1); ctx.fillRect(8, -5, 4, 1); ctx.fillRect(5, -6, 3, 1);   /* worried brows */
+    ctx.fillRect(-2, 7, 4, 1);
+    if (frame % 90 < 30) { ctx.fillStyle = 'rgba(180,220,255,.8)'; ctx.beginPath(); ctx.arc(4, 9, 2 + (frame % 30) / 10, 0, 6.284); ctx.fill(); }   /* a little sniffle bubble */
+  } else {
+    ctx.fillStyle = '#f4f1e8'; ctx.fillRect(-12, -3, 7, 7); ctx.fillRect(5, -3, 7, 7);   /* big sad eyes */
+    ctx.fillStyle = '#1b1220'; ctx.fillRect(Math.round(-10 + look * 2), 0, 3, 3); ctx.fillRect(Math.round(7 + look * 2), 0, 3, 3);
+    ctx.fillStyle = '#fff'; ctx.fillRect(Math.round(-10 + look * 2), 0, 1, 1); ctx.fillRect(Math.round(7 + look * 2), 0, 1, 1);
+    ctx.fillStyle = '#1b1220'; ctx.fillRect(-13, -6, 4, 1); ctx.fillRect(-9, -7, 3, 1); ctx.fillRect(9, -6, 4, 1); ctx.fillRect(6, -7, 3, 1);   /* brows up in the middle: sad, not angry */
+    if (gust) { ctx.beginPath(); ctx.arc(0, 9, 3, 0, 6.284); ctx.fill(); }   /* blowing: an O */
+    else { ctx.fillRect(-4, 9, 8, 1); ctx.fillRect(-5, 10, 1, 1); ctx.fillRect(4, 10, 1, 1); }   /* a wobbly frown */
+  }
+  if (!happy) {   /* the tears: two streams from the eyes, dripping off the bottom of the cloud */
+    ctx.fillStyle = '#7fc8ff';
+    for (const ex of [-11, 11]) {
+      ctx.fillRect(ex, 4, 1, 4);
+      const d = (frame * (rest ? 0.6 : 1.2) + (ex > 0 ? 9 : 0)) % 18;
+      ctx.fillRect(ex, Math.round(8 + d), 2, 3);
+    }
+  }
+  ctx.restore();
+  if (b.state === 'windup' && b.cur === 'bolt' && frame % 6 < 3) {   /* crackles inside the cloud: lightning is coming */
+    const sx = frame % 12 < 6 ? -24 : 22;   /* at the cloud's edges, never across its face */
+    ctx.strokeStyle = '#fff8c0'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(cx + sx, cy - 8); ctx.lineTo(cx + sx + 5, cy - 1); ctx.lineTo(cx + sx + 1, cy + 1); ctx.lineTo(cx + sx + 6, cy + 9); ctx.stroke(); ctx.lineWidth = 1;
+  }
+  if (gust || (b.state === 'windup' && b.cur === 'blow')) {   /* the gust: wind streaks blowing away from Drizzle */
+    const dir = sign((P.x + P.w / 2) - (b.x + b.w / 2)) || 1;
+    ctx.strokeStyle = gust ? 'rgba(220,240,255,.75)' : 'rgba(220,240,255,.35)';
+    for (let k = 0; k < 6; k++) {
+      const len = 18, x0 = cx + dir * (30 + ((frame * (gust ? 6 : 2) + k * 41) % 170)), y0 = A.floorY - 8 - k * 12;
+      ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x0 + dir * len, y0); ctx.stroke();
+    }
+  }
+}
+/* World 7: Drizzle's sun lamps on the pier: dark until switched on; the next one pulses, and glows with an arrow while
+   Drizzle rests (drawArenaTells); a lit lamp shines a sunbeam up at the sky */
+function drawArenaLamps(A, cx) {
+  const b = A.boss, next = A.state === 'fight' ? A.lamps[b.max - b.hp] : null, ready = next && b.state === 'tired' && b.inv <= 0;
+  for (const l of A.lamps) {
+    const x = Math.round(l.x - cx), fy = A.floorY;
+    if (x < -40 || x > W + 40) continue;
+    if (l.lit) {   /* the sunbeam */
+      ctx.fillStyle = 'rgba(255,230,140,.16)';
+      ctx.beginPath(); ctx.moveTo(x - 4, fy - 24); ctx.lineTo(x + 4, fy - 24); ctx.lineTo(x + 22, 0); ctx.lineTo(x - 22, 0); ctx.fill();
+    }
+    ctx.fillStyle = '#2b2f45'; ctx.fillRect(x - 1, fy - 22, 3, 22); ctx.fillRect(x - 5, fy - 3, 11, 3);   /* the post and its foot */
+    const on = l.lit, pulse = l === next ? 0.5 + Math.abs(Math.sin(frame / (ready ? 4 : 12))) * 0.5 : 0;
+    if (on || ready) glowDisc(x + 0.5, fy - 25, on ? 14 : 12, 'rgba(255,220,110,.8)', on ? 0.9 : pulse);
+    ctx.fillStyle = '#1b1220'; ctx.beginPath(); ctx.arc(x + 0.5, fy - 25, 6, 0, 6.284); ctx.fill();
+    ctx.fillStyle = on ? '#fff3b0' : l === next ? 'rgba(246,196,69,' + (0.35 + pulse * 0.5).toFixed(2) + ')' : '#5a6170';
+    ctx.beginPath(); ctx.arc(x + 0.5, fy - 25, 5, 0, 6.284); ctx.fill();
+    if (on) { ctx.fillStyle = '#f6c445'; for (let k = 0; k < 8; k++) { const a = k * 0.785 + frame / 40; ctx.fillRect(Math.round(x + Math.cos(a) * 9), Math.round(fy - 25 + Math.sin(a) * 9), 2, 2); } }
+    ctx.fillStyle = on ? '#7be3a3' : '#e8364b'; ctx.fillRect(x - 2, fy - 12, 5, 4);   /* the switch */
+  }
+}
+/* World 7: a rain lane (drips for the whole wind-up, then the downpour) and a lightning target (flashing, then the bolt) */
+function drawArenaLane(A, m, mx, pouring) {
+  const fy = A.floorY, hw = m.lane;
+  if (pouring) {
+    ctx.fillStyle = 'rgba(120,170,230,.3)'; ctx.fillRect(mx - hw, 0, hw * 2, fy);
+    ctx.strokeStyle = 'rgba(215,236,255,.9)'; ctx.lineWidth = 1; ctx.beginPath();
+    for (let k = 0; k < 16; k++) { const x = mx - hw + 2 + (k * 11) % (hw * 2 - 4), y = (k * 37 + frame * 10) % fy; ctx.moveTo(x, y); ctx.lineTo(x - 1, y + 11); }
+    ctx.stroke();
+    ctx.fillStyle = 'rgba(225,242,255,.85)'; for (let k = 0; k < 5; k++) ctx.fillRect(mx - hw + ((k * 13 + frame * 3) % (hw * 2)), fy - 3 - (frame + k) % 3, 2, 2);
+  } else {   /* the warning, for the whole wind-up: a pale column, its dashed edges, fat drips falling and a band on the floor */
+    const pulse = 0.35 + Math.abs(Math.sin(frame / 6)) * 0.4;
+    ctx.fillStyle = 'rgba(111,200,255,' + (pulse * 0.16).toFixed(2) + ')'; ctx.fillRect(mx - hw, 0, hw * 2, fy);
+    ctx.fillStyle = 'rgba(111,200,255,' + (pulse * 0.6).toFixed(2) + ')'; ctx.fillRect(mx - hw, fy - 3, hw * 2, 3);
+    ctx.strokeStyle = 'rgba(160,220,255,' + pulse.toFixed(2) + ')'; ctx.lineWidth = 1; ctx.strokeRect(mx - hw + 0.5, fy - 4.5, hw * 2 - 1, 4);
+    ctx.fillStyle = 'rgba(190,230,255,.7)'; for (let y = 0; y < fy - 6; y += 10) { ctx.fillRect(mx - hw, y, 1, 6); ctx.fillRect(mx + hw - 1, y, 1, 6); }
+    ctx.fillStyle = '#cfeeff'; for (let k = 0; k < 4; k++) { const y = (frame * 3 + k * 41) % (fy - 4); ctx.fillRect(mx - 11 + k * 7, y, 2, 5); ctx.fillRect(mx - 11 + k * 7, y + 5, 2, 1); }   /* the warning drips */
+  }
+}
+function drawArenaBolt(A, m, mx) {
+  if (m.gone) return;
+  const b = A.boss, fy = m.y;
+  if (!m.struck) {
+    const on = Math.floor(frame / 4) % 2;
+    ctx.fillStyle = on ? 'rgba(255,240,120,.85)' : 'rgba(255,255,255,.5)'; ctx.beginPath(); ctx.ellipse(mx, fy - 1, 13, 4, 0, 0, 6.284); ctx.fill();
+    ctx.strokeStyle = '#1b1220'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(mx - 9, fy - 1); ctx.lineTo(mx + 9, fy - 1); ctx.moveTo(mx, fy - 4); ctx.lineTo(mx, fy + 2); ctx.stroke();
+    if (on) { ctx.font = 'bold 10px monospace'; ctx.textAlign = 'center'; ctx.fillStyle = '#1b1220'; ctx.fillText('!', mx + 1, fy - 7); ctx.fillStyle = '#f6c445'; ctx.fillText('!', mx, fy - 8); ctx.textAlign = 'left'; }
+    return;
+  }
+  const top = Math.round(b.y + b.h - 6), bx = Math.round(b.x + b.w / 2 - camX);
+  ctx.strokeStyle = '#fff8c0'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(bx, top);
+  for (let k = 1; k <= 6; k++) { const y = top + (fy - top) * k / 6, x = bx + (mx - bx) * k / 6 + (k < 6 ? ((k * 7 + m.k * 5) % 11) - 5 : 0); ctx.lineTo(x, y); }
+  ctx.stroke(); ctx.strokeStyle = '#f6c445'; ctx.lineWidth = 1; ctx.stroke();
+  glowDisc(mx, fy - 4, 18, 'rgba(255,240,150,.8)', 0.7);
+}
+/* World 7: the slug's slime on the floor, and the flowers the rain grows once a sun lamp shines */
+function drawArenaFloor7(A, cx) {
+  if (L.slimeT) {
+    for (let k = A.gateL; k <= A.gateR; k++) if (L.slimeT[k] > 0) {
+      const sx = Math.round(k * T - cx);
+      if (sx < -T || sx > W) continue;
+      ctx.globalAlpha = Math.min(1, L.slimeT[k] / 80) * 0.75; ctx.fillStyle = '#e8f096'; ctx.fillRect(sx, A.floorY - 2, T, 3);
+      ctx.fillStyle = '#fff'; if ((k + Math.floor(frame / 20)) % 4 === 0) ctx.fillRect(sx + 5, A.floorY - 2, 2, 1);
+    }
+    ctx.globalAlpha = 1;
+  }
+  const cols = ['#ff6fae', '#f6c445', '#9b7ae3'];
+  for (const fl of A.flowers) {
+    const sx = Math.round(fl.x - cx), h = Math.round(Math.min(7, fl.t / 5));
+    if (sx < -6 || sx > W + 6 || h < 1) continue;
+    ctx.fillStyle = '#44c55a'; ctx.fillRect(sx, A.floorY - h, 1, h);
+    if (h >= 5) { ctx.fillStyle = cols[fl.c]; ctx.fillRect(sx - 1, A.floorY - h - 2, 3, 3); ctx.fillStyle = '#fff3b0'; ctx.fillRect(sx, A.floorY - h - 1, 1, 1); }
+  }
 }
 /* ============================================================
    RENDER — projectiles, particles, overlays
@@ -10050,7 +10492,10 @@ function draw() {
   ctx.translate(shx, shy);
   drawSky(L.th ? L.th.skyKey : L.i, th);
   if (cy) { ctx.save(); ctx.translate(0, Math.round(-cy * 0.4)); }
-  drawBackdrop(th, L.th ? L.th.bgI : L.i);
+  if (L.tw && L.tw.rush) {   /* World 7, the moving train: the city rushes past behind (the roofs stay the ground) */
+    const c0 = camX; camX += L.tw.t * 5; drawBackdrop(th, L.th ? L.th.bgI : L.i); camX = c0;
+  } else drawBackdrop(th, L.th ? L.th.bgI : L.i);
+  if (L.authored) drawTwistsBack(th);   /* World 7: the train's rush lines, Canada Place's sails, Drizzle's storm */
   drawAtmosphere(th);
   if (cy) ctx.restore();
   if (th.tint) { ctx.fillStyle = th.tint; ctx.fillRect(0, 0, W, H); }   /* time of day washes over the scene (round-2 P14) */
@@ -10068,6 +10513,7 @@ function draw() {
   if (L.look3d) drawFlat3D(th);
   drawProps(th);
   if (L.authored) drawAreaProps();   /* M4b: the gate arches + hose pipes of an authored level */
+  if (L.tw) drawTwists();   /* World 7: moss, slime, handrails, planks, pulleys, boats, circuit blocks, magnets, signs */
   if (L.authored) drawGlitchyHelper();
   drawBuildPads();
   drawConveyor();
@@ -10083,6 +10529,7 @@ function draw() {
   drawShots();
   if (L.arena) drawArenaShots();
   drawWorld5Fx();
+  if (L.authored) drawTwistsOver();   /* World 7: wind streaks, the splash, Drizzle's storm, the umbrella over a floating Kinan */
   drawStageWeather();
   if (cy) ctx.restore();
   drawDaylight(th);
@@ -10850,7 +11297,7 @@ function slimeAt(x, life) {   /* the giant banana slug's slime: that bit of floo
   if (!L.slimeT) L.slimeT = new Float32Array(L.w);
   const k = Math.floor(x / T); if (k >= 0 && k < L.w) L.slimeT[k] = Math.max(L.slimeT[k], life);
 }
-const onSlime = (x) => !!(L.slimeT && L.slimeT[Math.floor(x / T)] > 0);
+const onSlime = (x) => !!(L.slimeT && L.slimeT[Math.floor(x / T)] > 0) || !!(L.tw && L.tw.slime && L.tw.slime[Math.floor(x / T)]);   /* World 7: a level's own slime patches too */
 const sunbeamXs = () => [(L.arenaX + 5) * T, (L.arenaX + Math.floor(L.arenaW / 2)) * T, (L.arenaX + L.arenaW - 5) * T];
 function makeSigns() {   /* the SkyTrain's overhead signs: only over flat track, away from gaps, steps, gift boxes and candles */
   const out = [];
@@ -10962,6 +11409,343 @@ function drawWorld5Fx() {
     ctx.fillStyle = '#1b1220'; ctx.fillRect(cx - 3, cy - 1, 1, 2); ctx.fillRect(cx + 3, cy - 1, 1, 2); ctx.fillRect(cx - 1, cy + 3, 3, 1);
   }
   if (P.umbrella && P.floating && !P.dead) {   /* the umbrella, open over Kinan while he floats */
+    const ux = Math.round(P.x + P.w / 2 - camX), uy = Math.round(P.y - 10);
+    ctx.strokeStyle = '#2b2f45'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(ux, uy); ctx.lineTo(ux, uy + 10); ctx.stroke();
+    ctx.fillStyle = '#e8364b'; ctx.beginPath(); ctx.moveTo(ux - 10, uy); ctx.quadraticCurveTo(ux, uy - 11, ux + 10, uy); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#f6c445'; ctx.beginPath(); ctx.moveTo(ux - 3, uy); ctx.quadraticCurveTo(ux, uy - 10, ux + 3, uy); ctx.closePath(); ctx.fill();
+  }
+}
+/* ============================================================
+   WORLD 7 TWISTS (2026-10-28) — a level file, or one of its areas, opts into a trick of its own. Every key is
+   off by default: a level without them builds and plays exactly as before (L.tw is null). Columns are the area's.
+     wind: true | [[c0, c1], ...]   gusts push Kinan back (7-4). Each gust is warned for 1 s first (a whoosh, wind
+                                    streaks, sideways rain); weaker in the air, never past a slow walk, and never off
+                                    a ledge he stands on
+     ice: true | [[c0, c1], ...]    slippery floor (the Mall Ice Rink's)
+     slime: [[c0, c1], ...]         banana-slug slime on the floor: slippery, stopping takes longer (7-3)
+     slugTrail: true                every slug leaves a slime trail that stays slippery for about 6 s (7-3)
+     moss: [[c0, c1], ...]          sticky moss: a slow walk across it (7-3)
+     waves: true | [[c0, c1], ...]  World 5's seawall: the water bubbles for almost a second, then a splash knocks
+                                    Kinan back, only where there are 6 tiles of floor each side (7-2)
+     sway: true | [[c0, c1], ...]   a rope bridge nudges Kinan one way, then the other; rope handrails (7-5)
+     planks: [[col, row, w, amp, period, phase, swing], ...]   loose planks that bob amp px and swing on ropes (7-5)
+     pulleys: [[colA, rowA, colB, rowB, w, drop], ...]         a rope pair: stand on one, it sinks (drop tiles at
+                                    most) while its partner rises; nobody on them: they ease back level (7-6)
+     boats: [[c0, c1, row, w, speed], ...]                     a boat that drifts between two columns (7-6)
+     circuit: { switches: [[c, r]], red: [[c, r]], blue: [[c, r]] }   bump a switch from below: the red blocks and
+                                    the blue blocks swap (red are solid at the start) (7-7)
+     magnets: [[col, rowTop, rowBottom, w], ...]               a magnet lift: pulls Kinan up its column (7-7)
+     signs: [col | [col, 'jump'], ...]   World 5's overhead signs (jump into one: ouch, so stay low) or a low cable
+                                    (jump it); each flashes its warning as Kinan comes near (7-8)
+     rush: true (level)             the moving train: the city rushes past behind, wind streaks (7-8)
+     storm: col (level)             Drizzle as a dark storm over Canada Place from that column on (7-8)
+   ============================================================ */
+function twistsOf(def, a, base, tw, w, set) {
+  const zone = (key, v) => {
+    if (!v) return;
+    const m = tw[key] || (tw[key] = new Uint8Array(w));
+    for (const z of v === true ? [[0, a.cols - 1]] : v) for (let c = Math.max(0, base + z[0]); c <= Math.min(w - 1, base + z[1]); c++) m[c] = 1;
+    tw.on = true;
+  };
+  zone('wind', a.wind); zone('ice', a.ice); zone('slime', a.slime); zone('moss', a.moss); zone('waves', a.waves); zone('sway', a.sway);
+  if (!tw.floorY) tw.floorY = new Int16Array(w).fill(-1);   /* the trail floor (px) of every column: moss, slime and ice lie on it */
+  for (let c = 0; c < a.cols; c++) if (a.heights[c] != null) tw.floorY[base + c] = a.heights[c];
+  if (a.slugTrail) { tw.slugTrail = true; tw.on = true; }
+  for (const p of a.planks || []) tw.movers.push({ kind: 'plank', x0: (base + p[0]) * T, y0: p[1] * T, w: (p[2] || 2) * T, h: 6, amp: p[3] == null ? 6 : p[3], per: p[4] || 150, ph: p[5] || 0, sw: p[6] || 0 });
+  for (const q of a.pulleys || []) {
+    const pair = { s: 0, drop: (q[5] || 1.5) * T, top: Math.max(8, Math.min(q[1], q[3]) * T - 3 * T) }, wd = (q[4] || 2) * T;
+    pair.a = { kind: 'pulley', x0: (base + q[0]) * T, y0: q[1] * T, w: wd, h: 6, pair: pair, sign: 1 };
+    pair.b = { kind: 'pulley', x0: (base + q[2]) * T, y0: q[3] * T, w: wd, h: 6, pair: pair, sign: -1 };
+    tw.movers.push(pair.a, pair.b); tw.pairs.push(pair);
+  }
+  for (const b of a.boats || []) { const wd = (b[3] || 3) * T; tw.movers.push({ kind: 'boat', xa: (base + b[0]) * T, xb: (base + b[1] + 1) * T - wd, x0: (base + b[0]) * T, y0: b[2] * T, w: wd, h: 8, spd: b[4] || 0.5, dir: 1 }); }
+  const ci = a.circuit;
+  if (ci) {
+    for (const [c, r] of ci.switches || []) { set(base + c, r, 5); tw.swAt[r * w + base + c] = true; }
+    for (const [c, r] of ci.red || []) { set(base + c, r, 5); tw.onB.push([base + c, r]); }
+    for (const [c, r] of ci.blue || []) { set(base + c, r, 0); tw.offB.push([base + c, r]); }
+    tw.circuit = true;
+  }
+  for (const m of a.magnets || []) tw.magnets.push({ x: (base + m[0]) * T, w: (m[3] || 1) * T, top: m[1] * T, bot: (m[2] + 1) * T });
+  for (const s of Array.isArray(a.signs) ? a.signs : []) tw.signCols.push(Array.isArray(s) ? [base + s[0], s[1]] : [base + s, 'duck']);
+  for (const s of a.skins || []) { tw.skins.push([s[0], base + s[1], s[2], base + s[3], s[4]]); tw.on = true; }   /* looks only: steel, cedar, granite, car */
+  zone('trainCars', a.trainCars);
+  for (const m of tw.movers) if (m.x == null) { m.x = m.x0; m.y = m.y0; m.dx = 0; m.dy = 0; }
+  if (tw.movers.length || tw.circuit || tw.magnets.length || tw.signCols.length) tw.on = true;
+}
+const twCol = (x) => clamp(Math.floor(x / T), 0, L.w - 1);
+function twistsPre() {   /* before Kinan moves: the movers move (and carry him), the gust clock, the magnets */
+  const tw = L.tw; tw.t++;
+  if (tw.swCd > 0) tw.swCd--;
+  for (const p of tw.pairs) {   /* a pulley: the side Kinan stands on sinks, its partner rises */
+    if (P.rideM === p.a) p.s = Math.min(p.drop, p.s + 0.5);
+    else if (P.rideM === p.b) p.s = Math.max(-p.drop, p.s - 0.5);
+    else p.s -= Math.sign(p.s) * Math.min(Math.abs(p.s), 0.25);
+  }
+  for (const m of tw.movers) {
+    const ox = m.x, oy = m.y;
+    if (m.kind === 'plank') { const an = (tw.t + m.ph) / m.per * 6.2832; m.y = m.y0 + Math.sin(an) * m.amp; m.x = m.x0 + Math.sin(an / 2) * m.sw; }
+    else if (m.kind === 'pulley') m.y = m.y0 + m.pair.s * m.sign;
+    else if (m.kind === 'boat') { m.x += m.spd * m.dir; if (m.x >= m.xb) { m.x = m.xb; m.dir = -1; } else if (m.x <= m.xa) { m.x = m.xa; m.dir = 1; } m.y = m.y0 + Math.sin(tw.t / 40) * 1.5; }
+    m.dx = m.x - ox; m.dy = m.y - oy;
+  }
+  const r = P.rideM;
+  if (r && P.onGround && !P.dead && Math.abs(P.y + P.h - (r.y - r.dy)) < 3 && P.x + P.w > r.x - r.dx && P.x < r.x - r.dx + r.w) {   /* only while he really stands on it */
+    if (r.dx) { const v = P.vx; P.vx = r.dx; moveX(P); P.vx = v; }
+    P.y = r.y - P.h;
+  }
+  tw.gust = 0; tw.warn = false; tw.gustOn = false;
+  if (tw.wind) {   /* the gust clock: 1 s of warning, 1.5 s of gust, 3 s of calm */
+    const ph = tw.t % 330, inZone = !!tw.wind[twCol(P.x + P.w / 2)] && boss === 'off' && !L.cleared;
+    tw.warn = ph < 60; tw.gustOn = ph >= 60 && ph < 150;
+    if (ph === 1 && inZone) { AudioSys.noise(1.4, { filter: 'lowpass', freq: 650, vol: 0.1 }); toast('💨 <b>WIND COMING!</b> Hold on!', 1100); }
+    if (tw.gustOn && inZone) { tw.gust = Math.min(1, (ph - 59) / 12); tw.gusts = (tw.gusts || 0) + (ph === 60 ? 1 : 0); }
+  }
+  tw.lift = false;
+  for (const m of tw.magnets) {   /* a magnet lift: up the column */
+    const cx = P.x + P.w / 2;
+    if (!P.dead && cx > m.x && cx < m.x + m.w && P.y + P.h > m.top - 12 && P.y < m.bot) {   /* he hovers just over the top row: step off onto the ledge there */
+      P.vy = Math.max(-2.2, P.vy - 1.1); P.onGround = false; tw.lift = true;
+      if (tw.t % 5 === 0) part(m.x + rand(2, m.w - 2), P.y + P.h, { vx: 0, vy: -1.2, g: 0, life: 18, size: 1, color: '#c9a6ff', glow: true });
+    }
+  }
+}
+function moverLand() {   /* after Kinan's fall this frame: a plank, pulley or boat under his feet catches him */
+  P.rideM = null;
+  if (P.onGround || P.vy < 0 || P.dead) return;
+  for (const m of L.tw.movers) {
+    if (P.x + P.w <= m.x + 1 || P.x >= m.x + m.w - 1) continue;
+    if (P.prevBottom <= m.y + 5 && P.y + P.h >= m.y) { P.y = m.y - P.h; P.vy = 0; P.onGround = true; P.landTile = 7; P.rideM = m; return; }
+  }
+}
+function flipCircuit() {   /* a circuit switch: the red blocks and the blue blocks swap */
+  const tw = L.tw;
+  if (tw.swCd > 0) return;
+  tw.swCd = 20; tw.sw = 1 - tw.sw; tw.flips = (tw.flips || 0) + 1;
+  const put = (c, r, on) => {
+    L.g[(r + (L.up | 0)) * L.w + c] = on ? 5 : 0;
+    if (on && overlap(P, { x: c * T, y: r * T, w: T, h: T })) { P.y = r * T - P.h; P.vy = 0; }   /* never shut inside a block: up on top */
+  };
+  for (const [c, r] of tw.onB) put(c, r, tw.sw === 0);
+  for (const [c, r] of tw.offB) put(c, r, tw.sw === 1);
+  SFX.power(); shakeIt(1);
+  toast(tw.sw ? '🔵 <b>CLICK!</b> Blue blocks on, red blocks off' : '🔴 <b>CLICK!</b> Red blocks on, blue blocks off', 1200);
+}
+function twistsPost() {   /* after the foes: slug slime, the seawall waves, the bridge sway, the signs */
+  const tw = L.tw;
+  if (tw.slugTrail) {   /* every slug leaves a slime trail; it dries up after about 6 s */
+    for (const f of foes) if (f.alive && f.def && f.def.kind === 'slug' && Math.abs(f.y + f.h - tw.floorY[twCol(f.x + f.w / 2)]) < 5) slimeAt(f.x + f.w / 2, 360);
+    if (L.slimeT && !L.arena) for (let k = 0; k < L.slimeT.length; k++) if (L.slimeT[k] > 0) L.slimeT[k]--;
+  }
+  if (tw.waves && boss === 'off') {   /* World 5's seawall: the water bubbles at the edge, then a big wave splashes over */
+    if (tw.t % 260 === 0) {
+      const ax = P.x + P.w / 2 + (P.vx >= 0 ? 66 : -66), k0 = Math.floor(ax / T);
+      let ok = k0 > 6 && k0 < L.w - 6 && !!tw.waves[k0];
+      for (let k = -6; k <= 6 && ok; k++) if (groundRowAt(k0 + k) >= ROWS) ok = false;   /* never knocked into the water */
+      if (ok) { L.wave = { x: ax, ty: groundRowAt(k0), t: 0 }; tw.waveN = (tw.waveN || 0) + 1; }
+    }
+    const wv = L.wave;
+    if (wv) {
+      wv.t++;
+      if (wv.t < 50 && tw.t % 3 === 0) part(wv.x + rand(-12, 12), wv.ty * T - 1, { vx: rand(-0.3, 0.3), vy: rand(-1.4, -0.5), life: 16, size: 2, color: 'rgba(170,220,255,.9)', g: 0.06 });
+      if (wv.t === 50) { AudioSys.noise(0.6, { filter: 'lowpass', freq: 900, vol: 0.12 }); toast('🌊 <b>SPLASH!</b>', 900); }
+      if (wv.t >= 50 && wv.t < 74 && !P.dead && Math.abs(P.x + P.w / 2 - wv.x) < 26 && P.y + P.h > wv.ty * T - 44) {
+        P.vx = (P.x + P.w / 2 < wv.x ? -1 : 1) * 3.4; P.vy = Math.min(P.vy, -3.6); tw.splashed = (tw.splashed || 0) + 1;
+      }
+      if (wv.t > 84) L.wave = null;
+    }
+  }
+  if (tw.sway && boss === 'off' && P.onGround && !P.rideM && tw.sway[twCol(P.x + P.w / 2)]) {   /* the bridge sways: a nudge one way, then the other (never off an edge) */
+    const d = Math.sin(tw.t / 70) * 0.3, cx = Math.floor((P.x + P.w / 2 + d * 20) / T), fy = Math.floor((P.y + P.h + 2) / T);
+    if (solid(cx, fy) || tileAt(cx, fy) === 7 || isSlope(tileAt(cx, fy)) || isSlope(tileAt(cx, fy - 1))) { const v = P.vx; P.vx = d; moveX(P); P.vx = v; }
+  }
+  if (tw.signCols.length) {   /* overhead signs: stay low under them · low cables: jump them */
+    if (!tw.signs) tw.signs = tw.signCols.map(([tx, kind]) => {
+      const top = tw.floorY[tx] >= 0 ? tw.floorY[tx] : groundRowAt(tx) * T;   /* on the track floor (under a tunnel roof too) */
+      return kind === 'jump' ? { x: tx * T + 4, y: top - 7, w: 8, h: 7, top: top, kind: kind } : { x: tx * T - 6, y: top - 34, w: 28, h: 9, top: top, kind: kind };
+    });
+    if (boss === 'off') for (const s of tw.signs) if (!P.dead && P.inv <= 0 && overlap(P, s)) {
+      hurt(s.x + s.w / 2); if (s.kind !== 'jump') P.vy = Math.max(P.vy, 1.5);
+      tw.signHits = (tw.signHits || 0) + 1;
+      toast(s.kind === 'jump' ? '🚧 Ouch! Jump the low cables!' : '🚧 Ouch! Stay low under the signs!', 1200);
+    }
+  }
+}
+/* the bot's eyes (dev auto()): a low cable just ahead is jumped like a gap */
+const twistJumpAhead = () => !!(L && L.tw && L.tw.signs && L.tw.signs.some((s) => s.kind === 'jump' && s.x - (P.x + P.w) > 0 && s.x - (P.x + P.w) < 22));
+function drawTwistsBack(th) {   /* behind the level: the train's rush lines, Canada Place's sails (World 7's storm), Drizzle's storm */
+  const tw = L.tw;
+  if (tw && tw.rush) {
+    ctx.strokeStyle = 'rgba(235,242,250,.35)'; ctx.lineWidth = 1; ctx.beginPath();
+    for (let k = 0; k < 16; k++) { const y = 40 + (k * 41) % 150, x = W - ((tw.t * 11 + k * 131) % (W + 80)); ctx.moveTo(x, y); ctx.lineTo(x + 26 + (k % 4) * 8, y); }
+    ctx.stroke();
+  }
+  const sails = (x, base, s, tone) => {   /* Canada Place, far off: a long pier building whose roof is five soft white sails (one roofline, never spikes) */
+    const a = ctx.globalAlpha; ctx.globalAlpha = a * 0.7;
+    ctx.fillStyle = tone; ctx.beginPath(); ctx.moveTo(x, base - 7 * s);
+    for (let q = 0; q < 5; q++) { ctx.quadraticCurveTo(x + (q * 14 + 4) * s, base - 9 * s, x + (q * 14 + 7) * s, base - 16 * s); ctx.quadraticCurveTo(x + (q * 14 + 10) * s, base - 9 * s, x + (q * 14 + 14) * s, base - 7 * s); }
+    ctx.lineTo(x + 70 * s, base); ctx.lineTo(x, base); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = 'rgba(40,50,70,.45)'; for (let q = 0; q < 12; q++) ctx.fillRect(Math.round(x + (3 + q * 5.6) * s), Math.round(base - 5 * s), 2, 2);
+    ctx.globalAlpha = a;
+  };
+  if (L.levelWorld === 7 && th && th.bg === 'storm5') sails(Math.round(W * 0.58 - (camX * 0.12) % 600), 150, 1, L.sunny ? '#e6ebf0' : '#9aa3b2');
+  if (tw && tw.storm != null && camX + W > tw.storm * T) {   /* Drizzle, grown into a huge dark storm over Canada Place */
+    const k = clamp((camX + W - tw.storm * T) / (10 * T), 0, 1), cx = Math.round(W * 0.66), cy = 34;
+    ctx.globalAlpha = k;
+    sails(cx - 40, 132, 0.9, '#c9d2dc');
+    ctx.fillStyle = 'rgba(120,170,220,.55)';
+    for (let q = 0; q < 14; q++) { const d = (tw.t * 3 + q * 23) % 110; ctx.fillRect(cx - 70 + q * 10, cy + 18 + d, 1, 6); }
+    ctx.fillStyle = '#3a4252';
+    for (const [ox, oy, rr] of [[-48, 6, 20], [-18, -6, 28], [18, -2, 26], [50, 8, 18], [0, 12, 24]]) { ctx.beginPath(); ctx.arc(cx + ox, cy + oy, rr, 0, 6.284); ctx.fill(); }
+    ctx.fillStyle = '#f4f1e8'; ctx.fillRect(cx - 10, cy + 2, 3, 4); ctx.fillRect(cx + 8, cy + 2, 3, 4); ctx.fillRect(cx - 4, cy + 13, 9, 2);   /* a sad little face */
+    if (tw.t % 200 < 5) { ctx.strokeStyle = '#fff6b0'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(cx + 20, cy + 26); ctx.lineTo(cx + 12, cy + 52); ctx.lineTo(cx + 22, cy + 56); ctx.lineTo(cx + 14, cy + 84); ctx.stroke(); ctx.lineWidth = 1; }
+    ctx.globalAlpha = 1;
+  }
+}
+function drawTwists() {   /* in the level, before the foes and Kinan */
+  const tw = L.tw, cx = Math.round(camX), k0 = Math.max(0, Math.floor(camX / T) - 1), k1 = Math.min(L.w - 1, Math.ceil((camX + W) / T) + 1);
+  const carBody = (x0, y0, w, h, capL, capR) => {   /* a white train car with a blue stripe and windows (the roof stays the ground) */
+    ctx.fillStyle = '#e3e8ef'; ctx.fillRect(x0, y0, w, h);
+    ctx.fillStyle = '#b9c0cc'; ctx.fillRect(x0, y0, w, 2);
+    ctx.fillStyle = '#2f5fb3'; ctx.fillRect(x0, y0 + 18, w, 4);
+    ctx.fillStyle = '#45556c'; for (let x = x0 + 3; x + 8 <= x0 + w; x += 16) ctx.fillRect(x, y0 + 7, 9, 7);
+    ctx.fillStyle = '#7d8696'; if (capL) ctx.fillRect(x0, y0, 2, h); if (capR) ctx.fillRect(x0 + w - 2, y0, 2, h);
+  };
+  for (const [kind, c0, r0, c1, r1] of tw.skins) {   /* skins (looks only): the tile underneath still decides what is solid */
+    const x0 = c0 * T - cx, x1 = (c1 + 1) * T - cx; if (x1 < -T || x0 > W + T) continue;
+    const y0 = r0 * T, y1 = (r1 + 1) * T, w = x1 - x0, h = y1 - y0;
+    if (kind === 'steel') {   /* a green steel bridge tower: girders, X bracing, rivets */
+      ctx.fillStyle = '#2e6b45'; ctx.fillRect(x0, y0, w, h);
+      ctx.fillStyle = '#4a9a66'; ctx.fillRect(x0, y0, 3, h); ctx.fillRect(x1 - 3, y0, 3, h); ctx.fillRect(x0, y0, w, 3);
+      ctx.strokeStyle = '#1d4a2e'; ctx.lineWidth = 1; ctx.beginPath();
+      for (let y = y0 + 3; y < y1 - 4; y += 14) { ctx.moveTo(x0 + 3, y); ctx.lineTo(x1 - 3, Math.min(y1, y + 14)); ctx.moveTo(x1 - 3, y); ctx.lineTo(x0 + 3, Math.min(y1, y + 14)); }
+      ctx.stroke();
+      ctx.fillStyle = '#bfe8c9'; for (let y = y0 + 6; y < y1; y += 7) { ctx.fillRect(x0 + 1, y, 1, 1); ctx.fillRect(x1 - 2, y, 1, 1); }
+    } else if (kind === 'cedar') {   /* a red cedar trunk: deep bark grooves, a mossy cap */
+      ctx.fillStyle = '#7a3f24'; ctx.fillRect(x0, y0, w, h);
+      ctx.fillStyle = '#4f2614'; for (let x = x0 + 2; x < x1; x += 5) ctx.fillRect(x, y0, 1, h);
+      ctx.fillStyle = '#a05c38'; for (let x = x0 + 4; x < x1; x += 6) for (let y = y0 + ((x * 7) % 11 + 11) % 11; y < y1; y += 13) ctx.fillRect(x, y, 1, 5);
+      ctx.fillStyle = '#4f8a32'; ctx.fillRect(x0, y0, w, 2); ctx.fillStyle = '#6fb844'; for (let x = x0; x < x1; x += 4) ctx.fillRect(x + 1, y0 - 1, 2, 1);
+    } else if (kind === 'granite') {   /* the Chief's granite: grey rock with dark streaks and pale flecks */
+      ctx.fillStyle = '#8a8f96'; ctx.fillRect(x0, y0, w, h);
+      const hs = (k, m) => (((k + c0 * 31 + r0 * 17) * 2654435761) >>> 7) % Math.max(1, m);   /* a scatter tied to the rock, not the screen */
+      ctx.fillStyle = '#62676f'; for (let k = 0, n = Math.ceil(w * h / 70); k < n; k++) ctx.fillRect(x0 + hs(k, w - 6), y0 + hs(k + 7919, h), 6 + (k % 3) * 3, 1);
+      ctx.fillStyle = '#c3c8ce'; for (let k = 0, n = Math.ceil(w * h / 110); k < n; k++) ctx.fillRect(x0 + hs(k + 104729, w), y0 + hs(k + 15485863, h), 1, 1);
+      ctx.fillStyle = '#b4b9c0'; ctx.fillRect(x0, y0, w, 1);
+    } else if (kind === 'car') carBody(x0, y0, w, h, true, true);
+  }
+  if (tw.trainCars) for (let k = k0; k <= k1; k++) {   /* the SkyTrain's cars under the roofs: every flat roof column between the couplings */
+    const fy = tw.floorY[k]; if (!tw.trainCars[k] || fy < 0 || tileAt(k, fy / T) !== 1 || fy % T) continue;
+    const car = (c) => tw.trainCars[c] && tw.floorY[c] === fy && tileAt(c, fy / T) === 1;
+    carBody(k * T - cx, fy, T, H - fy, !car(k - 1), !car(k + 1));
+  }
+  for (let k = k0; k <= k1; k++) {   /* moss, slime and ice on the trail floor */
+    const y = tw.floorY[k]; if (y < 0) continue;
+    const x = k * T - cx;
+    if (tw.moss && tw.moss[k]) {
+      ctx.fillStyle = '#2f6a2a'; ctx.fillRect(x, y - 3, T, 5);
+      ctx.fillStyle = '#7cc04a'; for (let q = 0; q < 5; q++) ctx.fillRect(x + q * 3 + (k % 2), y - 5 + ((q + k) % 2), 2, 2);
+    }
+    const fix = tw.slime && tw.slime[k], live = L.slimeT && L.slimeT[k] > 0;
+    if (fix || live) {
+      ctx.globalAlpha = fix ? 1 : Math.min(1, L.slimeT[k] / 80); ctx.fillStyle = '#e6e04a'; ctx.fillRect(x, y - 3, T, 4);
+      ctx.fillStyle = '#c9c22a'; ctx.fillRect(x + (k % 3) * 4 + 2, y + 1, 3, 2);   /* a drip over the edge */
+      ctx.fillStyle = '#fffbd0'; if ((k + Math.floor(tw.t / 20)) % 4 === 0) ctx.fillRect(x + 5, y - 3, 3, 1);   /* the shine */
+      ctx.globalAlpha = 1;
+    }
+    if (tw.ice && tw.ice[k]) { ctx.fillStyle = 'rgba(210,240,255,.75)'; ctx.fillRect(x, y - 1, T, 2); }
+  }
+  if (tw.sway) {   /* the rope bridge: handrails along the deck, a post every four planks, swaying */
+    const sw = Math.sin(tw.t / 70) * 2;
+    ctx.globalAlpha = 0.9; ctx.strokeStyle = '#8a6a44'; ctx.lineWidth = 1; ctx.beginPath();
+    for (let k = k0; k <= k1; k++) {
+      if (!tw.sway[k]) continue;
+      const gy = groundRowAt(k); if (gy >= ROWS) continue;
+      const x0 = k * T - cx, y0 = gy * T - 12 + sw;
+      ctx.moveTo(x0, y0 + Math.sin((k % 4) / 4 * Math.PI) * 2); ctx.lineTo(x0 + T, y0 + Math.sin(((k % 4) + 1) / 4 * Math.PI) * 2);
+      if (k % 4 === 0) { ctx.moveTo(x0, y0); ctx.lineTo(x0, gy * T); }
+    }
+    ctx.stroke(); ctx.globalAlpha = 1;
+  }
+  for (const p of tw.pairs) {   /* pulley ropes: up from each platform, over two wheels */
+    const ax = Math.round(p.a.x + p.a.w / 2 - cx), bx = Math.round(p.b.x + p.b.w / 2 - cx);
+    if (Math.max(ax, bx) < -40 || Math.min(ax, bx) > W + 40) continue;
+    ctx.strokeStyle = '#6a4a2a'; ctx.lineWidth = 1; ctx.beginPath();
+    ctx.moveTo(ax, Math.round(p.a.y)); ctx.lineTo(ax, p.top); ctx.lineTo(bx, p.top); ctx.lineTo(bx, Math.round(p.b.y)); ctx.stroke();
+    for (const x of [ax, bx]) { ctx.fillStyle = '#5a5f6a'; ctx.beginPath(); ctx.arc(x, p.top, 4, 0, 6.284); ctx.fill(); ctx.fillStyle = '#c9ccd2'; ctx.fillRect(x - 1, p.top - 1, 2, 2); }
+  }
+  for (const m of tw.movers) {
+    const x = Math.round(m.x - cx), y = Math.round(m.y);
+    if (x > W + 20 || x + m.w < -20) continue;
+    if (m.kind === 'plank') {   /* a loose plank on two ropes */
+      ctx.strokeStyle = '#8a6a44'; ctx.beginPath(); ctx.moveTo(x + 2, y); ctx.lineTo(x + 2 - m.sw * 0.3, y - 40); ctx.moveTo(x + m.w - 2, y); ctx.lineTo(x + m.w - 2 - m.sw * 0.3, y - 40); ctx.stroke();
+      ctx.fillStyle = '#9a6a3a'; ctx.fillRect(x, y, m.w, m.h); ctx.fillStyle = '#c08a4e'; ctx.fillRect(x, y, m.w, 2);
+      ctx.fillStyle = '#5a3a1e'; for (let q = 8; q < m.w; q += 8) ctx.fillRect(x + q, y, 1, m.h);
+    } else if (m.kind === 'pulley') {   /* a rope platform with a striped awning edge */
+      ctx.fillStyle = '#7a5530'; ctx.fillRect(x, y, m.w, m.h);
+      for (let q = 0; q < m.w; q += 6) { ctx.fillStyle = (q / 6) % 2 ? '#f4f1e8' : '#d8342c'; ctx.fillRect(x + q, y, Math.min(6, m.w - q), 2); }
+      ctx.fillStyle = '#4a3420'; ctx.fillRect(x, y + m.h - 1, m.w, 1);
+    } else if (m.kind === 'boat') {   /* a little harbour ferry */
+      ctx.fillStyle = '#f4f1e8'; ctx.fillRect(x, y, m.w, 5); ctx.fillStyle = '#2f5fb3'; ctx.fillRect(x + 2, y + 5, m.w - 4, 4);
+      ctx.fillStyle = '#d8342c'; ctx.fillRect(x, y, m.w, 1); ctx.fillStyle = '#4a5a70'; ctx.fillRect(x + m.w / 2 - 4, y - 7, 8, 7);
+    }
+  }
+  if (tw.circuit) {   /* red and blue blocks: solid ones are bright, the others are dashed outlines */
+    const block = (c, r, color, dim) => {
+      const x = c * T - cx, y = r * T; if (x < -T || x > W) return;
+      if (tileAt(c, r) === 5) { ctx.fillStyle = color; ctx.fillRect(x, y, T, T); ctx.fillStyle = 'rgba(255,255,255,.45)'; ctx.fillRect(x + 1, y + 1, T - 2, 2); ctx.fillStyle = 'rgba(0,0,0,.3)'; ctx.fillRect(x, y + T - 2, T, 2); ctx.fillRect(x + 6, y + 6, 4, 4); }
+      else { ctx.strokeStyle = dim; ctx.setLineDash([3, 3]); ctx.strokeRect(x + 1.5, y + 1.5, T - 3, T - 3); ctx.setLineDash([]); }
+    };
+    for (const [c, r] of tw.onB) block(c, r, '#e8364b', 'rgba(232,54,75,.8)');
+    for (const [c, r] of tw.offB) block(c, r, '#3f8ef0', 'rgba(63,142,240,.8)');
+    for (const key in tw.swAt) {   /* the switch: a grey box, its lamp the colour that is on, a lightning bolt */
+      const c = key % L.w, r = Math.floor(key / L.w), x = c * T - cx, y = r * T; if (x < -T || x > W) continue;
+      ctx.fillStyle = '#5a5f6a'; ctx.fillRect(x, y, T, T); ctx.fillStyle = tw.sw ? '#3f8ef0' : '#e8364b'; ctx.fillRect(x + 2, y + 2, T - 4, T - 4);
+      ctx.fillStyle = '#f6c445'; ctx.fillRect(x + 7, y + 3, 3, 5); ctx.fillRect(x + 6, y + 7, 3, 1); ctx.fillRect(x + 6, y + 8, 3, 5);
+      if (tw.swCd > 0) { ctx.fillStyle = 'rgba(255,255,255,.6)'; ctx.fillRect(x, y, T, T); }
+    }
+  }
+  for (const m of tw.magnets) {   /* a magnet lift: a horseshoe magnet over a glowing column, chevrons going up */
+    const x = Math.round(m.x - cx); if (x > W + 20 || x + m.w < -20) continue;
+    ctx.fillStyle = 'rgba(155,122,227,.18)'; ctx.fillRect(x, m.top, m.w, m.bot - m.top);
+    ctx.fillStyle = 'rgba(201,166,255,.7)';
+    for (let yy = m.bot - ((tw.t * 1.5) % 16); yy > m.top + 4; yy -= 16) { ctx.fillRect(x + m.w / 2 - 4, yy, 3, 1); ctx.fillRect(x + m.w / 2 + 1, yy, 3, 1); ctx.fillRect(x + m.w / 2 - 2, yy - 2, 4, 1); }
+    ctx.fillStyle = '#d8342c'; ctx.fillRect(x + 1, m.top - 10, m.w - 2, 4); ctx.fillRect(x + 1, m.top - 10, 4, 10); ctx.fillRect(x + m.w - 5, m.top - 10, 4, 10);
+    ctx.fillStyle = '#c9ccd2'; ctx.fillRect(x + 1, m.top - 3, 4, 3); ctx.fillRect(x + m.w - 5, m.top - 3, 4, 3);
+  }
+  if (tw.signs) for (const s of tw.signs) {   /* the signs; each flashes its warning as Kinan comes near */
+    const x0 = Math.round(s.x - cx); if (x0 < -60 || x0 > W + 60) continue;
+    const near = s.x - (P.x + P.w), warn = near > -4 && near < 7 * T, blink = warn && Math.floor(tw.t / 8) % 2 === 0;
+    if (s.kind === 'jump') {   /* a low cable between two little posts */
+      ctx.fillStyle = '#5a5f6a'; ctx.fillRect(x0, s.y, 2, s.h); ctx.fillRect(x0 + s.w - 2, s.y, 2, s.h);
+      ctx.fillStyle = blink ? '#f6c445' : '#2b2f45'; ctx.fillRect(x0, s.y + 1, s.w, 2);
+    } else {
+      ctx.fillStyle = '#5a5f6a'; ctx.fillRect(x0 - 4, s.y - 20, 2, s.top - s.y + 20); ctx.fillRect(x0 + s.w + 2, s.y - 20, 2, s.top - s.y + 20); ctx.fillRect(x0 - 4, s.y - 20, s.w + 8, 2);
+      ctx.fillStyle = blink ? '#f6c445' : '#1f7a4a'; ctx.fillRect(x0, s.y, s.w, s.h); ctx.fillStyle = '#f4f1e8'; ctx.fillRect(x0 + 1, s.y + 1, s.w - 2, 1);
+      ctx.fillRect(x0 + 6, s.y + 4, 12, 1); ctx.fillRect(x0 + 16, s.y + 3, 2, 3);
+    }
+    if (warn) {   /* the warning word over it */
+      ctx.font = 'bold 7px monospace'; ctx.textAlign = 'center'; ctx.fillStyle = blink ? '#f6c445' : '#fff';
+      ctx.fillText(s.kind === 'jump' ? '▲ JUMP' : '▼ STAY LOW', x0 + s.w / 2, s.kind === 'jump' ? s.y - 26 : s.y - 24); ctx.textAlign = 'left';
+    }
+  }
+}
+function drawTwistsOver() {   /* over Kinan: wind streaks and sideways rain, the splash, the umbrella while he floats */
+  const tw = L.tw;
+  if (tw && tw.wind && (tw.warn || tw.gustOn) && tw.wind[twCol(camX + W / 2)]) {
+    const ph = tw.t % 330, n = tw.gustOn ? 26 : Math.round(4 + ph / 60 * 12), sp = tw.gustOn ? 10 : 5;
+    ctx.strokeStyle = tw.gustOn ? 'rgba(240,248,255,.85)' : 'rgba(240,248,255,.55)'; ctx.lineWidth = tw.gustOn ? 2 : 1; ctx.beginPath();
+    for (let k = 0; k < n; k++) { const y = 8 + (k * 37) % (GROUND * T), x = W - ((tw.t * sp + k * 97) % (W + 60)); ctx.moveTo(x, y); ctx.lineTo(x + 22 + (k % 3) * 10, y + (tw.gustOn ? 2 : 1)); }
+    ctx.stroke(); ctx.lineWidth = 1;
+    if (tw.warn) { ctx.font = 'bold 9px monospace'; ctx.fillStyle = Math.floor(tw.t / 8) % 2 ? '#fff' : '#9fd8ff'; ctx.fillText('WIND!', W - 52, 22); }   /* (no emoji: the pixel font can't draw it) */
+  }
+  const wv = L.wave;
+  if (tw && tw.waves && wv && wv.t >= 46 && wv.t < 84) {   /* the splash: a column of water that rises and falls */
+    const s = wv.t < 60 ? (wv.t - 46) / 14 : Math.max(0, 1 - (wv.t - 60) / 24), hgt = Math.round(48 * s), x0 = Math.round(wv.x - camX), gy = wv.ty * T;
+    ctx.fillStyle = 'rgba(90,170,230,.75)'; ctx.fillRect(x0 - 14, gy - hgt, 28, hgt);
+    ctx.fillStyle = 'rgba(220,240,255,.9)'; for (let k = 0; k < 5; k++) ctx.fillRect(x0 - 14 + k * 6, gy - hgt - 2 + ((k + wv.t) % 3), 4, 3);
+  }
+  if (P.umbrella && P.floating && !P.dead && !w5Stage() && !(L.arena && L.arena.K && L.arena.K.gust)) {   /* the umbrella, open over Kinan while he floats (Drizzle's arena draws its own) */
     const ux = Math.round(P.x + P.w / 2 - camX), uy = Math.round(P.y - 10);
     ctx.strokeStyle = '#2b2f45'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(ux, uy); ctx.lineTo(ux, uy + 10); ctx.stroke();
     ctx.fillStyle = '#e8364b'; ctx.beginPath(); ctx.moveTo(ux - 10, uy); ctx.quadraticCurveTo(ux, uy - 11, ux + 10, uy); ctx.closePath(); ctx.fill();
@@ -19258,7 +20042,11 @@ function arenaBotInput() {
   const rollerNear = A.shots.some(rollerAt);
   const rollerBehind = A.shots.some((s) => rollerAt(s) && Math.abs(s.vx) > 1.2 && sign(s.vx) === sign(P.vx) && Math.abs(P.vx) > 0.5);   /* it is catching up from behind */
   const foeNear = foes.some((f) => f.alive && Math.abs(f.x + f.w / 2 - pc) < 30 && Math.abs(f.y - P.y) < 24);
-  if (open) {
+  const lamp = A.lamps.length ? A.lamps[b.max - b.hp] || null : null;   /* World 7: the next sun lamp (it glows: a kid can see it) */
+  if (open && lamp) {   /* World 7: Drizzle rests: run to the glowing sun lamp and switch it on (never a stomp) */
+    dir = Math.abs(lamp.x - pc) > 3 ? sign(lamp.x - pc) : 0;
+    if (rollerNear || foeNear) jump = true;
+  } else if (open) {
     const reach = b.w / 2 + 12;
     if (P.onGround) {
       dir = Math.abs(dx) > reach - 4 ? sign(dx) : 0;
@@ -19268,11 +20056,11 @@ function arenaBotInput() {
   } else {
     /* the safest spot nearest to Kinan: clear of every mark, every throw's landing spot, the ring and the boss */
     const danger = [];
-    for (const m of A.marks) danger.push([m.x, m.swoop ? 34 : 22]);   /* World 6: a diving magpie's V is wider than a falling thing */
+    for (const m of A.marks) danger.push([m.x, m.lane ? m.lane + 14 : m.swoop ? 34 : 22]);   /* World 6: a diving magpie's V is wider than a falling thing; World 7: a rain lane's column */
     for (const s of A.shots) if (!s.roll && !s.friendly && s.tx != null) danger.push([s.tx, 24]);
     if (A.ring) danger.push([A.ring.x, A.ring.rw ? A.ring.rw + 12 : 46]);   /* World 6: the tail sweep's band */
     for (const q of A.spawnQ) danger.push([q.x + 6, 30]);
-    const keep = b.state === 'charge' ? 0 : 76;
+    const keep = b.state === 'charge' || A.K.soft ? 0 : 76;   /* World 7: nobody keeps away from a soft cloud */
     /* B2 calm: a kid goes for the music when nothing is coming down or rolling at him (dodge first) */
     const busyAir = A.marks.length > 0 || !!A.ring || A.shots.some((s) => !s.roll && !s.friendly);
     const rollerComing = A.shots.some((s) => s.roll && Math.abs(s.x + s.w / 2 - pc) < 90 && sign(pc - (s.x + s.w / 2)) === sign(s.vx));
@@ -19285,7 +20073,8 @@ function arenaBotInput() {
       const crosses = sign(x - pc) === sign(bc - pc) && Math.abs(x - pc) > Math.abs(bc - pc);   /* the far side of the boss */
       let through = 0;   /* B2: a kid steps back out of the shadows rather than running through three more of them */
       for (const m of A.marks) if ((m.x - pc) * (m.x - x) < 0) through++;
-      const score = Math.min(near, fromBoss, 60) * 4 - Math.abs(x - pc) * 0.5 - (crosses ? 90 : 0) - (note ? Math.abs(x - note.x) * 1.2 : 0) - through * 80;
+      const score = Math.min(near, fromBoss, 60) * 4 - Math.abs(x - pc) * 0.5 - (crosses && !A.K.soft ? 90 : 0) - (note ? Math.abs(x - note.x) * 1.2 : 0) - through * 80
+        - (lamp ? Math.abs(x - lamp.x) * 0.3 : 0);   /* World 7: a kid drifts toward the next sun lamp between the rain */
       if (score > bestScore) { bestScore = score; best = x; }
     }
     dir = Math.abs(best - pc) > 6 ? sign(best - pc) : 0;
@@ -19480,6 +20269,21 @@ window.__k11 = window.__k11DevOnly() ? {
   defaults: () => JSON.parse(JSON.stringify(DEFAULT_PROGRESS)),
   petSpot: () => (crate ? { x: crate.x, y: crate.y, pet: crate.pet, open: !!crate.open, hinted: !!crate.hinted } : null),
   toPet: () => { if (crate) { P.x = crate.x; P.y = crate.y; P.vx = 0; P.vy = 0; } },
+  /* World 7 twists: what the level's trick is doing right now (null in a level without one) */
+  twistInfo: () => {
+    const tw = L && L.tw;
+    if (!tw) return null;
+    const n = (m) => (m ? m.reduce((s, v) => s + (v ? 1 : 0), 0) : 0);
+    return { t: tw.t, wind: n(tw.wind), warn: !!tw.warn, gustOn: !!tw.gustOn, gust: tw.gust || 0, gusts: tw.gusts || 0, phase: tw.wind ? tw.t % 330 : null,
+      slime: n(tw.slime), slugTrail: !!tw.slugTrail, slimeLive: L.slimeT ? n(Array.from(L.slimeT)) : 0, moss: n(tw.moss), ice: n(tw.ice),
+      waves: n(tw.waves), waveN: tw.waveN || 0, splashed: tw.splashed || 0, wave: L.wave ? { x: Math.round(L.wave.x), t: L.wave.t } : null, sway: n(tw.sway),
+      movers: tw.movers.map((m) => ({ kind: m.kind, x: Math.round(m.x * 10) / 10, y: Math.round(m.y * 10) / 10, w: m.w, riding: P.rideM === m })),
+      pairs: tw.pairs.map((p) => ({ s: p.s, drop: p.drop })),
+      circuit: !!tw.circuit, sw: tw.sw, flips: tw.flips || 0, red: tw.onB.map(([c, r]) => [c, r, tileAt(c, r) === 5]), blue: tw.offB.map(([c, r]) => [c, r, tileAt(c, r) === 5]),
+      switches: Object.keys(tw.swAt).map((k) => [k % L.w, Math.floor(k / L.w)]), magnets: tw.magnets.map((m) => [m.x / T, m.top / T, m.bot / T - 1]), lift: !!tw.lift,
+      signs: (tw.signs || []).map((s) => ({ x: s.x, y: s.y, w: s.w, h: s.h, kind: s.kind })), signCols: tw.signCols.map((s) => s.slice()), signHits: tw.signHits || 0,
+      rush: tw.rush, rushX: tw.rush ? tw.t * 5 : 0, storm: tw.storm, skins: tw.skins.map((s) => s.slice()), trainCars: n(tw.trainCars), hp: P.hp, px: P.x, py: P.y, vx: P.vx, onGround: !!P.onGround };
+  },
   auto: (n, opts) => {
     const holdRun = !!(opts && opts.run);   /* { run: true } holds RUN (the §1.1 RUN_MAX gaps need it) */
     for (let k = 0; k < n; k++) {
@@ -19493,7 +20297,7 @@ window.__k11 = window.__k11DevOnly() ? {
         const gap = !solid(fx, fy) && !solid(fx, fy + 1) && !solid(fx, fy + 2);
         const wall = solid(Math.floor((P.x + P.w + 2) / T), Math.floor((P.y + P.h - 4) / T));
         const foe = foes.some((f) => f.alive && f.x > P.x && f.x - P.x < 30 && Math.abs(f.y - P.y) < 22);
-        if (gap || wall || foe) { input.jump = true; input.jumpBuf = 8; }
+        if (gap || wall || foe || twistJumpAhead()) { input.jump = true; input.jumpBuf = 8; }   /* World 7: a low cable is jumped */
       } else if (P && P.vy < 0) {
         input.jump = true;
       }
@@ -19515,14 +20319,16 @@ window.__k11 = window.__k11DevOnly() ? {
       gates: { L: tileAt(A.gateL, A.floorRow - 1) === 5, R: tileAt(A.gateR, A.floorRow - 1) === 5 },
       boss: { x: Math.round(b.x), y: Math.round(b.y), w: b.w, h: b.h, state: b.state, t: b.t, phase: b.phase, hp: b.hp, max: b.max, cur: b.cur, face: b.face, inv: b.inv, dir: b.dir },
       /* the tell drawArena() puts over the boss right now (the same state test as the drawing) */
-      tell: b.state === 'windup' ? '!' : b.state === 'feint' ? '?' : b.state === 'charge' ? '!!' : (b.state === 'tired' || b.state === 'dizzy') ? 'STOMP' : b.state === 'friend' ? 'heart' : '',
+      tell: b.state === 'windup' ? '!' : b.state === 'feint' ? '?' : b.state === 'charge' ? '!!' : (b.state === 'tired' || b.state === 'dizzy') ? (A.lamps.length ? 'LAMP' : 'STOMP') : b.state === 'friend' ? 'heart' : '',   /* World 7: Drizzle's rest points at a sun lamp */
       shots: A.shots.map((s) => ({ kind: s.kind, x: Math.round(s.x), y: Math.round(s.y), vx: s.vx, roll: !!s.roll, tx: s.tx == null ? null : Math.round(s.tx), friendly: !!s.friendly })),
-      marks: A.marks.map((m) => ({ x: Math.round(m.x), y: m.y })), ring: A.ring ? { x: Math.round(A.ring.x) } : null,
+      marks: A.marks.map((m) => Object.assign({ x: Math.round(m.x), y: m.y }, m.lane ? { lane: m.lane } : {}, m.bolt ? { bolt: true } : {})), ring: A.ring ? { x: Math.round(A.ring.x) } : null,
       minions: foes.filter((f) => f.arena && f.alive).length, spawnQ: A.spawnQ.length,
       note: A.note ? { x: Math.round(A.note.x), y: Math.round(A.note.y) } : null, noteGot: A.noteGot,   /* B2 calm */
       built: A.built ? A.built.map((c) => c.slice()) : [], pat: A.K.pat || 'STOMP',   /* B2 platforms; the word on the arrow */
       stolen: A.stolen, riding: A.riding, wires: A.K.wires ? (b.state === 'friend' ? b.max : b.max - b.hp) : 0,   /* World 6: candles the flock holds; Robo-Rex's ride and fixed wires */
       ringW: A.ring ? (A.ring.rw || 24) : 0,
+      lamps: A.lamps.map((l) => ({ x: Math.round(l.x), lit: l.lit })), sunny: !!L.sunny, flowers: A.flowers.length, umbrella: !!P.umbrella,   /* World 7: Drizzle's sun lamps, the clear sky */
+      slime: L.slimeT ? Array.from(L.slimeT.subarray(A.gateL, A.gateR + 1)).filter((v) => v > 0).length : 0, napped: A.napped,   /* World 7: the slug's slime (tiles), its nap */
       log: A.log.slice(), line: A.line, lineQ: A.lineQ.slice(), voiceLog: A.voiceLog.slice(),
       subtitle: el.bossLine && !el.bossLine.hidden ? el.bossLine.textContent : '',
       hud: { shown: !el.bossHud.hidden, name: el.bossName.textContent, pips: el.bossPips.querySelectorAll('.pip').length, live: el.bossPips.querySelectorAll('.pip:not(.dead)').length },

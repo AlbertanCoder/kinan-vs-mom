@@ -36,11 +36,12 @@ World 11 the 2D→3D transition plays and World 12's 3D map takes over; its stop
 - Both: skippable at once (a tap anywhere, any key, SKIP); the map is busy and story lines wait until it ends.
 
 ### Worlds not in this build (Shad, 2026-10-28)
-`OW_RELEASED` in `index.html` (today **5**) is the last released world. Every world after it stays on the map behind a
-**"WORLD 6 COMING SOON!"** sign on the road out of the last released castle, with Glitchy waving beside it; ▶ there shows
-the same words and Kinan never walks past, whether or not some of that world's level files exist yet (World 6 is being
-built and opens when it is complete: raise `OW_RELEASED` then). The 5-castle's escape still shows Glitchy bouncing into
-World 6. A save standing in an unreleased world lands on the furthest open stop. Tests reach the later worlds' maps with
+`OW_RELEASED` in `index.html` (today **7**: World 6 Drumheller and World 7 Vancouver were released 2026-10-28) is the
+last released world. Every world after it stays on the map behind a **"WORLD 8 COMING SOON!"** sign on the road out of
+the last released castle, with Glitchy waving beside it; ▶ there shows the same words and Kinan never walks past, whether
+or not some of that world's level files exist yet (raise `OW_RELEASED` when the next world is complete). The 7-castle's
+escape still shows Glitchy leaving for World 8 (a parcel on a cargo plane flying east: `CUT_ESCAPE_RIDE` in
+`index.html`; World 6's is the tour bus). A save standing in an unreleased world lands on the furthest open stop. Tests reach the later worlds' maps with
 `__k11.owRelease(n)` (developer mode only, kept for the tab's session).
 
 ### The title and the menu (2026-10-28, index.html block "THE MENU")
