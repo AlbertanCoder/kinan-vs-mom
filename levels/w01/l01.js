@@ -46,8 +46,11 @@ KinanLevels.register({
     brick: [[46, 9], [48, 9], [50, 9]],
     spring: [[112, 12]],          /* the bouncy pillow, flush with the floor: walk over it and BOING */
     shelf: [[93, 9], [94, 9], [95, 9], [97, 7], [98, 7], [99, 7], [101, 5], [102, 5], [103, 5],
-            [116, 6], [117, 6], [118, 6], [119, 6]]
+            [116, 6], [117, 6], [118, 6], [119, 6]],
+    board: [[6, 11]]              /* taekwondo (2026-10-28): the first board, in its holder under the bed's edge. Kinan hops
+                                     off the bed past it (never in the way); KICK it and the candles under the bed are his */
   },
+  talk: [[7, 'KINAN', 'Sabumnim always says: focus first, then kick!']],   /* + the "Tap KICK" / "Press X" hint near the board */
   foes: [[19, 11, 'sock'], [39, 11, 'teddy'], [62, 11, 'sock'], [70, 4, 'plane'],
          [97, 11, 'sock'], [105, 11, 'teddy'], [126, 11, 'sock']],
   candles: [[1, 11], [2, 11], [3, 11], [4, 11], [5, 11],          /* under the bed */

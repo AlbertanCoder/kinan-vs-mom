@@ -41,7 +41,8 @@ KinanLevels.register({
     [84, 10, 85, 11], [98, 10, 99, 11],   /* the two chairs */
     [87, 8, 96, 8],                       /* the kitchen table top (3 rows of room under it) */
     [114, 4, 118, 11],                    /* THE FRIDGE: 8 tiles high */
-    [120, 8, 125, 11]                     /* counter D: the way down from the fridge */
+    [120, 8, 125, 11]                     /* counter D: the way down from the fridge */,
+    [20, 9, 26, 9], [20, 7, 23, 7], [20, 8, 20, 8]   /* taekwondo (2026-10-28): the spice cupboard over the floor (walk under it); its board door faces right */
   ],
   tiles: {
     gift: [[13, 5, 'popper'], [40, 9, 'gold'], [63, 4, 'candle'], [90, 5, 'candle'], [92, 5, 'candle'],
@@ -52,7 +53,8 @@ KinanLevels.register({
             [58, 9], [59, 9], [60, 9], [62, 7], [63, 7], [64, 7], [66, 5], [67, 5], [68, 5], [69, 5],
             [71, 7], [72, 7], [73, 7], [75, 9], [76, 9], [77, 9],   /* the pantry arch */
             [110, 10], [111, 10], [112, 8], [113, 8], [111, 6], [112, 6], [113, 6],   /* the fridge magnets: a ladder, 2 tiles per step */
-            [145, 5], [146, 5], [147, 5], [148, 5]]               /* the high cupboard shelf (4 wide) */
+            [145, 5], [146, 5], [147, 5], [148, 5]],              /* the high cupboard shelf (4 wide) */
+    board: [[23, 8]]              /* BONUS: hop onto the cupboard's ledge from the right and KICK the board: 2 candles inside */
   },
   foes: [[15, 7, 'toast'], [48, 7, 'egg'], [56, 11, 'egg'], [67, 4, 'carrot'],
          [90, 7, 'toast'], [92, 11, 'egg'], [123, 7, 'egg'], [128, 11, 'broccoli'], [152, 11, 'cupcake']],
@@ -62,7 +64,8 @@ KinanLevels.register({
             [88, 7], [94, 7], [89, 11], [91, 11], [93, 11], [95, 11], [104, 10], [105, 9], [106, 8], [107, 9], [108, 10],
             [110, 9], [112, 7], [112, 5], [114, 3], [115, 3], [118, 3], [121, 7], [124, 7],
             [130, 10], [131, 9], [132, 8], [133, 9], [134, 10],
-            [140, 7], [140, 5], [143, 4], [145, 4], [147, 4], [157, 11], [158, 11]],
+            [140, 7], [140, 5], [143, 4], [145, 4], [147, 4], [157, 11], [158, 11],
+            [21, 8], [22, 8]],                                    /* behind the cupboard's board */
   secrets: [
     { kind: 'visible', col: 116, row: 2, prize: 'heart' },          /* Secret-1: climb the fridge, bump the block on top */
     { kind: 'hidden', col: 40, row: 9, prize: 'GOLDEN CANDLE' },    /* Secret-2: inside the sink cabinet, far end */

@@ -42,7 +42,7 @@ KinanLevels.register({
   heights: [ /* one per column */ ],
   solid: [[c0, r0, c1, r1]],                      // optional ground rectangles
   deck: [c0, c1], fakeWall: [c0, c1],             // optional structures (see §4.2)
-  tiles: { gift: [[c, r, prize]], brick: [[c, r]], spring: [[c, r]], shelf: [[c, r]] },
+  tiles: { gift: [[c, r, prize]], brick: [[c, r]], spring: [[c, r]], shelf: [[c, r]], board: [[c, r]] },
   pipes: [[c, r]], foes: [[c, r, 'type']], candles: [[c, r]],
   secrets: [{ kind: 'visible' | 'hidden' | 'skill', col, row, prize }],
   goldenCandle: { col, row }, checkpoint: { col, row },
@@ -85,6 +85,7 @@ Hill shapes to draw with (§2.3): BROW, TERRACE, BOWL, RIDGE, MESA — **use at 
 | `brick` | brick | **breaks when Kinan head-bumps it** (pass A; a foe standing on it is bonked). A level whose bricks are its floor, stairs and bridges sets `toyBricks: true` and they never break (1-4 Brick City) |
 | `spring` | trampoline | launches at the locked `SPRING_V`; put one wherever a toy is needed |
 | `shelf` | semisolid ledge | land from above, jump up through |
+| `board` | wooden taekwondo board on its holder, `[col, row]` | solid; **only Kinan's KICK breaks it** (POW / X with no Party Popper; a head bump never does), with a crack and splinters. Taekwondo (2026-10-28): boards are **bonus spots** — each guards candles, a gift or a shortcut to an existing secret, **never on the main path and never needed to clear the level**. Put a board at Kinan's standing height (the kick reaches about one tile in front at body height), never in a boss arena (⚙ refused). Counts as a screen's toy (break). The first board near Kinan shows the "Tap KICK" / "Press X" hint until he has broken one |
 
 ### 4.4 Things
 - `foes: [[col, row, 'type']]` — stand them on the row above the ground (row 11 on a 192 floor). Types (behaviour → names):
@@ -124,7 +125,7 @@ arena: { col: 58, cols: 24, boss: 'goalie', phases: 2, checkpoint: { col: 54, ro
 | `phases` | optional: a number (the boss's first N phases; castle bosses have 3, the fort mini-bosses 2) or a list of 1-3 objects that override a phase's numbers (below). **Hits to win = phases.** |
 | `checkpoint` | optional `{ col, row }`: the arena's own flag. Default: three tiles before the left gate (`col - 4`) |
 
-**The ground rules (⚙ the gate refuses a level that breaks them):** ⚙ the floor is flat from the left gate (`col - 1`) to the right gate (`col + cols`) — same height, no pits; ⚙ nothing solid inside it (no `solid`, gift, brick or spring in its columns above the floor) — **desks are `shelf` tiles** (2-castle); ⚙ the `goal` stands past the right gate; ⚙ one arena per level; ⚙ the default checkpoint spot must be ground (else give `checkpoint`). The arena's columns count as a toy for every screen they cross, and **the act thirds for the gap caps (§5.4) are the thirds of the platforming before the left gate**.
+**The ground rules (⚙ the gate refuses a level that breaks them):** ⚙ the floor is flat from the left gate (`col - 1`) to the right gate (`col + cols`) — same height, no pits; ⚙ nothing solid inside it (no `solid`, gift, brick, spring or board in its columns above the floor) — **desks are `shelf` tiles** (2-castle); ⚙ the `goal` stands past the right gate; ⚙ one arena per level; ⚙ the default checkpoint spot must be ground (else give `checkpoint`). The arena's columns count as a toy for every screen they cross, and **the act thirds for the gap caps (§5.4) are the thirds of the platforming before the left gate**.
 
 **What the engine does:** the right gate (the boss door, red trim and a lock) is shut from the start. Kinan passes the arena's checkpoint flag, steps 3 tiles in and the left gate rises behind him; the boss's name and how to beat it slide in as a banner, its intro lines play with subtitles at the bottom of the picture (`audio/voice/<id>.mp3`), the hp bar shows one pip per phase and a 🧠 per phase reached. Each stomp: the boss backs off, a **"getting smarter"** banner says what changed, the next phase starts. The last stomp is a **befriend moment** (hearts, its kind words, a hug if Kinan walks up to it), then both gates fall and the goal is a few steps on: **LEVEL CLEAR** (the victory lap waits for the boss's last line).
 

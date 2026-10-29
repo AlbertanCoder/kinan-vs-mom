@@ -650,6 +650,10 @@ html.sideways .hud .iconbtn.menubtn{width:auto;min-width:76px;font-size:13px}
 .menu{position:fixed;inset:0;z-index:85;display:flex;align-items:center;justify-content:center;padding:max(10px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-right)) max(10px,env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left));background:rgba(5,6,15,.74)}
 .menubox{position:relative;width:min(640px,100%);max-height:100%;overflow-y:auto;padding:16px 16px 12px;overscroll-behavior:contain}
 .mtitle{margin:0 52px 12px;font-family:var(--display);font-weight:400;font-size:30px;line-height:1;color:var(--gold);text-align:center;letter-spacing:.04em}
+/* taekwondo: Kinan's belt beside the title (a small belt icon + "Blue belt · 2 stripes"), on the same row so the menu is no taller */
+.mbelt{display:inline-flex;align-items:center;gap:6px;margin-left:10px;vertical-align:middle;font:600 15px var(--body);letter-spacing:0;color:var(--text);white-space:nowrap}
+.mbelt:empty{display:none}
+.belticon{flex:none;display:block}
 .mgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
 .mitem{display:flex;align-items:center;justify-content:center;gap:8px;min-height:50px;padding:6px 10px;font:700 15px/1.15 var(--body);color:var(--text);background:#11132b;border:2px solid var(--panel2);border-radius:8px;cursor:pointer;text-decoration:none;text-align:center;box-shadow:0 3px 0 rgba(0,0,0,.4);touch-action:manipulation}
 .mitem:hover{background:var(--panel2)}.mitem:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.4)}
@@ -755,7 +759,7 @@ html.sideways .hud .iconbtn.menubtn{width:auto;min-width:76px;font-size:13px}
       <button class="win gasb kartonly" type="button" data-k="gas" aria-label="Gas">GAS</button>
     </div>
   </div>
-  <p class="keys" id="keys" hidden>← → move (Kinan runs by himself · hold SHIFT or X to walk) · SPACE jump (hold = higher) · X pow · Esc menu · M mute</p>
+  <p class="keys" id="keys" hidden>← → move (Kinan runs by himself · hold SHIFT or X to walk) · SPACE jump (hold = higher) · X kick (pow with a Party Popper) · Esc menu · M mute</p>
   <p class="rotatehint" id="rotateHint">↻ Rotate your device for a bigger view</p>
 
   <section class="screen win" id="screen"></section>
@@ -796,7 +800,7 @@ html.sideways .hud .iconbtn.menubtn{width:auto;min-width:76px;font-size:13px}
   <div class="menubox win">
     <button class="sheetx" id="menuX" type="button" aria-label="Close the menu">✕</button>
     <div class="mpage" id="menuMain">
-      <h2 class="mtitle" id="menuTitle">Menu</h2>
+      <h2 class="mtitle" id="menuTitle">Menu <span class="mbelt" id="menuBelt"></span></h2>
       <div class="mgrid">
         <button class="mitem go" id="resumeBtn" type="button">▶ Resume</button>
         <button class="mitem" id="mapBtnP" type="button">🗺️ World map</button>
@@ -1078,6 +1082,9 @@ const SFX = {
   win() { [523, 659, 784, 1047, 1319].forEach((f, i) => AudioSys.tone(f, 0.14, { vol: 0.12, at: i * 0.1 })); AudioSys.tone(1568, 0.5, { type: 'triangle', vol: 0.1, at: 0.5 }); },
   lose() { [392, 370, 349, 330].forEach((f, i) => AudioSys.tone(f, 0.24, { type: 'triangle', vol: 0.14, at: i * 0.2 })); },
   save() { AudioSys.tone(880, 0.06, { vol: 0.09 }); AudioSys.tone(1320, 0.09, { vol: 0.07, at: 0.06 }); },
+  /* taekwondo (2026-10-28): the kick's swoosh, and a wooden board cracking clean in two (a sharp snap, then the halves' knock) */
+  kick() { AudioSys.noise(0.09, { freq: 2600, vol: 0.06 }); AudioSys.tone(260, 0.07, { type: 'triangle', vol: 0.07, slide: 520 }); },
+  crack() { AudioSys.noise(0.05, { freq: 4200, vol: 0.16 }); AudioSys.tone(620, 0.04, { type: 'square', vol: 0.08, slide: 180 }); AudioSys.tone(170, 0.12, { type: 'triangle', vol: 0.12, slide: 110, at: 0.04 }); AudioSys.noise(0.06, { freq: 900, vol: 0.07, at: 0.09 }); haptic(18); },
   click() { AudioSys.tone(420, 0.04, { vol: 0.07 }); }
 };
 /* captions: when "Captions for sounds" is on, every gameplay sound shows a short text
@@ -1091,7 +1098,7 @@ function caption(text) {
   clearTimeout(caption.t);
   caption.t = setTimeout(() => { c.hidden = true; }, 1500);
 }
-const SFX_CAPTIONS = { jump: 'boing!', djump: 'double boing!', spring: 'SPROING!', stomp: 'stomp!', combo: 'combo chime', candle: 'candle chime', gift: 'gift jingle', power: 'power-up fanfare', pew: 'pew!', pop: 'pop!', hurt: 'ouch! — hit buzzer', dad: 'helper jingle', woof: 'WOOF!', meow: 'mrow!', boss: 'boss growl', hit: 'hit!', thud: 'THUD!', flag: 'flag jingle', heart: 'heart chime', win: 'victory jingle', lose: 'fail tune', save: 'save chime' };
+const SFX_CAPTIONS = { jump: 'boing!', djump: 'double boing!', spring: 'SPROING!', stomp: 'stomp!', combo: 'combo chime', candle: 'candle chime', gift: 'gift jingle', power: 'power-up fanfare', pew: 'pew!', pop: 'pop!', hurt: 'ouch! — hit buzzer', dad: 'helper jingle', woof: 'WOOF!', meow: 'mrow!', boss: 'boss growl', hit: 'hit!', thud: 'THUD!', flag: 'flag jingle', heart: 'heart chime', win: 'victory jingle', lose: 'fail tune', save: 'save chime', kick: 'hi-yah!', crack: 'CRACK! a board breaks' };
 for (const k of Object.keys(SFX)) {
   if (k === 'click') continue;
   const orig = SFX[k];
@@ -2619,7 +2626,7 @@ function buildLevel(def) {
   const cols = list.reduce((n, a) => n + a.cols, 0);
   const w = cols + LEVEL_RUNOUT, g = new Uint8Array(w * ROWS);
   const set = (x, y, v) => { if (x >= 0 && x < w && y >= 0 && y < ROWS) g[y * w + x] = v; };
-  const foes = [], candles = [], gifts = {}, areas = [], seams = [], pipes = [], secretList = [];
+  const foes = [], candles = [], gifts = {}, areas = [], seams = [], pipes = [], secretList = [], boards = new Set();
   let checkpoint = null, golden = null, goal = null, spawn = def.spawn || null, base = 0, lastH = 192, arenaAt = null, petCrate = null;
   const tw = { on: false, t: 0, movers: [], pairs: [], swAt: {}, onB: [], offB: [], sw: 0, swCd: 0, magnets: [], signCols: [], signs: null, skins: [], rush: !!def.rush, storm: def.storm == null ? null : def.storm };
   list.forEach((a, k) => {
@@ -2653,6 +2660,7 @@ function buildLevel(def) {
     for (const [bx, by] of tl.brick || []) set(base + bx, by, 2);
     for (const [sx, sy] of tl.spring || []) set(base + sx, sy, 6);
     for (const [sx, sy] of tl.shelf || []) set(base + sx, sy, 7);
+    for (const [bx, by] of tl.board || []) { set(base + bx, by, 5); boards.add(by * w + base + bx); }   /* taekwondo: a wooden board (solid; only a KICK breaks it) */
     for (const [cx, cy] of a.candles || []) candles.push({ tx: base + cx, ty: cy });
     for (const [fx, fy, type] of a.foes || []) {
       const t = type || 'sock';   /* ER-10: a plain foe rides the sock walker's rhythm */
@@ -2722,6 +2730,7 @@ function buildLevel(def) {
     area: areas[0].id, areas, seams, pipes, secretList, golden, goal, cleared: false, clearT: 0, returned: false,
     secretAt, secretPrizes, secretExit, secretsFound: secretList.map(() => false), hiddenGifts,
     toyBricks: !!def.toyBricks,   /* 1-4 Brick City: its bricks are the floor, stairs and bridges — they never break */
+    boards: boards,   /* taekwondo: the wooden boards (cells of g holding a solid 5 that a KICK breaks) */
     tw: tw.on || tw.rush || tw.storm != null ? tw : null,   /* World 7 twists (null: the level plays exactly as before) */
     arena: arena   /* B1: the boss arena (null in a level without one); its gates are its own — arenaX stays out of reach */
   };
@@ -2991,15 +3000,20 @@ function worldMapScreen(o) {
     owDefs = null;
     /* o.spot: the opening cutscene shows World 1, stop 1; o.replay (watching it again) never moves Kinan's saved spot */
     const spot = o.spot || owSpot();
+    /* BELT SCENES: a belt not given yet (a returning player's catch-up, or one an escape skip left for later) plays as the map opens */
+    const due = !o.replay && !o.escape && !Cut.on ? beltPending() : null;
+    if (due) o = Object.assign({}, o, { beltNotice: o.notice, notice: null });
     window.KINAN.mount(host, {
       world: spot.w, at: spot.at, annotate: owAnnotate, onMove: o.replay ? () => {} : owMoved, onPlay: owPlay, need3D: owNeed3D,
-      candles: () => progress.wallet || 0, celebrate: o.celebrate, notice: o.escape ? null : o.notice
+      candles: () => progress.wallet || 0, celebrate: o.celebrate, notice: o.escape ? null : o.notice,
+      belt: () => { const r = beltRank(), b = beltOf(r); return { label: beltLabel(r).toUpperCase().replace(' · ', '  '), color: b.color, dark: b.dark, tip: b.tip || null, stripes: b.stripes }; }   /* taekwondo: the belt in the top bar */
     });
     if (!o.replay) { Story.mapWorld = 0; storyArrive(spot.w); }   /* V1: the world intro the first time Kinan stands in a world */
     Story.render();   /* a line still talking from the level keeps its subtitle, now under the map */
     if (o.ready) o.ready();
     /* a castle won for the first time: Glitchy escapes into the next world (block "CUTSCENES"); the notice waits for it */
     if (o.escape && !cutEscape(o.escape, o.notice) && o.notice && window.KINAN.notice) window.KINAN.notice(o.notice);
+    else if (due && !cutBelt(due.rank, due.catchup, o.beltNotice) && o.beltNotice && window.KINAN.notice) window.KINAN.notice(o.beltNotice);
   }).catch((e) => {
     console.warn('[map] could not open the world map', e);
     const host = $('#owHost');
@@ -3171,7 +3185,8 @@ const CUT_LABEL = { w01_shad_05: 'SHAD (GIFT CARD)' };
 const Cut = {
   on: false, mode: null, phase: null, replay: false, back: null, beats: [], total: 0, beat: -1, t: 0, last: 0, raf: 0, speed: 1,
   startedAt: 0, log: [], q: [], qTimer: 0, subTimer: 0, subUntil: 0, finT: 0, finishing: false, moving: false, notice: null, world: 0,
-  state() { return { on: Cut.on, mode: Cut.mode, phase: Cut.phase, beat: Cut.beat >= 0 && Cut.beats[Cut.beat] ? Cut.beats[Cut.beat].name : null, t: Math.round(Cut.t), total: Math.round(Cut.total), replay: Cut.replay, lines: Cut.log.slice(), sub: cutSub.hidden ? '' : cutSub.textContent }; }
+  state() { return { on: Cut.on, mode: Cut.mode, phase: Cut.phase, beat: Cut.beat >= 0 && Cut.beats[Cut.beat] ? Cut.beats[Cut.beat].name : null, t: Math.round(Cut.t), total: Math.round(Cut.total), replay: Cut.replay, lines: Cut.log.slice(), sub: cutSub.hidden ? '' : cutSub.textContent,
+    belt: Cut.belt ? { rank: Cut.belt.rank, from: Cut.belt.from, catchup: Cut.belt.catchup, call: Cut.belt.call, line: Cut.belt.line, lines: Cut.belt.lines.slice() } : null }; }   /* belt: the last belt scene (block "BELT SCENES") */
 };
 const cutLine = (id) => (STORY && STORY.lines[id]) || null;
 const cutMs = (id) => { const d = cutLine(id); return d ? Math.round(d[2] * 1000) : 0; };
@@ -3290,6 +3305,10 @@ function cutFinish(skipped) {
     Story.pump();   /* the rest of World 1's intro (Shad on the console, Mom's room rule) under the map */
     return;
   }
+  if (mode === 'escape' && !skipped) {   /* BELT SCENES: Sabumnim's belt follows the escape; its notice waits until he is done */
+    const due = beltPending();
+    if (due && cutBelt(due.rank, due.catchup, notice)) { if (rest.length) Story.add(rest, 'story'); return; }
+  }
   if (notice && window.KINAN && window.KINAN.notice) window.KINAN.notice(notice);
   if (!skipped && rest.length) Story.add(rest, 'story');
   Story.pump();
@@ -3332,6 +3351,203 @@ window.addEventListener('keydown', (e) => {
   if (e.repeat || performance.now() - Cut.startedAt < 450) return;
   cutSkip();
 }, true);
+
+/* ============================================================
+   BELT SCENES (Shad, 2026-10-28). Once per world, on the map right after that world's Glitchy escape
+   ends: Sabumnim (Kinan's instructor; "Sabumnim" is the taekwondo word for instructor and his only
+   name) bows, ties on the stripe or the new belt, says his one line, Kinan bows back, NEW BELT!
+   Worlds 1-2 in person in the training hall in Saskatoon; from World 3 by video call (a tablet).
+   Skippable like every cutscene (a tap, any key, SKIP) and saved the moment it starts
+   (progress.beltSeen), so it never repeats. A returning player who already beat several castles gets
+   ONE catch-up scene ("You have been busy, Kinan.") with the belt he has now. An escape that was
+   skipped leaves its belt scene for the next time the map opens. It runs in the cutscene box
+   (Cut.mode 'belt') and leaves the escape's own record (Cut.log, its notice) alone: the notice shows
+   when Sabumnim is done. His lines are story lines with his own voice (audio/belt/).
+   ============================================================ */
+const BELT_LINES = {
+  belt_w01: 'You kept going, even when it got hard. That is perseverance. Your first stripe.',
+  belt_w02: 'Two new friends. Courtesy opens every door.',
+  belt_w03: 'Your dad let you lead because you earned his trust. That is integrity. Blue belt.',
+  belt_w04: 'You remembered where you came from. Respect your roots, Kinan.',
+  belt_w05: 'The bull was scared, not mean. You saw it. That is wisdom.',
+  belt_w06: 'You fixed it instead of fighting it. That is self-control. Red belt.',
+  belt_w07: 'You stayed and listened when no one else would. That is kindness.',
+  belt_w08: 'You traded instead of taking. A true student shares.',
+  belt_w09: 'You protected him, even from a friend. That is courage.',
+  belt_w10: 'Your mother trusts you now. Trust is earned, one step at a time.',
+  belt_w11: "Don't fight it. Reassure it. You knew that all along.",
+  belt_w12: 'Courtesy. Integrity. Perseverance. Self-control. Indomitable spirit. You showed them all. Your black belt, Kinan.',
+  belt_catchup: 'You have been busy, Kinan.'
+};
+/* stored like every story line, id -> [speaker, subtitle, seconds, clip]: his voice (2026-10-28, edge-tts en-CA-LiamNeural,
+   rate -12%, pitch -8Hz: a calm older man) is audio/belt/<id>.mp3; seconds = the clip's length + 0.5 s, never under the
+   reading pace (tools/story-lines.mjs's rule) */
+const BELT_CLIP_SECS = { belt_w01: 7.42, belt_w02: 4.99, belt_w03: 7.34, belt_w04: 5.38, belt_w05: 6.67, belt_w06: 6.74, belt_w07: 5.59,
+  belt_w08: 5.04, belt_w09: 5.21, belt_w10: 5.81, belt_w11: 5.88, belt_w12: 14.02, belt_catchup: 2.76 };
+if (STORY && STORY.lines) for (const id of Object.keys(BELT_LINES)) {
+  const t = BELT_LINES[id], read = Math.max(2.2, Math.round((t.split(/\s+/).length * 0.4 + 1) * 10) / 10);
+  STORY.lines[id] = ['SABUMNIM', t, Math.max(read, Math.round(((BELT_CLIP_SECS[id] || 0) + 0.5) * 10) / 10), 'audio/belt/' + id + '.mp3'];
+}
+/* Kinan in his white uniform (dobok): his own head, braid and red tie, a crossed collar, white trousers, bare feet */
+const KINAN_GI = KINAN.slice(0, 8).concat(['.hkwwwcwwcwwwk..', 'dkwwwwwccwwwwwk.', 'hkwwwwwwcwwwwwk.', 'Rswwwwwwwcwwwwsk', 'kscwwwwwwwwwwcsk',
+  '..kwwwwwwwwwwk..', '..kwwww..wwwwk..', '....www..www....', '....wcw..wcw....', '...ssss..ssss...']);
+/* Sabumnim: a calm man in his fifties, dark hair grey at the temples, grey brows, a quiet mouth; a white instructor's
+   uniform with black trim on the collar, his black belt, bare feet. A head taller than Kinan */
+const SABUMNIM = ['....kkkkkkkk....', '...kHHHHHHHHk...', '..kQHHHHHHHHQk..', '..kQssssssssQk..', '..ksaassssaask..', '..kssksssskssk..',
+  '..kssssSSssssk..', '..kssssddssssk..', '...kssssssssk...', '.....kssssk.....', '..kwwwkwwkwwwk..', '.kwwwwwkkwwwwwk.', '.kwwwwwwkwwwwwk.',
+  'kswwwwwwwkwwwwsk', 'ksHHHHHHHHHHHHsk', '..kwwwwHwHwwwk..', '..kwwwwwwwwwwk..', '..kwwww..wwwwk..', '...wwww..wwww...', '...wwww..wwww...', '...ssss..ssss...'];
+/* each one in two parts: the top bows from the waist, the bottom (with the belt) stays put */
+const BELT_SP = { kTop: bake(KINAN_GI.slice(0, 12)), kBot: bake(KINAN_GI.slice(12)), sTop: bake(SABUMNIM.slice(0, 14)), sBot: bake(SABUMNIM.slice(14)) };
+const BELT_BEATS = [['in', 700], ['bow', 1400], ['tie', 1700], ['line', 0], ['bowback', 1400], ['banner', 2300], ['out', 500]];
+/* the belt scene owed now: null, or { rank, catchup } (a save from before belts had none: one catch-up for 2+ castles) */
+function beltPending() {
+  const r = beltRank(), seen = progress.beltSeen;
+  if (r <= 0) return null;
+  if (seen == null) return { rank: r, catchup: r >= 2 };
+  return r > seen ? { rank: r, catchup: r - seen >= 2 } : null;
+}
+function cutBelt(rank, catchup, notice) {
+  if (Cut.on || !(rank >= 1)) return false;
+  progress.beltSeen = rank; save();   /* once: a reload in the middle never plays it again */
+  const line = catchup ? 'belt_catchup' : 'belt_w' + String(Math.min(12, rank)).padStart(2, '0');
+  Cut.on = true; Cut.mode = 'belt'; Cut.phase = 'belt'; Cut.q = []; Cut.qCur = null; Cut.finishing = false; Cut.replay = false; Cut.back = null;
+  Cut.notice = notice || null; Cut.startedAt = performance.now();
+  Cut.belt = { rank: rank, from: catchup ? 0 : rank - 1, catchup: !!catchup, call: rank >= 3, line: line, lines: [] };
+  cutBox.hidden = false; cutBox.classList.remove('onmap'); cutSub.hidden = true;
+  Story.cut();   /* a story line waits for Sabumnim (Story.blocked) */
+  let at = 0;
+  Cut.beats = BELT_BEATS.map(([name, min]) => { const id = name === 'line' ? line : null; const b = { name, id, at, dur: id ? Math.max(2600, cutMs(id) + 400) : min }; at += b.dur; return b; });
+  Cut.total = at; Cut.t = 0; Cut.beat = -1; Cut.last = 0;
+  beltPaint();
+  Cut.raf = requestAnimationFrame(beltFrame);
+  return true;
+}
+/* his line: its subtitle (and its clip once there is one); kept out of Cut.log, which is the escape's */
+function beltSay(id) {
+  const d = cutLine(id);
+  if (!d) return;
+  Cut.belt.lines.push(id);
+  if (d[3]) VO.playFile(d[3]);
+  cutSub.innerHTML = '<b>' + escAttr(d[0]) + ':</b> ' + escAttr(d[1]);
+  cutSub.hidden = false;
+  const ms = Math.round(Math.max(1.2, d[2]) * 1000 / Cut.speed);
+  Cut.subUntil = performance.now() + ms;
+  clearTimeout(Cut.subTimer);
+  Cut.subTimer = setTimeout(() => { cutSub.hidden = true; }, ms + 150);
+}
+function beltFrame(ts) {
+  if (!Cut.on || Cut.mode !== 'belt') return;
+  const dt = Cut.last ? Math.min(100, ts - Cut.last) : 0;
+  Cut.last = ts;
+  Cut.t += dt * Cut.speed;
+  while (Cut.beat + 1 < Cut.beats.length && Cut.t >= Cut.beats[Cut.beat + 1].at) {
+    Cut.beat++;
+    const b = Cut.beats[Cut.beat];
+    if (b.id) beltSay(b.id);
+    if (b.name === 'bowback') { cutHeard(Cut.belt.line); save(); }   /* said to the end */
+    if (b.name === 'banner') SFX.power();
+  }
+  if (Cut.t >= Cut.total) { cutFinish(false); return; }
+  beltPaint();
+  Cut.raf = requestAnimationFrame(beltFrame);
+}
+/* the training hall, painted once: a cream wall, two hanging scrolls, a window on the prairie sky, a rack of practice boards, red and blue mats */
+let beltHall = null;
+function beltHallBg() {
+  if (beltHall) return beltHall;
+  const cv = document.createElement('canvas'); cv.width = 432; cv.height = 240;
+  const c = cv.getContext('2d');
+  cutRect(c, '#efe2c6', 0, 0, 432, 160);
+  for (let x = 0; x < 432; x += 48) cutRect(c, 'rgba(0,0,0,.035)', x, 0, 24, 150);
+  cutRect(c, '#5a3d22', 168, 22, 96, 58); cutRect(c, '#9fd3ff', 172, 26, 88, 50); cutRect(c, '#e9f6ff', 172, 52, 88, 18); cutRect(c, '#d9c25a', 172, 68, 88, 8); cutRect(c, '#5a3d22', 215, 26, 2, 50);
+  for (const sx of [86, 310]) {
+    cutRect(c, '#5a3d22', sx - 3, 24, 42, 4); cutRect(c, '#f8f1e0', sx, 28, 36, 74); cutRect(c, 'rgba(0,0,0,.08)', sx + 33, 28, 3, 74); cutRect(c, '#5a3d22', sx - 3, 102, 42, 4);
+    /* a side-kick figure in ink (not lettering: the first strokes read as a cross) */
+    cutRect(c, '#1b1220', sx + 9, 38, 6, 6); cutRect(c, '#1b1220', sx + 10, 45, 4, 13); cutRect(c, '#1b1220', sx + 14, 47, 7, 3); cutRect(c, '#1b1220', sx + 4, 49, 6, 3);
+    cutRect(c, '#1b1220', sx + 10, 58, 4, 22); cutRect(c, '#1b1220', sx + 8, 79, 7, 3); cutRect(c, '#1b1220', sx + 14, 55, 15, 4); cutRect(c, '#1b1220', sx + 28, 53, 3, 7); cutRect(c, '#c8323c', sx + 25, 90, 6, 6);
+  }
+  cutRect(c, '#6b4a2e', 184, 116, 64, 4);
+  for (let k = 0; k < 6; k++) { cutRect(c, '#3b2a1a', 187 + k * 10, 94, 9, 22); cutRect(c, '#f2dcab', 188 + k * 10, 95, 7, 20); cutRect(c, '#d9b77a', 191 + k * 10, 95, 1, 20); }
+  cutRect(c, '#b8875a', 0, 150, 432, 22); cutRect(c, '#8f6440', 0, 150, 432, 2); cutRect(c, '#d9a877', 0, 171, 432, 1);
+  for (let i = 0; i < 9; i++) for (let j = 0; j < 2; j++) cutRect(c, (i + j) % 2 ? '#2f5fb3' : '#c8323c', i * 48, 172 + j * 34, 48, 34);
+  for (let i = 0; i <= 9; i++) cutRect(c, 'rgba(255,255,255,.16)', i * 48, 172, 1, 68);
+  cutRect(c, 'rgba(255,255,255,.16)', 0, 206, 432, 1); cutRect(c, 'rgba(0,0,0,.2)', 0, 172, 432, 3);
+  return (beltHall = cv);
+}
+/* one of them standing (feet on floorY, centred on cx), bowing from the waist by `bow` radians; Kinan wears belt `rank` */
+function beltFig(c, top, bot, cx, floorY, face, s, bow, rank) {
+  const w = top.width * s, X = Math.round(cx - w / 2), yb = Math.round(floorY - bot.height * s);
+  c.save();
+  c.imageSmoothingEnabled = false;
+  if (face < 0) { c.translate(Math.round(cx * 2), 0); c.scale(-1, 1); }
+  c.drawImage(bot, X, yb, w, bot.height * s);
+  if (rank != null) {   /* his belt (sprite rows 12-15) and its stripes as white bars on the hanging tail */
+    c.save(); c.translate(X, yb - 12 * s); c.scale(s, s); drawBeltOn(c, rank);
+    c.fillStyle = '#ffffff'; for (let k = 0; k < beltOf(rank).stripes; k++) c.fillRect(11, 14.34 + k * 0.67, 1, 0.34);
+    c.restore();
+  }
+  c.translate(X + w / 2, yb); c.rotate(bow);
+  c.drawImage(top, -w / 2, -top.height * s, w, top.height * s);
+  c.restore();
+}
+function beltSparkle(c, x, y, t) {
+  for (let k = 0; k < 7; k++) {
+    const a = t / 140 + k * 0.9, r = 6 + ((t / 9 + k * 13) % 18);
+    const px = Math.round(x + Math.cos(a) * r), py = Math.round(y + Math.sin(a) * r * 0.6);
+    cutRect(c, k % 2 ? '#fff3b0' : '#ffffff', px - 1, py, 3, 1); cutRect(c, k % 2 ? '#fff3b0' : '#ffffff', px, py - 1, 1, 3);
+  }
+}
+function beltPaint() {
+  const c = cutCtx, B = Cut.belt, b = Cut.beats[Math.max(0, Cut.beat)], name = Cut.beat >= 0 ? b.name : 'in';
+  const p = Cut.beat >= 0 ? clamp((Cut.t - b.at) / Math.max(1, b.dur), 0, 1) : 0, wave = Math.sin(p * Math.PI);
+  const tied = Cut.beat > 2 || (name === 'tie' && p >= 0.5), rank = tied ? B.rank : B.from;
+  const sBow = name === 'bow' ? wave * 0.55 : name === 'tie' && !B.call ? wave * 0.18 : 0, kBow = name === 'bowback' ? wave * 0.55 : 0;
+  c.imageSmoothingEnabled = false;
+  if (!B.call) {
+    /* in person (Worlds 1-2): the hall in Saskatoon; Sabumnim steps in to tie the belt, then back to his place */
+    c.drawImage(beltHallBg(), 0, 0);
+    const sx = 168 + (name === 'tie' ? wave * 44 : 0);
+    beltFig(c, BELT_SP.sTop, BELT_SP.sBot, sx, 214, 1, 3, sBow, null);
+    beltFig(c, BELT_SP.kTop, BELT_SP.kBot, 266, 214, -1, 3, kBow, rank);
+    if (name === 'tie' && p > 0.35 && p < 0.9) beltSparkle(c, 266, 214 - 16, Cut.t);   /* at his waist */
+  } else {
+    /* by video call (World 3 on): Kinan, far from home, faces the tablet; Sabumnim in the hall on its screen */
+    const g = c.createLinearGradient(0, 0, 0, 240); g.addColorStop(0, '#1d2448'); g.addColorStop(1, '#3a2f5c');
+    c.fillStyle = g; c.fillRect(0, 0, 432, 240);
+    cutRect(c, 'rgba(255,255,255,.05)', 0, 196, 432, 44); cutRect(c, 'rgba(0,0,0,.25)', 0, 196, 432, 2);
+    const glow = c.createRadialGradient(180, 100, 30, 180, 100, 190); glow.addColorStop(0, 'rgba(255,224,150,.16)'); glow.addColorStop(1, 'rgba(255,224,150,0)');
+    c.fillStyle = glow; c.fillRect(0, 0, 432, 240);   /* the screen's soft glow */
+    cutRect(c, '#0d0e18', 58, 24, 244, 156); cutRect(c, '#262a3d', 60, 26, 240, 152); cutRect(c, '#0d0e18', 68, 34, 224, 132);
+    cutRect(c, '#3a3f5a', 178, 28, 4, 2);   /* the camera */
+    c.save(); c.beginPath(); c.rect(70, 36, 220, 128); c.clip();
+    c.drawImage(beltHallBg(), 60, 40, 330, 190, 70, 36, 220, 127);
+    beltFig(c, BELT_SP.sTop, BELT_SP.sBot, 180, 152, 1, 2, sBow, null);
+    if (name === 'tie') {   /* he holds the new belt up to the camera */
+      const nb = beltOf(B.rank), y = 152 - 8 * 2 * 2 - wave * 6;
+      cutRect(c, '#1b1220', 150, y - 1, 60, 8); cutRect(c, nb.color, 151, y, 29, 6); cutRect(c, nb.tip || nb.color, 180, y, 29, 6); cutRect(c, nb.dark, 177, y - 1, 7, 8);
+      for (let k = 0; k < nb.stripes; k++) cutRect(c, '#ffffff', 199 + k * 3, y, 1, 6);
+    }
+    cutRect(c, 'rgba(0,0,0,.45)', 70, 36, 220, 11);
+    cutRect(c, '#7be3a3', 75, 39, 5, 5);
+    c.fillStyle = '#f4f1e8'; c.font = "700 7px 'Pixelify Sans', monospace"; c.textBaseline = 'top'; c.textAlign = 'left'; c.fillText('SABUMNIM · VIDEO CALL', 84, 38);
+    cutRect(c, 'rgba(0,0,0,.45)', 70, 154, 220, 10); cutRect(c, '#d92b45', 272, 155, 12, 8); cutRect(c, '#ffffff', 275, 158, 6, 2);   /* hang up, in the corner */
+    c.restore();
+    beltFig(c, BELT_SP.kTop, BELT_SP.kBot, 362, 222, -1, 3, kBow, rank);
+    if (name === 'tie' && p > 0.45) beltSparkle(c, 362, 222 - 16, Cut.t);
+  }
+  if (name === 'banner' || name === 'out') {   /* NEW BELT! and what it is */
+    const a = name === 'banner' ? Math.min(1, p * 5) : 1 - p, nb = beltOf(B.rank);
+    c.save(); c.globalAlpha = a; c.textAlign = 'center'; c.textBaseline = 'top';
+    cutRect(c, 'rgba(11,13,32,.82)', 96, 8, 240, 58); cutRect(c, '#f6c445', 96, 8, 240, 2); cutRect(c, '#f6c445', 96, 64, 240, 2);
+    c.font = "700 24px 'Pixelify Sans', monospace"; c.fillStyle = '#1b1220'; c.fillText('NEW BELT!', 217, 13); c.fillStyle = '#f6c445'; c.fillText('NEW BELT!', 216, 12);
+    c.font = "700 11px 'Pixelify Sans', monospace"; c.fillStyle = '#f4f1e8'; c.fillText(beltLabel(B.rank), 216, 44);
+    cutRect(c, '#1b1220', 145, 47, 26, 9); cutRect(c, nb.color, 146, 48, 12, 7); cutRect(c, nb.tip || nb.color, 158, 48, 12, 7); cutRect(c, nb.dark, 155, 47, 6, 9);
+    for (let k = 0; k < nb.stripes; k++) cutRect(c, '#ffffff', 163 + k * 2, 48, 1, 7);
+    c.restore(); c.textAlign = 'left';
+  }
+  const fade = name === 'in' ? 1 - p : name === 'out' ? p : 0;
+  if (fade > 0) { c.fillStyle = 'rgba(5,6,15,' + fade.toFixed(3) + ')'; c.fillRect(0, 0, 432, 240); }
+}
 
 /* ---- the bedroom, drawn at the game's 432 x 240 ---- */
 const CUT_S = 3;   /* the family sprites at 3x */
@@ -4854,7 +5070,8 @@ const DEFAULT_PROGRESS = { unlocked: 1, beaten: [], stars: {}, bestScore: {}, to
   storyHeard: {},   /* V1: the story lines already heard to the end (each is said once) */
   goldenCandles: {}, unlockedLevels: [],   /* authored levels (pass A): golden candle per level id; levels a secret exit opened */
   levelsBeaten: {}, wmap: null,   /* the overworld map (2026-10-27): levels finished by id; where Kinan stands { w, at } */
-  introSeen: false, escapes: {} };   /* CUTSCENES (2026-10-28): the opening was shown; worlds whose castle escape played { 1: 1 } */
+  introSeen: false, escapes: {},   /* CUTSCENES (2026-10-28): the opening was shown; worlds whose castle escape played { 1: 1 } */
+  beltSeen: 0 };   /* BELT SCENES (2026-10-28): the belt step whose scene has played (a save from before has none: null = catch up) */
 function loadProgress() {
   let p = readProgressRecord(SAVE_KEY), recovered = false;
   if (!p) {
@@ -4948,6 +5165,9 @@ function loadProgress() {
   out.introSeen = p.introSeen === true;   /* CUTSCENES: the opening plays once per new save */
   out.escapes = {};
   if (p.escapes && typeof p.escapes === 'object' && !Array.isArray(p.escapes)) for (const k in p.escapes) if (/^([1-9]|10)$/.test(k) && p.escapes[k]) out.escapes[k] = 1;
+  /* BELT SCENES: the belt itself comes from the castles in levelsBeaten (beltRank); a save without beltSeen gets one catch-up scene */
+  out.beltSeen = Number.isInteger(p.beltSeen) && p.beltSeen >= 0 && p.beltSeen <= 12 ? p.beltSeen : null;
+  out.kickLearned = p.kickLearned === true;   /* taekwondo: a board has been broken (the "Tap KICK" hint is done) */
   out.bossLosses = {};
   if (p.bossLosses && typeof p.bossLosses === 'object') for (const k in p.bossLosses) { const n = Math.floor(Number(p.bossLosses[k])); if (LV[k] && n > 0 && n < 1000) out.bossLosses[k] = n; }
   /* a damaged or hand-edited save must never stop the game from starting: each field back to its own kind, or the default */
@@ -5412,8 +5632,11 @@ function updHud() {
   el.cnt.innerHTML = '<i class="candle-ico"></i><b>' + got + '</b>';
   el.cnt.title = got + ' of ' + totalCandles + ' candles';
   hudGold(false);
-  el.pow.disabled = !(P.power === 'popper');
-  el.pow.textContent = P.power === 'popper' ? 'POW' : (P.rush > 0 ? 'RUSH' : 'POW');
+  /* taekwondo: in a level the button is always on — KICK, or POW (shoot) with the Confetti Blaster. A legacy stage keeps the old POW */
+  const kickBtn = !!(L && L.authored) && P.power !== 'popper';
+  el.pow.disabled = !(P.power === 'popper' || kickBtn);
+  el.pow.textContent = P.power === 'popper' ? 'POW' : kickBtn ? 'KICK' : (P.rush > 0 ? 'RUSH' : 'POW');
+  el.pow.setAttribute('aria-label', kickBtn ? 'Kick' : 'Superpower');
   renderPetStat();
   updateFriendButton();
 }
@@ -5756,6 +5979,8 @@ function menuRefresh() {
   $('#restartBtn').hidden = !g || !!((smash && smash.online && smash.online.role === 'client') || (kart && kart.online && kart.online.role === 'client'));   /* a joined online player can't restart for the room */
   $('#resetKartBtn').hidden = !(g && kart);
   if (!g) $('#mapBtnP').textContent = '🗺️ World map';
+  const br = beltRank();   /* taekwondo: the belt he has earned (block "BELTS") */
+  $('#menuBelt').innerHTML = beltIconSvg(br) + '<span>' + escAttr(beltLabel(br)) + '</span>';
 }
 /* the Settings page shows the saved values, the switches this device has, and Ko-fi only outside play */
 function settingsRefresh() {
@@ -5890,7 +6115,7 @@ function startStage(i, silent, custom) {
   totalCandles = candles.length;
   for (const k in L.gifts) if (L.gifts[k] === 'candle') totalCandles++;
   got = 0; nextHeartAt = 25;
-  pops = []; parts = []; shots = []; blasts = []; allyShots = []; items = [];
+  pops = []; parts = []; shots = []; blasts = []; allyShots = []; items = []; boardBits = [];
   /* pass A: an authored level's secrets that hold no gift block float their prize at the secret's spot */
   for (const sp of (custom && custom.secretPrizes) || []) items.push({ x: sp.tx * T + 2, y: sp.ty * T + 2, w: 12, h: 12, kind: sp.kinds[0], extra: sp.kinds.slice(1), rise: 0, got: false, secret: sp.k });
   bosses = []; allies = []; rings = []; trail = [];
@@ -6226,6 +6451,10 @@ function updatePlayer() {
     P.fireCd = 11; input.fireBuf = 0; SFX.pew();
     part(P.x + (P.face > 0 ? 12 : -2), P.y + 9, { vx: P.face * 1.2, vy: -0.4, life: 12, size: 2, color: '#ff6fae', glow: true });
   }
+  /* taekwondo: without the Confetti Blaster the same press is a KICK (authored levels). It never touches
+     P.vx / P.vy, so holding POW / X to walk (wantRun) and the §1.1 feel are exactly what they were */
+  if (input.fireBuf > 0 && P.power !== 'popper' && kickReady()) { input.fireBuf = 0; startKick(); }
+  kickTick();
 
   if (P.y > H + 10) {
     P.cleanLandings = 0;
@@ -7011,12 +7240,237 @@ function killFoe(f, txt) {
     foes.push(makeFoe({ type: f.type, x: f.x + 6, y: f.y + 4, vx: 1.4, mini: true }));
   }
 }
+/* ============================================================
+   TAEKWONDO (Shad, 2026-10-28) — the real Kinan is a PURPLE belt.
+   THE KICK: with no Confetti Blaster, POW / X is a quick kick (KICK_F = 0.3 s, about one tile in
+   front; in the air it is a flying kick that adds NO height or distance: it never touches P.vx or
+   P.vy, so the §1.1 feel and "hold POW / X = walk" stay exactly as they were). It breaks WOODEN
+   BOARDS (tile `board`, docs/LEVEL-AUTHORING.md §4.3) and never a brick; it knocks a small foe back
+   and leaves it DIZZY for 1.5 s (stompable, harmless to bump into); a tough foe only flinches; a
+   thrown thing is batted back at whoever threw it. In a boss fight it touches nothing: bosses are
+   calmed and befriended, never beaten up (the boss, its shots and its helpers are left alone).
+   ============================================================ */
+const KICK_F = 18, KICK_ON0 = 3, KICK_ON1 = 13, KICK_CD = 4, KICK_DIZZY = 90, KICK_REACH = 15;
+let boardBits = [];   /* the two halves of a broken board, tumbling */
+function kickReady() { return !!(L && L.authored && P && !P.dead && !paused && !(P.kickT > 0) && !(P.kickCd > 0)); }
+function startKick() { P.kickT = KICK_F; P.kickHit = []; P.kicks = (P.kicks || 0) + 1; SFX.kick(); }
+/* the kick's reach: from his front edge to about one tile past it, at body height */
+function kickBox() {
+  const y = P.y + 2, h = P.h - 3;
+  return P.face > 0 ? { x: P.x + P.w - 3, y: y, w: KICK_REACH + 3, h: h } : { x: P.x - KICK_REACH, y: y, w: KICK_REACH + 3, h: h };
+}
+function kickTick() {
+  boardBitsTick();
+  if (P.kickCd > 0) P.kickCd--;
+  if (!(P.kickT > 0)) return;
+  P.kickT--;
+  if (P.kickT === 0) { P.kickCd = KICK_CD; return; }
+  const age = KICK_F - P.kickT;
+  if (age < KICK_ON0 || age > KICK_ON1) return;   /* the chamber and the recoil don't hit: the leg is out in between */
+  const b = kickBox(), up = L.up | 0;
+  if (L.boards && L.boards.size) {
+    for (let ty = Math.floor(b.y / T); ty <= Math.floor((b.y + b.h - 1) / T); ty++) {
+      for (let tx = Math.floor(b.x / T); tx <= Math.floor((b.x + b.w - 1) / T); tx++) if (tileAt(tx, ty) === 5 && L.boards.has((ty + up) * L.w + tx)) breakBoard(tx, ty);
+    }
+  }
+  if (arenaLive()) return;   /* a boss fight: no foe, shot or boss is ever kicked */
+  for (const f of foes) {
+    if (!f.alive || f.hidden || f.arena || P.kickHit.indexOf(f) >= 0 || !overlap(b, f)) continue;
+    P.kickHit.push(f); kickFoe(f, P.face, 'HI-YAH!');
+  }
+  for (const s of shots) if (!s.gone && !s.batted && s.from && overlap(b, s)) batShot(s);
+}
+/* a kicked foe (or one hit by a thing batted back): a small one flies back a tile or so and is dizzy; a tough one flinches */
+function kickFoe(f, dir, word) {
+  if (f.def.tough) {
+    f.hurtT = 10; f.cool = Math.max(f.cool || 0, 24);
+    pop(f.x - 2, f.y - 10, 'FLINCH!', 26, '#f4f1e8'); SFX.stomp();
+    return;
+  }
+  f.dizzy = KICK_DIZZY; f.kb = dir * 3.4; f.hurtT = 8; f.charge = 0; f.tele = 0; f.face = -dir;
+  if (f.def.beh !== 'flyer') f.vy = Math.min(f.vy || 0, -2.2);
+  L.kicked = (L.kicked || 0) + 1;
+  pop(f.x - 4, f.y - 10, word || 'HI-YAH!', 30, '#f6c445');
+  sparks(f.x + f.w / 2, f.y + f.h / 2, 8, ['#fff', '#f6c445', '#6fc8ff']);
+  SFX.stomp();
+}
+/* one frame of a dizzy foe: the knock-back slides out, stars circle; a stomp still beats it, a bump never hurts */
+function foeDizzyTick(f) {
+  f.dizzy--;
+  if (f.def.beh === 'flyer') { f.x += f.kb; f.y += 0.12; }
+  else {
+    const keep = f.vx; f.vx = f.kb; if (moveX(f)) f.kb = 0; f.vx = keep;
+    f.vy = Math.min(6.5, (f.vy || 0) + 0.3); moveY(f);
+  }
+  f.kb *= 0.86; if (Math.abs(f.kb) < 0.05) f.kb = 0;
+  if (f.dizzy === 0 && f.def.beh === 'flyer') { f.originX = f.x; f.baseY = f.y - Math.sin(f.t / 22) * 13; }   /* it patrols on from where it ended up */
+  if (f.y > H + 30) { f.alive = false; f.dead = 20; return; }
+  if (P.dead || paused || !overlap(P, f)) return;
+  if (P.rush > 0) { killFoe(f, 'POW'); SFX.stomp(); return; }
+  const F = feel(), newFeel = F === FEEL;
+  const stomp = (P.vy > 0.4 || (P.vy >= 0 && P.prevBottom <= f.y + 6)) && (P.y + P.h) - f.y < 14;
+  if (!stomp) return;
+  killFoe(f);
+  if (newFeel) P.vy = (input.jump || padIn.jump) ? F.STOMP_HIGH : F.STOMP_LOW;
+  else P.vy = (input.jump || padIn.jump) ? -7.8 : -6.0;
+  P.squash = 4; P.y = f.y - P.h + 1; P.cuttable = false;
+  if (F.STOMP_HITSTOP > 0) hitStop = F.STOMP_HITSTOP;
+  SFX.stomp();
+}
+/* a thrown thing kicked back: a lob that comes down on whoever threw it (straight ahead if they are gone) */
+function batShot(s) {
+  const t = s.from && s.from.alive && !s.from.hidden ? s.from : null, g = s.g || 0.17;
+  let vx = P.face * 3, vy = -3;
+  if (t) {
+    const dx = t.x + t.w / 2 - (s.x + s.w / 2), dy = t.y + t.h / 2 - (s.y + s.h / 2);
+    vx = clamp(Math.abs(dx) / 34, 2.2, 3.6) * (dx < 0 ? -1 : 1);
+    const tf = Math.max(8, Math.abs(dx / vx));
+    vy = clamp((dy - 0.5 * g * tf * tf) / tf, -6, 1);
+  }
+  s.batted = true; s.vx = vx; s.vy = vy; s.g = g; s.life = 200;
+  L.batted = (L.batted || 0) + 1;
+  pop(s.x - 8, s.y - 10, 'BATTED BACK!', 34, '#7be3a3');
+  sparks(s.x + s.w / 2, s.y + s.h / 2, 6, ['#fff', '#7be3a3']);
+  SFX.pop();
+}
+/* a board breaks like a real one: a sharp crack, it splits along the grain, the halves tumble, splinters fly */
+function breakBoard(tx, ty) {
+  const gk = (ty + (L.up | 0)) * L.w + tx, x = tx * T, y = ty * T, d = P.face || 1;
+  L.g[gk] = 0; L.boards.delete(gk);
+  boardBits.push({ x: x + 3, y: y + 2, vx: d * 0.6 - 1.1, vy: -2.8, r: 0, vr: -0.16, t: 0 });
+  boardBits.push({ x: x + 8, y: y + 2, vx: d * 0.6 + 1.1, vy: -2.4, r: 0, vr: 0.16, t: 0 });
+  for (let k = 0; k < 10; k++) part(x + 8 + rand(-3, 3), y + rand(3, 13), { vx: d * rand(0.3, 2.2) + rand(-0.6, 0.6), vy: rand(-2.8, -0.6), g: 0.18, life: ri(16, 30), size: ri(1, 2), color: pick(['#f2dcab', '#d9b77a', '#c99a5b', '#fff3d6']) });
+  dust(x + 8, y + 14, 3, 'rgba(242,220,171,.7)');
+  pop(x - 6, y - 10, 'CRACK!', 36, '#ffe08a');
+  SFX.crack(); addScore(25);
+  L.boardsBroken = (L.boardsBroken || 0) + 1;
+  if (!progress.kickLearned) { progress.kickLearned = true; save(); }   /* the "Tap KICK" hint has done its job */
+}
+function boardBitsTick() {
+  if (!boardBits.length) return;
+  for (const b of boardBits) { b.t++; b.vy += 0.22; b.x += b.vx; b.y += b.vy; b.r += b.vr; }
+  boardBits = boardBits.filter((b) => b.t < 60 && b.y < H + 20);
+}
+/* the first board near Kinan, until he has broken one: KINAN's line rides the level's talk; this is the button hint */
+function kickHintCheck() {
+  if (!L || !L.authored || !L.boards || !L.boards.size || L.kickHinted || progress.kickLearned || L.cleared) return;
+  for (const gk of L.boards) {
+    const tx = gk % L.w, ty = Math.floor(gk / L.w) - (L.up | 0);
+    if (Math.abs(tx * T + 8 - (P.x + P.w / 2)) < 4 * T && Math.abs(ty * T + 8 - (P.y + P.h / 2)) < 3 * T) {
+      L.kickHinted = true;
+      toast(touchFirst() ? '🥋 Tap <b>KICK</b> to break the board!' : '🥋 Press <b>X</b> to kick the board!', 3600);
+      return;
+    }
+  }
+}
+/* ---- the pictures ---- */
+/* the board on its holder: two dark posts and a foot; pale pine with the grain running top to bottom and one knot */
+function drawBoardTile(sx, sy, tx) {
+  ctx.fillStyle = '#4a3220'; ctx.fillRect(sx, sy + 3, 2, 13); ctx.fillRect(sx + 14, sy + 3, 2, 13); ctx.fillRect(sx - 1, sy + 14, 18, 2);
+  ctx.fillStyle = '#7a5434'; ctx.fillRect(sx, sy + 3, 1, 11); ctx.fillRect(sx + 14, sy + 3, 1, 11); ctx.fillRect(sx - 1, sy + 14, 18, 1);
+  ctx.fillStyle = '#3b2a1a'; ctx.fillRect(sx + 2, sy + 1, 12, 14);
+  ctx.fillStyle = '#f2dcab'; ctx.fillRect(sx + 3, sy + 2, 10, 12);
+  ctx.fillStyle = '#fff3d6'; ctx.fillRect(sx + 3, sy + 2, 10, 1); ctx.fillRect(sx + 3, sy + 2, 1, 12);
+  ctx.fillStyle = '#d9b77a';
+  const w = tx % 2;
+  for (let yy = 3; yy < 14; yy++) {
+    ctx.fillRect(sx + 5 + (((yy >> 2) + w) % 2), sy + yy, 1, 1);
+    ctx.fillRect(sx + 8 + ((yy >> 1) % 2), sy + yy, 1, 1);
+    ctx.fillRect(sx + 11 - ((yy >> 2) % 2), sy + yy, 1, 1);
+  }
+  ctx.fillStyle = '#b8894f'; ctx.fillRect(sx + 9, sy + 7, 2, 2);
+  ctx.fillStyle = 'rgba(0,0,0,.14)'; ctx.fillRect(sx + 3, sy + 13, 10, 1);
+}
+function drawBoardBits() {
+  for (const b of boardBits) {
+    ctx.save(); ctx.globalAlpha = b.t > 40 ? (60 - b.t) / 20 : 1;
+    ctx.translate(Math.round(b.x - camX) + 2.5, Math.round(b.y) + 6.5); ctx.rotate(b.r);
+    ctx.fillStyle = '#3b2a1a'; ctx.fillRect(-3.5, -7, 7, 14);
+    ctx.fillStyle = '#f2dcab'; ctx.fillRect(-2.5, -6, 5, 12);
+    ctx.fillStyle = '#d9b77a'; ctx.fillRect(-0.5, -6, 1, 12);
+    ctx.fillStyle = '#fff3d6'; ctx.fillRect(-2.5, -6, 5, 1);
+    ctx.restore();
+  }
+}
+/* three little stars round a dizzy foe's head */
+function drawDizzy(f) {
+  const cx = Math.round(f.x + f.w / 2 - camX), cy = Math.round(f.y) - 4;
+  for (let k = 0; k < 3; k++) {
+    const a = frame / 7 + k * 2.094, x = cx + Math.round(Math.cos(a) * 7), y = cy + Math.round(Math.sin(a) * 2.5);
+    ctx.fillStyle = '#f6c445'; ctx.fillRect(x - 1, y, 3, 1); ctx.fillRect(x, y - 1, 1, 3);
+    ctx.fillStyle = '#fff'; ctx.fillRect(x, y, 1, 1);
+  }
+}
+/* the kicking leg over his sprite (sprite space, facing right): the knee comes up, the leg snaps out with a swoosh, back */
+function drawKickLeg(c, age, gi) {
+  const pant = gi ? '#f4f1e8' : '#3f63a8', foot = gi ? '#d9a27a' : '#2b2f45';
+  if (age < KICK_ON0 || age > KICK_ON1) {
+    c.fillStyle = '#1b1220'; c.fillRect(9, 10, 6, 5);
+    c.fillStyle = pant; c.fillRect(10, 11, 4, 3);
+    return;
+  }
+  c.fillStyle = '#1b1220'; c.fillRect(9, 10, 12, 5); c.fillRect(20, 9, 4, 7);
+  c.fillStyle = pant; c.fillRect(10, 11, 10, 3);
+  c.fillStyle = foot; c.fillRect(20, 10, 3, 5);
+  if (!gi) { c.fillStyle = '#f4f1e8'; c.fillRect(22, 10, 1, 5); }
+  c.fillStyle = 'rgba(255,255,255,.55)'; c.fillRect(25, 8, 1, 9); c.fillRect(27, 10, 1, 5);
+}
+/* ============================================================
+   BELTS — the game's levelling (Shad, 2026-10-28). Kinan starts at PURPLE; each castle beaten is the
+   next step (World 12's finale is the black belt). The belt is worked out from the castles in the save
+   (progress.levelsBeaten), so a player who already beat castles has the belts he earned; nothing new
+   is saved for it. progress.beltSeen = the step whose belt scene has played (block "BELT SCENES").
+   ============================================================ */
+const BELT_COL = {
+  purple: { name: 'Purple', color: '#7b3fc4', dark: '#4b2382', light: '#a274e0' },
+  blue: { name: 'Blue', color: '#2563d9', dark: '#163c8c', light: '#6b9cf0' },
+  red: { name: 'Red', color: '#e8202f', dark: '#8f1018', light: '#ff6b74' },
+  redblack: { name: 'Red-black', color: '#e8202f', dark: '#8f1018', light: '#ff6b74', tip: '#1d1a20' },
+  black: { name: 'Black', color: '#1d1a20', dark: '#000000', light: '#4a4552' }
+};
+/* step -> [colour, stripes]: 0 purple · W1 purple+1 · W2 purple+2 · W3 BLUE · W4 blue+1 · W5 blue+2 · W6 RED ·
+   W7 red+1 · W8 red+2 · W9 red+3 · W10 RED-BLACK · W11 red-black+1 · the finale BLACK */
+const BELTS = [['purple', 0], ['purple', 1], ['purple', 2], ['blue', 0], ['blue', 1], ['blue', 2], ['red', 0], ['red', 1], ['red', 2], ['red', 3],
+  ['redblack', 0], ['redblack', 1], ['black', 0]].map(([k, n]) => Object.assign({ key: k, stripes: n }, BELT_COL[k]));
+function beltRank(p) {
+  const lb = ((p || progress) && (p || progress).levelsBeaten) || {};
+  let n = 0;
+  for (let w = 1; w <= 12; w++) if (lb[w + '-castle']) n++;
+  return Math.min(BELTS.length - 1, n);
+}
+function beltOf(rank) { return BELTS[clamp(rank | 0, 0, BELTS.length - 1)]; }
+/* "Blue belt · 2 stripes" */
+function beltLabel(rank) {
+  const b = beltOf(rank);
+  return b.name + ' belt' + (b.stripes ? ' · ' + b.stripes + ' stripe' + (b.stripes > 1 ? 's' : '') : '');
+}
+/* the little belt icon (menu): the band, the knot, two tails, the stripes as white bars on a tail */
+function beltIconSvg(rank) {
+  const b = beltOf(rank), right = b.tip || b.color;
+  let s = '<svg class="belticon" viewBox="0 0 26 15" width="26" height="15" aria-hidden="true">' +
+    '<rect x="0" y="3" width="13" height="4" fill="' + b.color + '"/><rect x="13" y="3" width="13" height="4" fill="' + right + '"/>' +
+    '<path d="M11 7 L7 14 L10 14 L13 8 Z" fill="' + b.color + '"/><path d="M15 7 L19.5 14 L16.5 14 L13 8 Z" fill="' + right + '"/>' +
+    '<rect x="10" y="2" width="6" height="6" rx="1" fill="' + b.dark + '"/>';
+  for (let k = 0; k < b.stripes; k++) s += '<rect x="' + (16.4 + k * 0.9).toFixed(1) + '" y="' + (10 + k * 1.3).toFixed(1) + '" width="2.6" height="0.9" fill="#fff" transform="rotate(57 ' + (17.6 + k * 0.9).toFixed(1) + ' ' + (10.4 + k * 1.3).toFixed(1) + ')"/>';
+  return s + '</svg>';
+}
+/* the belt tied at his waist (sprite space, 16 x 18, facing right): the colour only, stripes are too small here */
+function drawBeltOn(c, rank) {
+  const b = beltOf(rank), right = b.tip || b.color;
+  c.fillStyle = b.color; c.fillRect(3, 12, 5, 2); c.fillStyle = right; c.fillRect(8, 12, 5, 2);
+  c.fillStyle = b.light; c.fillRect(3, 12, 10, 1); if (b.tip) { c.fillStyle = '#4a4552'; c.fillRect(8, 12, 5, 1); }
+  c.fillStyle = '#1b1220'; c.fillRect(2, 12, 1, 2); c.fillRect(13, 12, 1, 2); c.fillRect(3, 14, 4, 1); c.fillRect(9, 14, 4, 1);
+  c.fillStyle = b.dark; c.fillRect(9, 12, 2, 2);
+  c.fillStyle = b.color; c.fillRect(9, 14, 1, 2); c.fillStyle = right; c.fillRect(11, 14, 1, 2);
+  c.fillStyle = '#1b1220'; c.fillRect(10, 14, 1, 2); c.fillRect(12, 14, 1, 2);
+}
 function updateFoes() {
   for (const f of foes) {
     if (!f.alive) { f.dead++; continue; }
     if (Math.abs(f.x - P.x) > W * 2.5) continue;   /* patrol well beyond the screen edge (round-2 P10) */
     f.t++;
     if (f.hurtT > 0) f.hurtT--;
+    if (f.dizzy > 0) { foeDizzyTick(f); continue; }   /* taekwondo: kicked — knocked back, then dizzy (stompable, harmless) */
     if (f.stun > 0) { f.stun--; f.vx = 0; f.charge = 0; continue; }
     if (f.distract > 0) { f.distract--; f.vx = 0; continue; }
     const beh = f.def.beh;
@@ -7038,7 +7492,7 @@ function updateFoes() {
       if (f.tele) {
         f.tele--;
         if (f.tele === 0) {
-          shots.push({ x: f.x + 2, y: f.y - 3, w: 8, h: 8, vx: clamp(dx / 58, -2.5, 2.5) || -1, vy: -4.5, g: 0.17, life: 220, kind: f.def.throwType });
+          shots.push({ x: f.x + 2, y: f.y - 3, w: 8, h: 8, vx: clamp(dx / 58, -2.5, 2.5) || -1, vy: -4.5, g: 0.17, life: 220, kind: f.def.throwType, from: f });   /* from: who threw it (a KICK bats it back to them) */
           SFX.pew();
         }
       }
@@ -7142,12 +7596,16 @@ function updateShots() {
     if ((s.kind === 'drop' || s.kind === 'log') && solid(Math.floor((s.kind === 'log' ? s.x + (s.vx > 0 ? s.w : 0) : s.x + 1) / T), Math.floor((s.kind === 'log' ? s.y + s.h / 2 : s.y + s.h) / T))) {
       s.gone = true; dust(s.x + s.w / 2, s.y + s.h, 2, s.kind === 'drop' ? 'rgba(111,200,255,.8)' : 'rgba(200,170,120,.7)'); continue;   /* a raindrop splashes on the ground; a log stops at a wall */
     }
-    if (s.kind === 'lasso' && !P.dead && P.rush <= 0 && overlap(P, s)) {   /* a lasso lizard's rope: it pulls you in, it doesn't hurt */
+    if (s.batted) {   /* taekwondo: a thrown thing Kinan kicked back: it flies at whoever threw it and never hurts him */
+      for (const f of foes) if (f.alive && !f.hidden && !f.arena && overlap(s, f)) { s.gone = true; kickFoe(f, Math.sign(s.vx) || 1, 'BONK!'); break; }
+      if (s.gone) continue;
+    }
+    if (s.kind === 'lasso' && !s.batted && !P.dead && P.rush <= 0 && overlap(P, s)) {   /* a lasso lizard's rope: it pulls you in, it doesn't hurt */
       s.gone = true; P.vx = (s.vx > 0 ? -1 : 1) * 3.4; P.vy = Math.min(P.vy, -2.2);
       toast('🤠 <b>YEEHAW!</b> Lassoed! (Stomp that lizard!)', 1300); SFX.pew();
       continue;
     }
-    if (!P.dead && overlap(P, s)) {
+    if (!P.dead && !s.batted && overlap(P, s)) {
       s.gone = true;
       if (P.power === 'popper' || P.rush > 0) {
         SFX.pop(); sparks(s.x + 3, s.y + 3, 6, ['#ff6fae', '#fff']);
@@ -8033,7 +8491,8 @@ function update() {
       SFX.win();
     }
   }
-  if (L.talk) for (const t of L.talk) if (!t.done && P.x > t.x) { t.done = true; Story.add([t.id], 'open'); }   /* World 6: a level's story lines */
+  if (L.talk) for (const t of L.talk) if (!t.done && P.x > t.x && P.x < t.x + 24 * T) { t.done = true; Story.add([t.id], 'open'); }   /* World 6: a level's story lines, said as Kinan walks past (within 24 tiles: a respawn or a jump far past one does not say it out of place) */
+  kickHintCheck();   /* taekwondo: "Tap KICK" / "Press X" near the first board, until one is broken */
   /* M4b: the goal — a non-blocking LEVEL CLEAR, a short victory lap, then back to the map */
   if (L.goal && boss === 'off') {
     if (!L.cleared) { if (P.x + P.w / 2 >= L.goal.x) levelClear(); }
@@ -8654,6 +9113,8 @@ function drawTiles(th) {
         ctx.fillStyle = '#4a4038'; ctx.fillRect(sx, sy, T, T);
         ctx.fillStyle = 'rgba(0,0,0,.3)'; ctx.fillRect(sx + 2, sy + 2, T - 4, T - 4);
         ctx.fillStyle = 'rgba(255,255,255,.08)'; ctx.fillRect(sx, sy, T, 1);
+      } else if (t === 5 && L.boards && L.boards.has((ty + up) * L.w + tx)) {
+        drawBoardTile(sx, sy, tx);   /* taekwondo: a wooden board on its holder (a KICK breaks it) */
       } else if (t === 5 && arenaIsGate(tx)) {
         /* B1: an arena gate — drawArena() draws it (it rises and falls) */
       } else if (t === 5) {
@@ -8947,6 +9408,9 @@ function drawPlayer() {
   ctx.translate(-8, -18);
   if (P.face < 0) { ctx.translate(16, 0); ctx.scale(-1, 1); }
   ctx.drawImage(outlined(img), -1, -1);   /* a dark outline so he stands out from busy rooms */
+  drawBeltOn(ctx, beltRank());   /* taekwondo: his belt, tied at the waist (the colour he has earned) */
+  if (P.kickT > 0) drawKickLeg(ctx, KICK_F - P.kickT, false);
+  window.__k11Draw.belt = beltOf(beltRank()).color;
   drawKinanHat(0, 0, progress.hat);
   if (P.power === 'popper') {
     ctx.fillStyle = '#ff6fae'; ctx.fillRect(14, 9, 3, 4);
@@ -10521,11 +10985,12 @@ function draw() {
   drawVaderScout();
   drawGoal();
   if (L.arena) drawArena();   /* B1: gates, floor marks, the boss and its tells */
-  for (const f of foes) drawFoe(f);
+  for (const f of foes) { drawFoe(f); if (f.dizzy > 0 && f.alive) drawDizzy(f); }
   for (const b of bosses) { drawBoss(b); drawBrickRexCore(b); drawAlphaReunion(b); }
   drawHelpers();
   drawPets();
   drawPlayer();
+  if (boardBits.length) drawBoardBits();   /* taekwondo: a broken board's halves */
   drawShots();
   if (L.arena) drawArenaShots();
   drawWorld5Fx();
@@ -13577,6 +14042,7 @@ function howToScreen(back) {   /* back: where Back goes (the title by default, o
     '<li><span class="ico">🦘</span><span><b>Tap jump</b> for a quick hop, <b>hold</b> for a big jump. Land on shelves, gift blocks, and enemies.</span></li>' +
     '<li><span class="ico">🕯️</span><span>Collect <b>candles</b> and spend them in the <b>Party Shop</b>. Every <b>25 candles</b> = an extra heart. Every numbered level hides <b>3 secrets</b> and one <b>golden candle</b>; some secret blocks are invisible until you bump them, so look for a tiny glint.</span></li>' +
     '<li><span class="ico">🎁</span><span>Hit <b>gift blocks</b> from below for candles and powers: 🎉 <b>Party Popper</b> (then tap <b>POW</b>), 🍰 <b>Sugar Rush</b>, ❤ extra hearts (up to 5). Bump <b>bricks</b> from below to break them. Trampolines launch you sky-high.</span></li>' +
+    '<li><span class="ico">🥋</span><span>Kinan does <b>taekwondo</b>: tap <b>KICK</b> (X on a keyboard) to kick, even in the air. It breaks wooden <b>boards</b> (candles and secrets hide behind them), knocks small enemies back <b>dizzy</b> (then stomp them) and bats thrown things back. Bosses are never kicked: you calm them down. Every castle earns the next <b>belt</b>, from purple all the way to black.</span></li>' +
     '<li><span class="ico">🚩</span><span><b>No game over, ever.</b> Lose your last heart and you go back to the last checkpoint flag with full hearts and all your candles. Stuck on one spot? After 5 tries, <b>Glitchy</b> offers to show you the way.</span></li>' +
     '<li><span class="ico">🐱</span><span><b>4 cats and 2 dogs</b> hide in glowing crates in Worlds 1 to 5. Walk into a crate to rescue the pet. Open <b>Pets</b> to take one cat and one dog along (or go solo): their powers work all by themselves.</span></li>' +
     '<li><span class="ico">👑</span><span>Every world ends in a <b>castle boss</b>, with a fort mini-boss on the way. Bosses start out silly and get <b>smarter</b> every time you bounce on them. A red <b>!</b> always warns you before an attack; stomp (or give a gentle pat) when the gold <b>▼</b> arrow shows.</span></li>' +
@@ -13587,7 +14053,7 @@ function howToScreen(back) {   /* back: where Back goes (the title by default, o
     '<li><span class="ico">🧱</span><span><b>Builder:</b> make your own levels with ground, bricks, gift blocks, shelves, trampolines, candles and enemies (or start from a copy of a story stage), put down a start and a 🚩, and play them. Make them long and up to 3 screens tall. Up to 50 levels are kept on this device.</span></li>' +
     '<li><span class="ico">🏎️</span><span><b>Family Kart:</b> race the family in their real rides. Steer with ◀ ▶; hold <b>HOP</b> while turning to drift, let go after the sparks for a boost; <b>ITEM</b> uses what a gift box gave you. Beat story stages to unlock more tracks.</span></li>' +
     '</ul>' +
-    '<p class="tiny">Phone or tablet: turn it sideways; the picture fills the screen and big see-through buttons sit in the bottom corners. Keyboard: ← → move (Kinan runs by himself; hold SHIFT or X to walk) · SPACE jump · X pow · Esc or P opens the menu. Gamepad works too (B runs).</p>' +
+    '<p class="tiny">Phone or tablet: turn it sideways; the picture fills the screen and big see-through buttons sit in the bottom corners. Keyboard: ← → move (Kinan runs by himself; hold SHIFT or X to walk) · SPACE jump · X kick (pow with a Party Popper) · Esc or P opens the menu. Gamepad works too (B runs).</p>' +
     '<div class="divider"></div>' +
     '<p class="eyebrow">Who\'s who · the family</p>' +
     '<ul class="credits">' +
@@ -14622,8 +15088,8 @@ $('#fxBtn').addEventListener('click', () => {
   applyLite(); save(); SFX.click();
 });
 /* V2 auto-run: the pause menu's switch, the How to play switch and the keys line under the picture */
-const KEYS_AUTO = '← → move (Kinan runs by himself · hold SHIFT or X to walk) · SPACE jump (hold = higher) · X pow · Esc menu · M mute';
-const KEYS_HOLD = '← → move · hold SHIFT to run (big gaps need it) · SPACE jump (hold = higher) · X pow · Esc menu · M mute';
+const KEYS_AUTO = '← → move (Kinan runs by himself · hold SHIFT or X to walk) · SPACE jump (hold = higher) · X kick (pow with a Party Popper) · Esc menu · M mute';
+const KEYS_HOLD = '← → move · hold SHIFT to run (big gaps need it) · SPACE jump (hold = higher) · X kick (pow with a Party Popper) · Esc menu · M mute';
 function applyAutoRun() {
   const on = progress.autoRun !== false;
   const b = $('#autoRunBtn'); if (b) b.textContent = 'Auto-run: ' + (on ? 'ON' : 'OFF');
@@ -20140,6 +20606,8 @@ window.__k11 = window.__k11DevOnly() ? {
   killBosses: () => { bosses.forEach((b) => { b.inv = 0; if (!b.out) damage(b, b.hp); }); },
   godMode: () => { P.inv = 9e9; },
   clearFoes: () => { foes = []; },
+  giveItem: (kind) => { giveItem(kind); return P.power; },   /* taekwondo tests: the Confetti Blaster ('popper') */
+  addFoe: (type, tx, ty) => { foes.push(makeFoe({ type: type, tx: tx, ty: ty })); return foes.length - 1; },   /* taekwondo tests: one foe of a type on a tile */
   addCandles: (n) => { addCandle(n); },
   advance: () => { if (advance) advance(); },
   jumpToStage: (i) => { playStage(i); },
@@ -20364,11 +20832,23 @@ window.__k11 = window.__k11DevOnly() ? {
       if (h.jump !== undefined) input.jump = !!h.jump;
       if (h.fire !== undefined) input.fireHeld = !!h.fire;
       if (h.tapJump && k === 0) input.jumpBuf = 8;
+      if (h.tapFire && k === 0) input.fireBuf = 10;   /* taekwondo: one POW / X press edge (the KICK, or a blaster shot) */
       update(1 / 60);
       out.push(window.__k11.probe());
     }
     return out;
   },
+  /* taekwondo: the kick, the boards, the foes it touched, thrown things, the button, the belt */
+  kickInfo: () => ({
+    kickT: P ? P.kickT || 0 : 0, kicks: P ? P.kicks || 0 : 0, face: P ? P.face : 0, px: P ? P.x : 0, py: P ? P.y : 0, vx: P ? P.vx : 0, vy: P ? P.vy : 0, power: P ? P.power : null,
+    boards: L && L.boards ? [...L.boards].map((gk) => [gk % L.w, Math.floor(gk / L.w) - (L.up | 0)]) : [], boardsBroken: L ? L.boardsBroken || 0 : 0,
+    kicked: L ? L.kicked || 0 : 0, batted: L ? L.batted || 0 : 0, blasts: blasts.length, hp: P ? P.hp : 0, got: got,
+    foes: foes.map((f) => ({ type: f.type, x: f.x, y: f.y, alive: f.alive, dizzy: f.dizzy || 0, tough: !!f.def.tough, arena: !!f.arena })),
+    shots: shots.map((s) => ({ kind: s.kind, x: s.x, y: s.y, vx: s.vx, vy: s.vy, batted: !!s.batted, from: s.from ? foes.indexOf(s.from) : -1 })),
+    pow: { text: el.pow.textContent, disabled: el.pow.disabled }, hint: !!(L && L.kickHinted), learned: !!progress.kickLearned,
+    belt: { rank: beltRank(), label: beltLabel(beltRank()), color: beltOf(beltRank()).color, drawn: window.__k11Draw ? window.__k11Draw.belt || null : null }
+  }),
+  belt: (p) => { const r = beltRank(p); return { rank: r, label: beltLabel(r), color: beltOf(r).color, key: beltOf(r).key, stripes: beltOf(r).stripes, seen: progress.beltSeen == null ? null : progress.beltSeen }; },
   paint: (tx, ty, t) => { if (L) L.g[(ty + (L.up | 0)) * L.w + tx] = t || 0; return tileAt(tx, ty); },
   /* the overworld map (docs/OVERWORLD-MAP.md): open it, read it, walk it */
   worldMap: () => { worldMapScreen(); return true; },

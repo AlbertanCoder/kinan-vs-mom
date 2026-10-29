@@ -14,7 +14,7 @@
   var ROWS = 15, T = 16, SCREEN = 27;
   var MIN_COLS = SCREEN, MAX_COLS = 1200;
   var ID_RE = /^([1-9]|1[01])-([1-8]|fort|secret|castle)$/;
-  var TOY_KEYS = ['gift', 'brick', 'spring', 'shelf'];
+  var TOY_KEYS = ['gift', 'brick', 'spring', 'shelf', 'board'];   /* board: a wooden taekwondo board, only a KICK breaks it (2026-10-28) */
   /* what a gift block can pop (index.html hitGift/giveItem); 'gold' marks the
      golden-candle block — its reward is not wired yet (ER-6), it pops nothing */
   var GIFT_PRIZES = ['candle', 'popper', 'cake', 'heart', 'hat', 'lasso', 'umbrella', 'gold'];
@@ -84,7 +84,7 @@
       var inside = function (cell) { return isCell(cell) && cell[0] >= 0 && cell[0] < a.cols && cell[1] >= 0 && cell[1] < ROWS; };
       var tiles = a.tiles || {};
       Object.keys(tiles).forEach(function (key) {
-        if (TOY_KEYS.indexOf(key) < 0) { out.push(tag + 'tiles.' + key + ' is not a tile kind (gift, brick, spring, shelf)'); return; }
+        if (TOY_KEYS.indexOf(key) < 0) { out.push(tag + 'tiles.' + key + ' is not a tile kind (gift, brick, spring, shelf, board)'); return; }
         (tiles[key] || []).forEach(function (cell) { if (!inside(cell)) out.push(tag + 'tiles.' + key + ' cell ' + JSON.stringify(cell) + ' is outside the area'); });
       });
       (tiles.gift || []).forEach(function (cell) {
@@ -149,7 +149,7 @@
       if (!Array.isArray(r)) return;
       for (var c = r[0]; c <= r[2]; c++) if (inArena(c, r[1])) { out.push(tag + 'arena must be open ground: solid ' + JSON.stringify(r) + ' stands inside it (desks are shelves)'); return; }
     });
-    ['gift', 'brick', 'spring'].forEach(function (key) {
+    ['gift', 'brick', 'spring', 'board'].forEach(function (key) {
       ((a.tiles || {})[key] || []).forEach(function (cell) { if (isCell(cell) && inArena(cell[0], cell[1])) out.push(tag + 'arena must be open ground: tiles.' + key + ' ' + JSON.stringify(cell) + ' stands inside it'); });
     });
   }

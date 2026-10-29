@@ -55,7 +55,10 @@ test.describe('the map seams: one journey across the worlds', () => {
   test('the road trips: World 6 -> the bus (6.5) -> World 7, and World 9 -> the boat (9.5) -> World 10', async ({ page }) => {
     test.setTimeout(150_000);
     const errors = watchErrors(page);
-    await standOn(page, { w: 6, at: 10 });
+    /* 2026-10-29 (taekwondo): a save with castles beaten and no belt seen gets Sabumnim's catch-up scene as the map
+       opens (taekwondo.spec.ts covers it); this test is about the roads, so its player has already seen the belts
+       (on WebKit the scene held the first ▶ click for ~29 s of the 150 s) */
+    await standOn(page, { w: 6, at: 10 }, { beltSeen: 12 });
     expect(await openMap(page)).toMatchObject({ world: 6, at: 10 });
     await page.evaluate(() => (window as unknown as Win).KINAN.speed(6));   /* the trip itself is ~3,500 px of road */
     await page.locator('#owNext').click();

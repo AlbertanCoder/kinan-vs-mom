@@ -57,7 +57,8 @@ KinanLevels.register({
     [140, 5, 161, 7],   /* S6 THE CHIEF: the first granite step */
     [147, 2, 161, 4],   /* S6 the second step: the top */
     [162, 2, 170, 7],   /* S7 the long flat top of the Chief */
-    [171, 5, 176, 7]   /* S7 a step down the far side */
+    [171, 5, 176, 7],  /* S7 a step down the far side */
+    [180, 5, 186, 5], [180, 3, 183, 3], [180, 4, 180, 4]   /* taekwondo (2026-10-28): a granite shelf over the run-out (walk under it); its board door faces right */
   ],
   tiles: {
     gift: [
@@ -76,7 +77,8 @@ KinanLevels.register({
     ],
     shelf: [
       [91, 8], [92, 8], [94, 5], [95, 5], [97, 2], [98, 2]   /* S4 the wet ledges beside Shannon Falls */
-    ]
+    ],
+    board: [[183, 4]]   /* BONUS: hop onto the granite shelf from the right and KICK the board: 2 candles inside */
   },
   /* a reward: only a few foes */
   foes: [
@@ -102,7 +104,8 @@ KinanLevels.register({
     [162, 1], [163, 1], [164, 0], [165, 0], [166, 0], [167, 0], [168, 1], [169, 1], [170, 1], [171, 4], [172, 4], [173, 4], [174, 4], [175, 4],
     [176, 4], [177, 7], [179, 7], [180, 7], [181, 7], [182, 7], [183, 7], [184, 7], [185, 7], [186, 7], [187, 7], [188, 6], [189, 5], [190, 4],
     [191, 4], [192, 4], [193, 5], [194, 6], [195, 7], [196, 7], [197, 7], [198, 6], [199, 5], [200, 4], [201, 4], [202, 5], [203, 6], [204, 7], [205, 3],
-    [207, 3], [209, 3], [210, 7], [211, 7], [214, 7]
+    [207, 3], [209, 3], [210, 7], [211, 7], [214, 7],
+    [181, 4], [182, 4]   /* behind the granite shelf's board */
   ],
   checkpoint: { col: 84, row: 9 },
   spawn: { col: 2, row: 11 },

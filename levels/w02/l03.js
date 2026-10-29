@@ -63,7 +63,9 @@ KinanLevels.register({
     [86, 4, 93, 11],                      /* THE BIG MACHINE: 8 tall */
     [94, 7, 95, 11], [96, 9, 97, 11],     /* steps down its far side */
     [157, 11, 157, 11],                   /* a lab stool: keeps the robot off the landing after the 5-wide gap */
-    [164, 4, 167, 4], [170, 4, 174, 4]    /* the big magnet: a 2-wide gap right over its pad */
+    [164, 4, 167, 4], [170, 4, 174, 4],   /* the big magnet: a 2-wide gap right over its pad */
+    [70, 9, 76, 9], [70, 7, 73, 7], [70, 8, 70, 8],       /* taekwondo (2026-10-28): two sample lockers over the floor (walk under them); */
+    [122, 9, 128, 9], [122, 7, 125, 7], [122, 8, 122, 8]  /* each one's board door faces right */
   ],
   tiles: {
     gift: [[1, 3, 'gold'], [8, 8, 'popper'], [38, 4, 'candle'], [145, 8, 'candle'], [178, 8, 'heart']],
@@ -77,7 +79,8 @@ KinanLevels.register({
     brick: [[62, 6], [63, 6], [64, 6], [65, 6], [66, 6],   /* the circuit ceiling */
             [83, 8], [84, 8], [85, 8],                     /* the big machine's lid */
             [144, 8], [146, 8]],                           /* circuits over the electric floor */
-    shelf: [[110, 4], [111, 4], [112, 4]]                  /* the top shelf */
+    shelf: [[110, 4], [111, 4], [112, 4]],                 /* the top shelf */
+    board: [[73, 8], [125, 8]]    /* BONUS: hop onto a locker's ledge from the right and KICK its board: 2 candles inside each */
   },
   /* lab robots walk, the lab frogs hop at you, the spark flies over the machine */
   foes: [[25, 11, 'robot'],
@@ -93,7 +96,8 @@ KinanLevels.register({
             [82, 11], [85, 10], [87, 3], [89, 3], [91, 3], [93, 3], [99, 11], [100, 11],
             [111, 11], [114, 8], [113, 6], [112, 5], [118, 11], [119, 11],
             [138, 9], [139, 8], [140, 8], [141, 9], [149, 9], [150, 8], [151, 7], [152, 8], [153, 9],
-            [168, 9], [168, 7], [168, 5], [166, 3], [173, 3], [184, 11], [185, 11]],
+            [168, 9], [168, 7], [168, 5], [166, 3], [173, 3], [184, 11], [185, 11],
+            [71, 8], [72, 8], [123, 8], [124, 8]],                /* behind the lockers' boards */
   secrets: [
     { kind: 'visible', col: 111, row: 3, prize: 'heart+candles' },                 /* the top shelf: steer left off the pad */
     { kind: 'hidden', col: 1, row: 3, prize: 'GOLDEN CANDLE', glint240: true },    /* behind the start: the awning, bumped from its pad */

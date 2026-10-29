@@ -617,7 +617,15 @@ function plaque(name){const w=bfWidth(name,10)+28,X=Math.round((VW-w)/2),Y=212;
   G=x;px('#1b1220',X-2,Y-2,w+4,24);px('#c9922f',X-1,Y-1,w+2,22);px('#ffe58a',X-1,Y-1,w+2,1);px('#141632',X+1,Y+1,w-2,18);bfDraw(x,name,X+14,Y+7,'#f6c445',10);}
 function crossLabel(o,d){return o.travel?o.hud:(d>0?'ON TO ':'BACK TO ')+'WORLD '+o.n+'  '+o.hud;}
 function hud(){G=x;const hw=(cross&&cross.d>cross.len/2)?W[cross.other]:cur();const s=hw.travel?hw.hud:'WORLD '+hw.n+'   '+hw.hud;const w=bfWidth(s,9)+14;px('rgba(17,19,43,.86)',6,6,w,18);px('#3a3f86',6,6,w,1);px('#3a3f86',6,23,w,1);txt(s,12,11,'#f6c445',9,1);
-  const cs='CANDLES  '+(opts.candles?opts.candles():0),cw=Math.max(82,bfWidth(cs,8)+16),cx0=VW-6-cw;px('rgba(17,19,43,.86)',cx0,6,cw,18);px('#3a3f86',cx0,6,cw,1);px('#3a3f86',cx0,23,cw,1);txt(cs,cx0+8,11,'#eef0ff',8,0);}
+  const cs='CANDLES  '+(opts.candles?opts.candles():0),cw=Math.max(82,bfWidth(cs,8)+16),cx0=VW-6-cw;px('rgba(17,19,43,.86)',cx0,6,cw,18);px('#3a3f86',cx0,6,cw,1);px('#3a3f86',cx0,23,cw,1);txt(cs,cx0+8,11,'#eef0ff',8,0);
+  /* taekwondo (2026-10-28): Kinan's belt, a small belt icon + "BLUE BELT  2 STRIPES", left of the candles (under them when the world name is long) */
+  const b=opts.belt?opts.belt():null;if(!b)return;
+  const bs=b.label,bw=bfWidth(bs,8)+32,row1=cx0-4-bw>6+w+4,bx0=row1?cx0-4-bw:VW-6-bw,by=row1?6:26;
+  px('rgba(17,19,43,.86)',bx0,by,bw,18);px('#3a3f86',bx0,by,bw,1);px('#3a3f86',bx0,by+17,bw,1);
+  const ix=bx0+6,iy=by+4,R=b.tip||b.color;px('#1b1220',ix-1,iy+1,18,5);px(b.color,ix,iy+2,8,3);px(R,ix+8,iy+2,8,3);
+  for(let k=0;k<b.stripes;k++)px('#ffffff',ix+11+k*2,iy+2,1,3);
+  px('#1b1220',ix+5,iy,6,7);px(b.dark,ix+6,iy+1,4,5);px('#1b1220',ix+4,iy+6,4,5);px('#1b1220',ix+8,iy+6,4,5);px(b.color,ix+5,iy+6,2,4);px(R,ix+9,iy+6,2,4);
+  txt(bs,ix+24,by+5,'#eef0ff',8,0);}
 function glitchLevel(){const w=cur();const n=Math.max(1,w.stops.length-1);let v=at;if(walk)v=walk.from+(walk.to-walk.from)*Math.min(1,walk.d/Math.max(1,walk.len));return Math.max(0,Math.min(1,v/n));}
 /* lvl 0..1: World 11 starts with light scanlines and ends torn, flickering and colour-split */
 function glitchFx(t,strong,lvl){lvl=lvl||0;const a=0.08+0.1*lvl;for(let y=0;y<VH;y+=3){x.fillStyle='rgba(0,0,0,'+a+')';x.fillRect(0,y,VW,1);}

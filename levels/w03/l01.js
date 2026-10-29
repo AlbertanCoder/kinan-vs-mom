@@ -83,7 +83,8 @@ KinanLevels.register({
     [165, 3, 177, 3], [165, 4, 165, 8],   /* S7 the barn roof and its door frame (the doorway is rows 9-11) */
     [167, 10, 168, 11],                   /* S7 a hay bale in the stalls: the step up to the loft */
     [175, 11, 175, 11],                   /* S7 the end of the stalls: the calf stays in */
-    [195, 4, 197, 4]                      /* S8 the yard-light ledge, BEHIND the trampoline (solid: no jumping up through it) */
+    [195, 4, 197, 4],                     /* S8 the yard-light ledge, BEHIND the trampoline (solid: no jumping up through it) */
+    [21, 9, 27, 9], [21, 7, 24, 7], [21, 8, 21, 8]   /* taekwondo (2026-10-28): Grandpa's tool shelf over the lawn (walk under it); its board door faces right */
   ],
   tiles: {
     gift: [[12, 5, 'candle'], [15, 5, 'heart'],                  /* S1 on the deck: Grandma's pancakes */
@@ -98,7 +99,8 @@ KinanLevels.register({
     shelf: [[31, 9], [32, 9], [33, 9], [34, 9], [35, 9], [36, 9], [37, 9], [38, 9], [39, 9], [40, 9], [41, 9],   /* S2 the clothesline */
             [84, 9], [85, 9], [86, 9], [87, 9], [88, 9], [91, 9], [92, 9], [93, 9], [94, 9], [95, 9], [96, 9],   /* S4 the dock (a broken gap over the island) */
             [127, 4], [128, 4], [129, 4],                                                                       /* S5 the top of the haystack (visible secret) */
-            [166, 8], [167, 8], [168, 8], [169, 8], [170, 8], [171, 8], [172, 8], [173, 8], [174, 8], [175, 8], [176, 8], [177, 8]]   /* S7 the hay loft */
+            [166, 8], [167, 8], [168, 8], [169, 8], [170, 8], [171, 8], [172, 8], [173, 8], [174, 8], [175, 8], [176, 8], [177, 8]],  /* S7 the hay loft */
+    board: [[24, 8]]                                             /* BONUS: hop onto the tool shelf from the right and KICK the board: 2 candles inside */
   },
   /* gophers hop, chicks (eggs) wander, the geese patrol, Grandpa's calf charges what he can see */
   foes: [[23, 11, 'gopher'],
@@ -119,7 +121,8 @@ KinanLevels.register({
             [115, 8], [117, 8], [120, 6], [122, 6], [125, 8], [117, 11], [118, 11], [119, 11], [120, 11], [121, 11], [122, 11], [127, 3], [129, 3],
             [140, 9], [141, 8], [142, 8], [143, 9], [150, 9], [152, 9], [154, 9],
             [170, 7], [173, 7], [176, 7], [178, 10], [180, 11], [181, 11], [184, 8], [185, 7], [186, 7], [187, 8],
-            [198, 9], [199, 7], [198, 5], [196, 2], [205, 11], [206, 11], [210, 11], [211, 11]],
+            [198, 9], [199, 7], [198, 5], [196, 2], [205, 11], [206, 11], [210, 11], [211, 11],
+            [22, 8], [23, 8]],                                   /* behind the tool shelf's board */
   secrets: [
     { kind: 'visible', col: 128, row: 3, prize: 'heart+candles' },                 /* the top of the haystack */
     { kind: 'hidden', col: 121, row: 7, prize: 'GOLDEN CANDLE', glint240: true },  /* the glinting bale, bumped from the low road */

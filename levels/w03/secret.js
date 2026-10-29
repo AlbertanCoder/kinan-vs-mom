@@ -52,7 +52,8 @@ KinanLevels.register({
     192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192
   ],
   solid: [
-    [0, 2, 4, 3]                          /* the rock roof over the shaft cave */
+    [0, 2, 4, 3],                         /* the rock roof over the shaft cave */
+    [99, 9, 105, 9], [99, 7, 102, 7], [99, 8, 99, 8]   /* taekwondo (2026-10-28): a rock ledge over the sandbar (walk under it); its board door faces right */
   ],
   tiles: {
     gift: [[6, 3, 'umbrella'], [24, 3], [63, 6, 'lasso'], [96, 8, 'heart'], [120, 8, 'cake'],
@@ -65,7 +66,8 @@ KinanLevels.register({
             [16, 6], [17, 6], [18, 6],    /* a log bobbing a hop higher */
             [45, 9], [46, 9], [47, 9],    /* a raft below the rapids */
             [58, 9], [59, 9], [60, 8], [61, 8],   /* THE LOG JAM: low logs, then higher ones */
-            [114, 12], [115, 12], [116, 12]]      /* a raft in the sandbar channel */
+            [114, 12], [115, 12], [116, 12]],     /* a raft in the sandbar channel */
+    board: [[102, 8]]                     /* BONUS: hop onto the rock ledge from the right and KICK the board: 2 candles inside */
   },
   foes: [[22, 3, 'goose'], [50, 8, 'flyingfish'], [74, 4, 'goose'], [101, 6, 'goose'], [121, 11, 'flyingfish'], [151, 11, 'puddlefrog']],
   candles: [[3, 6], [4, 6], [7, 5], [8, 6], [9, 6], [10, 6], [13, 6], [14, 6], [16, 5], [17, 5], [18, 5], [21, 6], [22, 6], [24, 2],
@@ -78,7 +80,8 @@ KinanLevels.register({
             [111, 10], [112, 9], [113, 8], [114, 11], [115, 11], [116, 11], [117, 8], [118, 9], [119, 10],
             [123, 10], [124, 9], [125, 8], [126, 10], [126, 7], [127, 5], [128, 4], [129, 4], [130, 5], [131, 7], [132, 9],
             [138, 11], [139, 11], [140, 7], [142, 7], [144, 7], [146, 7], [148, 11], [149, 11], [150, 10], [152, 10],
-            [153, 9], [154, 9], [155, 10], [156, 11], [157, 11], [158, 11], [155, 6], [156, 5], [157, 6]],
+            [153, 9], [154, 9], [155, 10], [156, 11], [157, 11], [158, 11], [155, 6], [156, 5], [157, 6],
+            [100, 8], [101, 8]],                  /* behind the rock ledge's board */
   checkpoint: { col: 92, row: 11 },
   spawn: { col: 2, row: 6 },
   goal: { col: 159, row: 11 }

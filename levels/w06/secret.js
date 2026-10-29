@@ -54,7 +54,9 @@ KinanLevels.register({
     192,192,192,192,192,192,null,null,null,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192
   ],
   solid: [
-    [88, 10, 88, 11]   /* S4 the ribcage's first rib, planted in the floor */
+    [88, 10, 88, 11],  /* S4 the ribcage's first rib, planted in the floor */
+    [101, 9, 107, 9], [101, 7, 104, 7], [101, 8, 101, 8],   /* taekwondo (2026-10-28): two rock shelves in the cave wall */
+    [154, 9, 160, 9], [154, 7, 157, 7], [154, 8, 154, 8]    /* (walk under them); each board door faces right */
   ],
   tiles: {
     gift: [
@@ -88,7 +90,8 @@ KinanLevels.register({
       [96, 9], [97, 6],   /* S4 */
       [121, 3],   /* S5 the candle ledge */
       [122, 3], [123, 3], [125, 3], [126, 3], [127, 3]   /* S5 */
-    ]
+    ],
+    board: [[104, 8], [157, 8]]   /* BONUS: hop onto a rock shelf from the right and KICK its board: 2 candles inside each */
   },
   /* four slow cave slugs and mud blobs, and one sleepy baby dino; nothing waits at a lip */
   foes: [
@@ -113,7 +116,8 @@ KinanLevels.register({
     [145, 7], [146, 8], [147, 8], [148, 8], [149, 8], [150, 8], [151, 8], [152, 11], [153, 11], [154, 11], [155, 11], [156, 11], [157, 11], [158, 11],
     [159, 11], [160, 11], [161, 11], [162, 11], [163, 11], [164, 11], [165, 11], [166, 11], [167, 11], [168, 9], [169, 8], [170, 8], [171, 9], [172, 11],
     [174, 7], [176, 7], [178, 7], [180, 7], [173, 11], [174, 11], [175, 11], [176, 11], [177, 11], [178, 11], [179, 11], [180, 11], [181, 11], [182, 11],
-    [183, 11], [184, 11], [185, 11], [186, 11], [187, 11]
+    [183, 11], [184, 11], [185, 11], [186, 11], [187, 11],
+    [102, 8], [103, 8], [155, 8], [156, 8]   /* behind the rock shelves' boards */
   ],
   checkpoint: { col: 84, row: 11 },
   spawn: { col: 2, row: 5 },

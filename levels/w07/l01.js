@@ -74,7 +74,8 @@ KinanLevels.register({
     [37, 4, 45, 7],   /* S2 the first tunnel's rock roof (4 tiles of air under it) */
     [113, 4, 130, 7],   /* S5 THE TUNNEL WITH THE SHINY ROOF */
     [224, 4, 238, 7],   /* S9 THE LONG TUNNEL */
-    [264, 5, 270, 5]   /* S10 THE OVERPASS, high over the road (skill secret) */
+    [264, 5, 270, 5],  /* S10 THE OVERPASS, high over the road (skill secret) */
+    [283, 9, 289, 9], [283, 7, 286, 7], [283, 8, 283, 8]   /* taekwondo (2026-10-28): a sign ledge by the city limits (walk under it); its board door faces right */
   ],
   tiles: {
     gift: [
@@ -104,7 +105,8 @@ KinanLevels.register({
     ],
     shelf: [
       [69, 7], [70, 7], [71, 7]   /* S3 THE LOOKOUT ROCK (visible secret) */
-    ]
+    ],
+    board: [[286, 8]]   /* BONUS: hop onto the sign ledge from the right and KICK the board: 2 candles inside */
   },
   /* puddle frogs hop in the ditches, raccoons raid the tunnels, crows and umbrella bats drift over the gaps (no rain-cloud foes in World 7: a little grey cloud is Drizzle, seen only far off); nothing waits at a lip */
   foes: [
@@ -137,7 +139,8 @@ KinanLevels.register({
     [232, 10], [233, 9], [234, 9], [235, 10], [236, 11], [238, 11], [239, 11], [240, 11], [241, 11], [242, 10], [243, 9], [244, 8], [245, 7], [246, 8],
     [247, 9], [248, 10], [249, 11], [251, 11], [252, 10], [253, 9], [254, 8], [255, 8], [256, 9], [257, 10], [259, 11], [260, 11], [262, 9], [262, 7],
     [263, 5], [264, 4], [265, 4], [266, 4], [267, 4], [268, 4], [264, 11], [266, 11], [268, 11], [271, 11], [272, 11], [273, 11], [274, 11], [276, 7],
-    [278, 7], [280, 7], [285, 11], [287, 11], [289, 11], [291, 11]
+    [278, 7], [280, 7], [285, 11], [287, 11], [289, 11], [291, 11],
+    [284, 8], [285, 8]   /* behind the sign ledge's board */
   ],
   secrets: [
     { kind: 'visible', col: 70, row: 6, prize: 'heart+candles' },   /* THE LOOKOUT ROCK: from the hilltop, jump up onto the ledge over the washout */

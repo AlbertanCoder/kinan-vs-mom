@@ -61,7 +61,9 @@ KinanLevels.register({
   solid: [
     [34, 9, 34, 9], [37, 9, 37, 9], [40, 9, 40, 9],   /* S2 the rocks in the rapids */
     [72, 4, 79, 4],   /* S3 THE PEACE BRIDGE high overhead */
-    [96, 7, 104, 7]   /* S4 THE CENTRE STREET BRIDGE's deck (gift boxes in it) */
+    [96, 7, 104, 7],  /* S4 THE CENTRE STREET BRIDGE's deck (gift boxes in it) */
+    [74, 9, 80, 9], [74, 7, 77, 7], [74, 8, 74, 8],       /* taekwondo (2026-10-28): a pier ledge under the Peace Bridge and a */
+    [155, 9, 161, 9], [155, 7, 158, 7], [155, 8, 155, 8]  /* river-wall ledge in East Village (walk under them); each board door faces right */
   ],
   tiles: {
     gift: [
@@ -81,7 +83,8 @@ KinanLevels.register({
       [14, 8], [15, 8], [16, 8],   /* S1 tubes in the first pool */
       [58, 12], [59, 12], [60, 12], [66, 12], [67, 12], [69, 12],   /* S3 tubes in the pools (hop the open water at c68) */
       [140, 12], [142, 12], [144, 12]   /* S6 tubes in the last pool (hop tube to tube) */
-    ]
+    ],
+    board: [[77, 8], [158, 8]]   /* BONUS: hop onto a ledge from the right and KICK its board: 2 candles inside each */
   },
   /* four slow ones: a jumping fish in the lazy pool, a puddle frog, two geese */
   foes: [
@@ -106,7 +109,8 @@ KinanLevels.register({
     [146, 11], [147, 11], [148, 11], [149, 11], [150, 11], [151, 11], [152, 11], [153, 11], [154, 11], [155, 11], [156, 11], [157, 11], [158, 11], [159, 11],
     [160, 11], [161, 11], [150, 8], [151, 7], [152, 7], [153, 8], [162, 11], [163, 11], [164, 11], [165, 11], [166, 11], [168, 7], [170, 7], [172, 7],
     [174, 7], [176, 11], [177, 11], [178, 11], [179, 11], [180, 11], [181, 11], [182, 11], [183, 11], [177, 8], [178, 6], [179, 5], [180, 5], [181, 6],
-    [182, 8]
+    [182, 8],
+    [75, 8], [76, 8], [156, 8], [157, 8]   /* behind the ledges' boards */
   ],
   checkpoint: { col: 72, row: 11 },
   spawn: { col: 2, row: 5 },

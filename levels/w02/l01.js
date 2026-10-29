@@ -68,7 +68,8 @@ KinanLevels.register({
     [112, 11, 112, 11], [121, 11, 121, 11], [122, 10, 122, 11],   /* crosswalk 2 curbs + a step up to the tall bus */
     [123, 10, 127, 11],                   /* the tall bus's chassis */
     [135, 11, 140, 11], [145, 11, 150, 11], [156, 11, 161, 11],   /* the bus-loop buses */
-    [168, 10, 171, 10]                    /* the double-decker's chassis: it is up on jacks, duck under it */
+    [168, 10, 171, 10],                   /* the double-decker's chassis: it is up on jacks, duck under it */
+    [20, 9, 26, 9], [20, 7, 23, 7], [20, 8, 20, 8]   /* taekwondo (2026-10-28): the bus-stop ad box over the sidewalk (walk under it); its board door faces right */
   ],
   tiles: {
     gift: [[13, 6, 'popper'], [58, 10, 'gold'], [61, 4, 'candle'], [93, 5, 'candle'], [138, 5, 'heart']],
@@ -90,7 +91,8 @@ KinanLevels.register({
     ],
     shelf: [[124, 5], [125, 5], [126, 5],                  /* the billboard, over the tall bus's roof: jump up through it */
             [164, 9], [165, 9], [166, 9],                  /* the bus-shelter roof: the step up to the double-decker */
-            [176, 5], [177, 5], [178, 5]]                  /* the school sign */
+            [176, 5], [177, 5], [178, 5]],                 /* the school sign */
+    board: [[23, 8]]              /* BONUS: hop onto the ad box's ledge from the right and KICK the board: 2 candles inside */
   },
   /* cones walk, the hop-cone hops at you, the raccoon scurries, the biker charges, the magpie only steals a candle */
   foes: [[22, 11, 'cone'],
@@ -107,7 +109,8 @@ KinanLevels.register({
             [88, 7], [89, 6], [90, 7], [97, 7], [98, 6], [99, 6], [100, 7], [103, 9], [104, 9],
             [110, 11], [114, 11], [118, 11], [119, 11], [123, 7], [127, 7], [124, 6], [126, 6],
             [141, 7], [142, 6], [143, 6], [144, 7], [151, 7], [152, 6], [153, 6], [154, 6], [155, 7],
-            [165, 8], [166, 8], [169, 6], [170, 6], [173, 5], [174, 4], [175, 4], [165, 11], [166, 11], [169, 11], [170, 11], [184, 11], [185, 11]],
+            [165, 8], [166, 8], [169, 6], [170, 6], [173, 5], [174, 4], [175, 4], [165, 11], [166, 11], [169, 11], [170, 11], [184, 11], [185, 11],
+            [21, 8], [22, 8]],                                /* behind the ad box's board */
   secrets: [
     { kind: 'visible', col: 125, row: 4, prize: 'heart+candles' },                 /* the billboard over the tall bus */
     { kind: 'hidden', col: 58, row: 10, prize: 'GOLDEN CANDLE', glint240: true },  /* under the broken-down bus, at its front wheel */
