@@ -543,7 +543,9 @@ function drawFly(t,dt){const f=fly;dt=Math.min(100,dt)*speed;f.t+=dt;
       const q=along(L.pts,Math.min(L.len,f.d+4));G.globalAlpha=f.a;drawRide(f.o.ride,p[0],p[1],q[0]<p[0]-0.01?-1:1,t,'glitchy');G.globalAlpha=1;}
     else{G.globalAlpha=0.3*f.a;G.fillStyle='#000';G.beginPath();G.ellipse(p[0],p[1]+2,6,2,0,0,Math.PI*2);G.fill();G.globalAlpha=1;
     glitchySpr(p[0],gy,t,f.a);
-    if(f.o.ride==='cargo'&&f.phase==='appear'){G.globalAlpha=f.a;box('#c98f52',p[0]-9,p[1]-11,18,11);px('#8a5a2a',p[0]-9,p[1]-7,18,2);px('#8a5a2a',p[0]-1,p[1]-11,2,11);G.globalAlpha=1;}}}   /* World 7: Glitchy climbs into a parcel before the cargo plane takes it */
+    if(f.o.ride==='cargo'&&f.phase==='appear'){G.globalAlpha=f.a;box('#c98f52',p[0]-9,p[1]-11,18,11);px('#8a5a2a',p[0]-9,p[1]-7,18,2);px('#8a5a2a',p[0]-1,p[1]-11,2,11);G.globalAlpha=1;}   /* World 7: Glitchy climbs into a parcel before the cargo plane takes it */
+    if(f.o.ride==='hockeybag'&&f.phase==='appear'){const z=Math.min(1,f.t/360);G.globalAlpha=f.a;   /* World 8: Glitchy zips himself into a hockey bag (the zipper runs shut across the top) before the train takes it */
+      px('#6b4a2a',p[0]+6,p[1]-17,2,9);px('#1b1220',p[0]+5,p[1]-9,5,2);box('#1d2a52',p[0]-11,p[1]-10,22,10);px('#e8364b',p[0]-11,p[1]-6,22,2);px('#c9c9cf',p[0]-10,p[1]-10,Math.round(20*z),1);px('#f4f1e8',p[0]-3,p[1]-4,6,2);G.globalAlpha=1;}}}
   x.restore();G=x;fx(t,p[0]);hud();
   if(f.phase==='fadeout'){x.fillStyle='rgba(0,0,0,'+Math.min(1,f.t/380)+')';x.fillRect(0,0,VW,VH);}
   overlays(dt);}
@@ -604,6 +606,12 @@ function drawRide(kind,X,Y,f,t,rider){const g=G;g.save();g.translate(Math.round(
     box('#9aa3b2',-20,b,40,9);box('#6b6f7a',-22,b-7,7,9);box('#c9d3dd',-4,b+3,15,4);box('#c9d3dd',-4,b-4,11,4);box('#7ec8ff',15,b+2,3,2);
     box('#3b2618',-16,b+1,11,7);box('#c98f52',-15,b+2,9,6);px('#8a5a2a',-15,b+4,9,1);px('#8a5a2a',-11,b+2,1,6);
     px('#ffffff',-14,b+1,3,2);px('#1b1220',-13,b+1,1,1);px('#00ffd0',-14,b-1,1,2);px('#00ffd0',-12,b-1,1,2);}
+  else if(kind==='hockeybag'){   /* World 8's escape: a silver passenger train heading east; in its open baggage car, the hockey bag Glitchy zipped himself into, a stick poking out and his eye peeking from the zipper */
+    box('#c3c9d1',-26,-17,52,14);px('#e8364b',-26,-9,52,2);px('#8f98a5',-26,-17,52,1);box('#c3c9d1',20,-21,8,6);
+    for(let i=0;i<3;i++)box('#cfeeff',2+i*6,-15,4,4);box('#3b3f4a',-23,-16,18,9);
+    box('#1d2a52',-22,-13,15,6);px('#e8364b',-22,-10,15,1);px('#6b4a2a',-9,-19,2,7);px('#c9c9cf',-21,-13,13,1);
+    px('#ffffff',-17,-14,3,2);px('#1b1220',-16,-14,1,1);px('#00ffd0',-17,-16,1,2);px('#00ffd0',-15,-16,1,2);
+    for(const a of[-20,-8,8,20])wheel(a);}
   g.restore();}
 /* the pixel box of a walk-behind layer, plus the map words that fall inside it (redrawn on top of the layer) */
 function overBox(w,c,y){const d=c.getContext('2d').getImageData(0,0,c.width,c.height).data;let x0=c.width,y0=c.height,x1=-1,y1=-1;

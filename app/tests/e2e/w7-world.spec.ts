@@ -9,8 +9,9 @@ import { expect, test, type ConsoleMessage, type Page } from '@playwright/test';
    - Drizzle is never stomped: each hit is Kinan switching on a sun lamp while Drizzle rests; the third lamp is the
      rainbow and the sky clears,
    - 7-castle (THE BIG STORM AT CANADA PLACE) reaches LEVEL CLEAR,
-   - beating 6-castle opens World 7 on the map; beating 7-castle shows World 8's "coming soon" sign and Glitchy's
-     escape (a parcel on a cargo plane, east toward Toronto),
+   - beating 6-castle opens World 7 on the map; beating 7-castle plays Glitchy's escape (a parcel on a cargo plane,
+     east toward Toronto) and opens the way on to World 8 (it showed World 8's "coming soon" sign until World 8 was
+     released, 2026-10-29: see w8-world.spec.ts; World 9's sign is checked there and in c1-cutscenes.spec.ts),
    - 7-6 shows the foam block pickaxe memory, and no page errors anywhere. */
 
 const BASE = 'http://127.0.0.1:4174/index.html';
@@ -428,7 +429,7 @@ test.describe('World 7 · no game over in a boss fight, and Glitchy helps after 
   }
 });
 
-/* ---- the map: World 7 opens after the 6-castle; the 7-castle opens the way east to World 8's "coming soon" sign ---- */
+/* ---- the map: World 7 opens after the 6-castle; the 7-castle opens the way east into World 8 (released 2026-10-29) ---- */
 type Fly = { kind: string; phase: string; leg: number; legs: number; world: number; home: string; riding: string | null } | null;
 type MapS = MapState & { fly: Fly };
 type CutS = { on: boolean; mode: string | null; lines: string[] };
@@ -499,7 +500,9 @@ test.describe('World 7 · on the map', () => {
     expect(errors).toEqual([]);
   });
 
-  test('the 7-castle: the exit stays shut until Drizzle is befriended; then Glitchy hides in a parcel on a cargo plane east toward World 8, and the way on is a "WORLD 8 COMING SOON!" sign', async ({ page }) => {
+  /* 2026-10-29: World 8 is released (OW_RELEASED 8), so the way on is open (it was a "WORLD 8 COMING SOON!" sign: that
+     sign moved on past the 8-castle for World 9, w8-world.spec.ts and c1-cutscenes.spec.ts) and leads into World 8 */
+  test('the 7-castle: the exit stays shut until Drizzle is befriended; then Glitchy hides in a parcel on a cargo plane east toward World 8, and the way on into World 8 is open', async ({ page }) => {
     test.setTimeout(240_000);
     const errors = watchErrors(page);
     await seedSave(page, `(ids) => ({ unlocked: 1, beaten: [], introSeen: true, levelsBeaten: Object.fromEntries(ids.filter((id) => Number(id.split('-')[0]) <= 7 && id !== '7-castle').map((id) => [id, 1])), unlockedLevels: ['1-secret', '2-secret', '3-secret', '4-secret', '5-secret', '6-secret', '7-secret'], escapes: { 1: 1, 2: 1, 3: 1, 4: 1, 5: 1, 6: 1 }, wmap: { w: 7, at: 10 } })`);
@@ -537,13 +540,13 @@ test.describe('World 7 · on the map', () => {
     const s2 = await settle(page);
     expect(s2).toMatchObject({ world: 7, at: 10 });
     expect(s2.stops[10].state).toBe('beaten');
-    expect(s2.notice).toBe('WORLD 8 COMING SOON!');
-    expect(s2.gate).toBe(8);
+    expect(s2.gate ?? null).toBeNull();                              /* no World 8 sign any more */
+    expect(s2.notice).toBe('THE WAY ON TO THE NEXT WORLD IS OPEN!');
     expect(await page.evaluate(() => (window as unknown as Win).__k11.progress() as unknown as { escapes: Record<string, number> })).toMatchObject({ escapes: { 7: 1 } });
     await page.locator('#owNext').click();
-    await expect.poll(async () => (await mapNow(page)).banner).toBe('WORLD 8 COMING SOON!');
-    expect(await settle(page)).toMatchObject({ world: 7, at: 10 });
-    expect(await page.evaluate(() => (window as unknown as Win).__k11.progress().wmap)).toEqual({ w: 7, at: 10 });
+    await expect.poll(async () => (await mapNow(page)).crossing).toBe(true);
+    expect(await settle(page, 90_000)).toMatchObject({ world: 8, at: 0 });
+    expect(await page.evaluate(() => (window as unknown as Win).__k11.progress().wmap)).toEqual({ w: 8, at: 0 });
     expect(errors).toEqual([]);
   });
 

@@ -2617,7 +2617,23 @@ function rng(seed) {
    ============================================================ */
 const LEVEL_RUNOUT = 12;          /* flat ground after the last column, then the world wall */
 const LEVEL_CLEAR_FRAMES = 120;   /* the victory lap after the goal (2 s), then back to the map */
+/* World 8's own looks (Toronto), numbered from 100 so the story-stage list (LV), the Builder's look picker and
+   everything else that counts LV stay exactly as they were. A level file's `theme: 100`..`109` wears one; the
+   pictures are W8BG's (the backdrop table). Each is drawn in the same pixel style as the other worlds' scenes. */
+const TO_LOOKS = {
+  100: { place: 'The Toronto Airport', bg: 'toskyline', windows: true, sky: ['#5aa8e8', '#d4ecf8'], far: '#6f7f96', mid: '#8a96a8', ground: '#5f6672', top: '#c9ced6', brick: '#2f5fb3', accent: '#f6c445' },
+  101: { place: 'The Subway', bg: 'tosubway', open: [127, 169], sky: ['#14161c', '#2a2f38'], far: '#3a3f4a', mid: '#2a2e36', ground: '#4a4f57', top: '#9aa1ab', brick: '#c2414f', accent: '#f6c445' },
+  102: { place: 'Nathan Phillips Square', bg: 'tosquare', sky: ['#7fb6e8', '#e6f2fb'], far: '#8a94a6', mid: '#a8b2c0', ground: '#7a7f88', top: '#e8eef4', brick: '#5a6a8a', accent: '#e8364b' },
+  103: { place: 'Up the CN Tower', bg: 'toskyline', high: true, sky: ['#3f8ee0', '#c4e4fa'], far: '#7a8aa0', mid: '#9aa6b6', ground: '#8a8f96', top: '#c9ced6', brick: '#6a6f78', accent: '#e8364b' },
+  104: { place: 'The Toronto Islands', bg: 'tolake', sky: ['#4fa8ff', '#d8f0ff'], far: '#6f8098', mid: '#3f8a4a', ground: '#7a6a52', top: '#5aa04a', brick: '#2f5fb3', accent: '#f6c445' },
+  105: { place: 'The Aquarium Tunnel', bg: 'toaquarium', sky: ['#0a2a4a', '#1f6a9a'], far: '#123a5a', mid: '#1a4a6a', ground: '#3a4a5a', top: '#8fd0e8', brick: '#e8833a', accent: '#f6c445' },
+  106: { place: 'Kensington Market', bg: 'kensington', sky: ['#3b2a6b', '#ff9a6a'], far: '#4a3a6a', mid: '#5a4a7a', ground: '#5a4a46', top: '#b9a99a', brick: '#a8452f', accent: '#f6c445' },
+  107: { place: 'The Rooftops at Dusk', bg: 'toskyline', dusk: true, roofs: true, sky: ['#2a2a5a', '#ff8a5c'], far: '#3a3560', mid: '#4a4570', ground: '#4a4046', top: '#8a7f88', brick: '#a8452f', accent: '#f6c445' },
+  108: { place: 'The Islands at Sunset', bg: 'tolake', dusk: true, sky: ['#4a3a7a', '#ffb070'], far: '#4a4060', mid: '#2f5a3a', ground: '#6a5a46', top: '#4a8a3a', brick: '#e8ecf2', accent: '#f6c445' },
+  109: { place: 'Casa Loma', bg: 'casaloma', sky: ['#2a2350', '#7a5a9a'], far: '#3a3456', mid: '#4a4466', ground: '#6a6470', top: '#a8a2b0', brick: '#8a6a4a', accent: '#f6c445' }
+};
 function levelTheme(k) {
+  if (Number.isInteger(k) && TO_LOOKS[k]) return Object.assign({}, TO_LOOKS[k], { skyKey: k, bgI: k });   /* World 8's Toronto looks */
   const i = Number.isInteger(k) && LV[k] && !LV[k].threeD && !LV[k].galaxy ? k : 5;
   return Object.assign({}, LV[i], { skyKey: i, bgI: i });
 }
@@ -2628,7 +2644,8 @@ function buildLevel(def) {
   const set = (x, y, v) => { if (x >= 0 && x < w && y >= 0 && y < ROWS) g[y * w + x] = v; };
   const foes = [], candles = [], gifts = {}, areas = [], seams = [], pipes = [], secretList = [], boards = new Set();
   let checkpoint = null, golden = null, goal = null, spawn = def.spawn || null, base = 0, lastH = 192, arenaAt = null, petCrate = null;
-  const tw = { on: false, t: 0, movers: [], pairs: [], swAt: {}, onB: [], offB: [], sw: 0, swCd: 0, magnets: [], signCols: [], signs: null, skins: [], rush: !!def.rush, storm: def.storm == null ? null : def.storm };
+  const tw = { on: false, t: 0, movers: [], pairs: [], swAt: {}, onB: [], offB: [], sw: 0, swCd: 0, magnets: [], signCols: [], signs: null, skins: [], rush: !!def.rush, storm: def.storm == null ? null : def.storm,
+    belts: [], fish: false, subway: !!def.subway };   /* World 8: conveyor belts, the aquarium's fish, silver subway cars */
   list.forEach((a, k) => {
     if (a.arena && !arenaAt) arenaAt = { d: a.arena, base: base, H: a.heights };   /* B1: one boss arena per level */
     const id = list.length > 1 ? a.id : def.id, name = list.length > 1 ? a.name : def.name;
@@ -2732,6 +2749,7 @@ function buildLevel(def) {
     toyBricks: !!def.toyBricks,   /* 1-4 Brick City: its bricks are the floor, stairs and bridges — they never break */
     boards: boards,   /* taekwondo: the wooden boards (cells of g holding a solid 5 that a KICK breaks) */
     tw: tw.on || tw.rush || tw.storm != null ? tw : null,   /* World 7 twists (null: the level plays exactly as before) */
+    snatch: !!def.snatch,   /* World 8: raccoons grab a candle and run (stomp or kick one to get it back); off everywhere else */
     arena: arena   /* B1: the boss arena (null in a level without one); its gates are its own — arenaX stays out of reach */
   };
 }
@@ -2832,13 +2850,14 @@ const OW_3D_FILES = ['map/worlds/w12_models.js', 'map/worlds/w12_3d.js'];
 /* World 12 stop id → 3D level file (3d/levels/<file>.js). BIG BRICK's arena stands in for the castle until the Bessborough level exists. */
 const OW_3D_LEVELS = { '12-1': '12-1', '12-2': '12-2', '12-3': '12-3', '12-castle': '12-arena' };
 let owEngineP = null, ow3DP = null, owToken = 0, owOn = false, owDefs = null;
-/* THE WORLDS IN THIS BUILD (Shad, 2026-10-28): Worlds 1-7 are released (World 6, Drumheller, complete 2026-10-28: its
+/* THE WORLDS IN THIS BUILD (Shad, 2026-10-28): Worlds 1-8 are released (World 6, Drumheller, complete 2026-10-28: its
    11 levels, the magpie flock and Robo-Rex; World 7, Vancouver, complete 2026-10-28: its 11 levels, the Giant Banana
-   Slug and Drizzle). A world after OW_RELEASED stays on the map behind a friendly "WORLD 8 COMING SOON!" sign with
+   Slug and Drizzle; World 8, Toronto, complete 2026-10-29: its 11 levels, the Big Octopus and the Raccoon King). A
+   world after OW_RELEASED stays on the map behind a friendly "WORLD 9 COMING SOON!" sign with
    Glitchy waving, and Kinan never walks past it, whether or not some of its level files exist yet (raise this number
    when the next world is complete). Developer tests reach the later worlds' map with __k11.owRelease(n) (?devtools=1
    on localhost only, kept for the tab's session). */
-const OW_RELEASED = 7;
+const OW_RELEASED = 8;
 let owReleased = OW_RELEASED;
 try { if (window.__k11DevOnly && window.__k11DevOnly()) { const v = Number(sessionStorage.getItem('kv-ow-release')); if (v >= 1 && v <= 12) owReleased = v; } } catch (e) { /* no session storage: the build's number */ }
 function owScripts(list) {
@@ -3317,9 +3336,10 @@ function cutFinish(skipped) {
 function cutAbort() { if (Cut.on && !Cut.moving) cutStop(true); }
 /* how Glitchy leaves a world on the road legs of his escape (story bible): World 6, he jumps onto a tour bus heading
    west through the mountains to Vancouver ("He's on the tour bus! Through the mountains!"); World 7, he climbs into a
-   parcel that is loaded onto a cargo plane flying east to Toronto ("He's hiding in a parcel... on a cargo plane!").
-   Worlds 1-5 run on foot. */
-const CUT_ESCAPE_RIDE = { 6: 'bus', 7: 'cargo' };
+   parcel that is loaded onto a cargo plane flying east to Toronto ("He's hiding in a parcel... on a cargo plane!");
+   World 8, he zips himself into a hockey bag that is loaded onto the train east to Montreal ("He's in a hockey bag!
+   On the train!"). Worlds 1-5 run on foot. */
+const CUT_ESCAPE_RIDE = { 6: 'bus', 7: 'cargo', 8: 'hockeybag' };
 /* the escape after a castle win: false when it can't play here (then the notice shows as before) */
 function cutEscape(n, notice) {
   if (Cut.on || !window.KINAN || !window.KINAN.fly || !(n >= 1 && n <= 10)) return false;
@@ -3890,7 +3910,33 @@ const ARENA_LINES = {
   t_drizzle_06: ['DRIZZLE', '...a rainbow? I made a RAINBOW? *sniff* Nobody ever stayed to talk to me before.', 4.6, true],
   t_w7_kinan_05: ['KINAN', "I'll stay! Rain makes flowers AND rainbows. You're awesome, Drizzle!", 3.8, true],
   t_drizzle_07: ['DRIZZLE', '(Drizzle stops crying and smiles. The clouds roll away and the sun comes out over the harbour.)', 4.2, true],
-  t_w7_shad_04: ['SHAD', 'You did it, bud. You turned a storm into a friend.', 3.4, true]
+  t_w7_shad_04: ['SHAD', 'You did it, bud. You turned a storm into a friend.', 3.4, true],
+  /* World 8 — Toronto. Text only, like Worlds 6-7 (no recordings): every line is a subtitle */
+  t_octo_01: ['THE BIG OCTOPUS', 'BLUB-BLUB-BLUB! (A giant octopus bursts out of the big tank. All the noise scared it!)', 4, true],
+  t_w8_kinan_01: ['KINAN', "Whoa! It isn't mad... it's SCARED. Shhh, it's okay, big guy!", 3.4, true],
+  t_w8_chenoa_01: ['CHENOA', 'Watch the floor, Kinan! A dark shadow means a tentacle is coming down there!', 3.8, true],
+  t_octo_02: ['THE BIG OCTOPUS', 'SLAP! SLAP! (Its tentacles slam down onto the shadows!)', 3, true],
+  t_octo_03: ['THE BIG OCTOPUS', 'SWISH! (A tentacle sweeps low across the floor. Jump it!)', 3, true],
+  t_octo_04: ['THE BIG OCTOPUS', 'PFFT! (It squirts a blob of ink. KICK it right back!)', 3, true],
+  t_octo_05: ['THE BIG OCTOPUS', 'FWOOOSH! (A big ink cloud! Where did it go?)', 3, true],
+  t_octo_06: ['THE BIG OCTOPUS', 'BLUB! BLUB! (It is wide awake now, and still a little scared!)', 3, true],
+  t_octo_07: ['THE BIG OCTOPUS', '...blub? (It stops shaking. It was only scared of all the noise.)', 3.8, true],
+  t_w8_kinan_02: ['KINAN', "See? Nobody's going to hurt you. Bye, big guy!", 3, true],
+  t_octo_08: ['THE BIG OCTOPUS', '(It waves all eight arms goodbye.)', 3, true],
+  t_king_01: ['THE RACCOON KING', 'HALT! Who dares to enter the shiny treasure room of the RACCOON KING?', 4, true],
+  t_w8_kinan_03: ['KINAN', "That's not garbage, Your Majesty. That's my friend Glitchy!", 3.4, true],
+  t_w8_shad_01: ['SHAD', "Kinan, it's Shad on the radio. He collects shiny things! When he sits down to count his treasure, look for a shiny bottle cap.", 5.4, true],
+  t_w8_shad_02: ['SHAD', 'Dodge the paws. When he sits down, grab the shiny bottle cap and offer it to him!', 4.2, true],
+  t_king_02: ['THE RACCOON KING', 'MINE! MINE! (Big paws reach down from above. Watch the shadows!)', 3.4, true],
+  t_king_03: ['THE RACCOON KING', 'Catch! (He tosses an old apple core. Yuck!)', 2.8, true],
+  t_king_04: ['THE RACCOON KING', 'ROLL OUT THE BINS! (Green bins roll across the floor. Jump them!)', 3.4, true],
+  t_king_05: ['THE RACCOON KING', 'Ooooh, shiny! ...But I want MORE shiny!', 3, true],
+  t_king_08: ['THE RACCOON KING', 'WHEEEE! (He belly-slides across the floor on his cape. Jump him!)', 3.2, true],
+  t_w8_kinan_04: ['KINAN', 'Two bottle caps! One more and we can make a trade, Your Majesty.', 3.6, true],
+  t_king_06: ['THE RACCOON KING', 'Three shiny bottle caps... for ME? Nobody ever GAVE me a present before!', 4.2, true],
+  t_w8_kinan_05: ['KINAN', 'A trade! Three shiny caps for my friend Glitchy. Deal?', 3.2, true],
+  t_king_07: ['THE RACCOON KING', 'DEAL! The shiny green box is yours, my new friend. Come back and see my treasure any time!', 4.6, true],
+  t_w8_shad_03: ['SHAD', "You didn't take it, bud. You traded, and you made a friend.", 3.6, true]
 };
 /* the bosses. A phase is how the boss plays between two hits:
      walk     pacing speed (px/frame)          windup  the tell before each attack (frames, >= 36)
@@ -4137,11 +4183,58 @@ const ARENA_KINDS = {
       { walk: 0.8, windup: 40, rest: 28, tired: 112, pattern: ['blow', 'lanes', 'rain', 'blow', 'lanes', 'rain', 'lanes'], n: 4, lanes: 3, speed: 1.4, feint: true, umbrella: true },
       { walk: 1.0, windup: 36, rest: 22, tired: 96, pattern: ['bolt', 'lanes', 'blow', 'bolt', 'rain', 'lanes', 'bolt', 'blow'], n: 4, lanes: 3, bolts: 3, speed: 1.6, feint: true, predict: true }
     ]
+  },
+  /* ---- World 8, Toronto (2026-10-29). A step up from World 7 again: the fort's tells 50/38 (the slug 52/40), the
+     castle's 48/38/36 (Drizzle 50/40/36; 36 frames is the 0.6 s floor), shorter rests, longer patterns. New moves:
+       grab    things reach down from above onto shadows marked on the floor for the whole wind-up, then come down one
+               by one, 12 frames apart (the octopus's tentacles, the Raccoon King's paws). The first shadow is on Kinan
+               (or where he is going), the rest spread out 64 px apart, so there is always floor between two of them.
+               A paw that catches Kinan grabs a candle (thief: they all come back when he is befriended)
+       ink     the octopus squirts a big ink cloud round itself and slips away inside it to the far side from Kinan;
+               the ink hurts nobody, the octopus can't hurt him while it hides, and the cloud is gone before the next
+               wind-up starts (and every move still has its "!" tell)
+     Boss keys: batBack (a KICK bats its thrown blobs back at it: they splat on it harmlessly, never a hit) · grabs (a
+     phase's tentacles / paws per grab) · grabW (px: how close to its shadow a grab reaches) · caps (tiles up, one per
+     phase: in each rest window a shiny bottle cap glints a few steps from the boss on Kinan's side, on the floor (0) or
+     floating a jump up (2); Kinan picks it up and touches the boss with it: that is the hit, the trade, never a stomp)
+     ---- */
+  octopus: {
+    name: 'THE BIG OCTOPUS', who: 'THE OCTOPUS', she: 'IT', w: 40, h: 30, scale: 1, draw: 'octopus', rowFit: true, batBack: true,
+    tall: 16, grabW: 12, sweep: 70,
+    shot: 'inkblob', rainShot: 'inkblob', roller: 'inkblob', pat: 'PAT', bonk: "SHHH, IT'S OK!", hugWord: 'EIGHT-ARM HUG!',
+    soon: 'NOT YET! WAIT TILL IT FLOPS DOWN TO REST',
+    hint: "It isn't mean, it's scared of all the noise! Step off the shadows (a tentacle slams down there), jump its sweep and KICK its ink blobs back. When it flops down on the floor to rest, hop on its head for a gentle <b>PAT!</b>",
+    smarter: ['It FAKES a slam now and aims where you are GOING: three tentacles at once and two ink blobs. Watch out for its INK CLOUD: it hides inside and pops up somewhere new!'],
+    friend: '🐙 <b>THE BIG OCTOPUS IS YOUR FRIEND NOW!</b> It was only scared of the noise. It waves all eight arms goodbye!',
+    lines: { intro: ['t_octo_01', 't_w8_kinan_01', 't_w8_chenoa_01'], retry: ['t_octo_01'], phase: [null, 't_octo_06'],
+      first: { grab: 't_octo_02', sweep: 't_octo_03', toss: 't_octo_04', ink: 't_octo_05' }, defeat: ['t_octo_07', 't_w8_kinan_02', 't_octo_08'] },
+    phases: [
+      { walk: 0.55, windup: 50, rest: 46, tired: 140, pattern: ['grab', 'toss', 'sweep', 'grab'], n: 1, grabs: 2, speed: 1.2 },
+      { walk: 0.75, windup: 38, rest: 36, tired: 116, pattern: ['ink', 'grab', 'toss', 'sweep', 'grab', 'toss'], n: 2, grabs: 3, speed: 1.4, feint: true, predict: true }
+    ]
+  },
+  'raccoon-king': {
+    name: 'THE RACCOON KING', who: 'THE RACCOON KING', she: 'HE', w: 34, h: 34, scale: 1, draw: 'king', rowFit: true, thief: true,
+    caps: [0, 2, 2], grabW: 13, slide: 20,   /* slide: his height (px) in the phase-3 belly slide (a charge: jump him) */
+    shot: 'junk', rainShot: 'junk', roller: 'bin', minion: 'raccoon', pat: 'OFFER', bonk: 'OOOH, SHINY!', hugWord: 'FRIENDS!',
+    soon: 'NOT YET! WAIT TILL HE SITS DOWN TO COUNT HIS TREASURE',
+    hint: "He isn't mean, he just LOVES shiny things! Step off the shadows (his paws grab from above) and dodge his junk. When he sits down to count his treasure, grab the glinting <b>BOTTLE CAP</b> and offer it to him!",
+    smarter: ['One cap! Now he ROLLS green bins at you (jump them!), FAKES a grab, and two little raccoons sneak in to snatch candles.', 'Two caps! He grabs where you are GOING, three paws at a time, and the bins roll faster. One more cap for the trade!'],
+    friend: '👑 <b>THE RACCOON KING IS YOUR FRIEND NOW!</b> Three shiny caps for Glitchy: a fair trade!',
+    lines: { intro: ['t_king_01', 't_w8_kinan_03', 't_w8_shad_01'], retry: ['t_king_01', 't_w8_shad_02'], phase: [null, 't_king_05', 't_w8_kinan_04'],
+      first: { grab: 't_king_02', toss: 't_king_03', roll: 't_king_04', charge: 't_king_08' }, defeat: ['t_king_06', 't_w8_kinan_05', 't_king_07', 't_w8_shad_03'] },
+    /* shorter tells and rests than Drizzle's and longer patterns; the rest windows are a little longer than Drizzle's
+       because the trade takes two steps (fetch the cap, then offer it), and a cap he has picked up stays his */
+    phases: [
+      { walk: 0.6, windup: 48, rest: 34, tired: 150, pattern: ['grab', 'toss', 'grab', 'toss'], n: 1, grabs: 2, speed: 1.2 },
+      { walk: 0.8, windup: 38, rest: 26, tired: 128, pattern: ['roll', 'grab', 'toss', 'roll', 'grab', 'toss', 'roll'], n: 2, grabs: 2, speed: 1.4, feint: true, minions: 2 },
+      { walk: 1.0, windup: 36, rest: 20, tired: 112, pattern: ['grab', 'roll', 'toss', 'grab', 'roll', 'grab', 'toss', 'charge'], n: 2, grabs: 3, speed: 1.6, feint: true, predict: true }
+    ]
   }
 };
 const ARENA_PHASE_KEYS = ['walk', 'windup', 'rest', 'tired', 'pattern', 'n', 'speed', 'feint', 'predict', 'minions', 'heal', 'bounce', 'platforms', 'calm', 'throwN', 'lanes', 'bolts', 'umbrella'];
 /* B2: the size of each rolling thing [w, h] (the floor rollers and the blower's roller) */
-const ARENA_ROLLERS = { gnome: [10, 12], laundry: [14, 10], bell: [10, 9], ball: [10, 9], log: [18, 9], pipe: [16, 8], car: [16, 11], trolley: [14, 10], prize: [10, 10], pinwheel: [10, 10], gear: [10, 10], trinket: [8, 8], slimesplash: [12, 8], puddle: [14, 7] };
+const ARENA_ROLLERS = { gnome: [10, 12], laundry: [14, 10], bell: [10, 9], ball: [10, 9], log: [18, 9], pipe: [16, 8], car: [16, 11], trolley: [14, 10], prize: [10, 10], pinwheel: [10, 10], gear: [10, 10], trinket: [8, 8], slimesplash: [12, 8], puddle: [14, 7], bin: [14, 14], inkblob: [10, 8] };
 /* buildLevel(): the arena declared by one area of a level (cols are that area's own) */
 function makeArena(d, base, H, set) {
   const kind = ARENA_KINDS[d.boss] ? d.boss : 'mom', K = ARENA_KINDS[kind];
@@ -4169,7 +4262,8 @@ function makeArena(d, base, H, set) {
     tries: 0, helped: false, glitchy: null, spotX: (gateL - 1) * T, said: {}, wonT: 0, hugged: false, music: null,
     note: null, noteGot: false, built: null,   /* B2: the calming music (calm), the shelves built in a phase (platforms) */
     stolen: 0, riding: false, rideDone: false,   /* World 6: candles the magpies grabbed (given back at the befriend); Robo-Rex's ride */
-    lamps: (K.lamps || []).map((c) => ({ x: (c0 + c) * T + 8, lit: false })), napped: false, flowers: [] };   /* World 7: Drizzle's sun lamps; the slug's nap; the flowers the rain grows */
+    lamps: (K.lamps || []).map((c) => ({ x: (c0 + c) * T + 8, lit: false })), napped: false, flowers: [],   /* World 7: Drizzle's sun lamps; the slug's nap; the flowers the rain grows */
+    cap: null, capHeld: false, ink: null, batted: 0 };   /* World 8: the shiny bottle cap (glinting / in Kinan's hand), the octopus's ink cloud, blobs kicked back */
 }
 /* World 7: a boss changes shape (the slug curled up, stretched up): same middle, feet on the floor */
 function arenaSize(A, w, h) {
@@ -4181,6 +4275,7 @@ function arenaFresh(A) {
   for (const l of A.lamps) l.lit = false;
   A.flowers = []; A.lampHint = 0;
   if (A.K.slime) L.slimeT = null;
+  A.cap = null; A.capHeld = false; A.ink = null;   /* World 8: no bottle cap out, none in Kinan's hand, no ink */
 }
 /* World 7: once a sun lamp shines, the rain that falls in a lane grows flowers on the pier (a picture only) */
 function arenaGrow(A) {
@@ -4361,6 +4456,16 @@ function arenaMarks(b, ph, A, wind) {
   } else if (b.cur === 'sweep') {
     /* World 6: the tail's reach, a wide band round the boss for the whole wind-up and the sweep */
     A.ring = { x: b.x + b.w / 2, y: A.floorY, rw: A.K.sweep || 60 };
+  } else if (b.cur === 'grab') {
+    /* World 8: a shadow where each tentacle / paw will come down: the first on Kinan (or where he is going), the rest
+       64 px apart on the roomier side first, so there is always floor between two shadows to stand on */
+    const cnt = ph.grabs || 1, gap = 64, lo = (A.gateL + 1) * T + 10, hi = A.gateR * T - 10, aim = arenaAim(A, ph, Math.min(50, wind));
+    const side = aim - lo > hi - aim ? -1 : 1, xs = [];
+    for (let k = 0; xs.length < cnt && k < 8; k++) {
+      const x = aim + (k === 0 ? 0 : (k % 2 ? side : -side) * Math.ceil(k / 2) * gap);
+      if (x >= lo && x <= hi) xs.push(x);
+    }
+    xs.forEach((x, k) => A.marks.push({ x: x, y: arenaFloorAt(A, x), grab: true, k: k }));
   }
 }
 function arenaShot(A, o) { A.shots.push(Object.assign({ w: 8, h: 8, vx: 0, vy: 0, g: 0.18, life: 600, spin: 0 }, o)); }
@@ -4405,6 +4510,7 @@ function arenaAttack(b, ph, A) {
   } else if (atk === 'charge' || atk === 'charge2') {
     b.dir = dir; b.state = 'charge'; b.t = 400;
     if (A.kind === 'goalie') { b.h = 14; b.y = A.floorY - b.h; }   /* the dive: he flies low and flat */
+    if (A.K.slide) { b.h = A.K.slide; b.y = A.floorY - b.h; }   /* World 8: the Raccoon King's belly slide, low and flat */
     SFX.thud();
   } else if (atk === 'slam') {
     const tx = A.ring ? A.ring.x : bc;
@@ -4440,6 +4546,17 @@ function arenaAttack(b, ph, A) {
     /* World 7: the bolts strike their flashing targets one by one, 10 frames apart */
     b.state = 'zap'; b.t = 16 + 10 * Math.max(0, A.marks.length - 1); b.zapT = 0;
     shake = Math.max(shake, 3);
+  } else if (atk === 'grab') {
+    /* World 8: the tentacles / paws come down onto their shadows one by one, 12 frames apart, and go back up */
+    b.state = 'grab'; b.t = 22 + 12 * Math.max(0, A.marks.length - 1); b.zapT = 0;
+    SFX.pew();
+  } else if (atk === 'ink') {
+    /* World 8: a big ink cloud where the octopus is; it slips away inside it to the far side from Kinan */
+    const mid = (A.gateL + A.gateR + 1) / 2 * T, pc = P.x + P.w / 2;
+    A.ink = { x: bc, t: 0, dur: 90 };
+    b.inkTo = clamp(pc < mid ? (A.gateR - 4) * T - b.w / 2 : (A.gateL + 5) * T - b.w / 2, (A.gateL + 1) * T, A.gateR * T - b.w);
+    b.state = 'ink'; b.t = 60;
+    SFX.pew(); shake = Math.max(shake, 2);
   }
 }
 function arenaNext(b, ph, A) {
@@ -4454,8 +4571,39 @@ function arenaTired(b, ph, A, how) {
   if (A.kind === 'goalie') { b.h = 14; b.y = A.floorY - b.h; }
   if (A.K.tall) arenaSize(A, A.K.w, A.K.tall);   /* World 7: the slug stretches up to catch its breath: its head is the soft spot */
   if (A.K.lamps) { if (!A.saidStomp) { A.saidStomp = true; const l = A.lamps[b.max - b.hp]; if (l) pop(l.x - 30, A.floorY - 52, 'SWITCH ON THE SUN LAMP!', 80, '#f6c445'); } arenaLog(A, how); return; }   /* World 7: Drizzle rests: a lamp, not a stomp */
+  if (A.K.caps) { arenaCapSpawn(A); arenaLog(A, how); return; }   /* World 8: the Raccoon King sits down to count his treasure: a bottle cap glints */
   if (!A.saidStomp) { A.saidStomp = true; pop(b.x - 8, b.y - 26, (A.K.pat || 'STOMP') + ' NOW!', 70, '#f6c445'); }
   arenaLog(A, how);
+}
+/* World 8 (caps): the next shiny bottle cap glints at its spot (unless one is already out or in Kinan's hand: a cap
+   he picked up stays his until he offers it, even if the rest window ends first) */
+function arenaCapSpawn(A) {
+  const b = A.boss;
+  if (A.cap || A.capHeld) return;
+  const up = A.K.caps[Math.min(A.K.caps.length - 1, b.max - b.hp)], bc = b.x + b.w / 2, lo = (A.gateL + 1) * T + 10, hi = A.gateR * T - 10;
+  let side = (P.x + P.w / 2) < bc ? -1 : 1, x = clamp(bc + side * (b.w / 2 + 40), lo, hi);   /* it fell out of his treasure: a few steps from him, on Kinan's side */
+  if (Math.abs(x - bc) < b.w / 2 + 16) { side = -side; x = clamp(bc + side * (b.w / 2 + 40), lo, hi); }   /* he sits against a gate: the other side */
+  const y = A.floorY - 9 - up * T;
+  A.cap = { x: x, y: y, t: 0 };
+  sparks(x, y, 12, ['#fff3b0', '#f6c445', '#fff']); SFX.gift();
+  pop(clamp(x, (A.gateL + 1) * T + 84, A.gateR * T - 84), y - 22, 'A SHINY BOTTLE CAP!', 80, '#f6c445');
+  arenaLog(A, 'capspawn', { x: Math.round(x), y: Math.round(y) });
+}
+/* World 8 (caps): Kinan picks the cap up; holding it, he touches the resting King: the trade (the hit) */
+function arenaCapTouch(A) {
+  const b = A.boss, c = A.cap;
+  if (c && !A.capHeld && overlap(P, { x: c.x - 7, y: c.y - 7, w: 14, h: 14 })) {
+    A.cap = null; A.capHeld = true;
+    SFX.heart(); sparks(c.x, c.y, 12, ['#fff3b0', '#f6c445', '#fff']);
+    pop(clamp(c.x, (A.gateL + 1) * T + 84, A.gateR * T - 84), c.y - 20, 'GOT IT! OFFER IT TO THE KING', 80, '#f6c445');
+    arenaLog(A, 'capgot');
+  }
+  if (A.capHeld && (b.state === 'tired' || b.state === 'dizzy') && b.inv <= 0 && overlap(P, { x: b.x - 4, y: b.y - 2, w: b.w + 8, h: b.h + 2 })) {
+    A.capHeld = false;
+    arenaHit(b, A, { x: b.x + b.w / 2, cap: true });
+    return true;
+  }
+  return false;
 }
 function arenaRealStomp(b, A) {
   SFX.thud(); dust(b.x + b.w / 2, A.floorY, 8);
@@ -4507,6 +4655,7 @@ function arenaBossAI(A) {
       if (frame % 4 === 0) dust(b.x + (b.dir > 0 ? 0 : b.w), A.floorY, 1);
       if (b.x <= lo || b.x >= hi) {
         b.x = clamp(b.x, lo, hi); b.vx = 0;
+        if (A.K.slide) { b.h = A.K.h; b.y = A.floorY - b.h; }   /* World 8: the King sits up at the gate */
         SFX.thud(); sparks(b.x + (b.dir > 0 ? b.w : 0), b.y + 6, 10, ['#f6c445', '#fff']);
         if (b.cur === 'curl') {   /* World 7: the slug bumps the gate, uncurls (away from the gate) and carries on */
           arenaSize(A, A.K.w, A.K.h); b.x = clamp(b.x, lo, A.gateR * T - b.w); b.face = -b.dir;
@@ -4581,6 +4730,31 @@ function arenaBossAI(A) {
         m.struck = at >= 1; m.gone = at > 8;
       }
       if (b.t <= 0) { A.marks = []; arenaNext(b, ph, A); }
+      break;
+    }
+    case 'grab': {
+      /* World 8: each tentacle / paw comes down on its shadow in turn and stays down 10 frames: it reaches the whole
+         column over its shadow (it comes from above), never the floor beside it. A paw grabs a candle (thief) */
+      b.zapT++;
+      const pc = P.x + P.w / 2, reach = (A.K.grabW || 12) + P.w / 2 - 2;
+      for (const m of A.marks) {
+        if (!m.grab) continue;
+        const at = b.zapT - m.k * 12;
+        if (at === 3) { SFX.thud(); dust(m.x, m.y, 6); rings.push({ x: m.x, y: m.y - 2, r: 4, t: 14 }); shake = Math.max(shake, 2); }
+        if (at >= 3 && at <= 12 && !P.dead && Math.abs(pc - m.x) < reach) {
+          if (A.K.thief && P.inv <= 0 && !m.stole) { m.stole = true; arenaSteal(A, m); }
+          hurt(m.x);
+        }
+        m.struck = at >= 1;
+      }
+      if (b.t <= 0) { A.marks = []; arenaNext(b, ph, A); }
+      break;
+    }
+    case 'ink': {
+      /* World 8: hidden in its ink, the octopus slips over to its new spot (it can't hurt Kinan while it hides) */
+      b.vx = clamp(b.inkTo - b.x, -2.4, 2.4); b.x = clamp(b.x + b.vx, lo, hi);
+      if (Math.abs(b.vx) > 0.2) b.face = sign(b.vx);
+      if (b.t <= 0) { b.vx = 0; arenaNext(b, ph, A); }
       break;
     }
     case 'tired': case 'dizzy':
@@ -4662,6 +4836,12 @@ function arenaShots(A) {
       if (s.x < lo - 6 || s.x > hi + 6) s.gone = true;
     }
     if (s.life <= 0) s.gone = true;
+    if (s.batted && !s.gone && overlap(s, A.boss)) {   /* World 8: an ink blob Kinan kicked back splats on the octopus: it tickles, it never hurts */
+      s.gone = true; SFX.pop(); sparks(s.x + s.w / 2, s.y + s.h / 2, 10, ['#3a2a55', '#7a5aa8', '#fff']);
+      pop(A.boss.x - 6, A.boss.y - 14, 'SPLAT! IT TICKLES', 50, '#c9b6ff');
+      arenaLog(A, 'splat', { hp: A.boss.hp });
+      continue;
+    }
     if (s.gone || s.friendly) continue;
     if (!P.dead && !s.stole && overlap(P, s)) {
       if (!s.swoop) s.gone = true;
@@ -4684,7 +4864,23 @@ function arenaShots(A) {
   }
   A.spawnQ = A.spawnQ.filter((q) => q.t > 0);
 }
-const ARENA_BUSY = { pace: 1, windup: 1, feint: 1, recover: 1, charge: 1, leap: 1, blow: 1, sweep: 1 };
+const ARENA_BUSY = { pace: 1, windup: 1, feint: 1, recover: 1, charge: 1, leap: 1, blow: 1, sweep: 1, grab: 1 };   /* World 8: grab (never ink: hiding, the octopus can't hurt him) */
+/* World 8 (batBack): the KICK in a fight with a boss that throws blobs: a blob in the kick's reach flies back at the
+   boss and splats on it harmlessly (arenaShots). Nothing else in a fight is ever kicked: not the boss, its rain, its
+   rollers or its helpers */
+function arenaKickShots(A, box) {
+  const bc = A.boss.x + A.boss.w / 2;
+  for (const s of A.shots) {
+    if (s.gone || s.friendly || s.roll || s.rain || s.swoop || s.kind !== A.K.shot || !overlap(box, s)) continue;
+    const dx = bc - (s.x + s.w / 2), vx = clamp(Math.abs(dx) / 30, 2.2, 3.6) * (dx < 0 ? -1 : 1), tf = Math.max(8, Math.abs(dx / vx));
+    s.friendly = true; s.batted = true; s.vx = vx; s.g = 0.17; s.life = 200;
+    s.vy = clamp((A.boss.y + A.boss.h / 2 - (s.y + s.h / 2) - 0.5 * s.g * tf * tf) / tf, -6, 1);
+    A.batted++;
+    pop(s.x - 8, s.y - 10, 'BATTED BACK!', 34, '#7be3a3');
+    sparks(s.x + s.w / 2, s.y + s.h / 2, 6, ['#fff', '#7be3a3']); SFX.pop();
+    arenaLog(A, 'batted');
+  }
+}
 /* World 7: Kinan walks into the next sun lamp. While Drizzle rests it switches on (that is the hit); before that it
    only says "not yet" */
 function arenaLampTouch(A) {
@@ -4700,6 +4896,7 @@ function arenaContact(A) {
   const b = A.boss;
   if (b.state === 'wait' || P.dead) return;
   if (A.K.lamps) arenaLampTouch(A);
+  if (A.K.caps && A.state === 'fight' && arenaCapTouch(A)) return;   /* World 8: the bottle cap, then the trade */
   if (A.K.soft) {   /* World 7: Drizzle is a cloud: touching it never hurts, landing on it is a soft bounce (never a hit) */
     if (A.state === 'fight' && P.vy > 0 && overlap(P, b) && P.prevBottom <= b.y + 8) {
       P.vy = -4.6; P.y = b.y - P.h; P.cuttable = false;
@@ -4711,10 +4908,10 @@ function arenaContact(A) {
   const nearSide = P.x < b.x + b.w + 3 && P.x + P.w > b.x - 3;
   const fellOn = P.vy > 0 && nearSide && feetY >= headY - 2 && feetY <= headY + 12 && P.prevBottom <= headY + 8;
   if (fellOn) {
-    if ((b.state === 'tired' || b.state === 'dizzy') && b.inv <= 0) { arenaHit(b, A); return; }
+    if ((b.state === 'tired' || b.state === 'dizzy') && b.inv <= 0 && !A.K.caps) { arenaHit(b, A); return; }   /* World 8: the King is never stomped: he trades */
     if (b.state === 'friend') { P.vy = -5; P.y = headY - P.h; arenaHug(A); return; }
     P.vy = -5.6; P.y = headY - P.h; P.cuttable = false;   /* not tired yet: he bounces off, unhurt */
-    if (b.hintT <= 0) { b.hintT = 100; pop(b.x - 20, b.y - 18, A.K.soon || 'TOO SOON! WAIT TILL ' + A.K.she + "'S TIRED", 60, '#9fe0ff'); SFX.click(); }
+    if (b.hintT <= 0) { b.hintT = 100; pop(b.x - 20, b.y - 18, A.K.caps && (b.state === 'tired' || b.state === 'dizzy') ? 'BRING HIM THE SHINY BOTTLE CAP!' : A.K.soon || 'TOO SOON! WAIT TILL ' + A.K.she + "'S TIRED", 60, '#9fe0ff'); SFX.click(); }
     return;
   }
   if (!overlap(P, b)) return;
@@ -4732,7 +4929,11 @@ function arenaHit(b, A, lamp) {
   const F = feel();
   b.hp--; b.inv = 40; b.flash = 10;
   hitStop = F.BOSS_HITSTOP;
-  if (lamp) {   /* World 7: Kinan switches on a sun lamp: no stomp, nobody gets hurt; its light reaches Drizzle */
+  if (lamp && lamp.cap) {   /* World 8: Kinan offers the King a shiny bottle cap: no stomp, nobody gets hurt */
+    SFX.power(); SFX.gift();
+    sparks(lamp.x, b.y + 4, 18, ['#fff3b0', '#f6c445', '#fff']);
+    pop(b.x - 6, b.y - 16, A.K.bonk || 'SHINY!', 50, '#f6c445');
+  } else if (lamp) {   /* World 7: Kinan switches on a sun lamp: no stomp, nobody gets hurt; its light reaches Drizzle */
     SFX.power(); SFX.gift();
     sparks(lamp.x, A.floorY - 26, 18, ['#fff3b0', '#f6c445', '#fff']);
     pop(lamp.x - 30, A.floorY - 48, A.K.bonk || 'ON!', 50, '#f6c445');
@@ -4742,8 +4943,8 @@ function arenaHit(b, A, lamp) {
     sparks(b.x + b.w / 2, b.y + 2, 16, ['#f6c445', '#fff', '#ff6fae']);
     pop(b.x - 4, b.y - 14, A.K.bonk || 'BONK!', 40, '#ff6fae');
   }
-  arenaLog(A, 'hit', lamp ? { hp: b.hp, lamp: true } : { hp: b.hp });
-  A.shots = A.shots.filter((s) => s.friendly); A.marks = []; A.ring = null; A.note = null; A.noteGot = false;
+  arenaLog(A, 'hit', lamp ? (lamp.cap ? { hp: b.hp, cap: true } : { hp: b.hp, lamp: true }) : { hp: b.hp });
+  A.shots = A.shots.filter((s) => s.friendly); A.marks = []; A.ring = null; A.note = null; A.noteGot = false; A.ink = null;
   if (b.hp <= 0) { arenaBefriend(A); return; }
   b.phase++; b.attackN = 0; b.atk = 0; b.state = 'hurt'; b.t = 80;
   if (A.kind === 'goalie') { b.h = A.K.h; b.y = A.floorY - b.h; }
@@ -4760,7 +4961,11 @@ function arenaBefriend(A) {
   A.state = 'friend'; A.wonT = 0; b.state = 'friend'; b.vx = 0;
   b.h = A.K.h; b.y = A.floorY - b.h;
   A.shots = []; A.marks = []; A.ring = null; A.spawnQ = []; A.note = null; A.noteGot = false;
-  for (const f of foes) if (f.arena && f.alive) { f.alive = false; f.dead = 0; sparks(f.x + 6, f.y + 6, 8, ['#ff6fae', '#fff']); }
+  for (const f of foes) if (f.arena && f.alive) {
+    if (f.loot) { A.stolen += f.loot; f.loot = 0; }   /* World 8: a little raccoon that ran off with a candle gives it back too */
+    f.alive = false; f.dead = 0; sparks(f.x + 6, f.y + 6, 8, ['#ff6fae', '#fff']);
+  }
+  A.cap = null; A.capHeld = false; A.ink = null;
   P.inv = Math.max(P.inv, 90);
   A.lineQ = []; A.line = null; A.lineT = 0;
   for (const id of A.K.lines.defeat) arenaSay(A, id);
@@ -4806,6 +5011,8 @@ function arenaUpdate() {
     sparks(A.cp.tx * T + 6, (A.cp.ty - 1) * T, 12, ['#44c55a', '#fff', '#f6c445']);
   }
   if (A.state === 'wait' && !P.dead && P.x > (A.gateL + 3) * T && P.x < A.gateR * T) arenaStart(A);
+  if (A.ink && ++A.ink.t >= A.ink.dur) A.ink = null;   /* World 8: the ink cloud thins out and is gone */
+  if (A.cap) A.cap.t++;
   if (A.state === 'fight') {
     arenaBossAI(A);
     arenaShots(A);
@@ -7234,7 +7441,7 @@ function killFoe(f, txt) {
   pop(f.x + 2, f.y - 6, (txt || 'BONK') + (mult > 1 ? ' x' + mult : ''), 30, mult > 2 ? '#ff6fae' : '#f6c445');
   sparks(f.x + 6, f.y + 6, 10, ['#f6c445', '#fff', '#ff8a3d']);
   dust(f.x + 6, f.y + 12, 4);
-  if (f.loot) { const n = f.loot; f.loot = 0; addCandle(n); pop(f.x, f.y - 16, '+1 candle back!', 34, '#f6c445'); }   /* a magpie drops what it grabbed */
+  if (f.loot) { const n = f.loot; f.loot = 0; addCandle(n); pop(f.x, f.y - 16, '+1 candle back!', 34, '#f6c445'); if (L && L.snatch) L.gotBack = (L.gotBack || 0) + n; }   /* a magpie drops what it grabbed (World 8: a raccoon too) */
   if (f.def.split && !f.mini) {
     foes.push(makeFoe({ type: f.type, x: f.x, y: f.y + 4, vx: -1.4, mini: true }));
     foes.push(makeFoe({ type: f.type, x: f.x + 6, y: f.y + 4, vx: 1.4, mini: true }));
@@ -7273,7 +7480,7 @@ function kickTick() {
       for (let tx = Math.floor(b.x / T); tx <= Math.floor((b.x + b.w - 1) / T); tx++) if (tileAt(tx, ty) === 5 && L.boards.has((ty + up) * L.w + tx)) breakBoard(tx, ty);
     }
   }
-  if (arenaLive()) return;   /* a boss fight: no foe, shot or boss is ever kicked */
+  if (arenaLive()) { if (L.arena.K.batBack) arenaKickShots(L.arena, b); return; }   /* a boss fight: no foe, shot or boss is ever kicked (World 8: the octopus's ink blobs are batted back, harmlessly) */
   for (const f of foes) {
     if (!f.alive || f.hidden || f.arena || P.kickHit.indexOf(f) >= 0 || !overlap(b, f)) continue;
     P.kickHit.push(f); kickFoe(f, P.face, 'HI-YAH!');
@@ -7289,6 +7496,7 @@ function kickFoe(f, dir, word) {
   }
   f.dizzy = KICK_DIZZY; f.kb = dir * 3.4; f.hurtT = 8; f.charge = 0; f.tele = 0; f.face = -dir;
   if (f.def.beh !== 'flyer') f.vy = Math.min(f.vy || 0, -2.2);
+  if (f.loot && L && L.snatch) { const n = f.loot; f.loot = 0; addCandle(n); L.gotBack = (L.gotBack || 0) + n; pop(f.x, f.y - 16, '+1 candle back!', 34, '#f6c445'); }   /* World 8: a kicked raccoon drops the candle it grabbed */
   L.kicked = (L.kicked || 0) + 1;
   pop(f.x - 4, f.y - 10, word || 'HI-YAH!', 30, '#f6c445');
   sparks(f.x + f.w / 2, f.y + f.h / 2, 8, ['#fff', '#f6c445', '#6fc8ff']);
@@ -7562,11 +7770,13 @@ function updateFoes() {
       P.squash = 4; P.y = f.y - P.h + 1; P.cuttable = false;
       if (F.STOMP_HITSTOP > 0) hitStop = F.STOMP_HITSTOP;   /* §1.3: 4-frame freeze on stomp contact */
       SFX.stomp(); shakeIt(1.5);
-    } else if (f.def.thief) {   /* a magpie grabs a candle and flies off with it: stomp it to get the candle back */
+    } else if (f.def.thief || (L.snatch && f.def.kind === 'raccoon')) {   /* a magpie grabs a candle and flies off with it: stomp it to get the candle back (World 8: a raccoon grabs one and RUNS) */
       if (!f.flee) {
+        const coon = f.def.kind === 'raccoon';
         f.flee = true; SFX.pew();
-        if (got > 0) { got--; f.loot = 1; updHud(); pop(f.x, f.y - 8, '-1 candle!', 30, '#ff6b6b'); toast('A <b>' + (f.def.kind === 'seagull' ? 'seagull' : 'magpie') + '</b> grabbed a candle! Stomp it to get it back!', 1600); }
-        else pop(f.x, f.y - 8, 'SQUAWK!', 26, '#f4f1e8');
+        if (coon) { f.vx = (P.x + P.w / 2 < f.x + f.w / 2 ? 1 : -1) * 2.1; f.baseVx = f.vx; f.face = sign(f.vx); L.snatched = (L.snatched || 0) + 1; }   /* away from Kinan, fast (he can still catch it) */
+        if (got > 0) { got--; f.loot = 1; updHud(); pop(f.x, f.y - 8, '-1 candle!', 30, '#ff6b6b'); toast('A <b>' + (coon ? 'raccoon' : f.def.kind === 'seagull' ? 'seagull' : 'magpie') + '</b> grabbed a candle! ' + (coon ? 'Stomp it or KICK it to get it back!' : 'Stomp it to get it back!'), 1600); }
+        else pop(f.x, f.y - 8, coon ? 'HISS!' : 'SQUAWK!', 26, '#f4f1e8');
       }
     } else {
       hurt(f.x);
@@ -10074,6 +10284,8 @@ function drawArenaDrawn(A, b, bsx, sqX, sqY) {
   if (A.K.draw === 'rex') { drawArenaRex(A, b, bsx, sqX, sqY); return; }   /* World 6: Robo-Rex */
   if (A.K.draw === 'slug') { drawArenaSlug(A, b, bsx, sqX, sqY); return; }   /* World 7: the Giant Banana Slug */
   if (A.K.draw === 'drizzle') { drawArenaDrizzle(A, b, bsx, sqX, sqY); return; }   /* World 7: Drizzle */
+  if (A.K.draw === 'octopus') { drawArenaOctopus(A, b, bsx, sqX, sqY); return; }   /* World 8: the Big Octopus */
+  if (A.K.draw === 'king') { drawArenaKing(A, b, bsx, sqX, sqY); return; }   /* World 8: the Raccoon King */
   const K = A.K, bottom = Math.round(b.y + b.h), bcx = bsx + b.w / 2;
   const pose = { w: b.w, h: b.h, face: b.face, vx: b.vx, onGround: true, kind: K.draw === 'bull' ? 'bronco' : K.draw,
     state: b.state === 'charge' ? 'charge' : 'pose' };
@@ -10153,6 +10365,7 @@ function drawArena() {
     const mx = Math.round(m.x - cx), pulse = 0.5 + Math.sin(frame / 4) * 0.2;
     if (m.lane) { drawArenaLane(A, m, mx, b.state === 'pour'); continue; }   /* World 7: a rain lane */
     if (m.bolt) { drawArenaBolt(A, m, mx); continue; }   /* World 7: a lightning target */
+    if (m.grab) { drawArenaGrab(A, m, mx); continue; }   /* World 8: a tentacle / paw coming down */
     ctx.fillStyle = 'rgba(0,0,0,' + (0.25 + pulse * 0.25).toFixed(2) + ')';
     ctx.beginPath(); ctx.ellipse(mx, m.y - 1, 8, 3, 0, 0, 6.284); ctx.fill();
     ctx.strokeStyle = 'rgba(255,90,90,' + pulse.toFixed(2) + ')'; ctx.lineWidth = 1;
@@ -10256,6 +10469,12 @@ function drawArena() {
       }
     }
   }
+  if (A.ink || A.cap || A.capHeld) {   /* World 8: the octopus's ink cloud, the shiny bottle cap (never dimmed by the boss's flash) */
+    const ga = ctx.globalAlpha; ctx.globalAlpha = 1;
+    if (A.ink) drawArenaInk(A, cx);
+    if (A.cap || A.capHeld) drawArenaCap(A, cx);
+    ctx.globalAlpha = ga;
+  }
   if (A.note) {   /* B2 calm: the music, floating and glowing, waiting to be grabbed */
     const n = A.note, nx = Math.round(n.x - cx), ny = Math.round(n.y + Math.sin(frame / 10) * 2);
     glowDisc(nx, ny, 14, 'rgba(246,196,69,.55)', 0.9);
@@ -10294,7 +10513,13 @@ function drawArenaTells() {
     ctx.font = 'bold 12px monospace'; ctx.fillStyle = '#ff4a4a'; ctx.fillText('!!', bcx, headY);
   }
   const lamp = tired && A.lamps.length ? A.lamps[b.max - b.hp] : null;
-  if (lamp) {   /* World 7: Drizzle rests: the gold arrow points at the sun lamp to switch on (never at Drizzle) */
+  const capAim = tired && A.K.caps && A.state === 'fight' ? (A.capHeld ? { x: b.x + b.w / 2, y: headY - 6, word: 'OFFER IT' } : A.cap ? { x: A.cap.x, y: Math.round(A.cap.y) - 10, word: 'SHINY CAP' } : null) : null;
+  if (capAim) {   /* World 8: the King counts his treasure: the gold arrow points at the bottle cap, then (cap in hand) at him */
+    const lx = Math.round(capAim.x - cx), ly = capAim.y, bob = Math.round(Math.sin(frame / 6) * 2);
+    ctx.fillStyle = '#f6c445'; ctx.beginPath(); ctx.moveTo(lx - 5, ly - 7 + bob); ctx.lineTo(lx + 5, ly - 7 + bob); ctx.lineTo(lx, ly + bob); ctx.fill();
+    ctx.font = 'bold 7px monospace'; ctx.fillStyle = '#1b1220'; ctx.fillText(capAim.word, lx + 1, ly - 9 + bob); ctx.fillStyle = '#fff3b0'; ctx.fillText(capAim.word, lx, ly - 10 + bob);
+    if (!A.capHeld && frame % 80 < 50) { ctx.font = 'bold 7px monospace'; ctx.fillStyle = '#fff3b0'; ctx.fillText('ooh, shiny...', bcx, headY + 4); }
+  } else if (lamp) {   /* World 7: Drizzle rests: the gold arrow points at the sun lamp to switch on (never at Drizzle) */
     const lx = Math.round(lamp.x - cx), ly = A.floorY - 34, bob = Math.round(Math.sin(frame / 6) * 2);
     ctx.fillStyle = '#f6c445'; ctx.beginPath(); ctx.moveTo(lx - 5, ly - 7 + bob); ctx.lineTo(lx + 5, ly - 7 + bob); ctx.lineTo(lx, ly + bob); ctx.fill();
     const word = A.K.pat || 'SUN LAMP';
@@ -10442,6 +10667,24 @@ function drawArenaShotB2(s, sx, sy, spin) {
   } else if (k === 'umbrella') {   /* World 7: the umbrella floating down for the gusts */
     glowDisc(sx + 6, sy + 6, 11, 'rgba(255,230,140,.55)', 0.7);
     drawPickup('umbrella', sx, sy, 0);
+  } else if (k === 'inkblob') {   /* World 8: a blob of octopus ink (a KICK bats it back) */
+    ctx.fillStyle = 'rgba(42,29,64,.55)'; ctx.fillRect(sx + 4 - (sign(s.vx) || 1) * 6, sy + 3, 4, 2);   /* its little trail */
+    ctx.fillStyle = s.batted ? '#5a3f8a' : '#2a1d40'; ctx.beginPath(); ctx.ellipse(sx + 5, sy + 4, 5 + (spin ? 0.6 : 0), 4, 0, 0, 6.284); ctx.fill();
+    ctx.fillStyle = '#7a5aa8'; ctx.fillRect(sx + 2, sy + 2, 2, 1); ctx.fillStyle = '#fff'; ctx.fillRect(sx + 3, sy + 1, 1, 1);
+  } else if (k === 'junk') {   /* World 8: an old apple core the Raccoon King tosses */
+    ctx.save(); ctx.translate(sx + 5, sy + 5); ctx.rotate(s.spin / 8);
+    ctx.fillStyle = '#e8364b'; ctx.fillRect(-3, -5, 6, 3); ctx.fillRect(-3, 2, 6, 3);
+    ctx.fillStyle = '#f4ecc8'; ctx.fillRect(-2, -3, 4, 6);
+    ctx.fillStyle = '#5a3a24'; ctx.fillRect(-1, -7, 1, 2); ctx.fillStyle = '#44c55a'; ctx.fillRect(0, -7, 2, 1);
+    ctx.restore();
+  } else if (k === 'bin') {   /* World 8: a green bin rolling across the floor on its wheels, lid flapping (jump it) */
+    const w = s.w, h = s.h, wob = spin ? 1 : 0;
+    ctx.fillStyle = '#1f6b34'; ctx.fillRect(sx, sy + 2, w, h - 4);
+    ctx.fillStyle = '#2f9e44'; ctx.fillRect(sx + 1, sy + 3, w - 2, h - 6);
+    ctx.fillStyle = '#1f6b34'; ctx.fillRect(sx - 1, sy + wob, w + 2, 3);
+    ctx.fillStyle = '#7be3a3'; ctx.fillRect(sx + 3, sy + 5, 1, h - 9); ctx.fillRect(sx + w - 4, sy + 5, 1, h - 9);
+    ctx.fillStyle = '#1b1220'; ctx.fillRect(sx + 1, sy + h - 3, 4, 3); ctx.fillRect(sx + w - 5, sy + h - 3, 4, 3);
+    ctx.fillStyle = spin ? '#9aa1ab' : '#1b1220'; ctx.fillRect(sx + 2, sy + h - 2, 1, 1); ctx.fillRect(sx + w - 4, sy + h - 2, 1, 1);
   } else if (k === 'bone') {   /* World 6: a replica fossil bone shaken off the exhibits, falling on its shadow */
     ctx.save(); ctx.translate(sx + 5, sy + 5); ctx.rotate(s.spin / 8);
     ctx.fillStyle = '#efe3c2'; ctx.fillRect(-4, -1, 8, 2);
@@ -10715,6 +10958,189 @@ function drawArenaFloor7(A, cx) {
     ctx.fillStyle = '#44c55a'; ctx.fillRect(sx, A.floorY - h, 1, h);
     if (h >= 5) { ctx.fillStyle = cols[fl.c]; ctx.fillRect(sx - 1, A.floorY - h - 2, 3, 3); ctx.fillStyle = '#fff3b0'; ctx.fillRect(sx, A.floorY - h - 1, 1, 1); }
   }
+}
+/* World 8: the Big Octopus. A round pink-purple head with pale spots, big worried eyes (scared, not angry: brows up in
+   the middle, a little "o" mouth, and it trembles), eight curly arms with pale suckers. Winding up it raises two arms
+   (a slam is coming), puffs up and darkens (ink), puffs its cheeks (a blob) or pulls one arm back (a sweep); resting it
+   flops flat on the tunnel floor with its eyes shut (its soft spot); befriended it smiles and waves all eight arms */
+function drawArenaOctopus(A, b, bsx, sqX, sqY) {
+  const bottom = Math.round(b.y + b.h), cx = Math.round(bsx + b.w / 2), f = b.face < 0 ? -1 : 1;
+  const rest = b.state === 'tired' || b.state === 'dizzy', happy = b.state === 'friend', wind = b.state === 'windup' ? b.cur : null;
+  const body = '#c0508a', dark = '#8a2f62', light = '#e98bbb', pale = '#f7c6dc';
+  const arm = (x0, y0, x1, y1, qx, qy, w) => {   /* one arm: a thick curve with a darker edge, then three suckers along it */
+    ctx.strokeStyle = dark; ctx.lineWidth = w + 2; ctx.beginPath(); ctx.moveTo(x0, y0); ctx.quadraticCurveTo(qx, qy, x1, y1); ctx.stroke();
+    ctx.strokeStyle = body; ctx.lineWidth = w; ctx.beginPath(); ctx.moveTo(x0, y0); ctx.quadraticCurveTo(qx, qy, x1, y1); ctx.stroke();
+    ctx.fillStyle = pale;
+    for (let k = 1; k <= 3; k++) { const u = k / 4, v = 1 - u; ctx.fillRect(Math.round(v * v * x0 + 2 * u * v * qx + u * u * x1), Math.round(v * v * y0 + 2 * u * v * qy + u * u * y1), 1, 1); }
+  };
+  ctx.save();
+  if (b.state === 'ink') ctx.globalAlpha *= 0.18;   /* hiding in its ink: only a faint shape */
+  const tremble = !happy && !rest && A.state === 'fight' && frame % 16 < 3 ? (frame % 2 ? -1 : 1) : 0;
+  ctx.translate(cx + tremble, bottom); ctx.scale(sqX, sqY / (rest ? 0.82 : 1));
+  ctx.lineCap = 'round';
+  if (rest) {   /* flopped flat: arms splayed out along the floor, the head low */
+    for (let i = 0; i < 8; i++) { const s = i < 4 ? -1 : 1, k = i % 4, x0 = s * (4 + k * 3), x1 = s * (17 + k * 4) + Math.sin(frame / 20 + i); arm(x0, -4, x1, -1 - (k % 2), (x0 + x1) / 2, -1, 3); }
+    ctx.fillStyle = dark; ctx.beginPath(); ctx.ellipse(0, -7, 17, 9, 0, 0, 6.284); ctx.fill();
+    ctx.fillStyle = body; ctx.beginPath(); ctx.ellipse(0, -8, 16, 8, 0, 0, 6.284); ctx.fill();
+    ctx.fillStyle = light; ctx.beginPath(); ctx.ellipse(-5, -12, 6, 2.5, 0, 0, 6.284); ctx.fill();
+    ctx.fillStyle = pale; ctx.fillRect(7, -12, 2, 2); ctx.fillRect(10, -8, 2, 2);
+    ctx.fillStyle = '#1b1220'; ctx.fillRect(-8, -8, 5, 1); ctx.fillRect(3, -8, 5, 1); ctx.fillRect(-1, -4, 3, 1);   /* eyes shut, a tired little mouth */
+    ctx.fillStyle = 'rgba(200,235,255,.8)';
+    for (let k = 0; k < 2; k++) { const t = (frame + k * 40) % 80; ctx.beginPath(); ctx.arc(6 + k * 4, -16 - t / 4, 1.5 + t / 60, 0, 6.284); ctx.fill(); }   /* blub... bubbles */
+  } else {
+    for (let i = 0; i < 8; i++) {
+      const s = i < 4 ? -1 : 1, k = i % 4, x0 = s * (3 + k * 3), wig = Math.sin(frame / 9 + i * 1.3) * 2;
+      if (happy) { arm(x0, -12, s * (14 + k * 3) + wig, -26 - k * 3 + Math.sin(frame / 5 + i) * 4, s * (13 + k * 2), -12, 3); continue; }   /* waving all eight arms */
+      if (wind === 'grab' && k === 3) { arm(x0, -14, s * 18 + wig, -46 + Math.sin(frame / 3 + i) * 3, s * 22, -26, 3.5); continue; }   /* two arms up high: a slam is coming */
+      if (b.state === 'sweep' && s === f && k === 3) {   /* the sweep: one long arm along the floor, from behind it to in front */
+        const reach = A.K.sweep || 60, x1 = s * reach * Math.cos(Math.PI * Math.max(0, b.t) / 30);
+        arm(x0, -6, x1, -2, (x0 + x1) / 2, 0, 4); continue;
+      }
+      if (wind === 'sweep' && s === f && k === 3) { arm(x0, -8, -s * 22, -6 + wig, -s * 8, -1, 4); continue; }   /* the sweeping arm pulled back */
+      arm(x0, -10, s * (8 + k * 4) + wig, -1, s * (6 + k * 3), -2, 3);
+    }
+    const puff = wind === 'ink' ? 1.14 + Math.sin(frame / 3) * 0.03 : wind === 'toss' ? 1.05 : 1;
+    ctx.fillStyle = dark; ctx.beginPath(); ctx.ellipse(0, -19, 15 * puff, 13 * puff, 0, 0, 6.284); ctx.fill();
+    ctx.fillStyle = wind === 'ink' ? '#9c3a70' : body; ctx.beginPath(); ctx.ellipse(0, -20, 14 * puff, 12 * puff, 0, 0, 6.284); ctx.fill();
+    ctx.fillStyle = light; ctx.beginPath(); ctx.ellipse(-5, -27, 5, 3, -0.3, 0, 6.284); ctx.fill();
+    ctx.fillStyle = pale; ctx.fillRect(6, -28, 2, 2); ctx.fillRect(9, -23, 2, 2); ctx.fillRect(-11, -19, 2, 2);
+    const look = clamp(((P.x + P.w / 2) - (b.x + b.w / 2)) / 60, -1, 1);
+    ctx.fillStyle = '#1b1220';
+    if (happy) {
+      ctx.fillRect(-9, -22, 5, 1); ctx.fillRect(-10, -21, 1, 1); ctx.fillRect(-4, -21, 1, 1); ctx.fillRect(4, -22, 5, 1); ctx.fillRect(3, -21, 1, 1); ctx.fillRect(9, -21, 1, 1);   /* happy closed eyes */
+      ctx.strokeStyle = '#1b1220'; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.arc(0, -16, 3.5, 0.2, Math.PI - 0.2); ctx.stroke();
+      ctx.fillStyle = 'rgba(255,140,190,.8)'; ctx.fillRect(-12, -17, 3, 2); ctx.fillRect(9, -17, 3, 2);
+    } else {
+      ctx.fillStyle = '#f4f1e8'; ctx.fillRect(-10, -24, 7, 8); ctx.fillRect(3, -24, 7, 8);   /* big worried eyes */
+      ctx.fillStyle = '#1b1220'; ctx.fillRect(Math.round(-8 + look * 2), -21, 3, 4); ctx.fillRect(Math.round(5 + look * 2), -21, 3, 4);
+      ctx.fillStyle = '#fff'; ctx.fillRect(Math.round(-8 + look * 2), -21, 1, 1); ctx.fillRect(Math.round(5 + look * 2), -21, 1, 1);
+      ctx.fillStyle = '#1b1220'; ctx.fillRect(-11, -26, 3, 1); ctx.fillRect(-8, -27, 3, 1); ctx.fillRect(8, -26, 3, 1); ctx.fillRect(5, -27, 3, 1);   /* brows up in the middle: scared */
+      ctx.beginPath(); ctx.arc(0, -13, wind === 'toss' ? 2.5 : 1.6, 0, 6.284); ctx.fill();   /* a little "o" */
+      if (wind && frame % 30 < 20) { ctx.fillStyle = '#9fe0ff'; ctx.fillRect(12, -27 + (frame % 30) / 6, 2, 3); }   /* a nervous sweat drop */
+    }
+  }
+  ctx.restore(); ctx.lineCap = 'butt';
+}
+/* World 8: the Raccoon King. Big, round and proud: grey fur, a black mask with white brows, a ringed tail, a red cape
+   with gold trim and a crown of bottle caps. Winding up a grab he raises both paws (they wiggle: "MINE!"); resting he
+   sits and turns a shiny thing over in his paws, a little pile of treasure at his feet; befriended he beams and holds
+   his three new bottle caps up high */
+function drawArenaKing(A, b, bsx, sqX, sqY) {
+  const bottom = Math.round(b.y + b.h), cx = Math.round(bsx + b.w / 2), f = b.face < 0 ? -1 : 1;
+  const rest = b.state === 'tired' || b.state === 'dizzy', happy = b.state === 'friend', wind = b.state === 'windup' ? b.cur : null;
+  const fur = '#8d9099', furD = '#5e616b', belly = '#d9d5cc', ink = '#1b1220', step = Math.abs(b.vx) > 0.2 ? Math.floor(frame / 8) % 2 : 0;
+  const cap = (x, y, c) => { ctx.fillStyle = '#9a7a1a'; ctx.beginPath(); ctx.arc(x, y + 0.6, 2.4, 0, 6.284); ctx.fill(); ctx.fillStyle = c; ctx.beginPath(); ctx.arc(x, y, 2.2, 0, 6.284); ctx.fill(); ctx.fillStyle = '#fff'; ctx.fillRect(Math.round(x - 1), Math.round(y - 1.6), 1, 1); };
+  const paw = (x, y) => { ctx.fillStyle = ink; ctx.beginPath(); ctx.arc(x, y, 3, 0, 6.284); ctx.fill(); };
+  ctx.save();
+  ctx.translate(cx, bottom); ctx.scale(sqX, sqY);
+  if (b.state === 'charge') { ctx.scale(1.2, 0.5); ctx.rotate(f * 0.18); }   /* the belly slide: flat out on his cape */
+  for (let k = 0; k < 6; k++) {   /* the ringed tail, curling up behind him */
+    const x = -f * (12 + k * 2.4), y = -5 - k * 3.6 + Math.sin(frame / 14 + k * 0.7) * 0.8;
+    ctx.fillStyle = k === 5 || k % 2 ? '#2e2a33' : '#a3a6ae'; ctx.beginPath(); ctx.arc(x, y, 4.2 - k * 0.2, 0, 6.284); ctx.fill();
+  }
+  const flap = step ? 1 : 0;   /* the cape behind him: red with gold trim */
+  ctx.fillStyle = '#8f1018'; ctx.beginPath(); ctx.moveTo(-11, -27); ctx.lineTo(11, -27); ctx.lineTo(17 + flap - f * 2, -1); ctx.lineTo(-17 - flap - f * 2, -1); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#c8202f'; ctx.beginPath(); ctx.moveTo(-10, -26); ctx.lineTo(10, -26); ctx.lineTo(15 + flap - f * 2, -3); ctx.lineTo(-15 - flap - f * 2, -3); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#f6c445'; ctx.fillRect(-17 - flap - f * 2, -3, 34 + flap * 2, 2);
+  ctx.fillStyle = ink; ctx.beginPath(); ctx.ellipse(-7 + step, -1.5, 4.5, 2.2, 0, 0, 6.284); ctx.ellipse(7 - step, -1.5, 4.5, 2.2, 0, 0, 6.284); ctx.fill();   /* his feet */
+  ctx.fillStyle = furD; ctx.beginPath(); ctx.ellipse(0, -13, 14, 13, 0, 0, 6.284); ctx.fill();   /* the big round body */
+  ctx.fillStyle = fur; ctx.beginPath(); ctx.ellipse(0, -14, 13, 12, 0, 0, 6.284); ctx.fill();
+  ctx.fillStyle = belly; ctx.beginPath(); ctx.ellipse(f, -11, 8, 8, 0, 0, 6.284); ctx.fill();
+  ctx.fillStyle = '#f6c445'; ctx.fillRect(-9, -25, 18, 2); ctx.fillStyle = '#e8364b'; ctx.fillRect(-1, -25, 3, 3);   /* the cape's gold clasp */
+  const shake = Math.round(Math.sin(frame / 2) * 1.5);
+  if (wind === 'grab' || b.state === 'grab') {   /* both paws up high, wiggling: "MINE!" */
+    ctx.strokeStyle = furD; ctx.lineWidth = 4; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(-10, -19); ctx.lineTo(-14 + shake, -37); ctx.moveTo(10, -19); ctx.lineTo(14 - shake, -37); ctx.stroke(); ctx.lineCap = 'butt';
+    paw(-14 + shake, -38); paw(14 - shake, -38);
+  } else if (rest) {   /* sitting, turning a shiny thing over in his paws; a pile of treasure at his feet */
+    paw(f * 3 - 4, -14); paw(f * 3 + 4, -14);
+    glowDisc(f * 3, -17, 6, 'rgba(255,230,120,.6)', 0.7); cap(f * 3, -17, '#f6c445');
+    [['#e8364b', -16], ['#2a5bd7', -11], ['#f6c445', 12], ['#44c55a', 17], ['#c9c9cf', 14]].forEach(([c, x], k) => cap(f * x, -2 - (k === 4 ? 3 : 0), c));
+  } else if (happy) {   /* holding his new bottle caps up high, proud as anything */
+    ctx.strokeStyle = furD; ctx.lineWidth = 4; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(-10, -19); ctx.lineTo(-15, -33); ctx.moveTo(10, -19); ctx.lineTo(15, -33); ctx.stroke(); ctx.lineCap = 'butt';
+    paw(-15, -34); paw(15, -34); cap(-15, -39, '#f6c445'); cap(15, -39, '#f6c445'); cap(f * 20, -30, '#f6c445');
+  } else if (wind === 'toss' || wind === 'roll') {   /* one paw drawn back to throw (or to give a bin a shove) */
+    ctx.strokeStyle = furD; ctx.lineWidth = 4; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(-f * 10, -18); ctx.lineTo(-f * 17, -28); ctx.stroke(); ctx.lineCap = 'butt';
+    paw(-f * 17, -29); paw(f * 9, -13);
+  } else { paw(-9, -14); paw(9, -14); }   /* paws on his belly */
+  ctx.fillStyle = furD; ctx.beginPath(); ctx.arc(0, -30, 10.5, 0, 6.284); ctx.fill();   /* the head */
+  ctx.fillStyle = fur; ctx.beginPath(); ctx.arc(0, -30.5, 10, 0, 6.284); ctx.fill();
+  for (const s of [-1, 1]) {   /* round ears */
+    ctx.fillStyle = furD; ctx.beginPath(); ctx.arc(s * 8, -38, 3.5, 0, 6.284); ctx.fill();
+    ctx.fillStyle = '#e8a0a8'; ctx.beginPath(); ctx.arc(s * 8, -38, 1.6, 0, 6.284); ctx.fill();
+  }
+  ctx.fillStyle = belly; ctx.beginPath(); ctx.ellipse(-5, -26, 4.5, 3.4, 0, 0, 6.284); ctx.ellipse(5, -26, 4.5, 3.4, 0, 0, 6.284); ctx.fill();   /* white cheeks */
+  ctx.fillStyle = ink; ctx.beginPath(); ctx.ellipse(0, -31, 9.6, 3.6, 0, 0, 6.284); ctx.fill();   /* the mask */
+  ctx.fillStyle = '#f4f1e8'; ctx.fillRect(-8, -36, 5, 1); ctx.fillRect(3, -36, 5, 1);   /* white brows */
+  const look = rest ? 0 : clamp(((P.x + P.w / 2) - (b.x + b.w / 2)) / 60, -1, 1);
+  if (happy) { ctx.fillStyle = '#f4f1e8'; ctx.fillRect(-6, -32, 3, 1); ctx.fillRect(3, -32, 3, 1); ctx.fillRect(-7, -31, 1, 1); ctx.fillRect(-3, -31, 1, 1); ctx.fillRect(2, -31, 1, 1); ctx.fillRect(6, -31, 1, 1); }
+  else {
+    ctx.fillStyle = '#f4f1e8'; ctx.fillRect(-6, -33, 3, 3); ctx.fillRect(3, -33, 3, 3);
+    ctx.fillStyle = ink; ctx.fillRect(Math.round(-5 + look), rest ? -31 : -32, 1, 2); ctx.fillRect(Math.round(4 + look), rest ? -31 : -32, 1, 2);
+    if (wind) { ctx.fillStyle = ink; ctx.fillRect(-6, -34, 3, 1); ctx.fillRect(3, -34, 3, 1); }   /* eyes narrowed: he means business */
+  }
+  ctx.fillStyle = belly; ctx.beginPath(); ctx.ellipse(f, -25.5, 4, 3, 0, 0, 6.284); ctx.fill();   /* the muzzle and nose */
+  ctx.fillStyle = ink; ctx.fillRect(f - 1.5, -28, 3, 2);
+  if (happy || rest) { ctx.strokeStyle = ink; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(f, -24.5, 2, 0.2, Math.PI - 0.2); ctx.stroke(); }
+  else { ctx.fillStyle = ink; ctx.fillRect(f - 1, -23, 3, 1); ctx.fillRect(f + 2 * f, -24, 1, 1); }   /* a proud little smirk */
+  ctx.fillStyle = '#c99a1e'; ctx.fillRect(-8, -42, 16, 3); ctx.fillStyle = '#f6c445'; ctx.fillRect(-8, -42, 16, 2);   /* the crown: a gold band... */
+  ['#e8364b', '#2a5bd7', '#f6c445', '#44c55a'].forEach((c, k) => cap(-6 + k * 4, -45 - (k === 1 || k === 2 ? 1 : 0), c));   /* ...topped with bottle caps */
+  ctx.restore();
+}
+/* World 8: a grab: its shadow on the floor with a red ring and a "!" for the whole wind-up, the tentacle tip / the paw
+   waiting high above it; then it comes straight down onto the shadow, stays a moment and goes back up */
+function drawArenaGrab(A, m, mx) {
+  const b = A.boss, at = b.state === 'grab' ? b.zapT - m.k * 12 : 0, fy = m.y, king = A.K.draw === 'king';
+  const col = king ? '#5e616b' : '#c0508a', edge = king ? '#2e2a33' : '#8a2f62';
+  let tip = 14 + Math.round(Math.sin(frame / 6 + m.k) * 3);   /* waiting up high */
+  if (at < 3) {
+    const pulse = 0.5 + Math.sin(frame / 4) * 0.25;
+    ctx.fillStyle = 'rgba(0,0,0,' + (0.3 + pulse * 0.25).toFixed(2) + ')'; ctx.beginPath(); ctx.ellipse(mx, fy - 1, 12, 4, 0, 0, 6.284); ctx.fill();
+    ctx.strokeStyle = 'rgba(255,80,80,' + (0.5 + pulse * 0.4).toFixed(2) + ')'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.ellipse(mx, fy - 1, 15, 5, 0, 0, 6.284); ctx.stroke(); ctx.lineWidth = 1;
+    if (frame % 10 < 7) { ctx.font = 'bold 10px monospace'; ctx.textAlign = 'center'; ctx.fillStyle = '#1b1220'; ctx.fillText('!', mx + 1, fy - 9); ctx.fillStyle = '#ff4a4a'; ctx.fillText('!', mx, fy - 10); ctx.textAlign = 'left'; }
+  }
+  if (at >= 1) tip = Math.round(14 + (fy - 14) * (at <= 3 ? at / 3 : at <= 12 ? 1 : Math.max(0, 1 - (at - 12) / 8)));
+  if (tip <= 4) return;
+  const sw = at >= 1 && at <= 12 ? 0 : Math.round(Math.sin(frame / 7 + m.k) * 1.5);
+  ctx.fillStyle = edge; ctx.fillRect(mx - 5 + sw, -2, 10, tip - 2);
+  ctx.fillStyle = col; ctx.fillRect(mx - 4 + sw, -2, 8, tip - 2);
+  if (king) {   /* a big raccoon paw: dark, with four little white claws (and the candle it grabbed) */
+    ctx.fillStyle = '#a3a6ae'; ctx.fillRect(mx - 4 + sw, tip - 18, 8, 3);   /* a ring of the striped fur */
+    ctx.fillStyle = '#1b1220'; ctx.beginPath(); ctx.ellipse(mx + sw, tip - 3, 7, 5, 0, 0, 6.284); ctx.fill();
+    ctx.fillStyle = '#f4f1e8'; for (const o of [-5, -2, 1, 4]) ctx.fillRect(mx + sw + o, tip + 1, 1, 2);
+    if (m.loot) { ctx.fillStyle = '#ff6fae'; ctx.fillRect(mx + sw + 6, tip - 9, 2, 6); ctx.fillStyle = '#f6c445'; ctx.fillRect(mx + sw + 6, tip - 11, 2, 2); }
+  } else {   /* a tentacle tip, curled, with pale suckers up its length */
+    ctx.fillStyle = col; ctx.beginPath(); ctx.ellipse(mx + sw, tip - 3, 5, 4, 0, 0, 6.284); ctx.fill();
+    ctx.fillStyle = '#f7c6dc'; for (let y = 4; y < tip - 6; y += 6) ctx.fillRect(mx + sw - 1, y, 2, 2);
+  }
+}
+/* World 8: the octopus's ink cloud: dark purple-black puffs round where it squirted, thickest in the middle. It fades in
+   fast and thins out over its last half-second (the next wind-up never starts under it) */
+function drawArenaInk(A, cx) {
+  const k = A.ink, a = Math.min(1, k.t / 10) * Math.min(1, (k.dur - k.t) / 30), x = Math.round(k.x - cx), fy = A.floorY, grow = 0.7 + 0.3 * Math.min(1, k.t / 14);
+  if (a <= 0) return;
+  const puffs = [[0, -40, 46], [-46, -28, 34], [46, -30, 36], [-22, -78, 32], [24, -76, 34], [0, -112, 26], [-72, -14, 22], [72, -16, 22]];
+  ctx.save();
+  ctx.globalAlpha = a * 0.88; ctx.fillStyle = '#1e1630';
+  for (const [dx, dy, r] of puffs) { ctx.beginPath(); ctx.arc(x + dx + Math.sin((k.t + dx) / 12) * 2, fy + dy, r * grow, 0, 6.284); ctx.fill(); }
+  ctx.globalAlpha = a * 0.45; ctx.fillStyle = '#4a3470';
+  for (const [dx, dy, r] of puffs) { ctx.beginPath(); ctx.arc(x + dx - 6, fy + dy - 6, r * 0.45 * grow, 0, 6.284); ctx.fill(); }
+  ctx.restore();
+}
+/* World 8: a shiny bottle cap: gold with a crimped edge and a red star, glinting (on the floor or floating a jump up);
+   once Kinan has it, he holds it up over his head */
+function drawCapAt(x, y, t) {
+  ctx.fillStyle = '#9a7a1a'; ctx.beginPath(); ctx.arc(x, y + 1, 5, 0, 6.284); ctx.fill();
+  ctx.fillStyle = '#f6c445'; ctx.beginPath(); ctx.arc(x, y, 5, 0, 6.284); ctx.fill();
+  ctx.fillStyle = '#c99a1e'; for (let k = 0; k < 8; k++) { const a = k * 0.785; ctx.fillRect(Math.round(x + Math.cos(a) * 5) - 1, Math.round(y + Math.sin(a) * 5) - 1, 2, 2); }
+  ctx.fillStyle = '#e8364b'; ctx.beginPath(); ctx.arc(x, y, 2.4, 0, 6.284); ctx.fill();
+  ctx.fillStyle = '#fff'; ctx.fillRect(x - 3, y - 3, 2, 1);
+  if (t % 40 < 10) { ctx.fillStyle = '#fff'; ctx.fillRect(x + 4, y - 7, 1, 5); ctx.fillRect(x + 2, y - 5, 5, 1); }   /* the glint */
+}
+function drawArenaCap(A, cx) {
+  if (A.cap) { const c = A.cap, x = Math.round(c.x - cx), y = Math.round(c.y + Math.sin(c.t / 10) * 2); glowDisc(x, y, 13, 'rgba(255,230,120,.6)', 0.8); drawCapAt(x, y, c.t); }
+  if (A.capHeld && !P.dead) { const x = Math.round(P.x + P.w / 2 - cx), y = Math.round(P.y - 8); glowDisc(x, y, 9, 'rgba(255,230,120,.5)', 0.7); drawCapAt(x, y, frame); }
 }
 /* ============================================================
    RENDER — projectiles, particles, overlays
@@ -11004,6 +11430,33 @@ function draw() {
   if (cy) ctx.restore();
   ctx.restore();
   drawVignette(true);
+  if (L.authored) drawCallWindow();   /* World 8 (8-5): Milo's face on the video call while he talks */
+}
+/* World 8 (8-5): Milo (Kinan's friend from World 2) talks over a video call: while his line is up, his face shows in a
+   little call window at the top right, the way a call looks on a phone. Subtitle-only, like every level line. */
+const MILO_FACE = ['...hhhhhh...', '..hhhhhhhh..', '.hhhhhhhhhh.', '.hhsssssshh.', '.hssssssssh.', '.ssessssess.',
+  '.ssssssssss.', '.sssmmmmsss.', '..ssssssss..', '....ssss....', '.gggggggggg.', 'gggggGGggggg'];
+const MILO_INK = { h: '#5a3a22', s: '#e8b48a', e: '#1b1220', m: '#a8452f', g: '#3f8a3a', G: '#2f6a2a' };
+const CALL_FACES = { MILO: { rows: MILO_FACE, ink: MILO_INK } };
+function callWho() { const c = Story.cur; return c && c.d && CALL_FACES[c.d[0]] && L && L.authored && !el.stage.hidden ? c.d[0] : null; }
+function drawCallWindow() {
+  const who = callWho();
+  if (!who) return;
+  const f = CALL_FACES[who], x = W - 66, y = 26, w = 56, h = 54, bob = Math.round(Math.sin(frame / 8));
+  ctx.save();
+  ctx.fillStyle = 'rgba(17,19,43,.92)'; ctx.fillRect(x - 3, y - 3, w + 6, h + 16);
+  ctx.strokeStyle = '#f6c445'; ctx.lineWidth = 2; ctx.strokeRect(x - 3, y - 3, w + 6, h + 16);
+  ctx.beginPath(); ctx.rect(x, y, w, h); ctx.clip();
+  ctx.fillStyle = '#8fd0ff'; ctx.fillRect(x, y, w, h);   /* his room: a blue wall, a shelf of brick sets */
+  ctx.fillStyle = '#8a5a3a'; ctx.fillRect(x, y + 14, w, 2);
+  ['#e8364b', '#f6c445', '#2f5fb3', '#44c55a', '#ff8a3d'].forEach((col, q) => { ctx.fillStyle = col; ctx.fillRect(x + 3 + q * 11, y + 8, 8, 6); });
+  f.rows.forEach((row, r) => { for (let q = 0; q < row.length; q++) { const ink = f.ink[row[q]]; if (ink) { ctx.fillStyle = ink; ctx.fillRect(x + 10 + q * 3, y + 18 + r * 3 + bob, 3, 3); } } });
+  if (Math.floor(frame / 6) % 2) { ctx.fillStyle = '#5a1f1a'; ctx.fillRect(x + 22, y + 39 + bob, 12, 3); }   /* talking */
+  ctx.restore();
+  ctx.save();
+  ctx.fillStyle = '#44c55a'; ctx.beginPath(); ctx.arc(x + 5, y + h + 6, 2.5, 0, 6.284); ctx.fill();   /* the call is on */
+  ctx.font = 'bold 8px monospace'; ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic'; ctx.fillStyle = '#f6c445'; ctx.fillText(who, x + 11, y + h + 9);
+  ctx.restore();
 }
 /* ============================================================
    SCREENS
@@ -11904,6 +12357,19 @@ function drawWorld5Fx() {
                                     (jump it); each flashes its warning as Kinan comes near (7-8)
      rush: true (level)             the moving train: the city rushes past behind, wind streaks (7-8)
      storm: col (level)             Drizzle as a dark storm over Canada Place from that column on (7-8)
+   WORLD 8 (2026-10-29), the same way (every key off by default):
+     belts: [[c0, c1, row, speed], ...]   a conveyor belt / moving walkway / baggage carousel on top of row `row`
+                                    (Kinan's feet at row * 16) from c0 to c1: standing on it carries him `speed` px a
+                                    frame (+ right, - left) like a boat does. It never changes his run or jump numbers:
+                                    in the air he keeps his own speed (8-1)
+     subway: true (level)           the train cars (trainCars, the 'car' skin) are silver with a red stripe (8-2)
+     skins 'letter:X'               a giant lit-up letter X painted on the solid block (8-3's TORONTO sign)
+     skins 'glass'                  a see-through glass floor with the city far below (8-4)
+     fish: true                     fish, rays and sharks swim past behind the glass of the tunnel (8-fort)
+     snatch: true (level)           raccoons grab a candle and run instead of hurting (stomp or KICK one: it gives
+                                    the candle back) (World 8)
+     circuit: { ..., build: true }  World 7's circuit, told as a build: the switch's CLICK says the wall comes apart
+                                    and the bricks snap into a bridge (8-5, Milo's build spot)
    ============================================================ */
 function twistsOf(def, a, base, tw, w, set) {
   const zone = (key, v) => {
@@ -11930,11 +12396,14 @@ function twistsOf(def, a, base, tw, w, set) {
     for (const [c, r] of ci.red || []) { set(base + c, r, 5); tw.onB.push([base + c, r]); }
     for (const [c, r] of ci.blue || []) { set(base + c, r, 0); tw.offB.push([base + c, r]); }
     tw.circuit = true;
+    if (ci.build) tw.build = true;   /* World 8 (8-5): the same switch, said as Milo's build (a wall comes apart, a bridge snaps together) */
   }
   for (const m of a.magnets || []) tw.magnets.push({ x: (base + m[0]) * T, w: (m[3] || 1) * T, top: m[1] * T, bot: (m[2] + 1) * T });
   for (const s of Array.isArray(a.signs) ? a.signs : []) tw.signCols.push(Array.isArray(s) ? [base + s[0], s[1]] : [base + s, 'duck']);
   for (const s of a.skins || []) { tw.skins.push([s[0], base + s[1], s[2], base + s[3], s[4]]); tw.on = true; }   /* looks only: steel, cedar, granite, car */
   zone('trainCars', a.trainCars);
+  for (const b of a.belts || []) { tw.belts.push({ x0: (base + b[0]) * T, x1: (base + b[1] + 1) * T, y: b[2] * T, spd: b[3] == null ? 1 : b[3] }); tw.on = true; }   /* World 8 */
+  if (a.fish) { tw.fish = true; tw.on = true; }
   for (const m of tw.movers) if (m.x == null) { m.x = m.x0; m.y = m.y0; m.dx = 0; m.dy = 0; }
   if (tw.movers.length || tw.circuit || tw.magnets.length || tw.signCols.length) tw.on = true;
 }
@@ -11958,6 +12427,10 @@ function twistsPre() {   /* before Kinan moves: the movers move (and carry him),
   if (r && P.onGround && !P.dead && Math.abs(P.y + P.h - (r.y - r.dy)) < 3 && P.x + P.w > r.x - r.dx && P.x < r.x - r.dx + r.w) {   /* only while he really stands on it */
     if (r.dx) { const v = P.vx; P.vx = r.dx; moveX(P); P.vx = v; }
     P.y = r.y - P.h;
+  }
+  tw.belt = 0;
+  if (tw.belts.length && P.onGround && !P.dead && !r && boss === 'off') for (const b of tw.belts) {   /* World 8: a belt under his feet carries him (his own speed is untouched) */
+    if (P.x + P.w > b.x0 + 1 && P.x < b.x1 - 1 && Math.abs(P.y + P.h - b.y) < 3) { const v = P.vx; P.vx = b.spd; moveX(P); P.vx = v; tw.belt = b.spd; tw.beltT = (tw.beltT || 0) + 1; break; }
   }
   tw.gust = 0; tw.warn = false; tw.gustOn = false;
   if (tw.wind) {   /* the gust clock: 1 s of warning, 1.5 s of gust, 3 s of calm */
@@ -11994,7 +12467,8 @@ function flipCircuit() {   /* a circuit switch: the red blocks and the blue bloc
   for (const [c, r] of tw.onB) put(c, r, tw.sw === 0);
   for (const [c, r] of tw.offB) put(c, r, tw.sw === 1);
   SFX.power(); shakeIt(1);
-  toast(tw.sw ? '🔵 <b>CLICK!</b> Blue blocks on, red blocks off' : '🔴 <b>CLICK!</b> Red blocks on, blue blocks off', 1200);
+  if (tw.build) toast(tw.sw ? '🧱 <b>CLICK-CLACK!</b> The wall comes apart and the bricks snap into a bridge!' : '🧱 <b>CLICK!</b> The bridge comes apart into a wall again', 1600);
+  else toast(tw.sw ? '🔵 <b>CLICK!</b> Blue blocks on, red blocks off' : '🔴 <b>CLICK!</b> Red blocks on, blue blocks off', 1200);
 }
 function twistsPost() {   /* after the foes: slug slime, the seawall waves, the bridge sway, the signs */
   const tw = L.tw;
@@ -12045,6 +12519,31 @@ function drawTwistsBack(th) {   /* behind the level: the train's rush lines, Can
     for (let k = 0; k < 16; k++) { const y = 40 + (k * 41) % 150, x = W - ((tw.t * 11 + k * 131) % (W + 80)); ctx.moveTo(x, y); ctx.lineTo(x + 26 + (k % 4) * 8, y); }
     ctx.stroke();
   }
+  if (tw && tw.fish) {   /* World 8, the aquarium tunnel: the water behind the glass, fish and rays going by, a shark now and then */
+    ctx.fillStyle = 'rgba(30,110,170,.35)'; ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = 'rgba(160,220,255,.12)'; for (let k = 0; k < 6; k++) { const x = ((k * 97 - camX * 0.3) % (W + 60) + W + 60) % (W + 60) - 30; ctx.fillRect(x, 0, 10 + k % 3 * 6, H); }   /* light from above */
+    for (let k = 0; k < 9; k++) {
+      const dir = k % 3 === 0 ? 1 : -1, spd = 0.35 + (k % 4) * 0.18, span = W + 120;
+      const x = dir > 0 ? ((tw.t * spd + k * 157) % span) - 60 : W + 60 - ((tw.t * spd + k * 157) % span), y = 30 + (k * 37) % 130 + Math.sin((tw.t + k * 40) / 30) * 4;
+      ctx.fillStyle = ['#f6a23c', '#f6c445', '#6fc8ff', '#ff6fae', '#f4f1e8'][k % 5];
+      ctx.beginPath(); ctx.ellipse(x, y, 6, 3.5, 0, 0, 6.284); ctx.fill();
+      ctx.beginPath(); ctx.moveTo(x - dir * 5, y); ctx.lineTo(x - dir * 10, y - 4); ctx.lineTo(x - dir * 10, y + 4); ctx.closePath(); ctx.fill();   /* the tail */
+      ctx.fillStyle = '#1b1220'; ctx.fillRect(x + dir * 3, y - 1, 1, 1);
+    }
+    const ray = (tw.t * 0.5) % (W + 200), rx = W + 100 - ray, ry = 70 + Math.sin(tw.t / 50) * 8;   /* a ray, flapping */
+    ctx.fillStyle = 'rgba(150,140,120,.8)'; ctx.beginPath(); ctx.moveTo(rx - 14, ry); ctx.quadraticCurveTo(rx, ry - 9 - Math.sin(tw.t / 9) * 3, rx + 14, ry); ctx.quadraticCurveTo(rx, ry + 5, rx - 14, ry); ctx.fill();
+    ctx.fillRect(rx + 12, ry - 1, 12, 1);
+    const sk = tw.t % 900;   /* the shark: once every 15 s, slow and big, left to right */
+    if (sk < 600) {
+      const sx = sk * 0.9 - 80, sy = 110 + Math.sin(tw.t / 60) * 5;
+      ctx.fillStyle = 'rgba(110,125,140,.9)'; ctx.beginPath(); ctx.ellipse(sx, sy, 26, 8, 0, 0, 6.284); ctx.fill();
+      ctx.beginPath(); ctx.moveTo(sx - 4, sy - 7); ctx.lineTo(sx + 4, sy - 18); ctx.lineTo(sx + 8, sy - 7); ctx.closePath(); ctx.fill();   /* the fin */
+      ctx.beginPath(); ctx.moveTo(sx - 22, sy); ctx.lineTo(sx - 36, sy - 10); ctx.lineTo(sx - 33, sy); ctx.lineTo(sx - 36, sy + 9); ctx.closePath(); ctx.fill();   /* the tail */
+      ctx.fillStyle = 'rgba(230,236,240,.9)'; ctx.beginPath(); ctx.ellipse(sx + 4, sy + 4, 18, 3, 0, 0, 6.284); ctx.fill();
+      ctx.fillStyle = '#1b1220'; ctx.fillRect(sx + 17, sy - 2, 2, 2);
+    }
+    ctx.strokeStyle = 'rgba(220,240,255,.35)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(W / 2, H + 40, W * 0.62, Math.PI * 1.08, Math.PI * 1.92); ctx.stroke(); ctx.lineWidth = 1;   /* the tunnel's glass arch */
+  }
   const sails = (x, base, s, tone) => {   /* Canada Place, far off: a long pier building whose roof is five soft white sails (one roofline, never spikes) */
     const a = ctx.globalAlpha; ctx.globalAlpha = a * 0.7;
     ctx.fillStyle = tone; ctx.beginPath(); ctx.moveTo(x, base - 7 * s);
@@ -12069,10 +12568,10 @@ function drawTwistsBack(th) {   /* behind the level: the train's rush lines, Can
 }
 function drawTwists() {   /* in the level, before the foes and Kinan */
   const tw = L.tw, cx = Math.round(camX), k0 = Math.max(0, Math.floor(camX / T) - 1), k1 = Math.min(L.w - 1, Math.ceil((camX + W) / T) + 1);
-  const carBody = (x0, y0, w, h, capL, capR) => {   /* a white train car with a blue stripe and windows (the roof stays the ground) */
-    ctx.fillStyle = '#e3e8ef'; ctx.fillRect(x0, y0, w, h);
-    ctx.fillStyle = '#b9c0cc'; ctx.fillRect(x0, y0, w, 2);
-    ctx.fillStyle = '#2f5fb3'; ctx.fillRect(x0, y0 + 18, w, 4);
+  const carBody = (x0, y0, w, h, capL, capR) => {   /* a white train car with a blue stripe and windows (the roof stays the ground); World 8's subway: silver with a red stripe */
+    ctx.fillStyle = tw.subway ? '#c3c9d1' : '#e3e8ef'; ctx.fillRect(x0, y0, w, h);
+    ctx.fillStyle = tw.subway ? '#8f98a5' : '#b9c0cc'; ctx.fillRect(x0, y0, w, 2);
+    ctx.fillStyle = tw.subway ? '#d8272e' : '#2f5fb3'; ctx.fillRect(x0, y0 + 18, w, 4);
     ctx.fillStyle = '#45556c'; for (let x = x0 + 3; x + 8 <= x0 + w; x += 16) ctx.fillRect(x, y0 + 7, 9, 7);
     ctx.fillStyle = '#7d8696'; if (capL) ctx.fillRect(x0, y0, 2, h); if (capR) ctx.fillRect(x0 + w - 2, y0, 2, h);
   };
@@ -12098,6 +12597,34 @@ function drawTwists() {   /* in the level, before the foes and Kinan */
       ctx.fillStyle = '#c3c8ce'; for (let k = 0, n = Math.ceil(w * h / 110); k < n; k++) ctx.fillRect(x0 + hs(k + 104729, w), y0 + hs(k + 15485863, h), 1, 1);
       ctx.fillStyle = '#b4b9c0'; ctx.fillRect(x0, y0, w, 1);
     } else if (kind === 'car') carBody(x0, y0, w, h, true, true);
+    else if (kind === 'glass') {   /* World 8: the CN Tower's glass floor — the city far, far below through the panes */
+      ctx.fillStyle = '#5f86b0'; ctx.fillRect(x0, y0, w, h);
+      for (let k = c0; k <= c1; k++) for (let r = r0; r <= r1; r++) {
+        const px = k * T - cx, py = r * T, hs = ((k * 73856093) ^ (r * 19349663)) >>> 0;
+        ctx.fillStyle = '#7d97ad'; ctx.fillRect(px, py + 7, T, 2); ctx.fillRect(px + 7, py, 2, T);   /* tiny streets */
+        ctx.fillStyle = ['#c9ced6', '#9aa3b2', '#e8dcc0', '#b4c8a8'][hs % 4]; ctx.fillRect(px + 1 + (hs % 4), py + 1 + ((hs >> 3) % 4), 3, 3);   /* rooftops */
+        ctx.fillStyle = '#4f9a5a'; if (hs % 5 === 0) ctx.fillRect(px + 10, py + 10, 3, 3);   /* a park */
+      }
+      ctx.fillStyle = 'rgba(220,240,255,.28)'; ctx.fillRect(x0, y0, w, h);
+      ctx.fillStyle = '#d9e2ea'; for (let x = x0; x <= x1; x += T) ctx.fillRect(x, y0, 1, h); for (let y = y0; y <= y1; y += T) ctx.fillRect(x0, y, w, 1);   /* the steel frame */
+      ctx.fillStyle = 'rgba(255,255,255,.55)'; for (let x = x0 + 3; x < x1; x += T) ctx.fillRect(x, y0 + 2, 5, 1);   /* glints */
+    } else if (/^letter:/.test(kind)) {   /* World 8: a giant letter of the TORONTO sign, lit up */
+      const hue = ['#e8364b', '#f6a23c', '#f6c445', '#4fc06a', '#3f8fd8', '#8a5ad8', '#ff6fae'][(c0 >> 2) % 7];
+      ctx.fillStyle = '#f4f1e8'; ctx.fillRect(x0, y0, w, h);
+      ctx.fillStyle = hue; ctx.fillRect(x0 + 2, y0 + 2, w - 4, h - 4);
+      ctx.fillStyle = '#ffffff'; ctx.font = 'bold ' + Math.floor(h * 0.8) + 'px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(kind.slice(7, 8), x0 + w / 2, y0 + h / 2 + 2); ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+      ctx.fillStyle = 'rgba(255,255,255,.5)'; ctx.fillRect(x0, y0, w, 2);
+    }
+  }
+  for (const b of tw.belts) {   /* World 8: the belts — dark rubber, rollers at the ends, yellow arrows that move the way it carries */
+    const x0 = b.x0 - cx, x1 = b.x1 - cx; if (x1 < -T || x0 > W + T) continue;
+    const y = b.y, d = b.spd >= 0 ? 1 : -1, off = ((tw.t * Math.abs(b.spd)) % 12) * d;
+    ctx.fillStyle = '#596170'; ctx.fillRect(x0, y + 3, x1 - x0, 3);
+    ctx.fillStyle = '#2b2f36'; ctx.fillRect(x0, y - 2, x1 - x0, 5);
+    ctx.fillStyle = '#f6c445';
+    for (let x = x0 - 12 + ((off % 12) + 12) % 12; x < x1 - 3; x += 12) if (x > x0 + 2) { ctx.fillRect(x, y - 1, 2, 1); ctx.fillRect(x + d, y, 2, 1); ctx.fillRect(x, y + 1, 2, 1); }
+    ctx.fillStyle = '#8a93a3'; for (const rx of [x0 + 2, x1 - 2]) { ctx.beginPath(); ctx.arc(rx, y + 1, 3, 0, 6.284); ctx.fill(); }
   }
   if (tw.trainCars) for (let k = k0; k <= k1; k++) {   /* the SkyTrain's cars under the roofs: every flat roof column between the couplings */
     const fy = tw.floorY[k]; if (!tw.trainCars[k] || fy < 0 || tileAt(k, fy / T) !== 1 || fy % T) continue;
@@ -13716,6 +14243,312 @@ const W5BG = {
   }
 };
 Object.assign(W2BG, W5BG);   /* World 5's scenes join the same table the stages are drawn from */
+/* ---- World 8's scenes (Toronto): its looks are TO_LOOKS 100-109 ---- */
+function cnTower(x, base, h, mode) {   /* the CN Tower: a tall tapering concrete column, the round main pod, the little sky pod, the mast */
+  x = Math.round(x);
+  const lit = mode !== 'day', c = mode === 'night' ? '#5a5f7a' : (mode === 'dusk' ? '#b7a3b0' : '#d6d2ca'), sh = mode === 'night' ? '#3a3f5a' : (mode === 'dusk' ? '#8a7890' : '#a9a49b');
+  const pod = base - Math.round(h * 0.68), sky = base - Math.round(h * 0.82), top = base - h, bw = Math.max(5, Math.round(h * 0.06)), pw = Math.max(7, Math.round(h * 0.07));
+  ctx.fillStyle = c; ctx.beginPath(); ctx.moveTo(x - bw, base); ctx.lineTo(x - 2, pod); ctx.lineTo(x + 2, pod); ctx.lineTo(x + bw, base); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = sh; ctx.beginPath(); ctx.moveTo(x + 1, base); ctx.lineTo(x + 1, pod); ctx.lineTo(x + 2, pod); ctx.lineTo(x + bw, base); ctx.closePath(); ctx.fill();   /* the shady side */
+  ctx.fillStyle = c; ctx.fillRect(x - 1, sky, 3, pod - sky);   /* the stem up to the sky pod */
+  ctx.fillStyle = sh; ctx.fillRect(x - pw + 2, pod + 2, pw * 2 - 4, 3);   /* the main pod: its underside, a ring of windows, its lid */
+  ctx.fillStyle = c; ctx.fillRect(x - pw, pod - 5, pw * 2, 7); ctx.fillRect(x - pw + 3, pod - 8, pw * 2 - 6, 3);
+  ctx.fillStyle = lit ? '#f6d77a' : '#3a4658'; ctx.fillRect(x - pw + 1, pod - 3, pw * 2 - 2, 2);
+  ctx.fillStyle = c; ctx.fillRect(x - 3, sky - 3, 6, 3);   /* the sky pod */
+  ctx.fillRect(x - 1, top, 2, sky - 3 - top); ctx.fillStyle = sh; ctx.fillRect(x, top, 1, sky - 3 - top);   /* the mast */
+  if (lit || Math.floor(frame / 30) % 2 === 0) { ctx.fillStyle = '#ff4a4a'; ctx.fillRect(x - 1, top - 1, 2, 2); }   /* the light on top */
+}
+function toDome(x, base, s, mode) {   /* the stadium's round white dome by the tower */
+  ctx.fillStyle = mode === 'day' ? '#c9ccd2' : '#5a5878'; ctx.beginPath(); ctx.ellipse(x, base, 24 * s, 12 * s, 0, Math.PI, 0); ctx.fill();
+  ctx.strokeStyle = 'rgba(0,0,0,.18)'; ctx.lineWidth = 1;
+  for (let q = 1; q < 4; q++) { ctx.beginPath(); ctx.ellipse(x, base, 24 * s * q / 4, 12 * s, 0, Math.PI, 0); ctx.stroke(); }
+  ctx.fillStyle = mode === 'day' ? '#9aa1ab' : '#3a3856'; ctx.fillRect(Math.round(x - 26 * s), base - 3, Math.round(52 * s), 3);
+}
+function torTowers(p, base, mode, s) {   /* downtown Toronto's towers: glass, a gold one, a black one, a white one (drawn once per look and size, then kept) */
+  s = s || 1;
+  const pw = Math.round(360 * s);
+  const img = w3Cache('totowers:' + mode + ':' + s, pw, 120, (c, w, h) => {
+    const cols = mode === 'night' ? ['#1f2a3a', '#2a3346', '#232b3c', '#2f3448'] : (mode === 'dusk' ? ['#4a4268', '#5a4f78', '#3f3a5e', '#6a5a80'] : ['#5f7088', '#8a96a8', '#c9a24a', '#2f3644', '#d8dce2', '#6f8aa0']);
+    [[2, 46, 18], [22, 70, 16], [40, 58, 20], [62, 96, 18], [82, 64, 14], [98, 84, 20], [120, 52, 16], [138, 104, 18], [158, 72, 22], [182, 90, 16],
+      [200, 56, 18], [220, 78, 20], [242, 40, 16], [260, 66, 18], [280, 92, 16], [298, 50, 20], [320, 74, 16], [338, 44, 20]].forEach(([x0, t0, w0], k) => {
+      const x = Math.round(x0 * s), tall = Math.round(t0 * s), tw = Math.max(4, Math.round(w0 * s));
+      c.fillStyle = cols[k % cols.length]; c.fillRect(x, h - tall, tw, tall);
+      if (k % 5 === 2) c.fillRect(x + 3, h - tall - 4, Math.max(1, tw - 6), 4);   /* a stepped top */
+      c.fillStyle = mode === 'day' ? 'rgba(255,255,255,.14)' : 'rgba(0,0,0,.22)'; c.fillRect(x + tw - 3, h - tall, 3, tall);   /* the shady side */
+      for (let y = h - tall + 3; y < h - 2; y += 4) for (let xx = x + 2; xx < x + tw - 3; xx += 3) {
+        if (mode !== 'day') { if (((xx * 7 + y * 3 + k) % 5) < 2) { c.fillStyle = (xx + y + k) % 3 ? 'rgba(255,220,130,.9)' : 'rgba(170,220,255,.75)'; c.fillRect(xx, y, 1, 2); } }
+        else if ((y + k) % 8 < 4) { c.fillStyle = 'rgba(255,255,255,.22)'; c.fillRect(xx, y, 2, 1); }
+      }
+    });
+  });
+  for (let k = -1; k < Math.ceil(W / pw) + 2; k++) { const x = k * pw - (p % pw); if (x > W || x + pw < 0) continue; ctx.drawImage(img, Math.round(x), base - 120); }
+}
+function torSkyline(p, base, mode, s) {   /* the skyline: the towers, the CN Tower standing over them, the dome at its foot */
+  torTowers(p, base, mode, s);
+  for (let k = -1; k < 2; k++) { const x = k * 560 - (p % 560) + 250; if (x > -40 && x < W + 40) { cnTower(x, base, Math.round(150 * s), mode); toDome(x + 34 * s, base, s, mode); } }
+}
+function casaSil(x, base, col) {   /* Casa Loma far off on its hill: a little silhouette */
+  ctx.fillStyle = col; ctx.beginPath(); ctx.ellipse(x + 20, base, 50, 10, 0, Math.PI, 0); ctx.fill();
+  ctx.fillRect(x, base - 22, 40, 14); ctx.fillRect(x + 2, base - 34, 9, 12); for (let q = 0; q < 3; q++) ctx.fillRect(x + 2 + q * 3, base - 36, 2, 2);
+  ctx.fillRect(x + 31, base - 30, 7, 8); ctx.beginPath(); ctx.moveTo(x + 30, base - 30); ctx.lineTo(x + 34.5, base - 40); ctx.lineTo(x + 39, base - 30); ctx.fill();
+  ctx.fillStyle = 'rgba(255,217,138,.8)'; for (let q = 0; q < 4; q++) ctx.fillRect(x + 6 + q * 8, base - 17, 2, 2);
+}
+const W8BG = {
+  toskyline(th, p1, p2, p3) {   /* downtown Toronto and the CN Tower: out of the airport's big windows (8-1), from up the tower (8-4), over the rooftops at dusk (8-8) */
+    const mode = th.dusk ? 'dusk' : 'day';
+    if (th.dusk) {
+      const sx = 300 - (p1 % 700); glowDisc(sx, 150, 70, 'rgba(255,150,90,.75)', 0.85);
+      ctx.fillStyle = '#ffc07a'; ctx.beginPath(); ctx.arc(sx, 154, 16, Math.PI, 0); ctx.fill();
+      ctx.fillStyle = 'rgba(255,255,255,.7)'; for (let k = 0; k < 18; k++) ctx.fillRect((k * 97) % W, (k * 29) % 50, 1, 1);
+    } else w3Clouds(p1, 'rgba(255,255,255,.75)');
+    if (th.high) {   /* up the CN Tower: Lake Ontario and the Islands far below, the tops of the city's towers, the tower's own concrete right behind the ledge */
+      vanWater(96, 80, p1, false, '#3f7aa0');
+      ctx.fillStyle = '#4f8a46'; for (let k = -1; k < 4; k++) { const x = k * 210 - (p1 % 210); ctx.beginPath(); ctx.ellipse(x + 90, 118, 64, 5, 0, 0, 6.284); ctx.fill(); ctx.fillStyle = '#e8d9a8'; ctx.fillRect(x + 40, 117, 100, 1); ctx.fillStyle = '#4f8a46'; }
+      ctx.fillStyle = 'rgba(255,255,255,.55)'; for (let k = -1; k < 4; k++) { const x = k * 170 - (p1 * 1.3 % 170); ctx.beginPath(); ctx.ellipse(x + 60, 84, 30, 5, 0, 0, 6.284); ctx.fill(); }   /* clouds below us */
+      torTowers(p1 * 1.4, 176, mode, 0.55);
+      for (let k = -1; k < 3; k++) toDome(k * 380 - (p1 * 1.4 % 380) + 120, 176, 0.8, mode);
+      for (let k = -1; k < 2; k++) {
+        const x = k * 560 - (p2 % 560) + 300; if (x < -90 || x > W + 90) continue;
+        ctx.fillStyle = '#d6d2ca'; ctx.fillRect(x - 20, 0, 40, 176); ctx.fillStyle = '#a9a49b'; ctx.fillRect(x + 9, 0, 11, 176);   /* the concrete column */
+        ctx.fillStyle = 'rgba(0,0,0,.08)'; for (let y = 8; y < 176; y += 22) ctx.fillRect(x - 20, y, 40, 1);
+        ctx.fillStyle = '#2f4a6a'; ctx.fillRect(x - 7, 14, 8, 162); ctx.fillStyle = 'rgba(160,210,255,.35)'; ctx.fillRect(x - 6, 14, 2, 162);   /* the glass elevator shaft */
+        const ey = 20 + ((frame * 0.6) % 300); if (ey < 168) { ctx.fillStyle = '#f6c445'; ctx.fillRect(x - 6, Math.round(ey), 6, 8); ctx.fillStyle = '#fff3c0'; ctx.fillRect(x - 5, Math.round(ey) + 2, 4, 3); }   /* an elevator car going down */
+        ctx.fillStyle = '#c9c4bb'; ctx.beginPath(); ctx.moveTo(x - 66, 0); ctx.lineTo(x + 66, 0); ctx.lineTo(x + 52, 18); ctx.lineTo(x - 52, 18); ctx.closePath(); ctx.fill();   /* the underside of the main pod */
+        ctx.fillStyle = '#3a4658'; ctx.fillRect(x - 60, 4, 120, 5); ctx.fillStyle = '#a9a49b'; ctx.fillRect(x - 52, 16, 104, 2);
+      }
+      return;
+    }
+    if (th.roofs) {   /* 8-8: Casa Loma far off on its hill (where the rooftops lead), tower cranes over the city */
+      for (let k = -1; k < 2; k++) { const x = k * 900 - (p1 % 900) + 640; if (x > -60 && x < W + 60) casaSil(x, 150, '#3a3058'); }
+    }
+    torSkyline(p1, th.windows ? 142 : 150, mode, th.windows ? 0.8 : 1);
+    if (th.roofs) {
+      for (let k = -1; k < 3; k++) {   /* tower cranes: a yellow mast, the long jib, the counterweight, a hook on its cable */
+        const x = k * 260 - (p2 % 260) + 100;
+        ctx.fillStyle = '#d8a83a'; ctx.fillRect(x, 44, 4, 112); ctx.fillRect(x - 40, 40, 112, 3);
+        ctx.fillStyle = 'rgba(0,0,0,.25)'; for (let y = 48; y < 156; y += 8) ctx.fillRect(x, y, 4, 1);
+        ctx.fillStyle = '#6a6f78'; ctx.fillRect(x - 40, 43, 12, 7); ctx.fillStyle = '#3a3f4a'; ctx.fillRect(x + 54, 43, 1, 34); ctx.fillRect(x + 52, 77, 5, 4);
+        ctx.fillStyle = '#ff4a4a'; if (Math.floor((frame + k * 20) / 30) % 2) ctx.fillRect(x + 1, 38, 2, 2);
+      }
+      for (let k = -1; k < 5; k++) {   /* the rooftops just behind: brick parapets, water towers on stilts, vents */
+        const kk = k + Math.floor(p3 / 120), x = k * 120 - (p3 % 120), y = 140 + ((kk * 7) % 3 + 3) % 3 * 6;
+        ctx.fillStyle = '#3f2a30'; ctx.fillRect(x, y, 112, 176 - y); ctx.fillStyle = '#5a464c'; ctx.fillRect(x - 1, y, 114, 3);   /* darker than the roofs Kinan runs on */
+        ctx.fillStyle = 'rgba(255,214,140,.55)'; for (let q = 0; q < 5; q++) if ((kk + q) % 3) ctx.fillRect(x + 8 + q * 21, y + 10, 8, 6);
+        if (((kk % 2) + 2) % 2) {
+          ctx.fillStyle = '#3a2a22'; ctx.fillRect(x + 20, y - 20, 2, 20); ctx.fillRect(x + 38, y - 20, 2, 20); ctx.fillRect(x + 20, y - 12, 20, 1);
+          ctx.fillStyle = '#8a5a3a'; ctx.fillRect(x + 16, y - 40, 28, 20); ctx.fillStyle = '#6a4228'; ctx.fillRect(x + 16, y - 34, 28, 1); ctx.fillRect(x + 16, y - 26, 28, 1);
+          ctx.fillStyle = '#4a3a2a'; ctx.beginPath(); ctx.moveTo(x + 14, y - 40); ctx.lineTo(x + 30, y - 50); ctx.lineTo(x + 46, y - 40); ctx.closePath(); ctx.fill();
+        } else { ctx.fillStyle = '#9aa1ab'; ctx.fillRect(x + 70, y - 8, 12, 8); ctx.fillRect(x + 88, y - 5, 6, 5); }
+      }
+    }
+    if (th.windows) {   /* 8-1: the arrivals hall's big windows: planes at their gates (plain white with a blue stripe, no names), the jet bridges */
+      ctx.fillStyle = '#7a7f88'; ctx.fillRect(0, 142, W, 34);
+      ctx.fillStyle = '#f6c445'; for (let k = -1; k < 14; k++) ctx.fillRect(k * 34 - (p2 % 34), 162, 14, 1);
+      for (let k = -1; k < 4; k++) {
+        const x = k * 200 - (p2 % 200) + 40;
+        ctx.fillStyle = '#e8ecf2'; ctx.fillRect(x, 128, 70, 11); ctx.beginPath(); ctx.arc(x + 70, 133.5, 5.5, -Math.PI / 2, Math.PI / 2); ctx.fill();
+        ctx.fillStyle = '#2f5fb3'; ctx.beginPath(); ctx.moveTo(x + 1, 128); ctx.lineTo(x + 3, 110); ctx.lineTo(x + 11, 110); ctx.lineTo(x + 18, 128); ctx.closePath(); ctx.fill();
+        ctx.fillRect(x, 134, 74, 2); ctx.fillStyle = '#3a4658'; for (let q = 0; q < 9; q++) ctx.fillRect(x + 16 + q * 5, 130, 2, 2); ctx.fillRect(x + 70, 131, 3, 2);
+        ctx.fillStyle = '#c9ced6'; ctx.beginPath(); ctx.moveTo(x + 28, 137); ctx.lineTo(x + 48, 137); ctx.lineTo(x + 36, 146); ctx.lineTo(x + 24, 146); ctx.closePath(); ctx.fill();
+        ctx.fillStyle = '#9aa1ab'; ctx.fillRect(x + 32, 140, 9, 4); ctx.fillStyle = '#3a3f4a'; ctx.fillRect(x + 14, 139, 2, 5); ctx.fillRect(x + 62, 139, 2, 5);
+        ctx.fillStyle = '#9aa1ab'; ctx.fillRect(x + 78, 125, 52, 9); ctx.fillStyle = '#6a6f78'; ctx.fillRect(x + 78, 133, 52, 1); ctx.fillRect(x + 100, 134, 3, 18);   /* the jet bridge */
+      }
+      ctx.fillStyle = 'rgba(190,225,250,.10)'; ctx.fillRect(0, 0, W, 176);   /* the glass */
+      ctx.fillStyle = 'rgba(255,255,255,.14)'; for (let k = -1; k < 5; k++) { const x = k * 110 - (p3 % 110); ctx.beginPath(); ctx.moveTo(x, 176); ctx.lineTo(x + 40, 10); ctx.lineTo(x + 52, 10); ctx.lineTo(x + 12, 176); ctx.closePath(); ctx.fill(); }   /* reflections */
+      ctx.fillStyle = '#3a3f4a'; ctx.fillRect(0, 0, W, 10); ctx.fillRect(0, 54, W, 2);
+      for (let k = -1; k < 8; k++) ctx.fillRect(k * 72 - (p3 % 72), 0, 4, 176);   /* the window frames */
+      ctx.fillStyle = '#f4f1e8'; for (let k = -1; k < 8; k++) ctx.fillRect(k * 72 - (p3 % 72) + 30, 3, 12, 3);   /* the ceiling lights */
+    }
+  },
+  tosubway(th, p1, p2, p3) {   /* 8-2 the subway: the dark tunnel wall rushing past (ribs, cables, lamps, a train the other way); out on the viaduct, the Don Valley far below */
+    const pc = P ? P.x / T : 0, o = th.open ? clamp(Math.min(pc - th.open[0], th.open[1] - pc) / 8, 0, 1) : 0;
+    if (o > 0) {   /* the open air (no glowDisc here: it would reset the fade) */
+      ctx.globalAlpha = o;
+      const g = ctx.createLinearGradient(0, 0, 0, 176); g.addColorStop(0, '#5aa0e0'); g.addColorStop(1, '#d6ecf8'); ctx.fillStyle = g; ctx.fillRect(0, 0, W, 176);
+      w3Clouds(p1, 'rgba(255,255,255,.75)');
+      torSkyline(p1, 104, 'day', 0.6);
+      ctx.fillStyle = '#4a7a3a'; ctx.beginPath(); ctx.moveTo(-20, 176);
+      for (let x = -20; x <= W + 20; x += 8) ctx.lineTo(x, 106 + Math.abs(Math.sin((x + p2) / 140)) * 20);
+      ctx.lineTo(W + 20, 176); ctx.closePath(); ctx.fill();
+      for (let r = 0; r < 3; r++) for (let k = -1; k < 46; k++) {   /* the valley's woods in fall colours: a thick canopy, row on row */
+        const kk = k + Math.floor(p2 / 10), x = k * 10 - (p2 % 10) + r * 5, y = 126 + r * 11 + ((kk * 7 + r * 3) % 3), m = (((kk * 5 + r * 7) % 7) + 7) % 7;
+        ctx.fillStyle = ['#c86a2a', '#a8343f', '#d8a83a', '#3f6a34', '#b8552a', '#4a7a3a', '#d88a3a'][m]; ctx.beginPath(); ctx.arc(x, y, 6, 0, 6.284); ctx.fill();
+        ctx.fillStyle = 'rgba(255,240,200,.18)'; ctx.fillRect(Math.round(x) - 3, y - 4, 3, 2);
+      }
+      ctx.fillStyle = '#5a8ab0'; ctx.fillRect(0, 158, W, 6); ctx.fillStyle = '#6a6f78'; ctx.fillRect(0, 166, W, 5);   /* the river and the parkway */
+      ctx.fillStyle = '#f4f1e8'; for (let k = 0; k < 5; k++) ctx.fillRect(((k * 97 + frame * 0.8) % (W + 20)) - 10, 167, 4, 2);
+      ctx.globalAlpha = 1;
+    }
+    if (o < 1) {
+      ctx.globalAlpha = 1 - o;
+      ctx.fillStyle = '#1b1e25'; ctx.fillRect(0, 0, W, 176);
+      for (let k = -1; k < 11; k++) { const x = k * 48 - (p2 % 48); ctx.fillStyle = '#2a2e36'; ctx.fillRect(x, 18, 44, 152); ctx.fillStyle = '#23262d'; ctx.fillRect(x + 44, 18, 4, 152); }   /* the tunnel's concrete ribs */
+      ctx.fillStyle = '#121418'; ctx.fillRect(0, 50, W, 2); ctx.fillRect(0, 56, W, 2); ctx.fillStyle = '#4a3a22'; ctx.fillRect(0, 62, W, 1);   /* the cables */
+      for (let k = -1; k < 6; k++) {   /* lamps going by */
+        const x = k * 96 - (p3 % 96) + 30;
+        ctx.fillStyle = 'rgba(255,226,150,.12)'; ctx.beginPath(); ctx.arc(x, 38, 13, 0, 6.284); ctx.fill();
+        ctx.fillStyle = '#fff3b0'; ctx.fillRect(x - 4, 36, 8, 3);
+      }
+      const tt = (frame * 7) % 2400;   /* now and then a train goes by the other way, in the dark: a shadowy blur with lit windows
+                                          (dark, never the silver of the cars Kinan stands on: backdrop colours stay off gameplay colours) */
+      if (tt < W + 320) {
+        const x0 = W + 20 - tt;
+        ctx.fillStyle = '#30343d'; ctx.fillRect(x0, 100, 300, 36); ctx.fillStyle = '#4a3036'; ctx.fillRect(x0, 128, 300, 2);
+        ctx.fillStyle = 'rgba(255,236,170,.7)'; for (let q = 0; q < 13; q++) ctx.fillRect(x0 + 8 + q * 22, 106, 14, 9);
+        ctx.fillStyle = 'rgba(200,210,225,.25)'; for (let q = 0; q < 5; q++) ctx.fillRect(x0 + 300, 104 + q * 7, 30 + q * 9, 1);   /* the rush of air behind it */
+      }
+      ctx.globalAlpha = 1;
+    }
+  },
+  tosquare(th, p1, p2, p3) {   /* 8-3 Nathan Phillips Square: City Hall's two curved towers and the round council chamber, the old city hall's clock tower, the arches, the big TORONTO letters */
+    w3Clouds(p1, 'rgba(255,255,255,.8)');
+    torTowers(p1, 128, 'day', 0.75);
+    for (let k = -1; k < 2; k++) {
+      const x = k * 560 - (p2 % 560) + 230; if (x < -260 || x > W + 220) continue;
+      const ox = x - 190;   /* the old city hall: sandstone, its clock tower */
+      ctx.fillStyle = '#b98a6a'; ctx.fillRect(ox, 98, 76, 46); ctx.fillRect(ox + 56, 44, 16, 100);
+      ctx.fillStyle = '#5f8a7a'; ctx.beginPath(); ctx.moveTo(ox + 54, 44); ctx.lineTo(ox + 64, 26); ctx.lineTo(ox + 74, 44); ctx.closePath(); ctx.fill(); ctx.fillRect(ox - 2, 94, 80, 4);
+      ctx.fillStyle = '#f4f1e8'; ctx.beginPath(); ctx.arc(ox + 64, 56, 4.5, 0, 6.284); ctx.fill(); ctx.fillStyle = '#1b1220'; ctx.fillRect(ox + 64, 53, 1, 3); ctx.fillRect(ox + 64, 56, 3, 1);
+      ctx.fillStyle = '#7a5a46'; for (let q = 0; q < 5; q++) { ctx.fillRect(ox + 6 + q * 10, 106, 5, 8); ctx.fillRect(ox + 6 + q * 10, 122, 5, 8); }
+      ctx.fillStyle = '#d8d6cf';   /* City Hall: the west tower (shorter) and the east tower curve round the council chamber */
+      ctx.beginPath(); ctx.moveTo(x - 64, 144); ctx.lineTo(x - 64, 72); ctx.quadraticCurveTo(x - 44, 60, x - 22, 74); ctx.lineTo(x - 22, 144); ctx.closePath(); ctx.fill();
+      ctx.beginPath(); ctx.moveTo(x + 22, 144); ctx.lineTo(x + 22, 56); ctx.quadraticCurveTo(x + 44, 42, x + 68, 54); ctx.lineTo(x + 68, 144); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = '#6f8aa0';   /* their glass faces, turned toward the chamber */
+      ctx.beginPath(); ctx.moveTo(x - 46, 144); ctx.lineTo(x - 46, 66); ctx.quadraticCurveTo(x - 34, 64, x - 22, 74); ctx.lineTo(x - 22, 144); ctx.closePath(); ctx.fill();
+      ctx.beginPath(); ctx.moveTo(x + 22, 144); ctx.lineTo(x + 22, 56); ctx.quadraticCurveTo(x + 32, 49, x + 44, 47); ctx.lineTo(x + 44, 144); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = 'rgba(255,255,255,.22)'; for (let y = 76; y < 144; y += 5) { ctx.fillRect(x - 45, y, 22, 1); ctx.fillRect(x + 23, y - 10, 20, 1); }
+      ctx.fillStyle = 'rgba(0,0,0,.10)'; for (let q = 0; q < 4; q++) { ctx.fillRect(x - 62 + q * 4, 72, 1, 72); ctx.fillRect(x + 48 + q * 5, 52, 1, 92); }   /* the concrete ribs on their backs */
+      ctx.fillStyle = '#9aa1ab'; ctx.fillRect(x - 6, 124, 12, 20);   /* the council chamber: a white saucer on a column */
+      ctx.fillStyle = '#b8bfc8'; ctx.beginPath(); ctx.ellipse(x, 123, 25, 7, 0, 0, 6.284); ctx.fill();   /* its grey underside, so it reads as a building, not a cloud */
+      ctx.fillStyle = '#e8ecf2'; ctx.beginPath(); ctx.ellipse(x, 121, 24, 5, 0, 0, 6.284); ctx.fill(); ctx.beginPath(); ctx.ellipse(x, 118, 14, 6, 0, Math.PI, 0); ctx.fill();
+      ctx.strokeStyle = '#8a929c'; ctx.lineWidth = 1; ctx.beginPath(); ctx.ellipse(x, 121.5, 24, 5.5, 0, 0, 6.284); ctx.stroke();
+      ctx.fillStyle = '#6f8aa0'; for (let q = -3; q <= 3; q++) ctx.fillRect(x + q * 6 - 1, 123, 2, 2);   /* windows round the rim */
+      ctx.fillStyle = '#b8bfc8'; ctx.fillRect(x - 70, 140, 144, 4);
+      ctx.strokeStyle = '#eef1f5'; ctx.lineWidth = 3;   /* the arches over the square */
+      for (let q = 0; q < 8; q++) { ctx.beginPath(); ctx.arc(x - 104 + q * 30 + 15, 162, 13, Math.PI, 0); ctx.stroke(); }
+      ctx.lineWidth = 1; ctx.fillStyle = '#eef1f5'; ctx.fillRect(x - 104, 147, 240, 3);
+    }
+    ctx.save(); ctx.font = 'bold 20px monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic'; ctx.lineWidth = 3; ctx.strokeStyle = '#1b1220';
+    for (let k = -1; k < 2; k++) {   /* the big TORONTO letters, their lights changing colour */
+      const x0 = k * 520 - (p3 % 520) + 150; if (x0 < -140 || x0 > W + 20) continue;
+      'TORONTO'.split('').forEach((ch, q) => {
+        ctx.fillStyle = ['#ff6fae', '#f6c445', '#6fc8ff', '#7be37a', '#ff8a3d', '#b48cff', '#e8364b'][(q + Math.floor(frame / 45)) % 7];
+        ctx.strokeText(ch, x0 + q * 16, 174); ctx.fillText(ch, x0 + q * 16, 174);
+      });
+    }
+    ctx.restore();
+  },
+  tolake(th, p1, p2, p3) {   /* 8-6 and 8-secret: Lake Ontario and the Toronto Islands: the skyline and the CN Tower across the water, the ferry going by, sailboats, gulls */
+    const mode = th.dusk ? 'dusk' : 'day', sx = 280 - (p1 % 700);
+    if (th.dusk) { glowDisc(sx, 112, 70, 'rgba(255,160,90,.75)', 0.85); ctx.fillStyle = '#ffc07a'; ctx.beginPath(); ctx.arc(sx, 114, 15, Math.PI, 0); ctx.fill(); }
+    else w3Clouds(p1, 'rgba(255,255,255,.8)');
+    torSkyline(p1, 116, mode, 0.75);
+    vanWater(116, 60, p1, false, th.dusk ? '#5a5a8a' : '#3f80b0');
+    if (th.dusk) { ctx.fillStyle = 'rgba(255,190,120,.55)'; for (let q = 0; q < 10; q++) ctx.fillRect(Math.round(sx - 12 + q % 3 * 3), 118 + q * 5, 24 - q * 2, 1); }   /* the sun's path on the water */
+    const fx = ((frame * 0.25 - p2 * 0.2) % (W + 200) + W + 200) % (W + 200) - 100;   /* the island ferry: white hull, blue stripe, two decks */
+    ctx.fillStyle = 'rgba(255,255,255,.6)'; for (let q = 0; q < 4; q++) ctx.fillRect(Math.round(fx - 10 - q * 9), 136 + q % 2, 7, 1);
+    ctx.fillStyle = '#f4f1e8'; ctx.fillRect(fx, 128, 56, 9); ctx.fillRect(fx + 8, 121, 40, 7); ctx.fillRect(fx + 20, 115, 14, 6);
+    ctx.fillStyle = '#2f5fb3'; ctx.fillRect(fx, 133, 56, 2); ctx.fillStyle = '#1b1220'; for (let q = 0; q < 6; q++) ctx.fillRect(fx + 6 + q * 8, 130, 2, 2);
+    ctx.fillStyle = '#3a4658'; for (let q = 0; q < 6; q++) ctx.fillRect(fx + 11 + q * 6, 123, 4, 3);
+    for (let k = -1; k < 4; k++) {   /* sailboats */
+      const x = k * 190 - (p2 % 190) + 70, b = Math.round(Math.sin(frame / 25 + k) * 1.2);
+      ctx.fillStyle = '#f4f1e8'; ctx.beginPath(); ctx.moveTo(x, 146 + b); ctx.lineTo(x + 8, 124 + b); ctx.lineTo(x + 9, 146 + b); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = k % 2 ? '#e8364b' : '#2f5fb3'; ctx.fillRect(x - 4, 147 + b, 18, 3);
+    }
+    ctx.strokeStyle = th.dusk ? '#3a3050' : '#4a4f57'; ctx.lineWidth = 1;   /* gulls */
+    for (let k = 0; k < 4; k++) { const gx = (k * 130 + frame * 0.4) % (W + 40) - 20, gy = 34 + k * 13 + Math.sin(frame / 20 + k) * 3; ctx.beginPath(); ctx.moveTo(gx - 4, gy - 2); ctx.lineTo(gx, gy); ctx.lineTo(gx + 4, gy - 2); ctx.stroke(); }
+    ctx.fillStyle = th.dusk ? '#2f4a3a' : '#437a3d'; ctx.beginPath(); ctx.moveTo(-20, 176);   /* the Islands: a grassy bank and trees (a darker green than the grass Kinan stands on) */
+    for (let x = -20; x <= W + 20; x += 8) ctx.lineTo(x, 158 + Math.sin((x + p3) / 50) * 3);
+    ctx.lineTo(W + 20, 176); ctx.closePath(); ctx.fill();
+    for (let k = -1; k < 8; k++) {
+      const x = k * 64 - (p3 % 64) + 20;
+      ctx.fillStyle = th.dusk ? '#3a2a22' : '#6a4a32'; ctx.fillRect(x - 1, 148, 3, 12);
+      ctx.fillStyle = th.dusk ? '#2a4434' : '#3f7a3a'; ctx.beginPath(); ctx.arc(x, 144, 9, 0, 6.284); ctx.arc(x + 6, 148, 6, 0, 6.284); ctx.fill();
+    }
+  },
+  toaquarium(th, p1, p2, p3) {   /* the fort, the aquarium: deep blue water over the tunnel, light from the surface, kelp, rocks and coral, glowing jellies, bubbles */
+    ctx.fillStyle = 'rgba(160,220,255,.10)';
+    for (let k = -1; k < 7; k++) { const x = k * 90 - (p1 % 90); ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x + 24, 0); ctx.lineTo(x + 60, 176); ctx.lineTo(x + 30, 176); ctx.closePath(); ctx.fill(); }
+    ctx.fillStyle = 'rgba(200,240,255,.28)'; for (let k = 0; k < 16; k++) ctx.fillRect(((k * 53 - p1 + frame * 0.3) % W + W) % W, 2 + (k % 3) * 3, 12, 1);   /* the surface, far above */
+    ctx.fillStyle = '#123a5a'; ctx.beginPath(); ctx.moveTo(-20, 176);   /* the far rocks */
+    for (let x = -20; x <= W + 20; x += 10) ctx.lineTo(x, 140 + Math.sin((x + p1) / 37) * 8 + Math.sin((x + p1) / 13) * 3);
+    ctx.lineTo(W + 20, 176); ctx.closePath(); ctx.fill();
+    for (let k = 0; k < 6; k++) {   /* jellies drifting up, glowing */
+      const x = ((k * 83 - p1 * 0.6) % (W + 40) + W + 40) % (W + 40) - 20, y = 150 - ((frame * 0.15 + k * 37) % 150);
+      glowDisc(x, y, 11, 'rgba(255,150,220,.5)', 0.7);
+      ctx.fillStyle = 'rgba(255,200,240,.85)'; ctx.beginPath(); ctx.arc(x, y, 5, Math.PI, 0); ctx.fill();
+      for (let q = 0; q < 4; q++) ctx.fillRect(Math.round(x - 4 + q * 2.5), y, 1, 5 + Math.round(Math.sin(frame / 10 + q + k) * 2));
+    }
+    for (let k = -1; k < 4; k++) {   /* coral: red branches, a yellow fan */
+      const x = k * 120 - (p2 % 120) + 40;
+      ctx.fillStyle = '#ff7a6a'; ctx.fillRect(x, 150, 3, 26); ctx.fillRect(x - 6, 158, 6, 2); ctx.fillRect(x - 6, 150, 2, 8); ctx.fillRect(x + 3, 154, 6, 2); ctx.fillRect(x + 7, 146, 2, 8);
+      ctx.fillStyle = '#f6c445'; ctx.beginPath(); ctx.arc(x + 40, 168, 10, Math.PI, 0); ctx.fill(); ctx.fillStyle = '#e8a83a'; for (let q = 0; q < 5; q++) ctx.fillRect(x + 32 + q * 4, 160, 1, 8);
+    }
+    for (let k = -1; k < 11; k++) {   /* kelp, swaying */
+      const x = k * 46 - (p2 % 46) + 10;
+      for (let s = 0; s < 9; s++) { ctx.fillStyle = s % 2 ? '#2f7a4a' : '#3a8a54'; ctx.fillRect(Math.round(x + Math.sin(frame / 30 + s / 2 + k) * s * 0.4), 167 - s * 9, 3, 10); }
+    }
+    ctx.strokeStyle = 'rgba(220,245,255,.6)'; ctx.lineWidth = 1;   /* bubbles */
+    for (let k = 0; k < 14; k++) { const bx = ((k * 61 - p2 * 0.5) % W + W) % W, by = 176 - ((frame * 0.6 + k * 47) % 176); ctx.beginPath(); ctx.arc(bx + Math.sin(frame / 15 + k) * 2, by, 1.5 + (k % 3) * 0.5, 0, 6.284); ctx.stroke(); }
+  },
+  kensington(th, p1, p2, p3) {   /* 8-7 Kensington Market at dusk: a row of painted old houses (steep gables, round attic windows, murals), shop awnings, string lights, street lamps */
+    const sx = 120 - (p1 % 600); glowDisc(sx, 140, 60, 'rgba(255,160,100,.6)', 0.8);
+    torTowers(p1, 116, 'dusk', 0.6);
+    ctx.fillStyle = 'rgba(255,255,255,.6)'; for (let k = 0; k < 14; k++) ctx.fillRect((k * 89) % W, (k * 23) % 44, 1, 1);
+    for (let k = -1; k < 7; k++) {
+      const kk = k + Math.floor(p2 / 76), x = k * 76 - (p2 % 76), m = ((kk % 7) + 7) % 7, top = 72 + (((kk * 13) % 3) + 3) % 3 * 8;
+      const col = ['#8a5ac8', '#2fb3a0', '#f6c445', '#ff6fae', '#ff8a3d', '#5aa0e8', '#7bc35a'][m], awn = ['#e8364b', '#2f5fb3', '#3f8a3a', '#f6c445'][m % 4];
+      ctx.fillStyle = col; ctx.fillRect(x + 2, top, 70, 176 - top);
+      ctx.fillStyle = '#3a2a3a'; ctx.beginPath(); ctx.moveTo(x - 2, top + 2); ctx.lineTo(x + 37, top - 28); ctx.lineTo(x + 76, top + 2); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = col; ctx.beginPath(); ctx.moveTo(x + 10, top); ctx.lineTo(x + 37, top - 20); ctx.lineTo(x + 64, top); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = '#f4f1e8'; ctx.beginPath(); ctx.arc(x + 37, top - 8, 5, 0, 6.284); ctx.fill(); ctx.fillStyle = '#ffe9a0'; ctx.beginPath(); ctx.arc(x + 37, top - 8, 3, 0, 6.284); ctx.fill();
+      ctx.fillStyle = 'rgba(255,255,255,.35)';   /* a mural: dots, stripes or a zigzag */
+      if (m % 3 === 0) { for (let q = 0; q < 12; q++) ctx.fillRect(x + 6 + (q * 17) % 62, top + 36 + (q * 11) % 30, 3, 3); }
+      else if (m % 3 === 1) { for (let q = 0; q < 4; q++) ctx.fillRect(x + 2, top + 40 + q * 7, 70, 2); }
+      else { for (let q = 0; q < 10; q++) ctx.fillRect(x + 4 + q * 7, top + 44 + (q % 2) * 5, 5, 2); }
+      ctx.fillStyle = 'rgba(255,226,140,.85)'; ctx.fillRect(x + 12, top + 10, 12, 16); ctx.fillRect(x + 50, top + 10, 12, 16);
+      ctx.strokeStyle = '#f4f1e8'; ctx.lineWidth = 1; ctx.strokeRect(x + 11.5, top + 9.5, 13, 17); ctx.strokeRect(x + 49.5, top + 9.5, 13, 17);
+      ctx.fillStyle = 'rgba(255,214,140,.55)'; ctx.fillRect(x + 8, 146, 56, 26);   /* the shop window, fruit and things in crates */
+      ['#e8364b', '#f6c445', '#7bc35a', '#ff8a3d'].forEach((c, q) => { ctx.fillStyle = c; ctx.beginPath(); ctx.arc(x + 16 + q * 13, 166, 4, 0, 6.284); ctx.fill(); });
+      for (let s = 0; s < 7; s++) { ctx.fillStyle = s % 2 ? '#f4f1e8' : awn; ctx.fillRect(x + 2 + s * 10, 136, 10, 7); }   /* the striped awning */
+    }
+    for (let k = -1; k < 6; k++) {   /* string lights across the street */
+      const x = k * 90 - (p3 % 90);
+      ctx.strokeStyle = 'rgba(30,20,30,.6)'; ctx.beginPath(); ctx.moveTo(x, 98); ctx.quadraticCurveTo(x + 45, 114, x + 90, 98); ctx.stroke();
+      for (let q = 1; q < 6; q++) { const t = q / 6; ctx.fillStyle = ['#ff6fae', '#f6c445', '#6fc8ff', '#7be37a'][(q + k + 8) % 4]; ctx.fillRect(Math.round(x + 90 * t) - 1, Math.round(98 + 16 * t * (1 - t) * 2) , 2, 3); }
+    }
+    for (let k = -1; k < 4; k++) w3Lamp(k * 180 - (p3 % 180) + 60, 112, true);
+  },
+  casaloma(th, p1, p2, p3) {   /* the castle: Casa Loma on its hill in the evening: the big square tower with battlements, the round tower with its green copper cone, chimneys, warm windows, the gardens */
+    glowDisc(W - 70 - (p1 % 80), 36, 34, 'rgba(220,225,255,.8)', 0.6); ctx.fillStyle = '#eef0ff'; ctx.beginPath(); ctx.arc(W - 70 - (p1 % 80), 36, 12, 0, 6.284); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,.8)'; for (let k = 0; k < 30; k++) { ctx.globalAlpha = 0.3 + ((k * 7) % 10) / 14; ctx.fillRect((k * 71) % W, (k * 43) % 90, 1, 1); } ctx.globalAlpha = 1;
+    torSkyline(p1, 156, 'night', 0.5);
+    ctx.fillStyle = th.mid; ctx.beginPath(); ctx.moveTo(-20, 176); ctx.lineTo(-20, 156);   /* the hill */
+    for (let x = -20; x <= W + 20; x += 10) ctx.lineTo(x, 150 + Math.sin((x + p2) / 120) * 6);
+    ctx.lineTo(W + 20, 176); ctx.closePath(); ctx.fill();
+    for (let k = -1; k < 2; k++) {
+      const x = k * 640 - (p2 % 640) + 110; if (x < -220 || x > W + 20) continue;
+      const stone = '#b8a58a', shade = '#8f7d66', roof = '#5f8f7f', win = '#ffd98a';
+      ctx.fillStyle = stone; ctx.fillRect(x, 98, 200, 56);   /* the main house */
+      for (let q = 0; q < 20; q++) ctx.fillRect(x + q * 10, 92, 6, 6);
+      ctx.fillRect(x + 8, 44, 42, 110); for (let q = 0; q < 5; q++) ctx.fillRect(x + 8 + q * 9, 38, 6, 6);   /* the big square tower */
+      ctx.fillRect(x + 150, 62, 30, 92); ctx.fillRect(x + 92, 72, 18, 26);   /* the round tower, a turret */
+      ctx.fillStyle = roof; ctx.beginPath(); ctx.moveTo(x + 146, 62); ctx.lineTo(x + 165, 22); ctx.lineTo(x + 184, 62); ctx.closePath(); ctx.fill();
+      ctx.beginPath(); ctx.moveTo(x + 89, 72); ctx.lineTo(x + 101, 50); ctx.lineTo(x + 113, 72); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = shade; ctx.fillRect(x + 42, 44, 8, 110); ctx.fillRect(x + 172, 62, 8, 92); ctx.fillRect(x + 192, 98, 8, 56); ctx.fillRect(x + 70, 80, 6, 14); ctx.fillRect(x + 128, 78, 6, 16);   /* shady sides, chimneys */
+      ctx.fillStyle = 'rgba(0,0,0,.10)'; for (let y = 104; y < 154; y += 8) ctx.fillRect(x, y, 200, 1);
+      ctx.fillStyle = '#4a4f57'; ctx.fillRect(x + 28, 20, 1, 18);   /* the King's flag: grey with black rings, like a raccoon's tail */
+      for (let q = 0; q < 4; q++) { ctx.fillStyle = q % 2 ? '#1b1220' : '#9aa1ab'; ctx.fillRect(x + 29 + q * 3, 20 + Math.round(Math.sin(frame / 12 + q) * 1), 3, 7); }
+      ctx.fillStyle = win;
+      for (let r = 0; r < 2; r++) for (let q = 0; q < 8; q++) { const wx = x + 58 + q * 11, wy = 108 + r * 22; if (wx > x + 140) continue; ctx.fillRect(wx, wy + 1, 6, 9); ctx.fillRect(wx + 1, wy, 4, 1); }
+      for (let r = 0; r < 4; r++) { ctx.fillRect(x + 22, 54 + r * 22, 8, 10); }
+      for (let r = 0; r < 3; r++) ctx.fillRect(x + 160, 74 + r * 24, 7, 10);
+    }
+    ctx.fillStyle = '#2f4a34'; for (let k = -1; k < 12; k++) { const x = k * 40 - (p3 % 40); ctx.beginPath(); ctx.ellipse(x + 20, 170, 18, 8, 0, Math.PI, 0); ctx.fill(); }   /* the gardens' hedges */
+    ctx.fillStyle = '#c9bfae'; ctx.fillRect(0, 160, W, 2); for (let k = -1; k < 56; k++) ctx.fillRect(k * 8 - (p3 % 8), 162, 2, 8);   /* the terrace railing */
+  }
+};
+Object.assign(W2BG, W8BG);   /* World 8's scenes join the same table */
 /* ---- World 5's bosses ---- */
 function drawBananaSlug(b, sx, sy) {   /* the Giant Banana Slug: long, yellow, spotted, eye stalks, very happy */
   const dizzy = b.state === 'dizzy', slide = b.state === 'slide', turn = b.state === 'turn', dir = slide || turn ? b.dir : (b.dir || b.face), wob = slide ? 0 : Math.sin(frame / (turn ? 2 : 8)) * (turn ? 2 : 1);
@@ -20509,7 +21342,12 @@ function arenaBotInput() {
   const rollerBehind = A.shots.some((s) => rollerAt(s) && Math.abs(s.vx) > 1.2 && sign(s.vx) === sign(P.vx) && Math.abs(P.vx) > 0.5);   /* it is catching up from behind */
   const foeNear = foes.some((f) => f.alive && Math.abs(f.x + f.w / 2 - pc) < 30 && Math.abs(f.y - P.y) < 24);
   const lamp = A.lamps.length ? A.lamps[b.max - b.hp] || null : null;   /* World 7: the next sun lamp (it glows: a kid can see it) */
-  if (open && lamp) {   /* World 7: Drizzle rests: run to the glowing sun lamp and switch it on (never a stomp) */
+  if (open && A.K.caps) {   /* World 8: the King rests: fetch the glinting bottle cap (a jump when it floats high), then walk it over to him */
+    const tx = A.capHeld ? bc : A.cap ? A.cap.x : pc;
+    dir = Math.abs(tx - pc) > 3 ? sign(tx - pc) : 0;
+    if (!A.capHeld && A.cap && Math.abs(A.cap.x - pc) < 12 && A.cap.y < A.floorY - 20) jump = true;
+    if (rollerNear || foeNear) jump = true;
+  } else if (open && lamp) {   /* World 7: Drizzle rests: run to the glowing sun lamp and switch it on (never a stomp) */
     dir = Math.abs(lamp.x - pc) > 3 ? sign(lamp.x - pc) : 0;
     if (rollerNear || foeNear) jump = true;
   } else if (open) {
@@ -20522,7 +21360,7 @@ function arenaBotInput() {
   } else {
     /* the safest spot nearest to Kinan: clear of every mark, every throw's landing spot, the ring and the boss */
     const danger = [];
-    for (const m of A.marks) danger.push([m.x, m.lane ? m.lane + 14 : m.swoop ? 34 : 22]);   /* World 6: a diving magpie's V is wider than a falling thing; World 7: a rain lane's column */
+    for (const m of A.marks) danger.push([m.x, m.lane ? m.lane + 14 : m.swoop ? 34 : m.grab ? 26 : 22]);   /* World 8: a tentacle / paw's column */   /* World 6: a diving magpie's V is wider than a falling thing; World 7: a rain lane's column */
     for (const s of A.shots) if (!s.roll && !s.friendly && s.tx != null) danger.push([s.tx, 24]);
     if (A.ring) danger.push([A.ring.x, A.ring.rw ? A.ring.rw + 12 : 46]);   /* World 6: the tail sweep's band */
     for (const q of A.spawnQ) danger.push([q.x + 6, 30]);
@@ -20740,7 +21578,7 @@ window.__k11 = window.__k11DevOnly() ? {
   /* World 7 twists: what the level's trick is doing right now (null in a level without one) */
   twistInfo: () => {
     const tw = L && L.tw;
-    if (!tw) return null;
+    if (!tw) return L && L.snatch ? { snatch: true, snatched: L.snatched || 0, gotBack: L.gotBack || 0 } : null;   /* World 8: the raccoons even in a level with no other twist */
     const n = (m) => (m ? m.reduce((s, v) => s + (v ? 1 : 0), 0) : 0);
     return { t: tw.t, wind: n(tw.wind), warn: !!tw.warn, gustOn: !!tw.gustOn, gust: tw.gust || 0, gusts: tw.gusts || 0, phase: tw.wind ? tw.t % 330 : null,
       slime: n(tw.slime), slugTrail: !!tw.slugTrail, slimeLive: L.slimeT ? n(Array.from(L.slimeT)) : 0, moss: n(tw.moss), ice: n(tw.ice),
@@ -20750,7 +21588,9 @@ window.__k11 = window.__k11DevOnly() ? {
       circuit: !!tw.circuit, sw: tw.sw, flips: tw.flips || 0, red: tw.onB.map(([c, r]) => [c, r, tileAt(c, r) === 5]), blue: tw.offB.map(([c, r]) => [c, r, tileAt(c, r) === 5]),
       switches: Object.keys(tw.swAt).map((k) => [k % L.w, Math.floor(k / L.w)]), magnets: tw.magnets.map((m) => [m.x / T, m.top / T, m.bot / T - 1]), lift: !!tw.lift,
       signs: (tw.signs || []).map((s) => ({ x: s.x, y: s.y, w: s.w, h: s.h, kind: s.kind })), signCols: tw.signCols.map((s) => s.slice()), signHits: tw.signHits || 0,
-      rush: tw.rush, rushX: tw.rush ? tw.t * 5 : 0, storm: tw.storm, skins: tw.skins.map((s) => s.slice()), trainCars: n(tw.trainCars), hp: P.hp, px: P.x, py: P.y, vx: P.vx, onGround: !!P.onGround };
+      rush: tw.rush, rushX: tw.rush ? tw.t * 5 : 0, storm: tw.storm, skins: tw.skins.map((s) => s.slice()), trainCars: n(tw.trainCars), hp: P.hp, px: P.x, py: P.y, vx: P.vx, onGround: !!P.onGround,
+      belts: tw.belts.map((b) => [b.x0 / T, b.x1 / T - 1, b.y / T, b.spd]), belt: tw.belt || 0, beltT: tw.beltT || 0, fish: !!tw.fish, subway: !!tw.subway,   /* World 8 */
+      snatch: !!L.snatch, snatched: L.snatched || 0, gotBack: L.gotBack || 0 };
   },
   auto: (n, opts) => {
     const holdRun = !!(opts && opts.run);   /* { run: true } holds RUN (the §1.1 RUN_MAX gaps need it) */
@@ -20787,9 +21627,10 @@ window.__k11 = window.__k11DevOnly() ? {
       gates: { L: tileAt(A.gateL, A.floorRow - 1) === 5, R: tileAt(A.gateR, A.floorRow - 1) === 5 },
       boss: { x: Math.round(b.x), y: Math.round(b.y), w: b.w, h: b.h, state: b.state, t: b.t, phase: b.phase, hp: b.hp, max: b.max, cur: b.cur, face: b.face, inv: b.inv, dir: b.dir },
       /* the tell drawArena() puts over the boss right now (the same state test as the drawing) */
-      tell: b.state === 'windup' ? '!' : b.state === 'feint' ? '?' : b.state === 'charge' ? '!!' : (b.state === 'tired' || b.state === 'dizzy') ? (A.lamps.length ? 'LAMP' : 'STOMP') : b.state === 'friend' ? 'heart' : '',   /* World 7: Drizzle's rest points at a sun lamp */
+      tell: b.state === 'windup' ? '!' : b.state === 'feint' ? '?' : b.state === 'charge' ? '!!' : (b.state === 'tired' || b.state === 'dizzy') ? (A.lamps.length ? 'LAMP' : A.K.caps ? 'CAP' : 'STOMP') : b.state === 'friend' ? 'heart' : '',   /* World 7: Drizzle's rest points at a sun lamp; World 8: the King's at the bottle cap (or at him) */
       shots: A.shots.map((s) => ({ kind: s.kind, x: Math.round(s.x), y: Math.round(s.y), vx: s.vx, roll: !!s.roll, tx: s.tx == null ? null : Math.round(s.tx), friendly: !!s.friendly })),
-      marks: A.marks.map((m) => Object.assign({ x: Math.round(m.x), y: m.y }, m.lane ? { lane: m.lane } : {}, m.bolt ? { bolt: true } : {})), ring: A.ring ? { x: Math.round(A.ring.x) } : null,
+      marks: A.marks.map((m) => Object.assign({ x: Math.round(m.x), y: m.y }, m.lane ? { lane: m.lane } : {}, m.bolt ? { bolt: true } : {}, m.grab ? { grab: true } : {})), ring: A.ring ? { x: Math.round(A.ring.x) } : null,
+      cap: A.cap ? { x: Math.round(A.cap.x), y: Math.round(A.cap.y) } : null, capHeld: !!A.capHeld, ink: A.ink ? { x: Math.round(A.ink.x), t: A.ink.t, dur: A.ink.dur } : null, batted: A.batted || 0,   /* World 8 */
       minions: foes.filter((f) => f.arena && f.alive).length, spawnQ: A.spawnQ.length,
       note: A.note ? { x: Math.round(A.note.x), y: Math.round(A.note.y) } : null, noteGot: A.noteGot,   /* B2 calm */
       built: A.built ? A.built.map((c) => c.slice()) : [], pat: A.K.pat || 'STOMP',   /* B2 platforms; the word on the arrow */
@@ -20882,6 +21723,8 @@ window.__k11 = window.__k11DevOnly() ? {
       goal: A ? A.goal : null, start: A ? { col: A.startT[0], row: A.startT[1] } : null, cols: A ? A.len : 0, w: A ? A.w : 0,
       candles: candles.length, foes: foes.length, gifts: A ? Object.keys(A.gifts).length : 0,
       newWorld: L ? !!L.newWorld : false, cleared: !!(A && A.cleared), clearT: A ? A.clearT : 0, returned: !!(A && A.returned),
+      look: A && A.th ? { theme: A.th.bgI, bg: A.th.bg || null, place: A.th.place || null } : null,   /* the look it wears (World 8: TO_LOOKS 100-109) */
+      call: callWho(),   /* World 8 (8-5): whose face is in the video-call window now (null: no call) */
       screen: !el.screen.hidden, dialog: !el.dialog.hidden, toast: el.toast && !el.toast.hidden ? el.toast.textContent : '',
       /* pass A */
       got: got, candlesGot: candles.filter((c) => c.got).length, hp: P ? P.hp : 0,
