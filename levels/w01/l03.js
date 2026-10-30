@@ -58,7 +58,7 @@ KinanLevels.register({
   },
   talk: [   /* Dad's jokes, the wheeze-laugh, Mom's reactions (tools/dad-lines.mjs) */
     [30, "DAD", "Hi bud, it's Dad on the phone from camp! Why did the cookie go to the... hee... HAHA... the... I can't—", 4.4, "wheeze"],
-    [30, "KINAN", "...to the doctor? Because it felt crummy. Dad, that one's older than you.", 3.6]
+    [30, "KINAN", "...to the doctor? Because it felt crummy. Dad, that's Grandpa's joke. I'm telling him.", 3.8]
   ],
   foes: [[15, 7, 'toast'], [48, 7, 'egg'], [56, 11, 'egg'], [67, 4, 'carrot'],
          [90, 7, 'toast'], [92, 11, 'egg'], [123, 7, 'egg'], [128, 11, 'broccoli'], [152, 11, 'cupcake']],

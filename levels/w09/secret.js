@@ -124,7 +124,7 @@ KinanLevels.register({
     [2, 'KINAN', 'Whoa! The launch tube came out UNDER the city! Tunnels and shops everywhere!', 3.6],
     [28, 'CHENOA', "It's the Underground City, little bro. A whole downtown under the snow. And candles in every shop!", 4],
     [66, 'PASSER-BY', 'Bonjour! In winter we walk everywhere down here. Bon appétit!', 3.2],
-    [109, 'DAD', "Look at that atrium, bud. The sky's right up there through the glass. Clear skies, guaranteed.", 3.4],
+    [109, 'DAD', "Look at that atrium, bud, the sky right through the glass. A whole city underground? I've been digging the wrong holes.", 4.6],
     [190, 'MOM', "Sweetie, that's the SORTIE. The way out. Fill your pockets first!", 3.4]
   ]
 });

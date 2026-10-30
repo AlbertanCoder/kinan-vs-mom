@@ -21,6 +21,9 @@ const BANNED: [RegExp, string][] = [
   [new RegExp(back('evirD elcriC'), 'i'), 'a road by Kinan\'s house'],
   [/\bLe[g]o\b|\bLE[G]O\b/, 'a trademark (the lowercase foe id is code, never shown)'],
   [/Gala[x]y ?land/i, 'a trademark'],
+  [/Star ?War[s]/i, 'a trademark (a film series)'],
+  [/Skyl[o]n/i, 'a business name (the Niagara tower: say the observation tower)'],
+  [/Aero ?C[a]r/i, 'a business name (the Niagara cable car: say the whirlpool cable car)'],
 ];
 /* everything the game ships and shows: the page, the levels, the maps, the 3D levels, the story
    subtitles and the classic stages' clip index (packed models / vendored three.js are binary blobs) */

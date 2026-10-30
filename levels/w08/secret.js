@@ -93,7 +93,7 @@ KinanLevels.register({
   talk: [
     [2, 'KINAN', 'A secret door into the old lighthouse! The oldest one on the whole lake.', 3.6],
     [29, 'CHENOA', 'The stairs go all the way up to the lamp. Race you to the top, little bro!', 3.6],
-    [47, 'DAD', "Look at that view, bud: the city, the CN Tower, the lake. I'd say it's tower-ific.", 4],
+    [47, 'DAD', 'Look at that view, bud: the city, the CN Tower, the lake. No wonder this lighthouse is beaming.', 4],
     [100, 'SHAD', 'Candles everywhere down here! The lighthouse keeper must have loved birthdays.', 3.8],
     [165, 'MOM', 'Back to the ferry, sweetie. That raccoon is still out there with Glitchy.', 3.6]
   ]

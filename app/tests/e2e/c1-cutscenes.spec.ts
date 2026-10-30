@@ -289,28 +289,30 @@ test.describe('C1 · Glitchy escapes after a castle', () => {
      7-castle for World 8. The road out of World 7 crosses straight into World 8 (no road-trip world between them).
      2026-10-29: World 8 (Toronto) is released too (OW_RELEASED 8), so the same checks now stand past the 8-castle for
      World 9. The road out of World 8 (the rail to Montreal) crosses straight into World 9.
-     2026-10-29 (later): World 9 (Montreal) is released too (OW_RELEASED 9), so the same checks now stand past the
-     9-castle for World 10 (the boat road trip, World 9.5, lies between them) */
-  test('World 10 is not in this build: past the World 9 castle the way on is a "WORLD 10 COMING SOON!" sign with Glitchy waving, and Kinan cannot walk past it', async ({ page }) => {
+     2026-10-29 (later): World 9 (Montreal) is released too (OW_RELEASED 9), so the same checks stood past the
+     9-castle for World 10 (the boat road trip, World 9.5, lies between them).
+     2026-10-29 (World 10's second run): World 10 (Niagara Falls) is released too (OW_RELEASED 10), so the same checks
+     now stand past the 10-castle for World 11 (no road between them: World 10 glitches into World 11) */
+  test('World 11 is not in this build: past the World 10 castle the way on is a "WORLD 11 COMING SOON!" sign with Glitchy waving, and Kinan cannot walk past it', async ({ page }) => {
     test.setTimeout(120_000);
     const errors = watchErrors(page);
     await boot(page);
-    /* every World 1-9 level beaten, the escape already seen, standing on the 9-castle (World 10's level files may or may not exist yet) */
+    /* every World 1-10 level beaten, the escape already seen, standing on the 10-castle (World 11's level files may or may not exist yet) */
     await page.evaluate((key) => {
-      const ids = (window as unknown as Win).KinanLevels.list().filter((id) => Number(id.split('-')[0]) <= 9);
-      localStorage.setItem(key, JSON.stringify({ unlocked: 1, beaten: [], introSeen: true, escapes: { 9: 1 }, levelsBeaten: Object.fromEntries(ids.map((id) => [id, 1])), unlockedLevels: ['9-secret'], wmap: { w: 9, at: 10 } }));
+      const ids = (window as unknown as Win).KinanLevels.list().filter((id) => Number(id.split('-')[0]) <= 10);
+      localStorage.setItem(key, JSON.stringify({ unlocked: 1, beaten: [], introSeen: true, escapes: { 10: 1 }, levelsBeaten: Object.fromEntries(ids.map((id) => [id, 1])), unlockedLevels: ['10-secret'], wmap: { w: 10, at: 10 } }));
     }, CURRENT);
     await page.reload();
     await page.waitForFunction(() => !!(window as unknown as Win).__k11 && (window as unknown as Win).KinanLevels?.ready);
     await page.locator('#startBtn').click({ force: true });
     const s0 = await settle(page);
-    expect(s0).toMatchObject({ world: 9, at: 10 });
-    expect(s0.stops[10]).toMatchObject({ id: '9-castle', state: 'beaten' });
-    expect((s0 as unknown as { gate: number | null }).gate).toBe(10);   /* the sign stands on the road out */
+    expect(s0).toMatchObject({ world: 10, at: 10 });
+    expect(s0.stops[10]).toMatchObject({ id: '10-castle', state: 'beaten' });
+    expect((s0 as unknown as { gate: number | null }).gate).toBe(11);   /* the sign stands on the road out */
     await page.locator('#owNext').click();
-    await expect.poll(async () => (await mapState(page)).banner).toBe('WORLD 10 COMING SOON!');
-    expect(await settle(page)).toMatchObject({ world: 9, at: 10, crossing: false });
-    expect((await progress(page)).wmap).toEqual({ w: 9, at: 10 });
+    await expect.poll(async () => (await mapState(page)).banner).toBe('WORLD 11 COMING SOON!');
+    expect(await settle(page)).toMatchObject({ world: 10, at: 10, crossing: false });
+    expect((await progress(page)).wmap).toEqual({ w: 10, at: 10 });
     /* the sign and Glitchy are drawn (gold board, Glitchy's purple), and they are gone once the world is released.
        A rainy map lays rgba(20,30,60,.10) over the whole picture (.22 in a storm, rainFx in map/engine.js), so a colour
        counts as itself or as itself under that rain tint (within 2 per channel) */
@@ -323,29 +325,31 @@ test.describe('C1 · Glitchy escapes after a castle', () => {
     });
     const withSign = await colours();
     expect(withSign.purple).toBeGreaterThan(50);
-    await page.evaluate(() => (window as unknown as { __k11: { owRelease: (n: number) => number } }).__k11.owRelease(10));
+    await page.evaluate(() => (window as unknown as { __k11: { owRelease: (n: number) => number } }).__k11.owRelease(11));
     await page.waitForTimeout(300);
     const without = await colours();
-    expect(without.purple).toBeLessThan(withSign.purple / 4);
+    console.log('World 11 sign colours: ' + JSON.stringify({ withSign, without }));
+    /* World 10's own map is purple near its castle (the Mirror Maze's sign, about 2,700 of these pixels with or without
+       the sign), so the World 9 check "under a quarter of the purple is left" is now "the sign's Glitchy purple goes":
+       at least 600 purple pixels leave with the sign (measured 2026-10-29 on desktop Chromium: 3,947 -> 2,700) */
+    expect(withSign.purple - without.purple, "Glitchy's purple goes with the sign").toBeGreaterThan(600);
     expect(without.gold).toBeLessThan(withSign.gold);
-    await page.evaluate(() => (window as unknown as { __k11: { owRelease: (n: number) => number } }).__k11.owRelease(9));
-    /* a save that somehow stands in World 10 comes back to the furthest open stop: the 9-castle */
+    await page.evaluate(() => (window as unknown as { __k11: { owRelease: (n: number) => number } }).__k11.owRelease(10));
+    /* a save that somehow stands in World 11 comes back to the furthest open stop: the 10-castle */
     await page.evaluate(() => (window as unknown as { __k11: { storyStop: () => boolean } }).__k11.storyStop());   /* no story line can save over the edit below */
-    await page.evaluate((key) => { const d = JSON.parse(localStorage.getItem(key)!); d.wmap = { w: 10, at: 0 }; localStorage.setItem(key, JSON.stringify(d)); }, CURRENT);
+    await page.evaluate((key) => { const d = JSON.parse(localStorage.getItem(key)!); d.wmap = { w: 11, at: 0 }; localStorage.setItem(key, JSON.stringify(d)); }, CURRENT);
     await page.reload();
     await page.waitForFunction(() => !!(window as unknown as Win).__k11 && (window as unknown as Win).KinanLevels?.ready);
     await page.locator('#startBtn').click({ force: true });
-    expect(await settle(page)).toMatchObject({ world: 9, at: 10 });
-    /* when World 10 is released (OW_RELEASED in index.html), the same road leads on out of World 9: onto the boat road
-       trip (World 9.5) and off it onto World 10's first stop, exactly as the World 6 -> 6.5 -> 7 road does
-       (overworld-seams-3d.spec.ts, "the road trips") */
-    await page.evaluate(() => (window as unknown as { __k11: { owRelease: (n: number) => number } }).__k11.owRelease(10));
+    expect(await settle(page)).toMatchObject({ world: 10, at: 10 });
+    /* when World 11 is released (OW_RELEASED in index.html), the same road leads on out of World 10: the world glitches
+       ("WAIT... DID THE WORLD JUST GLITCH?") and Kinan lands on World 11's first stop, as overworld-seams-3d.spec.ts's
+       "World 10 glitches into World 11" does */
+    await page.evaluate(() => (window as unknown as { __k11: { owRelease: (n: number) => number } }).__k11.owRelease(11));
     await page.locator('#owNext').click();
-    await expect.poll(async () => (await mapState(page)).crossing, { timeout: 10_000 }).toBe(true);
-    await page.evaluate(() => (window as unknown as Win).KINAN.speed(6));   /* the boat trip itself is a long road (as in the seams test) */
-    await expect.poll(async () => (await mapState(page)).world, { timeout: 30_000, intervals: [100] }).toBe(9.5);
-    expect(await settle(page, 90_000)).toMatchObject({ world: 10, at: 0 });
-    expect((await progress(page)).wmap).toEqual({ w: 10, at: 0 });
+    await expect.poll(async () => (await mapState(page)).banner, { timeout: 10_000 }).toBe('WAIT... DID THE WORLD JUST GLITCH?');
+    expect(await settle(page, 90_000)).toMatchObject({ world: 11, at: 0 });
+    expect((await progress(page)).wmap).toEqual({ w: 11, at: 0 });
     expect(errors).toEqual([]);
   });
 

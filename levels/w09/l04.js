@@ -142,7 +142,7 @@ KinanLevels.register({
   talk: [
     [2, 'KINAN', "Mount Royal! Glitchy's climbing all the way up to the lookout. Up we go!", 3.6],
     [20, 'MOM', "It's a big climb, sweetie. One step at a time.", 3],
-    [55, 'DAD', 'Rock stairs! Jump up onto one step, then the next, bud. This mountain rocks.', 3.2],
+    [55, 'DAD', 'Rock stairs! Jump up onto one step, then the next, bud. My knees call this Mount Royal Pain.', 3.8],
     [88, 'CHENOA', 'The wooden stairs! Everybody in Montreal climbs these. Race you, little bro!', 3.6],
     [116, 'PASSER-BY', 'Bonjour! Beautiful day for a climb, non?', 3],
     [146, 'SHAD', "Annie's drones can't see under the trees up here. Good spot for Glitchy to hide.", 4],

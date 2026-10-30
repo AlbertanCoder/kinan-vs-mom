@@ -130,8 +130,9 @@ KinanLevels.register({
   },
   /* animatronic baby dinos hop, robot carts roll, security cameras fly, a raccoon sneaked in; nothing waits at a lip */
   talk: [   /* Dad's jokes, the wheeze-laugh, Mom's reactions (tools/dad-lines.mjs) */
-    [30, "DAD", "What do you call a fossil that won't work? Lazy bones! ...Come on, that's a classic. Like a fossil.", 4],
-    [30, "MOM", "Ha! Oh no, I laughed. Don't tell him I laughed.", 3, "laugh"]
+    [30, "DAD", "What do you call a fossil that won't clean its room? Lazy bones! Not saying it's you, bud. It's a little you.", 4.6],
+    [30, "MOM", "Ha! Oh no, I laughed. Don't tell him I laughed.", 3, "laugh"],
+    [30, "DAD", "Too late, hon, I heard! That's going in the notebook. Under 'Rare Events.'", 3.4]
   ],
   foes: [
     [14, 11, 'robot'],   /* S1 */

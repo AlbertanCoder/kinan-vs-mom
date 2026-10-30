@@ -190,7 +190,7 @@ KinanLevels.register({
       arena: { col: 48, cols: 24, boss: 'banana-slug' },
       goal: { col: 77, row: 9 },   /* past the boss door: down the mountain to Granville Island */
       talk: [
-        [2, 'DAD', "The top of Grouse Mountain! The whole city down there. I'm on top of the world. And a mountain.", 3.4],
+        [2, 'DAD', 'The top of Grouse Mountain! The whole city down there. Look at me, bud. Peak Dad.', 3.6],
         [41, 'KINAN', 'The snow up ahead is all shiny and slimy. Something BIG went this way...', 4]
       ]
     }

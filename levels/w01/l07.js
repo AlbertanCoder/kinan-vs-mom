@@ -60,7 +60,7 @@ KinanLevels.register({
   },
   /* paint blobs hop, brushes fly. Nothing stands at a stepping stone or a bench. */
   talk: [   /* Dad's jokes, the wheeze-laugh, Mom's reactions (tools/dad-lines.mjs) */
-    [30, "DAD", "Dad again, bud! What do you call a sad strawberry? A blue-berry! ...Hello? Did you hang up?", 4.4]
+    [30, "DAD", "Dad again, bud! Why did the painting go to jail? It was framed! ...Hello? Did you hang up? Like a painting?", 5]
   ],
   foes: [[11, 6, 'paint'],
          [41, 8, 'paint'],

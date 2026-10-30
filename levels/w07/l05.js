@@ -168,6 +168,6 @@ KinanLevels.register({
     [102, 'KINAN', 'Some of the planks are missing. Wait... is that a rock ledge way down there?', 3.8],
     [189, 'SHAD', 'A path bolted right onto the canyon wall. Mind your head on the rock!', 3.6],
     [261, 'KINAN', "There's that little cloud again, raining on the top of the mountain.", 3.4],
-    [284, 'DAD', "Next: the gondola up the mountain. Glitchy's heading for the top. That bug has peak energy.", 3.6]
+    [284, 'DAD', "Next: the gondola up the mountain. Glitchy's heading for the top. That bug's really moving up in the world.", 4]
   ]
 });

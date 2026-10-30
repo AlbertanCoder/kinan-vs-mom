@@ -106,7 +106,7 @@ KinanLevels.register({
   },
   /* cyclists charge, rollerbladers roll, geese patrol low and high, crows and magpies over the river; inside the tube nothing waits next to a springboard */
   talk: [   /* Dad's jokes, the wheeze-laugh, Mom's reactions (tools/dad-lines.mjs) */
-    [30, "DAD", "Why don't horses ever win at cards? They always say neigh! Get it? Neigh? Like no, but horse?", 4],
+    [30, "DAD", "What do you call a pony with a sore throat? A little hoarse! Get it? Hoarse? Like your voice, but horse?", 4.4],
     [30, "MOM", "Is that all you do, tell jokes? ...I am going to look at the quilts.", 3.4, "walkoff"],
     [30, "DAD", "...I'll be here all week, folks! Stampede's ten days, actually.", 3.2]
   ],

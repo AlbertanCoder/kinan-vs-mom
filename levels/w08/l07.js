@@ -156,7 +156,7 @@ KinanLevels.register({
     [12, 'KINAN', 'The awnings are BOUNCY! Boing!', 2.4],
     [31, 'CHENOA', 'Use the bike racks like stairs, little bro.', 2.8],
     [56, 'DAD', 'That car is covered in plants! A whole garden on wheels, bud. Talk about a car-rot.', 3.2],
-    [30, "DAD", "Why did the cheese shop close early? It was having a grate day! Get it? Grate? Like grated cheese?", 4],
+    [30, "DAD", "What do you call cheese that isn't yours? Nacho cheese! Get it? Not-yo cheese? Because it's not yours?", 4.4],
     [30, "MOM", "Is that all you do, tell jokes? Peaches. I am going to look at peaches.", 3.4, "walkoff"],
     [30, "DAD", "...I'll be here all week, folks! Try the brie, it's un-brie-lievable!", 3.2],
     [89, 'SHAD', 'That shop is way too tall to jump. Bounce off its awning!', 3.2],

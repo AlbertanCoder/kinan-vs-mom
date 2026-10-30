@@ -153,7 +153,7 @@ KinanLevels.register({
   talk: [
     [2, 'KINAN', 'The tech conference! Robots, booths, giant screens... and Annie is here somewhere.', 3.8],
     [28, 'ANNIE', "Attention, drones! The rogue code is on the conference floor. Firewalls up! Chalo! (Let's go!)", 4.2],
-    [33, 'DAD', 'See that glowing wall, bud? Wait for it to open, then go. It flickers before it shuts. Very wall-mannered.', 4],
+    [33, 'DAD', 'See that glowing wall, bud? Wait for it to open, then go: it flickers before it shuts. A firewall? I brought the hose.', 4.8],
     [86, 'CHENOA', "A robot demo! Look, little bro, that one's doing the robot dance.", 3.4],
     [109, 'SHAD', "That's Annie's firewall corridor. The walls open one after another: run through all four in one go!", 4.4],
     [139, 'PASSER-BY', 'Bonjour! Did you see a little glitchy guy with a hockey bag run by?', 3.4],

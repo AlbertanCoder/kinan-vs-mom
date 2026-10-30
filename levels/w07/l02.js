@@ -155,7 +155,7 @@ KinanLevels.register({
   /* story bubbles as Kinan passes a column: [col, who, what they say, seconds] (subtitles only) */
   talk: [
     [2, 'KINAN', "The OCEAN! It's so big. It just keeps going and going!", 3.2],
-    [12, 'DAD', "Watch the water, bud: when it bubbles, a big wave's coming. Wait, or run past quick! Don't get swept up.", 4],
+    [12, 'DAD', "Watch the water, bud: when it bubbles, a big wave's coming. Wait, or run past quick! And don't wave back.", 4.2],
     [26, 'MOM', 'Stay on the seawall, sweetie. Where it breaks, hop rock to rock.', 3.4],
     [55, 'CHENOA', 'See the frog in the puddle? Wait till it hops, then GO!', 3.2],
     [100, 'DAD', 'Third Beach! I swam here at your age. The water was SO cold, I kept it shore-t.', 3.6],

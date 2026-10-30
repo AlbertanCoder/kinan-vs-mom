@@ -164,8 +164,8 @@ KinanLevels.register({
     [40, 'MOM', 'See that rolling chair, sweetie? Step on it and hold still: it carries you over the gap.', 4],
     [56, 'CHENOA', 'A scooter lane! Jump on and ride it, little bro. Wheee!', 3.2],
     [88, 'PASSER-BY', "Bonjour! Coffee in the break room... oh, you're eleven. Juice, then!", 3.6],
-    [109, 'DAD', 'The whiteboard maze, bud! Walk under the hanging ones, hop over the standing ones. Mark my words.', 3.8],
-    [30, "GRANDPA", "Grandpa on the video call! Why did the computer go to the doctor? It had a virus! I've had that one since 1962.", 4.8],
+    [109, 'DAD', "The whiteboard maze, bud! Walk under the hanging ones, hop over the standing ones. Then let's circle back and touch base.", 4.4],
+    [30, "GRANDPA", "Grandpa on the video call! A startup? In my day, a startup was the tractor in January. Took all morning.", 4.8],
     [138, 'SHAD', "Annie's drones are coming over from the conference next door. Keep moving, little bro!", 3.8],
     [244, 'KINAN', "The boardroom! And through the window... the conference centre. Glitchy's in there with Annie!", 4]
   ]

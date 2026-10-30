@@ -159,7 +159,7 @@ KinanLevels.register({
   talk: [
     [2, 'KINAN', "The space centre! Rockets, simulators... and Glitchy's hockey bag rolling past the astronaut suits!", 3.8],
     [27, 'MOM', 'This is the training room, sweetie. The gravity is light in here, so your jumps float! Try a big one.', 4.2],
-    [52, 'DAD', "That wall's way too high for a normal jump, bud. In light gravity you'll float right up it! Very uplifting.", 3.8],
+    [52, 'DAD', "Too high to jump, bud, but in light gravity you'll float right up it! I'd tell a space joke, but there's no atmosphere.", 4.6],
     [88, 'CHENOA', "Rocket simulators! Real astronauts train in those. You're basically an astronaut now, little bro.", 4],
     [112, 'PASSER-BY', 'Bonjour! Climb the launch tower and look at the rocket!', 3],
     [146, 'SHAD', "Careful: Annie's drones are scanning the exhibits. And past the moon walk the gravity is normal again.", 4.2],

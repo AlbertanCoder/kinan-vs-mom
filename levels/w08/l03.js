@@ -146,9 +146,9 @@ KinanLevels.register({
   spawn: { col: 2, row: 11 },
   goal: { col: 266, row: 11 },   /* the street to the CN Tower */
   talk: [
-    [2, 'DAD', "Nathan Phillips Square! City Hall's two curved towers, and the big TORONTO sign. Very sign-ificant.", 4.4],
-    [30, "DAD", "What do you call a skating raccoon? A... hee hee... a trash... HAHA... a trash... I can't—", 4, "wheeze"],
-    [30, "MOM", "...a trash panda on ice. Oh, Robin. That was actually funny!", 3.4, "laugh"],
+    [2, 'DAD', "Nathan Phillips Square! City Hall's two curved towers, and the big TORONTO sign. It's a sign, bud. Of Toronto, mostly.", 4.6],
+    [30, "DAD", "Toronto built raccoon-proof garbage bins. And the raccoons said... hee hee... they said... HAHA... I can't—", 4.2, "wheeze"],
+    [30, "MOM", "...'Challenge accepted.' Oh, Robin. That was actually funny!", 3.4, "laugh"],
     [15, 'MOM', 'Careful, sweetie, that is ice. Slow to start, slow to stop.', 3],
     [28, 'KINAN', "I'm climbing the sign. Every. Single. Letter.", 3],
     [62, 'CHENOA', 'The skating rink! Keep running on the ice, little bro, and you will be fine.', 3.8],

@@ -160,9 +160,9 @@ KinanLevels.register({
   talk: [
     [2, 'KINAN', 'Montreal! Glitchy rode the train here in a hockey bag. He has to be somewhere in Old Montreal!', 4],
     [7, 'MOM', 'Look at the balconies, sweetie. Jump up through one and you can stand on top!', 3.6],
-    [17, 'DAD', 'A horse and carriage! Hop up on the roof and ride along, bud. Neigh problem.', 3.2],
-    [30, "DAD", "Why did the bagel get a passport? Because it wanted to... hee... HAHA... to see the... I can't—", 4, "wheeze"],
-    [30, "KINAN", "...to see the WORLD. Because it's round, Mom. That's the joke.", 3.2],
+    [17, 'DAD', "A horse and carriage! Hop up on the roof and ride along, bud. Only taxi in town that runs on hay.", 4],
+    [30, "DAD", "What do you call a bagel that can fly? A... hee hee... HAHA... I can't—", 3.6, "wheeze"],
+    [30, "KINAN", "...a PLANE bagel. Plain? Plane? ...Oh no, I explained it. Mom, it's happening. I'm turning into him.", 4.4],
     [30, "MOM", "Ha! Oh, I love you two. Go, go, Glitchy is getting away!", 3, "laugh"],
     [29, 'PASSER-BY', 'Bonjour! Bienvenue à Montréal! (Hello! Welcome to Montreal!)', 3.4],
     [66, 'CHENOA', "That house is too tall to jump. Use the balcony like a step, little bro!", 3.6],

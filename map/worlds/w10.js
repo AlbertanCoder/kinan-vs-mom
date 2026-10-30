@@ -15,7 +15,7 @@
 
   /* ---------- props ---------- */
   K.P.w10_flowers=function(X,Y){const c=['#e8364b','#f6c445','#ff6fae','#9b5de5','#ffffff'];for(let i=0;i<5;i++){const a=Math.round(hash(X+i,Y)*8)-4,b=Math.round(hash(Y+i,X)*4)-2;px('#2f7a2c',X+a,Y+b,2,2);px(c[(i+X)%5],X+a,Y+b-1,2,1);}};
-  K.P.w10_skylon=function(X,Y){
+  K.P.w10_tower=function(X,Y){
     shadow(X,Y+2,30,5);
     box('#d8d2c4',X-24,Y-14,48,14);px('#bdb6a6',X-24,Y-5,48,2);for(let i=0;i<5;i++)box('#7ec8ff',X-20+i*9,Y-11,5,4);
     px('#1b1220',X-6,Y-100,12,87);px('#ece8de',X-5,Y-100,10,87);px('#cfc9bb',X+1,Y-100,4,87);
@@ -23,7 +23,7 @@
     px('#1b1220',X-21,Y-117,42,19);px('#efe9dc',X-20,Y-116,40,17);px('#2b3550',X-20,Y-111,40,5);for(let i=0;i<40;i+=4)px('#f6e7a6',X-20+i,Y-110,2,2);px('#d6cfbf',X-20,Y-102,40,3);
     px('#1b1220',X-15,Y-124,30,8);px('#efe9dc',X-14,Y-123,28,6);px('#d6cfbf',X-14,Y-119,28,2);
     px('#1b1220',X-1,Y-138,2,15);px('#e8364b',X-1,Y-140,2,2);
-    K.P.label(X,Y+4,'SKYLON TOWER');};
+    K.P.label(X,Y+4,'THE OBSERVATION TOWER');};
   K.P.w10_arcade=function(X,Y,w,c,s,sc){shadow(X+w/2,Y+2,w*0.6,3);box(c,X,Y-22,w,22);px('rgba(255,255,255,.25)',X,Y-22,w,2);px('rgba(0,0,0,.18)',X+w-3,Y-22,3,22);
     px('#1b1220',X+1,Y-33,w-2,12);px('#2a1846',X+2,Y-32,w-4,10);txt(s,X+4,Y-31,sc||'#ff3df0',6,1);
     box('#cfeeff',X+4,Y-16,6,6);box('#cfeeff',X+w-10,Y-16,6,6);box('#f6c445',X+w/2-3,Y-9,7,9);};
@@ -94,9 +94,10 @@
     for(let i=0;i<70;i++){const yy=Y-54+Math.round(Math.sin(i/69*Math.PI)*8);px('#1b1220',X-70+i*2,yy,2,1);if(i%3===0){px(['#e8364b','#f6c445','#2a5bd7','#44c55a','#ff6fae'][(i/3)%5],X-70+i*2,yy+1,3,4);}}
     px('rgba(17,19,43,.8)',X-46,Y-70,92,10);txt('HAPPY BIRTHDAY KINAN',X-43,Y-69,'#f6c445',7,1);
     [[-50,0],[-42,4],[48,6],[56,0]].forEach(([a,b])=>K.P.present(X+a,Y+b+12));
-    /* Mom, the boss: green dress, brown hair, hands on hips */
-    const mx=X+22,my=Y+10;px('#1b1220',mx-1,my-19,11,20);px('#2f9a5a',mx,my-10,9,10);px('#d9a27a',mx+1,my-16,7,6);px('#5a3a22',mx,my-19,9,4);px('#5a3a22',mx,my-16,2,6);px('#5a3a22',mx+7,my-16,2,6);
-    px('#1b1220',mx+3,my-14,1,1);px('#1b1220',mx+6,my-14,1,1);px('#d9a27a',mx-2,my-9,2,3);px('#d9a27a',mx+9,my-9,2,3);px('#1b1220',mx+2,my,2,2);px('#1b1220',mx+6,my,2,2);
+    /* Mom, the boss, in her game look (index.html MOM): short dark hair, a purple top with a white butterfly, dark trousers, hands on hips */
+    const mx=X+22,my=Y+10;px('#1b1220',mx-1,my-19,11,20);px('#5b46a8',mx,my-10,9,6);px('#2b2f45',mx,my-4,9,4);px('#c98d63',mx+1,my-16,7,6);px('#1d1416',mx,my-19,9,4);px('#1d1416',mx,my-16,2,3);px('#1d1416',mx+7,my-16,2,3);
+    px('#ffffff',mx+3,my-8,1,1);px('#ffffff',mx+5,my-8,1,1);px('#ffffff',mx+4,my-7,1,1);
+    px('#1b1220',mx+3,my-14,1,1);px('#1b1220',mx+6,my-14,1,1);px('#c98d63',mx-2,my-9,2,3);px('#c98d63',mx+9,my-9,2,3);px('#1b1220',mx+2,my,2,2);px('#1b1220',mx+6,my,2,2);
   };
   K.P.w10_fallsSign=function(X,Y,s){K.P.label(X,Y,s);};
   /* border sign with a board as wide as its words (text is drawn sharp at runtime, 7px) */
@@ -121,7 +122,7 @@
     for(let k=0;k<6;k++)px(i?'#e8364b':'#2a5bd7',a+6+k*3,c-14,2,3);px('#1b1220',a+12,c-18,1,6);px('#e8364b',a+13,c-18,4,2);};
   K.A.w10_swirl=function(t,X,Y,rx,ry){const G=g();G.lineWidth=1;for(let i=0;i<4;i++){const k=1-i*0.2,a0=t/900*(1+i*0.3)+i*1.7;G.strokeStyle='rgba(224,255,248,'+(0.75-i*0.12)+')';G.beginPath();G.ellipse(X,Y,rx*k*0.8,ry*k*0.8,0,a0,a0+2.2);G.stroke();}
     px('#1d5f5a',X-2,Y-1,4,2);};
-  K.A.w10_aerocar=function(t,x1,y1,x2,y2){const G=g();
+  K.A.w10_cablecar=function(t,x1,y1,x2,y2){const G=g();
     [[x1,y1],[x2,y2]].forEach(([a,b])=>{px('#1b1220',a-2,b-24,5,20);px('#6f7889',a-1,b-23,3,18);px('#1b1220',a-6,b-26,13,4);px('#e8364b',a-5,b-25,11,2);});
     G.strokeStyle='#1b1220';G.lineWidth=1;[-24,-21].forEach(o=>{G.beginPath();G.moveTo(x1,y1+o);G.quadraticCurveTo((x1+x2)/2,(y1+y2)/2+o+6,x2,y2+o);G.stroke();});
     const u=(Math.sin(t/2600)+1)/2,cx=x1+(x2-x1)*u,cy=y1+(y2-y1)*u-21+Math.sin(u*Math.PI)*6;
@@ -139,8 +140,8 @@
 
   /* ---------- the world ---------- */
   K.W.push({n:10,hud:'NIAGARA FALLS',name:'Kinan vs. Mom',
-    where:'The last normal world: a birthday trip to Niagara Falls. The tour boat from Montreal sails down the upper river and splashes right over the Horseshoe into the gorge, lands Kinan at Clifton Hill, then he rides the boat into the spray, walks behind the Horseshoe, climbs the Skylon, crosses the whirlpool by cable car and faces Mom at the birthday party on Goat Island.',
-    marks:'The Horseshoe Falls and the American Falls, the Niagara gorge, the tour boat, Table Rock, Clifton Hill with its neon arcades and Ferris wheel, the Skylon Tower and its yellow outside elevators, the Rainbow Bridge, the Butterfly Conservatory, the Whirlpool Aero Car, the Floral Clock, the Niagara Parkway and a birthday party on Goat Island.',
+    where:'The last normal world: a birthday trip to Niagara Falls. The tour boat from Montreal sails down the upper river and splashes right over the Horseshoe into the gorge, lands Kinan at Clifton Hill, then he rides the boat into the spray, walks behind the Horseshoe, climbs the observation tower, crosses the whirlpool by cable car and faces Mom at the birthday party on Goat Island.',
+    marks:'The Horseshoe Falls and the American Falls, the Niagara gorge, the tour boat, Table Rock, Clifton Hill with its neon arcades and Ferris wheel, the observation tower and its yellow outside elevators, the Rainbow Bridge, the Butterfly Conservatory, the whirlpool cable car, the Floral Clock, the Niagara Parkway and a birthday party on Goat Island.',
     size:[1000,540],ground:'grass',water:'w10_niagara',cliff:'rock',path:'tan',
     rivers:[
       {pts:[[1020,156],[960,150],[900,152],[846,164]],w:26},                        /* upper river, to the Horseshoe */
@@ -169,7 +170,7 @@
       {at:[639,294],name:'10-1  CLIFTON HILL LIGHTS',st:'open'},
       {at:[712,272],name:'10-2  THE BOAT UNDER THE FALLS',st:'lock'},
       {at:[868,212],name:'10-3  BEHIND THE FALLS',st:'lock'},
-      {at:[852,386],name:'10-4  THE SKYLON TOWER',st:'lock'},
+      {at:[852,386],name:'10-4  THE OBSERVATION TOWER',st:'lock'},
       {at:[740,410],name:'10-5  THE BUTTERFLY CONSERVATORY',st:'lock'},
       {at:[520,414],name:"FORT  THE GRANDMOTHERS' PICNIC",st:'fort'},
       {at:[450,305],name:'10-6  THE WHIRLPOOL CABLE CAR',st:'lock'},
@@ -190,8 +191,9 @@
       [8,9,[[540,281],[540,200]],{road:1}],
       [9,10,[[566,166],[602,164],[634,148],[662,137],[700,134]]]],   /* low along the back of the Mirror Maze, so Kinan is hidden behind it */
     exit:[830,110],
+    gate:[633,134],   /* the WORLD 11 COMING SOON sign: on the grass by the bridge, clear of the party scene (v53 review) */
     props:[
-      ['w10_skylon',820,390],
+      ['w10_tower',820,390],
       ['w10_hotel',912,402,24,96,'#c8b89a'],['w10_hotel',940,396,26,118,'#9ab0c8'],['w10_hotel',970,404,22,84,'#d8c8a8'],
       ['w10_tableRock',904,236],['w10_tunnel',856,226],
       ['w10_dock',700,266],
@@ -205,7 +207,7 @@
       ['w10_usBlock',350,90,26,70,'#c8b89a'],['w10_usBlock',382,86,22,52,'#9aa3b2'],['w10_usBlock',420,90,30,84,'#b8a8c8'],['w10_usBlock',460,88,24,60,'#d8c8a8'],['w10_usBlock',490,90,20,44,'#9ab0c8'],
       ['w10_usBlock',360,170,30,40,'#d8c8a8'],['w10_usBlock',400,172,24,52,'#c8b89a'],['w10_usBlock',440,170,28,36,'#9aa3b2'],['w10_usBlock',478,168,26,58,'#b8a8c8'],
       ['w10_sign',928,112,'WELCOME TO','NIAGARA FALLS'],['w10_fallsSign',800,150,'HORSESHOE FALLS'],['w10_fallsSign',700,192,'AMERICAN FALLS'],['w10_fallsSign',540,250,'RAINBOW BRIDGE'],
-      ['w10_fallsSign',405,318,'WHIRLPOOL AERO CAR'],['w10_fallsSign',600,350,'CLIFTON HILL'],['w10_fallsSign',250,330,'NIAGARA PARKWAY'],
+      ['w10_fallsSign',405,318,'WHIRLPOOL CABLE CAR'],['w10_fallsSign',600,350,'CLIFTON HILL'],['w10_fallsSign',250,330,'NIAGARA PARKWAY'],
       ['w10_fallsSign',160,250,'CANADA'],['w10_fallsSign',160,176,'USA'],
       ...K.homes([[40,470,'#e8364b'],[150,520,'#2a5bd7'],[260,520,'#44c55a'],[620,470,'#8a5426'],[590,522,'#e8364b'],[660,520,'#2a5bd7'],[860,470,'#44c55a'],[900,520,'#e8364b'],[960,480,'#8a5426'],[820,524,'#2a5bd7'],[470,526,'#8a5426'],[40,520,'#44c55a'],
         [30,60,'#2a5bd7'],[90,40,'#e8364b'],[150,70,'#8a5426'],[210,40,'#44c55a'],[260,70,'#e8364b'],[40,150,'#8a5426'],[110,150,'#2a5bd7'],[200,160,'#e8364b']])],
@@ -215,7 +217,7 @@
       ['w10_flow',[[1010,155],[960,150],[900,152],[840,166]],14],['w10_flow',[[930,128],[908,106],[862,70],[790,54],[728,66],[694,100],[680,150],[674,186]],7],['w10_horseshoe',748,846,192,16,16],['w10_horseshoe',651,693,186,0,18],
       ['w10_boat',744,224,0],['w10_boat',688,240,1],
       ['w10_mist',797,206,90],['w10_mist',672,202,22],['rainbow',792,262,24],
-      ['w10_swirl',400,272,42,30],['w10_aerocar',450,305,360,300],['w10_fireworks',390,262],
+      ['w10_swirl',400,272,42,30],['w10_cablecar',450,305,360,300],['w10_fireworks',390,262],
       ['w10_lifts',820,390],['ferris',590,314,18],['w10_butterflies',740,470],['w10_clockHands',530,336],
       ['w10_neon',652,306,7,['#ff3df0','#00ffd0','#f6c445']],['w10_neon',698,330,6,['#f6c445','#ff6fae']],['w10_neon',652,388,7,['#00ffd0','#ff3df0']],
       ['w10_footbridge',662,136,30],

@@ -76,7 +76,7 @@ KinanLevels.register({
   },
   /* nothing stands on the kickers (S4) or waits at a puddle's landing; the cart on the conveyor rolls toward you */
   talk: [   /* Dad's jokes, the wheeze-laugh, Mom's reactions (tools/dad-lines.mjs) */
-    [30, "DAD", "Quick one from camp, bud: why was the math book sad? Too many problems. Like your dad's jokes. Kidding!", 4.6]
+    [30, "DAD", "Quick one from camp, bud: why is the cafeteria clock always slow? It goes back four seconds. The camp cook didn't laugh either.", 5.2]
   ],
   foes: [[11, 8, 'egg'],
          [36, 8, 'cupcake'],

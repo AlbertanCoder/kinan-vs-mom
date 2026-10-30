@@ -111,8 +111,8 @@ KinanLevels.register({
   },
   /* raccoons and baby dinos on the sidewalks, magpies and a crow overhead; nothing waits at a lip */
   talk: [   /* Dad's jokes, the wheeze-laugh, Mom's reactions (tools/dad-lines.mjs) */
-    [30, "DAD", "Why did the T-Rex never clap? Because his... hee hee... his arms are... HAHA... I can't—", 4, "wheeze"],
-    [30, "CHENOA", "...too short. Dad, the dinosaur was right there. You had ONE job.", 3.4]
+    [30, "DAD", "What do you call a dinosaur THAT big? You call it... hee... HAHA... you call it... I can't—", 4, "wheeze"],
+    [30, "CHENOA", "...SIR. You call it sir. Dad, it's standing right behind you.", 3.2]
   ],
   foes: [
     [14, 9, 'raccoon'],   /* S1 */

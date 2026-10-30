@@ -290,7 +290,9 @@ test.describe('World 9 · on the map', () => {
     expect(errors).toEqual([]);
   });
 
-  test('the 9-castle: the exit stays shut until the cube opens; then Glitchy bolts onto a tour boat, Sabumnim\'s belt scene follows, and the way on is a "WORLD 10 COMING SOON!" sign', async ({ page }) => {
+  /* 2026-10-29: World 10 is released (OW_RELEASED 10), so the way on is open (it was a "WORLD 10 COMING SOON!" sign: that
+     sign now stands past the 10-castle for World 11: w10-world.spec.ts, c1-cutscenes.spec.ts) */
+  test('the 9-castle: the exit stays shut until the cube opens; then Glitchy bolts onto a tour boat, Sabumnim\'s belt scene follows, and the way on leads over the boat trip into World 10', async ({ page }) => {
     test.setTimeout(300_000);
     const errors = watchErrors(page);
     await seedSave(page, `(ids) => ({ unlocked: 1, beaten: [], introSeen: true, beltSeen: 8, levelsBeaten: Object.fromEntries(ids.filter((id) => Number(id.split('-')[0]) <= 9 && id !== '9-castle').map((id) => [id, 1])), unlockedLevels: ${SECRETS(9)}, escapes: ${ESCAPES(8)}, wmap: { w: 9, at: 10 } })`);
@@ -330,12 +332,14 @@ test.describe('World 9 · on the map', () => {
     const s2 = await settle(page);
     expect(s2).toMatchObject({ world: 9, at: 10 });
     expect(s2.stops[10].state).toBe('beaten');
-    expect(s2.notice).toBe('WORLD 10 COMING SOON!');
-    expect(s2.gate).toBe(10);
+    expect(s2.notice).not.toBe('WORLD 10 COMING SOON!');
+    expect(s2.gate ?? null).toBeNull();
     expect(await page.evaluate(() => (window as unknown as { __k11: MapDev }).__k11.progress())).toMatchObject({ escapes: { 9: 1 }, beltSeen: 9 });
     await page.locator('#owNext').click();
-    await expect.poll(async () => (await mk(page).map()).banner).toBe('WORLD 10 COMING SOON!');
-    expect(await settle(page)).toMatchObject({ world: 9, at: 10 });
+    await expect.poll(async () => (await mk(page).map()).crossing, { timeout: 10_000 }).toBe(true);
+    await page.evaluate(() => (window as unknown as { KINAN: { speed: (n: number) => void } }).KINAN.speed(6));   /* the boat trip is a long road (as in the seams test) */
+    expect(await settle(page, 90_000)).toMatchObject({ world: 10, at: 0 });
+    expect(await page.evaluate(() => (window as unknown as { __k11: MapDev }).__k11.progress().wmap)).toEqual({ w: 10, at: 0 });
     expect(errors).toEqual([]);
   });
 });

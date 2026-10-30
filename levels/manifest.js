@@ -100,5 +100,16 @@ self.KINAN_LEVEL_FILES = [
   'w09/l06.js',
   'w09/l07.js',
   'w09/l08.js',
-  'w09/secret.js'
+  'w09/secret.js',
+  'w10/castle.js',
+  'w10/fort.js',
+  'w10/l01.js',
+  'w10/l02.js',
+  'w10/l03.js',
+  'w10/l04.js',
+  'w10/l05.js',
+  'w10/l06.js',
+  'w10/l07.js',
+  'w10/l08.js',
+  'w10/secret.js'
 ];

@@ -406,8 +406,14 @@ function goWorld(i,stop){wi=i;ensure(cur());const w=cur();at=stop==='last'?w.sto
 /* a world the game has not released yet (the game marks it soon in opts.annotate): the next real world after this one
    stays behind a "COMING SOON" sign at this world's way out, Glitchy waving beside it (Shad, 2026-10-28) */
 function gateAhead(){const w=cur();if(!w||w.travel)return null;for(let j=wi+1;j<W.length;j++){if(W[j].travel)continue;return W[j].soon?W[j]:null;}return null;}
-function drawGate(w,t,wave){if(w.travel||!w.outGeo||w!==cur())return;const g=gateAhead();if(!g)return;
-  const o=w.outGeo,L=segLen(o),p=along(o,Math.max(0,Math.min(L-30,64)));   /* on the road out, a few steps from the castle, where Kinan sees it */const X=Math.round(Math.max(40,Math.min(w.WW-40,p[0]))),Y=Math.round(Math.max(36,Math.min(w.WH-8,p[1])));
+function drawGate(w,t,wave){if(w.travel||w!==cur())return;
+  /* a world can name its sign's spot (w.gate = [x, y]): World 10 has no road out (it glitches into World 11) and its castle
+     stands in the party scene, so its sign stands on the grass by the bridge; otherwise the sign goes on the road out, a
+     few steps from the castle (or between the castle and the exit point), where Kinan sees it */
+  const g=gateAhead();if(!g)return;let X,Y;
+  if(w.gate){X=w.gate[0];Y=w.gate[1];}
+  else{const o=w.outGeo||(w.exit?[w.stops[w.stops.length-1].at,w.exit]:null);if(!o||o.length<2)return;
+    const L=segLen(o),p=along(o,Math.max(0,Math.min(L-30,64)));X=Math.round(Math.max(40,Math.min(w.WW-40,p[0])));Y=Math.round(Math.max(36,Math.min(w.WH-8,p[1])));}
   shadow(X,Y+2,22,4);for(const dx of[-16,10]){px('#1b1220',dx+X,Y-9,7,9);px('#ff8a3d',dx+X+1,Y-8,5,8);px('#ffffff',dx+X+1,Y-5,5,1);}
   px('#1b1220',X-20,Y-10,40,4);for(let k=0;k<5;k++)px(k%2?'#ffffff':'#e8364b',X-19+k*8,Y-9,8,2);
   px('#1b1220',X-1,Y-34,3,24);const s1='WORLD '+g.n,s2='COMING SOON!',bw=Math.max(bfWidth(s1,7),bfWidth(s2,7))+12;

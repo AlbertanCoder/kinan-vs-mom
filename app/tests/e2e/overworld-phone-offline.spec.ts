@@ -112,7 +112,7 @@ test.describe('offline after one load', () => {
     await page.waitForFunction(() => !!navigator.serviceWorker.controller, null, { timeout: 90_000 });
     const missing = await page.evaluate(async () => {
       const want = ['index.html', 'map/engine.js', 'map/worlds/w12_models.js', '3d/level-12-1.html', '3d/assets/models.js', 'map/worlds/vendor/three-0.160.0/build/three.module.js', 'fonts/pixelify-sans-latin.woff2', 'levels/w01/l01.js',
-        'audio/lines/lines.js', 'audio/lines/w01/w01_kinan_01.mp3', 'audio/lines/w05/w05_robin_05.mp3', 'audio/voice/w01_mom_03.mp3', 'audio/voice/w05_kinan_11.mp3',
+        'audio/lines/lines.js', 'audio/lines/w01/w01_kinan_01.mp3', 'audio/rerecord/w05_robin_05.mp3', 'audio/voice/w01_mom_03.mp3', 'audio/voice/w05_kinan_11.mp3',
         'audio/lines/w01/w01_kinan_19.mp3', 'audio/lines/w01/w01_shad_05.mp3', 'audio/lines/w01/w01_mom_12.mp3', 'audio/lines/w06/w06_kinan_12.mp3'];   /* C1: the cutscene voices and a World 6-10 exit line   /* V1/V3: the Worlds 1-5 story and boss voices */
       const out: string[] = [];
       for (const f of want) if (!(await caches.match(f))) out.push(f);

@@ -151,6 +151,6 @@ KinanLevels.register({
     [95, 'MOM', 'Centre Island! Sand, sun... and geese. So many geese, sweetie.', 3.4],
     [151, 'SHAD', 'The raccoon is heading for the old lighthouse at the end of the island.', 3.6],
     [229, 'KINAN', 'The old lighthouse! The oldest one on the whole lake. Something in that arch is glinting...', 4.2],
-    [255, 'DAD', 'Back on the ferry, bud. That raccoon swam for it! Next stop: Kensington Market. Shore thing.', 3.8]
+    [255, 'DAD', 'Back on the ferry, bud. Next stop: Kensington Market! That raccoon swam for it. Cheapskate.', 3.8]
   ]
 });

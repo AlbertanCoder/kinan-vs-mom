@@ -155,5 +155,8 @@ KinanLevels.register({
   goldenCandle: { col: 147, row: 10 },
   checkpoint: { col: 100, row: 11 },
   spawn: { col: 2, row: 11 },
-  goal: { col: 291, row: 11 }   /* the museum's field truck */
+  goal: { col: 291, row: 11 },   /* the museum's field truck */
+  talk: [   /* Dad's joke (tools/dad-lines.mjs): he digs for a living */
+    [2, "DAD", "A real fossil dig! Stand back, bud, I dig for a living. ...They gave me a toothbrush.", 4]
+  ]
 });

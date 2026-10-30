@@ -179,8 +179,8 @@ KinanLevels.register({
     [56, 'SHAD', "Careful, bud: banana slugs. They're slow... and VERY slimy.", 3.4],
     [58, 'KINAN', 'Squishy green moss! It slows me right down.', 2.8],
     [100, 'DAD', 'A raccoon just took my sandwich! Classic bandit. He even wore the mask.', 3.4],
-    [30, "DAD", "Why are trees in Stanley Park so good at parties? Because they really know how to... hee... HAHA... leave— I can't—", 4.4, "wheeze"],
-    [30, "MOM", "...how to LEAF. Robin, breathe. Kinan, keep running.", 3.2, "laugh"],
+    [30, "DAD", "How do the trees in Stanley Park get online? They... hee hee... they... HAHA... I can't—", 4, "wheeze"],
+    [30, "MOM", "...They LOG IN. Robin, breathe. Kinan, keep running.", 3.2, "laugh"],
     [110, 'KINAN', 'A tree fell over! Do I go over it or under it?', 2.8],
     [213, 'SHAD', 'Treetop to treetop, bud. Run and JUMP!', 2.8],
     [284, 'CHENOA', 'I can see a green bridge through the trees! Glitchy went that way.', 3.4]

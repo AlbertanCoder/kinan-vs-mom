@@ -236,7 +236,7 @@ test.describe('the overworld map between levels', () => {
     const plan = await page.evaluate(() => {
       const w = window as unknown as Win, k = w.__k11;
       let soon: { n: number; i: number } | null = null, castle: number | null = null;
-      /* World 9 is complete (v52): Worlds 10-11 have their maps but no level files yet */
+      /* World 10 is complete (v53): World 11 has its map but no level files yet (it is built in another copy) */
       for (let n = 1; n <= 11 && (!soon || castle === null); n++) {
         const s = k.mapWarp(n, 0)!;
         s.stops.forEach((q, i) => { if (!soon && !q.built && q.kind !== 'secret' && i < 10) soon = { n, i }; });

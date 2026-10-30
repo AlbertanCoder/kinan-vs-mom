@@ -194,14 +194,14 @@ function watchRun(o: RunOpts): RunOut {
 test.describe('The glitch hunt · Worlds 1-8', () => {
   test.skip(({ browserName, isMobile }) => browserName !== 'chromium' || !!isMobile, 'one sweep, on desktop Chromium');
 
-  test('every candle in Worlds 1-8 can be reached: none sealed in a pocket with no way in', async ({ page }) => {
+  test('every candle in Worlds 1-10 can be reached: none sealed in a pocket with no way in', async ({ page }) => {
     test.setTimeout(120_000);
     const errors = watchErrors(page);
     await boot(page);
-    const ids = [1, 2, 3, 4, 5, 6, 7, 8].flatMap((wn) => SLOTS.map((s) => `${wn}-${s}`));
+    const ids = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].flatMap((wn) => SLOTS.map((s) => `${wn}-${s}`));
     const out = await page.evaluate(sealedCandles, ids);
     console.log(`candles checked in ${out.length} levels: ${out.reduce((n, l) => n + l.total, 0)}`);
-    expect(out.length).toBe(88);
+    expect(out.length).toBe(110);   /* Worlds 9 and 10 joined the check in v53 (a 9-castle candle sat inside its steps) */
     expect(out.filter((l) => l.sealed.length).map((l) => `${l.id}: ${l.sealed.map(([c, r]) => `c${c} r${r}`).join(', ')}`)).toEqual([]);
     expect(errors).toEqual([]);
   });

@@ -86,8 +86,8 @@ KinanLevels.register({
   },
   /* lab robots walk, the lab frogs hop at you, the spark flies over the machine */
   talk: [   /* Dad's jokes, the wheeze-laugh, Mom's reactions (tools/dad-lines.mjs) */
-    [30, "DAD", "Dad on the phone! Why did the teacher wear sunglasses? Her students were so... hee... HAHA... bri— I can't—", 4.4, "wheeze"],
-    [30, "KINAN", "...so BRIGHT. Dad, I am literally at school right now.", 3.2]
+    [30, "DAD", "Dad on the phone! Why can't you trust atoms? Because they... hee hee... they... HAHA... I can't—", 4, "wheeze"],
+    [30, "KINAN", "...make up everything. Dad, you're on speaker. My whole class heard that.", 3.4]
   ],
   foes: [[25, 11, 'robot'],
          [52, 6, 'robot'],                 /* a walker, not a seeker: it never waits at the top of the pads */

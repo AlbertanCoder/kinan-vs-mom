@@ -4,3 +4,4 @@ test-results/
 playwright-report/
 .vite/
 *-out.txt
+v1-shots/
