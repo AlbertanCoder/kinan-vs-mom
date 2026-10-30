@@ -94,7 +94,7 @@ export const REPLACE = [
   ['index.html', `w05_robin_03: ['DAD', "Look at that. He's calming down. You did that, bud.", 5.35],`,
     `w05_robin_03: ['DAD', "Look at that, he's calming down. You did that, bud. That's un-bull-ievable.", 7.1],`, 'voiced: w05_robin_03'],
   ['index.html', `t_w7_dad_01: ['DAD', 'Careful, bud. That shiny slime on the snow is slippery!', 3, true],`,
-    `t_w7_dad_01: ['DAD', "Careful, bud, that shiny slime is slippery! Don't let this slug get you down.", 3.4, true],`, 'boss line t_w7_dad_01'],
+    `t_w7_dad_01: ['DAD', "Careful, bud, that shiny slime is slippery! Don't let this slug get you down.", 6.6, true],`, 'boss line t_w7_dad_01'],
   /* the Dad helper's toasts and the rig fight */
   ['index.html', `pick(['Just got back from camp, bud! Eat this burger 🍔', 'Nobody beats up the birthday boy! 🍔', "Dad's home from the oilfield! Hearts refilled! 🍔"])`,
     `pick(["Back from camp, bud! This burger's a real patty-cake 🍔", 'Nobody beats up the birthday boy! Not on my grill-watch 🍔', "Dad's home from the oilfield! Hearts refilled, and that's crude-ly honest 🍔"])`, 'toast'],

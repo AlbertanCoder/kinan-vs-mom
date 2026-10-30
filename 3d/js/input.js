@@ -6,6 +6,9 @@
 // Gamepad (standard mapping): left stick / d-pad move (full tilt runs), right stick camera, A jump, B or X action,
 //           LT / RT / Y butt slam, LB / RB turn the camera, Start pause.
 // Mouse drag on the game also turns the camera on a laptop.
+// SIDE MODE (2.5D level, setSide(true)): left/right run, up/down climb (keys are not mixed into one direction),
+//           no camera turning; on touch the floating joystick is replaced by the 2D game's see-through buttons:
+//           ◀ ▶ with ▲ ▼ bottom-left (slide a thumb between them; hold ◀ or ▶ a moment = run), JUMP + ACTION bottom-right.
 import { clamp } from './util.js';
 
 const MOVE_KEYS = {
@@ -27,6 +30,7 @@ export class Input {
     this.anyEdge = false;          // any key/button this frame (used to dismiss cards)
     this.enabled = true;
     this.pad = { held: new Array(17).fill(false), edge: new Array(17).fill(false), lx: 0, ly: 0, rx: 0, ry: 0, on: false };
+    this.side = false; this.sideHeld = { left: false, right: false, up: false, down: false }; this.sideRunFrom = 0;
 
     window.addEventListener('keydown', (e) => {
       if (BLOCK.has(e.code)) e.preventDefault();
@@ -62,9 +66,11 @@ export class Input {
     btn(jumpBtn, () => { this.touchJump = true; this.touchJumpEdge = true; }, () => { this.touchJump = false; });
     btn(actBtn, () => { this.touchActionEdge = true; });
 
+    this._showTouchUI = showTouchUI;
     root.addEventListener('pointerdown', (e) => {
       if (e.pointerType === 'touch') showTouchUI();
       this.anyEdge = true;
+      if (this.side) return;   // 2.5D: no joystick and no camera drag (the side pad has its own buttons)
       const w = window.innerWidth;
       if (e.pointerType === 'touch' && e.clientX < w * 0.45 && this.stickId === null) {
         this.stickId = e.pointerId;
@@ -102,6 +108,55 @@ export class Input {
     document.addEventListener('gesturestart', (e) => e.preventDefault());
   }
 
+  // 2.5D side mode: swap the joystick for the side pad and say so on the title / pause cards
+  setSide(on) {
+    this.side = !!on;
+    if (!this.side) return;
+    document.body.classList.add('side');
+    this.stickId = null; this.camId = null;
+    const KEYS = '<b>A D / &larr; &rarr;</b><span>run left and right &middot; SHIFT runs faster</span><b>W S / &uarr; &darr;</b><span>climb up and down</span><b>SPACE</b><span>jump &middot; again in the air = DOUBLE JUMP</span><b>F (or J)</b><span>ACTION: KICK, lift, throw, grab &middot; in the air: BUTT SLAM &middot; P pause &middot; M music</span>';
+    const TOUCH = '<b>&#9664; &#9654;</b><span>run (hold a moment = run fast)</span><b>&#9650; &#9660;</b><span>climb up and down</span><b>JUMP</b><span>jump &middot; tap again in the air = DOUBLE JUMP</span><b>ACTION</b><span>KICK, lift, throw, grab &middot; in the air: BUTT SLAM</span>';
+    for (const sel of ['#titlecard .keys.key-only', '#pause .keys.key-only']) { const el = document.querySelector(sel); if (el) el.innerHTML = KEYS; }
+    for (const sel of ['#titlecard .keys.touch-only', '#pause .keys.touch-only']) { const el = document.querySelector(sel); if (el) el.innerHTML = TOUCH; }
+    const touch = document.getElementById('touch');
+    if (!touch || document.getElementById('sidepad')) return;
+    const pad = document.createElement('div');
+    pad.id = 'sidepad';
+    pad.innerHTML = '<button type="button" class="sbtn" data-k="left" aria-label="Move left">&#9664;</button>'
+      + '<button type="button" class="sbtn" data-k="right" aria-label="Move right">&#9654;</button>'
+      + '<div class="sp-ud"><button type="button" class="sbtn sm" data-k="up" aria-label="Climb up">&#9650;</button>'
+      + '<button type="button" class="sbtn sm" data-k="down" aria-label="Climb down">&#9660;</button></div>';
+    touch.appendChild(pad);
+    const btns = [...pad.querySelectorAll('[data-k]')];
+    // the nearest button under each finger (a thumb can slide from ◀ to ▶ without lifting)
+    const nearest = (x, y) => {
+      let best = null, bd = Infinity;
+      for (const el of btns) {
+        const r = el.getBoundingClientRect();
+        const d = Math.hypot(x - (r.left + r.width / 2), y - (r.top + r.height / 2)) - r.width / 2;
+        if (d < bd) { bd = d; best = el; }
+      }
+      return best && bd < 36 ? best.dataset.k : null;
+    };
+    const fingers = new Map();
+    const refresh = () => {
+      const was = this.sideHeld.left || this.sideHeld.right;
+      for (const k of Object.keys(this.sideHeld)) this.sideHeld[k] = false;
+      for (const k of fingers.values()) if (k) this.sideHeld[k] = true;
+      for (const el of btns) el.classList.toggle('down', !!this.sideHeld[el.dataset.k]);
+      const now = this.sideHeld.left || this.sideHeld.right;
+      if (now && !was) this.sideRunFrom = performance.now();
+    };
+    pad.addEventListener('pointerdown', (e) => {
+      e.preventDefault(); e.stopPropagation(); this._showTouchUI && this._showTouchUI();
+      try { pad.setPointerCapture(e.pointerId); } catch (err) { /* ignore */ }
+      fingers.set(e.pointerId, nearest(e.clientX, e.clientY)); refresh(); this.anyEdge = true;
+    });
+    pad.addEventListener('pointermove', (e) => { if (fingers.has(e.pointerId)) { fingers.set(e.pointerId, nearest(e.clientX, e.clientY)); refresh(); } });
+    const end = (e) => { if (fingers.delete(e.pointerId)) refresh(); };
+    pad.addEventListener('pointerup', end); pad.addEventListener('pointercancel', end); pad.addEventListener('lostpointercapture', end);
+  }
+
   _pollPad() {
     const P = this.pad;
     P.edge.fill(false);
@@ -135,6 +190,14 @@ export class Input {
     for (const k of this.keys) { const m = MOVE_KEYS[k]; if (m) { x += m[0]; y += m[1]; } }
     if (P.held[PAD.LEFT]) x -= 1; if (P.held[PAD.RIGHT]) x += 1; if (P.held[PAD.UP]) y += 1; if (P.held[PAD.DOWN]) y -= 1;
     const kl = Math.hypot(x, y);
+    if (this.side) {
+      // 2.5D: left/right and up/down are separate (holding up while running must not slow him down)
+      const H = this.sideHeld;
+      x = clamp(x + (H.right ? 1 : 0) - (H.left ? 1 : 0), -1, 1); y = clamp(y + (H.up ? 1 : 0) - (H.down ? 1 : 0), -1, 1);
+      if (P.on && (P.lx || P.ly)) { x = clamp(P.lx * 1.1, -1, 1); y = clamp(-P.ly * 1.1, -1, 1); }
+      this.move.x = x; this.move.y = y;
+      return;
+    }
     if (kl > 0) { x /= kl; y /= kl; }
     // keyboard: full tilt is "walk"; Shift turns it into a run (handled by player via runHeld)
     if (this.stickId !== null) {
@@ -161,7 +224,9 @@ export class Input {
     // Touch and gamepad: pushing the stick nearly all the way runs.
     const stickRun = this.stickId !== null && Math.hypot(this.stickVec.x, this.stickVec.y) > 0.92;
     const padRun = this.pad.on && Math.hypot(this.pad.lx, this.pad.ly) > 0.9;
-    return this.enabled && (this.keys.has('ShiftLeft') || this.keys.has('ShiftRight') || stickRun || padRun);
+    // 2.5D touch: holding ◀ or ▶ for a moment breaks into a run
+    const sideRun = this.side && (this.sideHeld.left || this.sideHeld.right) && performance.now() - this.sideRunFrom > 450;
+    return this.enabled && (this.keys.has('ShiftLeft') || this.keys.has('ShiftRight') || stickRun || padRun || sideRun);
   }
   // butt slam only (Shift / LT / RT / Y); the ACTION button also slams in the air (the player decides)
   get poundPressed() { return this.enabled && (this.pressed.has('ShiftLeft') || this.pressed.has('ShiftRight') || this.pad.edge[PAD.LT] || this.pad.edge[PAD.RT] || this.pad.edge[PAD.Y]); }

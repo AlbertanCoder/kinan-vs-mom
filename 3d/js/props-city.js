@@ -472,10 +472,10 @@ export function titleCard(L) {
     const card = document.getElementById('titlecard');
     if (!card) return;
     const w = card.querySelector('.world'), h = card.querySelector('h1'), s = card.querySelector('.sub');
-    if (w) w.textContent = 'WORLD ' + L.id;
+    if (w) w.textContent = 'WORLD ' + String(L.id).replace('-fort', ' · FORT');
     if (h) h.textContent = L.title;
     if (s) s.textContent = L.cardText || L.subtitle;
-    document.title = 'Kinan vs. Worlds ' + L.id + ': ' + L.title;
+    document.title = 'Kinan vs. Worlds ' + String(L.id).replace('-fort', ' · FORT') + ': ' + L.title;
   } catch (e) { /* no DOM (tools): ignore */ }
 }
 

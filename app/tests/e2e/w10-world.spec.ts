@@ -14,7 +14,7 @@ import { expect, test, type ConsoleMessage, type Page } from '@playwright/test';
    - every tell is 0.6 s or more and shows its "!"; the KICK never touches the Grandmas or Mom; nobody is ever hit
      (no 'hit' in the fights' logs); no game over (a lost fight starts again from its own checkpoint),
    - on the map: World 10 opens after the 9-castle; the 10-castle plays Glitchy's exit, then Sabumnim's belt scene, and
-     the way on is a "WORLD 11 COMING SOON!" sign. No page errors. */
+     the way on opens into World 11 (released in v54: the world glitches, World 11's arrival lines follow). No page errors. */
 
 const BASE = `http://127.0.0.1:${process.env.KVM_PORT || 4174}/index.html`;
 const DEV_URL = `${BASE}?devtools=1`;
@@ -462,7 +462,7 @@ test.describe('World 10 · on the map', () => {
     expect(errors).toEqual([]);
   });
 
-  test('the 10-castle: THE TURN in the level, then Glitchy runs into the console, Sabumnim\'s belt scene follows (World 10\'s line), and the way on is a "WORLD 11 COMING SOON!" sign', async ({ page }) => {
+  test('the 10-castle: THE TURN in the level, then Glitchy runs into the console, Sabumnim\'s belt scene follows (World 10\'s line), and the way on opens: the world glitches and World 11\'s arrival lines follow the door in the mist', async ({ page }) => {
     test.setTimeout(360_000);
     const errors = watchErrors(page);
     await seedSave(page, `(ids) => ({ unlocked: 1, beaten: [], introSeen: true, beltSeen: 9, levelsBeaten: Object.fromEntries(ids.filter((id) => Number(id.split('-')[0]) <= 10 && id !== '10-castle').map((id) => [id, 1])), unlockedLevels: ${SECRETS(10)}, escapes: ${ESCAPES(9)}, wmap: { w: 10, at: 10 } })`);
@@ -497,12 +497,22 @@ test.describe('World 10 · on the map', () => {
     const s2 = await settle(page);
     expect(s2).toMatchObject({ world: 10, at: 10 });
     expect(s2.stops[10].state).toBe('beaten');
-    expect(s2.notice).toBe('WORLD 11 COMING SOON!');
-    expect(s2.gate).toBe(11);
+    /* World 11 is released (OW_RELEASED 11, v54): no "coming soon" sign; the way on is open */
+    expect(s2.notice).toBe('THE WAY ON TO THE NEXT WORLD IS OPEN!');
+    expect(s2.gate ?? null, 'no World 11 sign').toBeNull();
     expect(await page.evaluate(() => (window as unknown as { __k11: MapDev }).__k11.progress())).toMatchObject({ escapes: { 10: 1 }, beltSeen: 10 });
     await page.locator('#owNext').click();
-    await expect.poll(async () => (await mk(page).map()).banner).toBe('WORLD 11 COMING SOON!');
-    expect(await settle(page)).toMatchObject({ world: 10, at: 10 });
+    await expect.poll(async () => (await mk(page).map()).banner).toBe('WAIT... DID THE WORLD JUST GLITCH?');
+    expect(await settle(page, 90_000)).toMatchObject({ world: 11, at: 0 });
+    expect((await page.evaluate(() => (window as unknown as { __k11: MapDev }).__k11.progress())).wmap).toEqual({ w: 11, at: 0 });
+    /* World 11's arrival lines, in order, the first one following World 10's door in the mist */
+    const q = await page.evaluate(() => (window as unknown as { __k11: MapDev & { storyInfo: () => { cur: string | null; queue: string[]; log: { id: string }[]; mapWorld: number } } }).__k11.storyInfo());
+    expect(q.mapWorld).toBe(11);
+    /* Story.log records a line as it starts, so the line playing now is in the log and in cur (measured on desktop
+       Chromium: w11_in_kinan_01 in both): each line counted once, in order */
+    expect([...new Set([...q.log.map((x) => x.id), q.cur, ...q.queue])].filter((id) => !!id && /^w11_in_/.test(id))).toEqual(['w11_in_kinan_01', 'w11_in_mom_01', 'w11_in_shad_01', 'w11_in_annie_01']);
+    const door = await page.evaluate(() => (window as unknown as { KINAN_STORY: { lines: Record<string, [string, string]> } }).KINAN_STORY.lines.w11_in_kinan_01[1]);
+    expect(door).toContain('The door in the mist');
     expect(errors).toEqual([]);
   });
 });

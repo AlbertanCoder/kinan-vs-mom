@@ -51,6 +51,32 @@ export async function makeKinan(url, envMap) {
   return { model, source: 'procedural', tris: countTris(model), braid: false, name: 'Kinan' };
 }
 
+// His BLACK belt (earned before Glitchy's Last Stand): a band round the waist, a knot at the front, two tails.
+// Goes on the model itself, not a limb, so it stays on his waist whatever the legs and arms do.
+export function addBlackBelt(model) {
+  const hip = model.getObjectByName('Kinan_hip1') || model.getObjectByName('Kinan_hip-1');
+  model.updateMatrixWorld(true);
+  const p = new THREE.Vector3();
+  if (hip) { hip.getWorldPosition(p); model.worldToLocal(p); } else p.y = 0.74;
+  const black = mat('#17171f', 0.55), g = new THREE.Group();
+  g.name = 'Kinan_belt';
+  g.position.y = p.y + 0.09;
+  const band = new THREE.Mesh(new THREE.CylinderGeometry(0.335, 0.335, 0.11, 28, 1, true), black);
+  band.material.side = THREE.DoubleSide;
+  band.scale.set(1, 1, 0.8);
+  g.add(band);
+  const knot = new THREE.Mesh(new THREE.SphereGeometry(0.075, 12, 8), black);
+  knot.scale.set(1.25, 0.9, 0.7); knot.position.set(0, 0, 0.275);
+  g.add(knot);
+  for (const sx of [-1, 1]) {
+    const tail = new THREE.Mesh(new THREE.BoxGeometry(0.075, 0.28, 0.03), black);
+    tail.position.set(sx * 0.075, -0.15, 0.285); tail.rotation.z = sx * 0.2;
+    g.add(tail);
+  }
+  model.add(g);
+  return g;
+}
+
 // Move the braid (Kinan_braid_lobe0..7, _tie, _tip) under a new pivot at its root, the nape of his neck.
 function makeBraidPivot(scene) {
   const head = scene.getObjectByName('Kinan_head');
@@ -340,6 +366,12 @@ export class KinanRig {
         set('shR', -2.9, 0, 0.2); set('shL', -1.2, 0, -0.2); set('elR', -0.1); set('elL', -0.4);
         set('hipL', -0.4); set('hipR', 0.3); set('head', 0.1);
         rate = 24; break;
+      }
+      case 'kick': {   // the taekwondo front kick: right leg snaps up and out, arms back for balance
+        set('hipR', -1.75); set('hipL', 0.18);
+        set('shL', 0.5, 0, -0.6); set('shR', 0.7, 0, 0.6); set('elL', -0.9); set('elR', -0.9);
+        set('head', 0.05);
+        rate = 34; break;
       }
       case 'float': {   // hanging under the umbrella
         set('shR', -3.0, 0, 0.1); set('shL', -0.3, 0, -0.6); set('elR', -0.2); set('elL', -0.4);

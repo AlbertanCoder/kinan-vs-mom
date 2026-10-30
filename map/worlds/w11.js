@@ -94,12 +94,16 @@
   K.P.w11_pad=function(X,Y){const G=g();G.fillStyle='#1b1220';G.beginPath();G.ellipse(X,Y,24,12,0,0,Math.PI*2);G.fill();G.fillStyle='#4a5160';G.beginPath();G.ellipse(X,Y,23,11,0,0,Math.PI*2);G.fill();
     for(let i=0;i<16;i++){const a=i*Math.PI/8;px(i%2?'#f6c445':'#1b1220',X+Math.cos(a)*20-1,Y+Math.sin(a)*9-1,3,2);}px('#f4f1e8',X-6,Y-4,2,8);px('#f4f1e8',X+4,Y-4,2,8);px('#f4f1e8',X-4,Y-1,8,2);};
   K.P.w11_droid=function(X,Y,c){const G=g();shadow(X+4,Y+1,6,2);box('#e8eef6',X,Y-9,9,9);px(c||'#2a5bd7',X+1,Y-7,7,2);px(c||'#2a5bd7',X+3,Y-4,3,2);G.fillStyle='#1b1220';G.beginPath();G.arc(X+4.5,Y-9,5,Math.PI,0);G.fill();G.fillStyle='#c9d0dc';G.beginPath();G.arc(X+4.5,Y-9,4,Math.PI,0);G.fill();px('#1b1220',X+3,Y-12,3,2);px('#e8364b',X+4,Y-12,1,1);px('#1b1220',X-2,Y-6,2,6);px('#1b1220',X+9,Y-6,2,6);};
-  K.P.w11_commander=function(X,Y){/* THE DROID COMMANDER: a tall red-visored droid on a command dais */
-    shadow(X,Y+2,22,5);box('#4a5160',X-20,Y-6,40,6);px('#f6c445',X-20,Y-6,40,1);
-    box('#c9d0dc',X-9,Y-34,18,28);px('#9aa3b2',X+5,Y-34,4,28);box('#4a5160',X-5,Y-24,10,8);px('#00ffd0',X-3,Y-22,2,2);px('#ff3d3d',X+1,Y-22,2,2);
-    box('#c9d0dc',X-15,Y-32,5,16);box('#c9d0dc',X+10,Y-32,5,16);px('#ff3d3d',X+11,Y-38,3,6);
-    box('#dfe5ee',X-8,Y-46,16,12);px('#1b1220',X-7,Y-42,14,4);px('#ff3d3d',X-6,Y-41,12,2);px('#1b1220',X,Y-54,1,8);px('#ff3d3d',X-1,Y-56,3,2);
-    K.P.label(X,Y+4,'DROID COMMANDER');};
+  K.P.w11_commander=function(X,Y){/* THE ROBOT COMMANDER (the same robot as his arena in 11-3, index.html drawArenaW11Boss): our own toy-space design, a rounded orange body with chunky panels, teal shoulder pads and visor, little treads, an antenna light, on a command dais */
+    const G=g();shadow(X,Y+2,22,5);box('#4a5160',X-20,Y-6,40,6);px('#f6c445',X-20,Y-6,40,1);
+    px('#2b2f45',X-11,Y-12,22,6);[-7,-2,3,8].forEach((u)=>px('#4a5160',X+u-1,Y-11,3,3));
+    G.fillStyle='#1b1220';G.beginPath();G.ellipse(X,Y-22,12,11,0,0,Math.PI*2);G.fill();G.fillStyle='#ff8a3d';G.beginPath();G.ellipse(X,Y-22,11,10,0,0,Math.PI*2);G.fill();
+    px('#c9622a',X-11,Y-22,22,1);px('#1b1220',X-6,Y-29,12,8);px('#2ec4b6',X-5,Y-28,10,6);px('#f6c445',X-4,Y-26,2,2);px('#ffffff',X-1,Y-26,2,2);px('#ff8a3d',X+2,Y-26,2,2);
+    [-1,1].forEach((s)=>{G.fillStyle='#1b1220';G.beginPath();G.arc(X+s*11,Y-29,5,0,Math.PI*2);G.fill();G.fillStyle='#2ec4b6';G.beginPath();G.arc(X+s*11,Y-29,4,0,Math.PI*2);G.fill();});
+    G.fillStyle='#1b1220';G.beginPath();G.arc(X,Y-33,9,Math.PI,0);G.fill();G.fillStyle='#ff8a3d';G.beginPath();G.arc(X,Y-33,8,Math.PI,0);G.fill();
+    px('#1b1220',X-7,Y-38,14,4);px('#3fe0d0',X-6,Y-37,12,2);px('#1b1220',X-3,Y-37,2,2);px('#1b1220',X+2,Y-37,2,2);
+    px('#4a5160',X,Y-47,1,6);px('#3fe0d0',X-1,Y-49,3,3);
+    K.P.label(X,Y+4,'ROBOT COMMANDER');};
   K.P.w11_ctower=function(X,Y){shadow(X,Y+2,12,3);box('#9aa3b2',X-5,Y-40,10,40);px('#6f7889',X+2,Y-40,3,40);box('#dfe5ee',X-12,Y-52,24,12);px('#1b1220',X-11,Y-48,22,4);px('#7ec8ff',X-10,Y-47,20,2);};
   K.P.w11_crates=function(X,Y){[[0,0],[9,0],[4,-8]].forEach(([a,b])=>{box('#c99a5c',X+a,Y+b-8,8,8);px('#8a6440',X+a,Y+b-5,8,1);px('#8a6440',X+a+3,Y+b-8,1,8);});};
   K.P.w11_turret=function(X,Y){box('#4a5160',X-4,Y-6,8,6);px('#1b1220',X-1,Y-12,2,6);px('#ff3d3d',X-1,Y-13,2,1);};
@@ -138,12 +142,12 @@
     px('#1b1220',X-18,Y-2,36,2);K.P.label(X,Y+4,'MIRROR KINAN');};
 
   /* ---------- Glitchy's islands ---------- */
-  K.P.w11_firewall=function(X,Y,w,gap){/* a brick wall on fire, with a gate in the middle */
-    const seg=(x0,x1)=>{box('#a8322e',x0,Y-24,x1-x0,24);for(let r=0;r<4;r++)for(let x=x0+(r%2)*5;x<x1;x+=10){px('#1b1220',x,Y-24+r*6,1,6);}for(let r=1;r<4;r++)px('#1b1220',x0,Y-24+r*6,x1-x0,1);px('#e0605a',x0,Y-24,x1-x0,2);
-      for(let x=x0;x<x1;x+=8){box('#a8322e',x,Y-28,5,4);}};
+  K.P.w11_firewall=function(X,Y,w,gap){/* THE CORE GUARDIAN: a wall of cool fire-pixels (blues and violets, like its arena in 11-fort), with a gate in the middle */
+    const seg=(x0,x1)=>{box('#2a6fb0',x0,Y-24,x1-x0,24);for(let r=0;r<6;r++)for(let x=x0+(r%2)*2;x<x1;x+=4){px(['#3fa0e0','#7ee8ff','#9f7bff','#5a4fd0'][(x+r*3)%4],x,Y-24+r*4,3,3);}px('#7ee8ff',x0,Y-24,x1-x0,2);
+      for(let x=x0;x<x1;x+=8){box('#3fa0e0',x,Y-28,5,4);px('#9f7bff',x+1,Y-31,3,3);}};
     shadow(X,Y+2,w/2+6,5);seg(X-w/2,X-gap/2);seg(X+gap/2,X+w/2);
     box('#4a5160',X-gap/2-4,Y-36,6,36);box('#4a5160',X+gap/2-2,Y-36,6,36);px('#00ffd0',X-gap/2-3,Y-34,4,3);px('#00ffd0',X+gap/2-1,Y-34,4,3);
-    K.P.label(X,Y+4,'THE FIREWALL');};
+    K.P.label(X,Y+4,'THE CORE GUARDIAN');};
   K.P.w11_copyBlock=function(X,Y,c){/* one building, pasted three times with ghosting */
     [[10,-10,.35],[5,-5,.6],[0,0,1]].forEach(([a,b,al])=>{g().globalAlpha=al;K.P.tower(X+a,Y+b,22,52,c,'#00ffd0');g().globalAlpha=1;});};
   K.P.w11_cursor=function(X,Y){const G=g();G.fillStyle='#1b1220';G.beginPath();G.moveTo(X,Y-34);G.lineTo(X+22,Y-12);G.lineTo(X+12,Y-12);G.lineTo(X+18,Y);G.lineTo(X+12,Y+2);G.lineTo(X+7,Y-9);G.lineTo(X,Y-3);G.closePath();G.fill();
@@ -270,7 +274,7 @@
   /* ---------- the world ---------- */
   K.W.push({n:11,hud:'INSIDE THE CONSOLE',name:'Kinan and Glitchy',
     where:"Mom's fall at Niagara cracks the game open. Kinan drops inside the console, where the old worlds float as broken mini realms in the dark. He crosses them all, then Glitchy's own islands, to reach the core.",
-    marks:'Made up: the Wrong-Way Portal; a Mini Brick Realm with a brick mountain to climb and a brick sea to cross; a Mini Starbase with twin suns, a hangar, starfighters, droids and a trench run; a Mini Dino Valley with a volcano and a brachiosaurus; chocolate cake islands joined by glowing glass bridges; the Firewall, Copy-Paste City, the Save File Vault, the Portal Machine and Glitchy\'s core. The further Kinan goes, the more the map itself breaks: missing tiles, pixel noise, torn strips, inverted colours and chunks floating off, worst around Glitchy\'s core.',
+    marks:'Made up: the Wrong-Way Portal; a Mini Brick Realm with a brick mountain to climb and a brick sea to cross; a Mini Starbase with twin suns, a hangar, starfighters, droids and a trench run; a Mini Dino Valley with a volcano and a brachiosaurus; chocolate cake islands joined by glowing glass bridges; the Core Guardian (a wall of fire-pixels), Copy-Paste City, the Save File Vault, the Portal Machine and Glitchy\'s core. The further Kinan goes, the more the map itself breaks: missing tiles, pixel noise, torn strips, inverted colours and chunks floating off, worst around Glitchy\'s core.',
     size:[1100,780],mode:'islands',ground:'glitch',water:'void',cliff:'glitch',path:'neon',fx:'glitch',
     blobs:[
       [100,625,85],                                   /* Wrong-Way Portal */
@@ -278,7 +282,7 @@
       [210,170,150],[310,160,100],                     /* Mini Starbase */
       [540,150,140],[620,130,95],[470,170,80],         /* Mini Dino Valley */
       [770,120,80],[905,215,72],[1020,115,85],         /* chocolate cake islands */
-      [1015,350,110],                                  /* the Firewall */
+      [1015,350,110],                                  /* the Core Guardian's wall of fire-pixels */
       [965,565,120],[1045,550,80],                     /* Copy-Paste City */
       [745,615,110],                                   /* Save File Vault */
       [690,718,55],                                    /* Shad's Dev Room */
@@ -296,10 +300,10 @@
     stops:[
       {at:[128,628],name:'11-1  THE WRONG-WAY PORTAL',st:'open'},
       {at:[205,408],name:'11-2  MINI BRICK REALM  -  BRICK-REX',st:'lock'},
-      {at:[330,150],name:'11-3  MINI STARBASE  -  THE DROID COMMANDER',st:'lock'},
+      {at:[330,150],name:'11-3  MINI STARBASE  -  THE ROBOT COMMANDER',st:'lock'},
       {at:[548,176],name:'11-4  MINI DINO VALLEY  -  THE ALPHA T-REX',st:'lock'},
       {at:[1010,130],name:'11-5  MINI CAKE MULTIVERSE  -  MIRROR KINAN',st:'lock'},
-      {at:[1015,348],name:'FORT  THE FIREWALL',st:'fort'},
+      {at:[1015,348],name:'FORT  THE CORE GUARDIAN',st:'fort'},
       {at:[975,560],name:'11-6  COPY-PASTE CITY',st:'lock'},
       {at:[745,632],name:'11-7  THE SAVE FILE VAULT',st:'lock'},
       {at:[692,712],name:"SECRET  SHAD'S DEV ROOM",st:'secret'},
@@ -321,6 +325,7 @@
       [7,9,[[680,622],[620,612],[580,606]]],
       [9,10,[[540,560],[568,498]]]],
     exit:[680,330],
+    gate:[762,478],   /* the WORLD 12 COMING SOON sign: in the dark space right of Glitchy's Core, clear of the Core and the belt box (v54) */
     props:[
       ['w11_rotUnder',0,-5],['w11_rotOver',0,9000],
       ['w11_cliff',90,-9,400,330,610,'brick'],['w11_cliff',100,-9,390,80,268,'metal'],['w11_cliff',400,-9,700,60,250,'dino'],

@@ -566,6 +566,7 @@ function css(){if(document.getElementById('k3-style'))return;const s=document.cr
 .k3-hr b{color:#f6c445;font-weight:700}
 .k3-plq{position:absolute;left:50%;bottom:calc(6*var(--u));transform:translateX(-50%);background:#141632;color:#f6c445;font-weight:700;font-size:calc(10*var(--u));line-height:calc(18*var(--u));padding:0 calc(13*var(--u));white-space:pre;
   border:calc(2*var(--u)) solid #c9922f;border-top-color:#ffe58a;box-shadow:0 0 0 calc(2*var(--u)) #1b1220;transition:opacity .18s;opacity:0}
+.k3-peek{position:absolute;left:50%;top:calc(30*var(--u));transform:translateX(-50%);background:#2a7fd0;color:#fff;font-weight:700;font-size:calc(8*var(--u));line-height:calc(14*var(--u));padding:0 calc(10*var(--u));white-space:pre;box-shadow:0 0 0 calc(2*var(--u)) #1b1220;pointer-events:none}
 .k3-dim{position:absolute;inset:0;background:rgba(10,10,30,.55);opacity:0;pointer-events:none}
 .k3-ban{position:absolute;left:50%;top:calc(98*var(--u));transform:translateX(-50%);background:#e8364b;color:#fff;font-weight:700;font-size:calc(12*var(--u));line-height:calc(28*var(--u));padding:0 calc(15*var(--u));white-space:pre;box-shadow:0 0 0 calc(2*var(--u)) #1b1220;opacity:0}
 .k3-sub{position:absolute;left:0;right:0;top:calc(136*var(--u));text-align:center;color:#eef0ff;font-size:calc(8*var(--u));opacity:0}
@@ -581,6 +582,8 @@ function buildOverlay(){
   css();const w=document.createElement('div');w.className='k3-wrap';w.setAttribute('role','img');w.setAttribute('aria-label','3D map of Saskatoon. Kinan walks the trail between levels with the arrow keys.');
   const ui={wrap:w};ui.stage=el('k3-stage',w);ui.stage.style.cssText='position:absolute;inset:0';
   ui.hl=el('k3-box k3-hl',w,'WORLD 12   3D SASKATOON');ui.hr=el('k3-box k3-hr',w);ui.hr.innerHTML='CANDLES  <b>0</b>';
+  /* the sneak peek (2026-10-30, opts.peek from the map engine): a sign that stays up while Kinan is on this map */
+  if(st.opts&&st.opts.peek){ui.peek=el('k3-peek',w,'SNEAK PEEK!  4 LEVELS ARE OPEN. MUCH MORE IS COMING!');ui.peek.setAttribute('role','note');}
   ui.plq=el('k3-plq',w);ui.dim=el('k3-dim',w);ui.ban=el('k3-ban',w);ui.sub=el('k3-sub',w);ui.fade=el('k3-fade',w);
   ui.load=el('k3-load',w);ui.lt=el('',ui.load,'LOADING 3D SASKATOON...');const bar=el('k3-bar',ui.load);ui.lb=document.createElement('i');bar.appendChild(ui.lb);ui.ls=el('k3-small',ui.load,'');
   st.ui=ui;return w;}

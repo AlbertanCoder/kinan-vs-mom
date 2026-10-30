@@ -41,7 +41,8 @@ async function standOn(page: Page, at: { w: number; at: number }, extra: Record<
   await page.goto(DEV_URL);
   await ready(page);
   /* 2026-10-28: this build releases Worlds 1-5 (World 6 waits behind its "coming soon" sign, c1-cutscenes.spec.ts);
-     these seams are in the later worlds, so the test opens every world's map (kept for this tab's session) */
+     these seams are in the later worlds, so the test opens every world's map (kept for this tab's session). 2026-10-30: owRelease(12)
+     is also World 12 fully released, the developer view of all eleven stops; the live sneak peek is w12-preview.spec.ts */
   expect(await page.evaluate(() => (window as unknown as { __k11: { owRelease: (n: number) => number } }).__k11.owRelease(12))).toBe(12);
   await page.evaluate(({ key, at, extra }) => {
     const ids = (window as unknown as Win).KinanLevels.list();
@@ -93,7 +94,14 @@ test.describe('the map seams: one journey across the worlds', () => {
     const s = await mapState(page);
     expect(s.stops[0]).toMatchObject({ id: '12-1', built: true, state: 'open' });
     expect(s.stops[1]).toMatchObject({ id: '12-2', built: true, state: 'locked' });
-    expect(s.stops[3]).toMatchObject({ id: '12-4', built: false });
+    /* the rough-draft side levels (12-4, 12-5, the fort, 12-6, 12-7, the secret, 12-8: w12-levels-draft.spec.ts) are all built now */
+    expect(s.stops[3]).toMatchObject({ id: '12-4', built: true });
+    expect(s.stops[4]).toMatchObject({ id: '12-5', built: true });
+    expect(s.stops[5]).toMatchObject({ id: '12-fort', built: true });
+    expect(s.stops[6]).toMatchObject({ id: '12-6', built: true });
+    expect(s.stops[7]).toMatchObject({ id: '12-7', built: true });
+    expect(s.stops[8]).toMatchObject({ id: '12-secret', built: true, state: 'locked' });   /* the secret is built too; it stays closed until the painting in 12-7 has been walked into */
+    expect(s.stops[9]).toMatchObject({ id: '12-8', built: true });
     expect(s.stops[10]).toMatchObject({ id: '12-castle', built: true });
     await expect(page.locator('#owHost .k3-wrap canvas')).toBeVisible();
     expect(await page.evaluate(() => (window as unknown as Win).__k11.progress().wmap)).toEqual({ w: 12, at: 0 });
@@ -107,7 +115,10 @@ test.describe('the map seams: one journey across the worlds', () => {
     await openMap(page);
     await page.waitForFunction(() => { const s = (window as unknown as Win).__k11.mapState(); return s.three && s.threeReady; }, null, { timeout: 90_000 });
     await page.locator('#owPlay').click();   /* PLAY works as soon as the 3D map is ready (the fly-in may still run) */
-    await page.waitForURL(/\/3d\/level-12-1\.html\?level=12-1&id=12-1$/, { timeout: 60_000 });
+    /* 2026-10-30 (the World 12 sneak peek): this is the developer view (World 12 released in this tab by owRelease(12), so every stop
+       opens its level); the map carries ?devtools=1 on to the 3D page, which opens any level only then. What the live site opens,
+       and what it refuses, is in w12-preview.spec.ts */
+    await page.waitForURL(/\/3d\/level-12-1\.html\?level=12-1&id=12-1&devtools=1$/, { timeout: 60_000 });
     await page.waitForFunction(() => { const g = (window as unknown as Win).GAME; return !!(g && g.player); }, null, { timeout: 90_000 });
     expect((await page.evaluate(() => (window as unknown as Win).GAME!.info().pets))).toEqual(['cat2', 'dog1']);
     /* the level's own goal calls levelClear: here it is called directly (the 3D levels have their own play tests) */

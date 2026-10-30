@@ -139,11 +139,13 @@ test.describe('offline after one load', () => {
     await page.locator('#owPlay').click();
     await expect(page.locator('#stage')).toBeVisible();
     await expect(page.locator('#stageLbl')).toContainText('1-1');
-    /* World 12's 3D level page, its modules, three.js, the packed models and the font, all from the cache */
-    await page.goto(new URL('3d/level-12-1.html?level=12-2&id=12-2', BASE).href);
+    /* World 12's 3D level page, its modules, three.js, the packed models and the font, all from the cache. 2026-10-30 (the World 12
+       sneak peek): the live site opens 12-4, 12-5, the fort and 12-6 only (12-2, which this used to open, now says "coming soon"
+       there, w12-preview.spec.ts), so the level opened offline is 12-4, THE WEIR RAPIDS */
+    await page.goto(new URL('3d/level-12-1.html?level=12-4&id=12-4', BASE).href);
     await page.waitForFunction(() => { const g = (window as unknown as { GAME?: { player?: unknown } }).GAME; return !!(g && g.player); }, null, { timeout: 90_000 });
     await expect(page.locator('#titlecard h1')).toBeVisible();
-    await expect(page.locator('#titlecard h1')).toHaveText('NEIGHBOURHOOD ROOFTOPS');   /* V3: the card names the level */
+    await expect(page.locator('#titlecard h1')).toHaveText('THE WEIR RAPIDS');   /* V3: the card names the level */
     expect(await page.evaluate(async () => (await document.fonts.load("700 20px 'Pixelify Sans'")).length)).toBeGreaterThan(0);   /* fonts/ from the cache */
     await context.setOffline(false);
     expect(errors).toEqual([]);

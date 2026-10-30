@@ -102,15 +102,21 @@ test.describe('V3 · Chenoa never promises a move that does not exist', () => {
 });
 
 test.describe('V3 · the 3D title card names the level', () => {
+  /* 2026-10-30 (the World 12 sneak peek): the four live levels (12-4, 12-5, the fort, 12-6) open as the live site opens them; every
+     other World 12 level opens with ?devtools=1 only (w12-preview.spec.ts), so these cards are read in developer mode */
   for (const lv of [
-    { level: '12-1', id: '12-1', world: 'WORLD 12-1', title: "KINAN'S 3D HOUSE", sub: 'Explore every room, now with a back side!' },
-    { level: '12-2', id: '12-2', world: 'WORLD 12-2', title: 'NEIGHBOURHOOD ROOFTOPS', sub: 'Run across the roofs of your street!' },   /* its cardText */
-    { level: '12-3', id: '12-3', world: 'WORLD 12-3', title: 'THE RIVER VALLEY TRAIL', sub: 'Wind your way down to the river!' },
-    { level: '12-arena', id: '12-castle', world: 'WORLD 12 · CASTLE', title: "BIG BRICK'S ARENA", sub: 'The king of the angry bricks!' }
+    { level: '12-1', id: '12-1', world: 'WORLD 12-1', title: "KINAN'S 3D HOUSE", sub: 'Explore every room, now with a back side!', dev: true },
+    { level: '12-2', id: '12-2', world: 'WORLD 12-2', title: 'NEIGHBOURHOOD ROOFTOPS', sub: 'Run across the roofs of your street!', dev: true },   /* its cardText */
+    { level: '12-3', id: '12-3', world: 'WORLD 12-3', title: 'THE RIVER VALLEY TRAIL', sub: 'Wind your way down to the river!', dev: true },
+    { level: '12-arena', id: '12-castle', world: 'WORLD 12 · CASTLE', title: "BIG BRICK'S ARENA", sub: 'The king of the angry bricks!', dev: true },
+    { level: '12-4', id: '12-4', world: 'WORLD 12-4', title: 'THE WEIR RAPIDS', sub: 'Hop the stones and ride the logs across the weir!', dev: false },
+    { level: '12-5', id: '12-5', world: 'WORLD 12-5', title: 'THE BROADWAY BRIDGE ARCHES', sub: 'Run along the bridge and up and over its big arches!', dev: false },
+    { level: '12-fort', id: '12-fort', world: 'WORLD 12 · FORT', title: 'FORT: DOWNTOWN SKYLINE', sub: 'Hop across the rooftops and cross the skywalk!', dev: false },
+    { level: '12-6', id: '12-6', world: 'WORLD 12-6', title: 'KINSMEN PARK RIDES', sub: 'Ride the train, the Ferris wheel and the carousel!', dev: false }
   ]) {
     test(`${lv.level}: the card says ${lv.title}`, async ({ page }) => {
       const errors = watchErrors(page);
-      await page.goto(new URL(`3d/level-12-1.html?level=${lv.level}&id=${lv.id}`, BASE).href);
+      await page.goto(new URL(`3d/level-12-1.html?level=${lv.level}&id=${lv.id}${lv.dev ? '&devtools=1' : ''}`, BASE).href);
       await expect(page.locator('#titlecard h1')).toHaveText(lv.title, { timeout: 30_000 });
       await expect(page.locator('#titlecard .world')).toHaveText(lv.world);
       await expect(page.locator('#titlecard .sub')).toHaveText(lv.sub);

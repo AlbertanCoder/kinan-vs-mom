@@ -27,7 +27,17 @@ export const ITEMS = {
   present: { name: 'BIRTHDAY PRESENT!', text: 'An extra heart and a pile of candles!' },
 };
 
-let qTex = null, usedTex = null;
+let qTex = null, usedTex = null, giftTex = null, giftUsedTex = null;
+// World 12's wrapped birthday present (a level with presentBoxes: true): paper, ribbon cross, no question mark
+function presentTex(open) {
+  const c = document.createElement('canvas'); c.width = c.height = 128;
+  const x = c.getContext('2d');
+  x.fillStyle = open ? '#d8c6ae' : '#ff5fa2'; x.fillRect(0, 0, 128, 128);
+  x.fillStyle = open ? '#c9b59a' : '#ffd23f';
+  for (let i = 0; i < 4; i++) for (let j = 0; j < 4; j++) { x.beginPath(); x.arc(16 + i * 32 + (j % 2) * 8, 16 + j * 32, 6, 0, TAU); x.fill(); }
+  x.fillStyle = open ? '#ece0cc' : '#ffffff'; x.fillRect(52, 0, 24, 128); x.fillRect(0, 52, 128, 24);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
+}
 function faceTex(q) {
   const c = document.createElement('canvas'); c.width = c.height = 128;
   const x = c.getContext('2d');
@@ -61,9 +71,17 @@ export class Boxes {
     const grp = new THREE.Group();
     if (kind === 'prize') {
       if (!qTex) { qTex = faceTex(true); usedTex = faceTex(false); }
-      const mat = new THREE.MeshStandardMaterial({ map: qTex, roughness: 0.4, envMapIntensity: 0.6 });
+      const gift = !!this.g.level.presentBoxes;
+      if (gift && !giftTex) { giftTex = presentTex(false); giftUsedTex = presentTex(true); }
+      const mat = new THREE.MeshStandardMaterial({ map: gift ? giftTex : qTex, roughness: 0.4, envMapIntensity: 0.6 });
       const m = new THREE.Mesh(roundedBoxGeo(w, h, dd, 0.16, 2), mat); m.position.y = h / 2; grp.add(m);
       grp.userData.mat = mat;
+      if (gift) {   // the bow on top (goes away when the present is opened)
+        const bow = new THREE.Group(); bow.position.y = h;
+        for (const sx of [-1, 1]) dSphere(bow, sx * 0.3, 0.14, 0, 0.26, '#ffffff', { s: [1.2, 0.7, 0.8] });
+        dSphere(bow, 0, 0.14, 0, 0.14, '#ffd23f');
+        grp.add(bow); grp.userData.bow = bow;
+      }
     } else if (kind === 'crate') {
       dBox(grp, 0, 0, 0, w, h, dd, '#d9a56b', { r: 0.12 });
       for (const sz of [-1, 1]) { const p = dBox(grp, 0, h * 0.1, sz * (dd / 2 + 0.01), w * 0.92, 0.22, 0.08, '#b07a45', { r: 0.04 }); p.rotation.z = 0.72; }
@@ -260,7 +278,19 @@ export class Boxes {
   }
   useUp(bx) {
     bx.used = true;
-    const m = bx.grp.userData.mat; if (m) { m.map = usedTex; m.needsUpdate = true; }
+    const m = bx.grp.userData.mat; if (m) { m.map = bx.grp.userData.bow ? giftUsedTex : usedTex; m.needsUpdate = true; }
+    if (bx.grp.userData.bow) bx.grp.userData.bow.visible = false;
+  }
+  // Kinan's kick (side mode): the nearest crate or present within reach of his foot gets the same hit as a bonk
+  kicked(foot) {
+    let best = null, bd = 2.0;
+    for (const bx of this.list) {
+      if (!bx.alive || bx.hidden || bx.state !== 'rest' || (bx.kind !== 'crate' && bx.kind !== 'prize')) continue;
+      const d = Math.hypot(bx.pos.x - foot.x, bx.pos.z - foot.z), dy = Math.abs(bx.pos.y + bx.hy - foot.y);
+      if (d < bd && dy < 1.8) { bd = d; best = bx; }
+    }
+    if (best) this.bonk(best, null);
+    return !!best;
   }
   slammed(c) {
     const bx = c && c.box; if (!bx || !bx.alive) return false;

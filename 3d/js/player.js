@@ -12,6 +12,8 @@
 //  - butt slam (ground pound): press Shift or ACTION in the air: spin, slam, shockwave
 //  - bounce pads (bed, trampoline, ball pit), moving platforms carry him
 //  - power-ups from ? boxes: party popper, party hat, lasso, umbrella, cake (sugar rush), heart
+//  - SIDE MODE (2.5D level with `side`, see side.js): left/right run back/forward along the path, his feet are held
+//    on the path line, up/down climb; every move above works side-on (walls across the path are wall-jump walls)
 import * as THREE from 'three';
 import { stepBody, carry, spaceFree, topAt, circleTouches } from './physics.js';
 import { clamp, damp, angleDiff, wrapAngle } from './util.js';
@@ -62,7 +64,8 @@ export class Player {
     this.carrying = null; this.grab = null; this.pushT = 0; this.pushing = false; this.pulling = false; this.throwT = 0; this.liftT = 0;
     this.touch = null; this.preVel = new THREE.Vector3();
     this.moveDir = [0, 0]; this.moveMag = 0;
-    this.counts = { doubleJumps: 0, wallKicks: 0, ledgeGrabs: 0, climbs: 0, pullUps: 0, throws: 0, pickUps: 0 };
+    this.counts = { doubleJumps: 0, wallKicks: 0, ledgeGrabs: 0, climbs: 0, pullUps: 0, throws: 0, pickUps: 0, kicks: 0 };
+    this.kickT = 0;   // side mode: the kick (ACTION on the ground, the same button as Worlds 1-11)
     // power-ups + pet perks
     this.pw = { popper: false, hat: false, lasso: false, umbrella: false, rush: 0 };
     this.floating = false; this.knockMul = 1; this.hunterReady = false;
@@ -79,7 +82,17 @@ export class Player {
     this.body.grounded = false; this.state = 'air'; this.chain = 0;
     this.ledge = null; this.climbS = null; this.climbUpS = null; this.grab = null; this.airJumps = 1; this.lastKickN = null;
     if (this.carrying) this.game.entities.boxes.drop(this.carrying, this);
+    if (this.game.side) this.holdOnPath();
     this.sync();
+  }
+
+  // side mode: put Kinan back on the path line and drop any speed toward or away from the camera
+  holdOnPath() {
+    const b = this.body, pr = this.game.side.project(b.pos.x, b.pos.z, this._sp || (this._sp = {}));
+    b.pos.x = pr.x; b.pos.z = pr.z;
+    const vn = b.vel.x * pr.nx + b.vel.z * pr.nz;
+    b.vel.x -= vn * pr.nx; b.vel.z -= vn * pr.nz;
+    return pr;
   }
 
   squash(amount) { this.sy = 1 - amount; this.sv = 0; }
@@ -141,12 +154,16 @@ export class Player {
     const b = this.body, game = this.game;
     if (this.invuln > 0) this.invuln -= dt;
     if (this.cheerT > 0) { this.cheerT -= dt; }
-    this.kickLock = Math.max(0, this.kickLock - dt); this.ledgeCd -= dt; this.climbCd -= dt; this.throwT -= dt; this.liftT -= dt;
+    this.kickLock = Math.max(0, this.kickLock - dt); this.ledgeCd -= dt; this.climbCd -= dt; this.throwT -= dt; this.liftT -= dt; this.kickT = Math.max(0, this.kickT - dt);
     if (this.pw.rush > 0) { this.pw.rush -= dt; if (this.pw.rush <= 0) { this.pw.rush = 0; game.hud.powers(this.pw); } else if (Math.random() < dt * 30) game.particles.emit(b.pos.x + (Math.random() - 0.5), b.pos.y + Math.random() * 2, b.pos.z + (Math.random() - 0.5), 0, 1, 0, ['#ff5fa2', '#ffd23f', '#7ec8ff'][(Math.random() * 3) | 0], 0.35, 0.5, 0, 1); }
 
-    // ---- intent (camera relative)
+    // ---- intent (camera relative; in side mode: along the path)
     let mx = 0, mz = 0, mag = 0;
-    if (!this.frozen && this.state !== 'dead') {
+    const S = game.side, sp = S ? S.project(b.pos.x, b.pos.z, this._sp || (this._sp = {})) : null;
+    if (S) {
+      const ix = (this.frozen || this.state === 'dead') ? 0 : clamp(input.move.x, -1, 1);
+      if (Math.abs(ix) > 0.05) { mag = Math.abs(ix); mx = sp.tx * Math.sign(ix); mz = sp.tz * Math.sign(ix); }
+    } else if (!this.frozen && this.state !== 'dead') {
       const ix = input.move.x, iy = input.move.y;
       mag = Math.min(1, Math.hypot(ix, iy));
       const s = Math.sin(camYaw), c = Math.cos(camYaw);
@@ -210,7 +227,7 @@ export class Player {
             if (this.speed < 1.2) { this.skidding = false; this.facing = wantYaw; }
             if (Math.random() < 0.5) game.particles.dust(b.pos, 1, 0.8);
           } else {
-            const turn = this.speed < 3 ? 30 : P.turnFast - (P.turnFast - P.turnSlow) * clamp(this.speed / P.run, 0, 1);
+            const turn = (this.speed < 3 ? 30 : P.turnFast - (P.turnFast - P.turnSlow) * clamp(this.speed / P.run, 0, 1)) * (S ? 1.8 : 1);
             const step = turn * dt;
             this.facing = wrapAngle(this.facing + clamp(diff, -step, step));
             const align = Math.max(0, Math.cos(angleDiff(this.facing, wantYaw)));
@@ -234,7 +251,7 @@ export class Player {
         b.vel.x = Math.sin(this.facing) * this.speed;
         b.vel.z = Math.cos(this.facing) * this.speed;
         // start climbing by walking into a climbable surface
-        if (canMove && T && T.climb && !this.carrying && this.climbCd <= 0 && into([T.cnx, T.cnz]) > 0.6) {
+        if (canMove && T && T.climb && !this.carrying && this.climbCd <= 0 && (into([T.cnx, T.cnz]) > 0.6 || (S && input.move.y > 0.5))) {
           this.climbPushT += dt;
           if (this.climbPushT > 0.1) this.startClimb(T.climb, T.cnx, T.cnz);
         } else this.climbPushT = 0;
@@ -252,7 +269,8 @@ export class Player {
         b.vel.x += mx * P.airAccel * mag * dt * ctl; b.vel.z += mz * P.airAccel * mag * dt * ctl;
         const h = Math.hypot(b.vel.x, b.vel.z);
         if (h > maxH) { b.vel.x *= maxH / h; b.vel.z *= maxH / h; }
-        if (this.kickLock <= 0) this.facing = wrapAngle(this.facing + clamp(angleDiff(this.facing, wantYaw), -P.airTurn * dt, P.airTurn * dt));
+        const airTurn = P.airTurn * (S ? 2 : 1);
+        if (this.kickLock <= 0) this.facing = wrapAngle(this.facing + clamp(angleDiff(this.facing, wantYaw), -airTurn * dt, airTurn * dt));
       } else if (this.kickLock <= 0) {
         // gentle air drag so jumps feel controllable
         const h = Math.hypot(b.vel.x, b.vel.z), nh = Math.max(0, h - 6 * dt);
@@ -317,7 +335,9 @@ export class Player {
       // sideways along the surface, matched to the camera's right
       let tx = n[1], tz = -n[0];
       if (tx * Math.cos(camYaw) + tz * -Math.sin(camYaw) < 0) { tx = -tx; tz = -tz; }
-      b.vel.set(-n[0] * 1.2 + tx * side * P.climbSide, up * P.climbUp, -n[1] * 1.2 + tz * side * P.climbSide);
+      // side mode: sideways only along the path (a ladder across the path just goes straight up and down)
+      const sideK = S ? side * Math.abs(tx * sp.tx + tz * sp.tz) : side;
+      b.vel.set(-n[0] * 1.2 + tx * sideK * P.climbSide, up * P.climbUp, -n[1] * 1.2 + tz * sideK * P.climbSide);
       this.speed = 0;
       C.moving = Math.abs(up) > 0.2 || Math.abs(side) > 0.2;
       if (this.bufferT < P.buffer) {
@@ -362,6 +382,7 @@ export class Player {
     // ---- physics with substeps
     const wasGrounded = b.grounded;
     this.ev.landed = null; this.ev.bonk = null; this.ev.wall = null; this.ev.climb = null;
+    if (S) { const vn = b.vel.x * sp.nx + b.vel.z * sp.nz; b.vel.x -= vn * sp.nx; b.vel.z -= vn * sp.nz; }   // side mode: no speed off the path
     this.preVel.copy(b.vel);
     if (doPhysics) {
       const n = Math.max(1, Math.ceil(dt / (1 / 120)));
@@ -371,6 +392,7 @@ export class Player {
         if (this.ev.landed) break;
       }
     }
+    if (S) this.holdOnPath();   // side mode: feet back on the path line (corners, collisions, climbing up, platforms)
     if (this.ev.bonk && (this.state === 'air' || this.state === 'climb')) {
       game.sfx('bonk');
       if (this.ev.bonk.onBonk) this.ev.bonk.onBonk(this);
@@ -574,6 +596,19 @@ export class Player {
       if (g.entities.boxes.pickUp(near.box, this)) { this.carrying = near.box; this.liftT = 0.25; this.counts.pickUps++; g.sfx('grab'); g.firstTime('carry', 'Got it! ACTION while moving THROWS it. Stand still and press ACTION to put it down (on top of another box to stack!).'); return; }
     }
     if (this.pw.popper) { g.entities.shootConfetti(this); this.throwT = 0.22; }
+    if (g.side) this.kick();
+  }
+
+  // side mode: Kinan's kick. Reaches about 1.6 in front of him: breaks crates, opens presents, and tells the level
+  // (game.onKick, e.g. 12-castle's firework fuses). It never touches a person or a pet.
+  kick() {
+    const g = this.game, f = this.facing;
+    this.kickT = 0.3; this.counts.kicks++;
+    g.sfx('throw');
+    const foot = new THREE.Vector3(this.pos.x + Math.sin(f) * 1.6, this.pos.y + 1.0, this.pos.z + Math.cos(f) * 1.6);
+    g.particles.sparkle(foot, '#ffffff', 4, 2);
+    g.entities.boxes.kicked(foot);
+    if (g.onKick) g.onKick(foot);
   }
 
   throwBox() {
@@ -673,6 +708,7 @@ export class Player {
     }
     if (this.carrying && (mode === 'idle' || mode === 'walk' || mode === 'run' || mode === 'jump' || mode === 'fall' || mode === 'land' || mode === 'skid')) mode = mode === 'idle' ? 'carryIdle' : mode === 'jump' || mode === 'fall' ? 'carryAir' : 'carry';
     if (this.throwT > 0 && !this.carrying && (this.state === 'ground' || this.state === 'air')) mode = 'throw';
+    if (this.kickT > 0 && !this.carrying && this.state === 'ground') mode = 'kick';
     this.animMode = mode;
     this.spinG.rotation.x = spin;
     // lean into speed, tilt into turns

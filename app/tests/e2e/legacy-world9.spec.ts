@@ -58,7 +58,7 @@ test.describe('World 9 — Starbase & Annie’s Arrival', () => {
     await seedWorld9(page); await page.goto(PROD_URL); await page.locator('#menuBtn').click(); await page.locator('#partyBtn').click(); await page.locator('#classicBtn').click();   /* 2026-10-28: Classic stages are in THE MENU's More games */
     await expect(page.locator('.worldtab[data-world="9"]')).toHaveClass(/on/);
     await expect(page.locator('.lvbtn')).toHaveCount(5);
-    for (const name of ['Twin-Sun Outpost', 'Droid Factory', 'Laser Corridors', '2D Trench Run', "Annie's Galactic Kitchen"]) {
+    for (const name of ['Twin-Sun Outpost', 'Robot Factory', 'Laser Corridors', '2D Trench Run', "Annie's Galactic Kitchen"]) {
       await expect(page.locator('.lvbtn').filter({ hasText: name })).toHaveCount(1);
     }
     expect(errors).toEqual([]);
@@ -88,7 +88,7 @@ test.describe('World 9 — Starbase & Annie’s Arrival', () => {
     expect(errors).toEqual([]);
   });
 
-  test('Droid Factory Force pads build a real route through Milo', async ({ page }) => {
+  test('Robot Factory build pads build a real route through Milo', async ({ page }) => {
     const errors = watchErrors(page); await seedWorld9(page); await page.goto(DEV_URL);
     await page.waitForFunction(() => typeof (window as unknown as { __k11?: Dev }).__k11 === 'object'); await devStage(page, 68);
     const result = await page.evaluate(() => (window as unknown as { __k11: Dev }).__k11.world9Force());

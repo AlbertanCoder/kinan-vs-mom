@@ -104,3 +104,15 @@ body.touch #touch { display: block; }
 #btn-jump { width: 104px; height: 104px; right: max(26px, env(safe-area-inset-right)); bottom: max(30px, env(safe-area-inset-bottom)); background: var(--red); font-size: 22px; }
 #btn-action { width: 84px; height: 84px; right: calc(max(26px, env(safe-area-inset-right)) + 116px); bottom: max(26px, env(safe-area-inset-bottom)); background: #3f63a8; font-size: 15px; text-align: center; line-height: 1; }
 #stick-hint { position: fixed; left: max(30px, env(safe-area-inset-left)); bottom: max(34px, env(safe-area-inset-bottom)); width: 120px; height: 120px; border-radius: 50%; border: 3px dashed rgba(238,240,255,.35); color: rgba(238,240,255,.6); display: flex; align-items: center; justify-content: center; text-align: center; font-size: 14px; }
+/* 2.5D side mode (body.side, only levels with `side`): the 2D game's see-through phone buttons instead of the joystick */
+#sidepad { display: none; }
+body.side #stick, body.side #stick-hint { display: none; }
+body.side #sidepad { position: fixed; left: max(10px, env(safe-area-inset-left)); bottom: max(10px, env(safe-area-inset-bottom)); display: flex; align-items: flex-end; gap: 10px; padding: 14px; pointer-events: auto; touch-action: none; }
+.sbtn { width: clamp(62px, 10vmin, 86px); height: clamp(62px, 10vmin, 86px); padding: 0; border-radius: 50%; border: 3px solid #0b0c22; background: var(--panel); color: var(--text); font: 700 22px var(--display); box-shadow: inset 0 0 0 2px var(--edge), 0 4px 0 #0b0c22; opacity: .6; transition: opacity .15s; touch-action: none; -webkit-tap-highlight-color: transparent; -webkit-user-select: none; user-select: none; }
+.sbtn.sm { width: clamp(44px, 6.4vmin, 58px); height: clamp(44px, 6.4vmin, 58px); font-size: 16px; }
+.sbtn.down { opacity: 1; transform: translate(1px, 2px) scale(.94); filter: brightness(1.3); }
+.sp-ud { display: flex; flex-direction: column; gap: 6px; }
+body.side .tbtn { opacity: .6; transition: opacity .15s; }
+body.side .tbtn.down { opacity: 1; }
+body.side #btn-jump { width: clamp(70px, 11.5vmin, 98px); height: clamp(70px, 11.5vmin, 98px); background: var(--gold); color: var(--night); font-size: 16px; }
+body.side #btn-action { width: clamp(62px, 10vmin, 86px); height: clamp(62px, 10vmin, 86px); right: calc(max(26px, env(safe-area-inset-right)) + clamp(80px, 13vmin, 110px)); font-size: 13px; }

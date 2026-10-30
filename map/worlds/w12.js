@@ -76,7 +76,7 @@
     box('#2b2f45',X-5,Y-13,10,13);G0.restore();K.P.label(X+6,Y+6,'THE BESSBOROUGH');};
   K.P.w12_remai=function(X,Y){/* the Remai Modern: dark stacked boxes, each cantilevered, copper trim */
     [[0,0,52,11],[10,-11,50,10],[-6,-21,50,10],[6,-31,46,10]].forEach(([a,b,w,h])=>{const[ox,oy]=blk(X+a,Y+b,w,h,20,'#3d3d48',{top:'#62626e',side:'#2a2a33',noShadow:b<0});px('#e8b860',X+a,Y+b-h,w,1);px('#e8b860',X+a+w,Y+b-h,ox,0);for(let i=4;i<w-4;i+=7)px('#ffe6a0',X+a+i,Y+b-h+4,4,3);});
-    K.P.label(X+28,Y+5,'REMAI MODERN');};
+    K.P.label(X+28,Y+5,'THE ART GALLERY');};
   K.P.w12_painting=function(X,Y){/* the painting Kinan can step through */
     px('#1b1220',X-1,Y-2,2,2);px('#6f4a26',X-8,Y-1,2,8);px('#6f4a26',X+7,Y-1,2,8);
     box('#c9922f',X-12,Y-26,24,22);px('#1b2a6a',X-10,Y-24,20,18);for(let i=0;i<20;i++){const a=i/3;px(['#f6c445','#7ec8ff','#ffffff'][i%3],X+Math.cos(a)*(2+i*0.4),Y-15+Math.sin(a)*(2+i*0.35),2,1);}px('#2f7a2c',X-10,Y-9,20,3);};
@@ -89,7 +89,7 @@
     G.fillStyle='#2a5bd7';G.fillRect(X-42,Y-14,84,4);
     G.fillStyle='#1b1220';G.beginPath();G.ellipse(X,Y-20,43,15,0,0,Math.PI*2);G.fill();G.fillStyle='#ffffff';G.beginPath();G.ellipse(X,Y-20,42,14,0,0,Math.PI*2);G.fill();
     G.fillStyle='#e6e9f0';G.beginPath();G.ellipse(X+8,Y-18,30,9,0,0,Math.PI*2);G.fill();G.fillStyle='#ffffff';G.beginPath();G.ellipse(X-8,Y-24,18,5,0,0,Math.PI*2);G.fill();
-    K.P.label(X,Y+6,'SASKTEL CENTRE');};
+    K.P.label(X,Y+6,'THE ARENA');};
   K.P.w12_carousel=function(X,Y){const G=g();shadow(X+6,Y+3,24,5);
     G.fillStyle='#1b1220';G.beginPath();G.ellipse(X,Y-2,21,7,0,0,Math.PI*2);G.fill();G.fillStyle='#f4f1e8';G.beginPath();G.ellipse(X,Y-2,20,6,0,0,Math.PI*2);G.fill();px('#c9c4b8',X-20,Y-2,40,3);
     for(let i=-16;i<=16;i+=8){px('#f6c445',X+i,Y-22,1,20);px(['#e8364b','#2a5bd7','#ffffff','#44c55a','#ff6fae'][(i+16)/8],X+i-2,Y-12+(i%16?2:0),5,4);}
@@ -164,9 +164,9 @@
       {at:[470,442],name:'12-5  THE BROADWAY BRIDGE ARCHES',st:'lock'},
       {at:[470,330],name:'FORT  DOWNTOWN SKYLINE',st:'fort'},
       {at:[540,290],name:'12-6  KINSMEN PARK RIDES',st:'lock'},
-      {at:[626,366],name:'12-7  THE REMAI MODERN',st:'lock'},
+      {at:[626,366],name:'12-7  THE ART GALLERY',st:'lock'},
       {at:[630,416],name:'SECRET  UNDER THE RIVER',st:'secret'},
-      {at:[715,345],name:'12-8  SASKTEL CENTRE',st:'lock'},
+      {at:[715,345],name:'12-8  THE ARENA',st:'lock'},
       {at:[830,325],name:'CASTLE  THE BESSBOROUGH BIRTHDAY FESTIVAL',st:'boss'}],
     edges:[
       [0,1],

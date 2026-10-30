@@ -25,7 +25,9 @@
     'banana-slug', 'drizzle',   /* World 7: the Giant Banana Slug (7-fort), Drizzle (7-castle) */
     'octopus', 'raccoon-king',   /* World 8: the Big Octopus (8-fort), the Raccoon King (8-castle) */
     'hunter-drone', 'firewall',   /* World 9: the hunter drone (9-fort), Annie's Firewall (9-castle) */
-    'grandmas', 'mom-final'];   /* World 10: the Grandmothers' Picnic (10-fort), Mom's Last Inspection (10-castle) */
+    'grandmas', 'mom-final',   /* World 10: the Grandmothers' Picnic (10-fort), Mom's Last Inspection (10-castle) */
+    'brick-rex', 'droid-commander', 'alpha-rex', 'mirror-kinan',   /* World 11: the realm guardians (11-2 .. 11-5) */
+    'core-guardian', 'glitchy-last'];   /* World 11: the Core Guardian (11-fort), Glitchy's Last Stand (11-castle) */
   /* the six family pets (index.html PET_DEFS): cat1 Ginger, dog1 Chikastino, cat2 Vader, dog2 Hunter, cat3 Duchess, cat4 Tuxedo */
   var PET_IDS = ['cat1', 'dog1', 'cat2', 'dog2', 'cat3', 'cat4'];
   var GAP_CAP = [3, 4, 5];   /* Playbook §2: widest pit in act 1 / 2 / 3 (thirds of the level) */

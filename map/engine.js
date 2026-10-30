@@ -386,6 +386,7 @@ const label=s=>s.kind==='fort'?'THE FORT':s.kind==='boss'?'THE CASTLE':s.kind===
 /* ---- World 12: the 3D map, loaded on demand ---- */
 function need3D(){return window.KINAN3D?Promise.resolve():(opts.need3D?opts.need3D():Promise.reject(new Error('no 3D loader')));}
 function k3opts(w12,stop){return {at:stop||0,
+  peek:!!w12.peek,   /* the sneak peek (2026-10-30): the 3D map carries a sign saying so, and a "coming soon" stop says more is coming */
   back:()=>goWorld(idxOf(11),'last'),
   candles:()=>opts.candles?opts.candles():0,
   skip:k=>!!(w12.stops[k]&&skip(w12.stops[k])),
@@ -393,7 +394,7 @@ function k3opts(w12,stop){return {at:stop||0,
   onMove:k=>{if(opts.onMove)opts.onMove(12,k);},
   onPlay:k=>{const s=w12.stops[k];if(!s)return null;
     if(s.state==='locked')return {banner:'LOCKED  -  BEAT THE YELLOW DOT FIRST',ok:false};
-    if(s.built===false)return {banner:'COMING SOON!',sub:'This level is still being built. Walk on past it!',ok:false};
+    if(s.built===false)return {banner:'COMING SOON!',sub:w12.peek?'This one is not in the sneak peek. Much more is coming!':'This level is still being built. Walk on past it!',ok:false};
     return {banner:"LET'S GO!  "+s.name.split('  -  ')[0],ok:true,go:()=>{if(opts.onPlay)opts.onPlay(12,k,s);}};},
   stops:()=>w12.stops.map(s=>({kind:s.kind,state:s.state,built:s.built!==false}))};}
 function goWorld(i,stop){wi=i;ensure(cur());const w=cur();at=stop==='last'?w.stops.length-1:Math.max(0,Math.min(w.stops.length-1,stop||0));walk=null;cross=null;snapCam();fade=1;
@@ -405,7 +406,9 @@ function goWorld(i,stop){wi=i;ensure(cur());const w=cur();at=stop==='last'?w.sto
   arrived();}
 /* a world the game has not released yet (the game marks it soon in opts.annotate): the next real world after this one
    stays behind a "COMING SOON" sign at this world's way out, Glitchy waving beside it (Shad, 2026-10-28) */
-function gateAhead(){const w=cur();if(!w||w.travel)return null;for(let j=wi+1;j<W.length;j++){if(W[j].travel)continue;return W[j].soon?W[j]:null;}return null;}
+/* World 12's sneak peek (2026-10-30, the game marks it peek in opts.annotate): its sign past the 11-castle says SNEAK PEEK!
+   instead of COMING SOON!, and Kinan may walk on past it into World 12's 3D map */
+function gateAhead(){const w=cur();if(!w||w.travel)return null;for(let j=wi+1;j<W.length;j++){if(W[j].travel)continue;return W[j].soon||W[j].peek?W[j]:null;}return null;}
 function drawGate(w,t,wave){if(w.travel||w!==cur())return;
   /* a world can name its sign's spot (w.gate = [x, y]): World 10 has no road out (it glitches into World 11) and its castle
      stands in the party scene, so its sign stands on the grass by the bridge; otherwise the sign goes on the road out, a
@@ -416,9 +419,9 @@ function drawGate(w,t,wave){if(w.travel||w!==cur())return;
     const L=segLen(o),p=along(o,Math.max(0,Math.min(L-30,64)));X=Math.round(Math.max(40,Math.min(w.WW-40,p[0])));Y=Math.round(Math.max(36,Math.min(w.WH-8,p[1])));}
   shadow(X,Y+2,22,4);for(const dx of[-16,10]){px('#1b1220',dx+X,Y-9,7,9);px('#ff8a3d',dx+X+1,Y-8,5,8);px('#ffffff',dx+X+1,Y-5,5,1);}
   px('#1b1220',X-20,Y-10,40,4);for(let k=0;k<5;k++)px(k%2?'#ffffff':'#e8364b',X-19+k*8,Y-9,8,2);
-  px('#1b1220',X-1,Y-34,3,24);const s1='WORLD '+g.n,s2='COMING SOON!',bw=Math.max(bfWidth(s1,7),bfWidth(s2,7))+12;
+  px('#1b1220',X-1,Y-34,3,24);const s1='WORLD '+g.n,s2=g.peek?'SNEAK PEEK!':'COMING SOON!',bw=Math.max(bfWidth(s1,7),bfWidth(s2,7))+12;
   px('#1b1220',X-bw/2-1,Y-51,bw+2,20);px('#f6c445',X-bw/2,Y-50,bw,18);px('#fff3c4',X-bw/2,Y-50,bw,1);
-  txt(s1,X-bfWidth(s1,7)/2,Y-47,'#1b1220',7,1);txt(s2,X-bfWidth(s2,7)/2,Y-40,'#7d1f33',7,1);
+  txt(s1,X-bfWidth(s1,7)/2,Y-47,'#1b1220',7,1);txt(s2,X-bfWidth(s2,7)/2,Y-40,g.peek?'#1f6e3a':'#7d1f33',7,1);
   if(!wave)return;const gx=X+30,gy=Y-2+Math.round(Math.sin(t/260)*2);glitchySpr(gx,gy,t,1);
   const up=Math.floor(t/220)%2;G.save();G.translate(gx,gy);G.scale(1.3,1.3);px('#7a2fd0',-11,up?-14:-11,3,up?6:3);px('#1b1220',-11,up?-15:-12,3,1);G.restore();}
 function edgeSide(w,p){return p[0]<=1?'left':p[0]>=w.WW-1?'right':p[1]<=1?'top':'bottom';}
@@ -436,7 +439,7 @@ function go(dir){if(!mounted||busy)return;if(window.KINAN3D&&KINAN3D.active){KIN
   while(ni>=0&&ni<w.stops.length&&skip(w.stops[ni]))ni+=dir;
   if(ni>=w.stops.length){
     if(!worldDone(w)){hint('BEAT THE CASTLE TO OPEN THE WAY ON');return;}
-    const g=gateAhead();if(g){banner={t:0,txt:'WORLD '+g.n+' COMING SOON!',sub:'Glitchy is waiting there. Its levels are on the way!',ok:false,soon:true,dur:2600};return;}
+    const g=gateAhead();if(g&&!g.peek){banner={t:0,txt:'WORLD '+g.n+' COMING SOON!',sub:g.n===12?'Saskatoon in 3D! Its levels are on the way.':'Glitchy is waiting there. Its levels are on the way!',ok:false,soon:true,dur:2600};return;}   /* World 12: Glitchy is on the team by then */
     if(canCross(1)){startCross(1);return;}
     if(w.n===10){banner={t:0,txt:'WAIT... DID THE WORLD JUST GLITCH?',ok:true,glitch:true,then:()=>goWorld(wi+1,0)};return;}
     if(w.n===11){const j=idxOf(12);if(j<0)return;busy=true;
@@ -714,6 +717,7 @@ const api={
     return {mounted,busy,world:w?w.n:null,at:k3on&&ks?ks.at:at,walking:!!walk||!!(ks&&ks.walking),crossing:!!cross,three:k3on,threeReady:!!(ks&&ks.ready),
       banner:banner?banner.txt:(ks&&ks.banner?'3D':null),notice:notice?notice.txt:null,celebrate:celebrate?celebrate.k:null,
       gate:(()=>{const g=mounted&&!fly?gateAhead():null;return g?g.n:null;})(),
+      gatePeek:(()=>{const g=mounted&&!fly?gateAhead():null;return !!(g&&g.peek);})(),   /* the sign is World 12's SNEAK PEEK (the way on is open) */
       fly:fly?{kind:fly.kind,phase:fly.phase,leg:fly.li,legs:fly.legs.length,world:W[fly.legs[fly.li].wi].n,home:W[fly.home.wi].n+':'+fly.home.at,
         riding:!!(fly.o.ride&&fly.legs[fly.li].road&&fly.phase!=='appear')?fly.o.ride:null}:null,   /* World 6: Glitchy on the tour bus */
       stops:w?w.stops.map(s=>({name:s.name,kind:s.kind,id:s.id||null,built:s.built!==false,state:s.state||null})):[]};},

@@ -9,7 +9,7 @@ import { Builder } from './build.js';
 import { Textures } from './textures.js';
 import { PROPS } from './props.js';
 import { Entities, Particles, Blob, petLoadout } from './entities.js';
-import { makeKinan, makeGlitchy } from './kinan.js';
+import { makeKinan, makeGlitchy, addBlackBelt } from './kinan.js';
 import { loadModel, loadLog, petURL } from './models.js';
 import { Player } from './player.js';
 import { CameraRig } from './camera.js';
@@ -17,6 +17,7 @@ import { Input } from './input.js';
 import { HUD } from './hud.js';
 import { Audio } from './audio.js';
 import { damp, dampAngle, clamp } from './util.js';
+import { SidePath } from './side.js';
 
 export class Game {
   constructor(container, level, opts = {}) {
@@ -85,6 +86,7 @@ export class Game {
 
     // ---- world + static level
     this.world = new World(8);
+    this.side = L.side ? new SidePath(L.side) : null;   // 2.5D side mode (only levels that ask for it)
     this.textures = new Textures(r);
     if (L.textures) for (const [k, v] of Object.entries(L.textures)) this.textures.define(k, v.paint, v);
     this.particles = new Particles(scene);
@@ -107,6 +109,7 @@ export class Game {
     const k = await makeKinan(L.assets && L.assets.kinan, scene.environment);
     this.kinanSource = k.source;
     this.kinanModel = { name: k.name, tris: k.tris, braid: k.braid };
+    addBlackBelt(k.model);   // earned before Glitchy's Last Stand: he wears it all through World 12
     // the equipped cat + dog's approved models (only those two load)
     this.petModels = {};
     await Promise.all(petLoadout().map(async (def) => {
@@ -139,6 +142,7 @@ export class Game {
     this.audio = new Audio();
     this.camRig = new CameraRig(this.camera, this.world);
     this.camRig.setZones(L.camZones, L.camDefaults);
+    if (this.side) { this.camRig.setSide(this.side); this.input.setSide(true); }
 
     this.respawn = { pos: L.spawn.pos.slice(), yaw: L.spawn.yaw || 0 };
     this.player.place(...this.respawn.pos, this.respawn.yaw);
@@ -160,6 +164,8 @@ export class Game {
       const ms = o.material ? (Array.isArray(o.material) ? o.material : [o.material]) : [];
       for (const m of ms) if (!seen.has(m) && 'envMapIntensity' in m) { seen.add(m); m.envMapIntensity *= envK; }
     });
+
+    if (L.setup) L.setup(this);   // a level's own moving parts (12-castle: the family, the fuses, the cake)
 
     window.addEventListener('resize', () => this.resize());
     this.resize();
@@ -220,7 +226,7 @@ export class Game {
     inp.update();
     if (inp.anyEdge && this.audio.ctx === null && this.mode !== 'title') this.audio.unlock();
     if (this.mode === 'title') {
-      this.camRig.yaw += dt * 0.12; this.camRig.manualT = 1;
+      if (!this.side) { this.camRig.yaw += dt * 0.12; this.camRig.manualT = 1; }
       if (inp.anyEdge) { this.start(); inp.endFrame(); }
     }
     else if (this.mode === 'ask') {
@@ -271,6 +277,11 @@ export class Game {
     if (this.labelT <= 0) { this.labelT = 0.15; this.hud.action(this.actionLabel()); }
     // Glitchy floats by Kinan's shoulder
     const f = pl.facing, side = new THREE.Vector3(Math.cos(f) * -1.35 + Math.sin(f) * -0.5, 2.55 + Math.sin(t * 2.2) * 0.22, -Math.sin(f) * -1.35 + Math.cos(f) * -0.5);
+    if (this.side) {
+      // 2.5D: Glitchy floats just behind Kinan's back and a little away from the camera (never in front of him)
+      const cy = this.camRig.yaw;
+      side.set(-Math.sin(f) * 1.1 - Math.sin(cy) * 1.2, side.y, -Math.cos(f) * 1.1 - Math.cos(cy) * 1.2);
+    }
     const want = this.guide ? this.guideTarget(dt) : pl.pos.clone().add(side);
     this.glitchyPos.x = damp(this.glitchyPos.x, want.x, 4, dt); this.glitchyPos.y = damp(this.glitchyPos.y, want.y, 4, dt); this.glitchyPos.z = damp(this.glitchyPos.z, want.z, 4, dt);
     this.glitchy.position.copy(this.glitchyPos);
@@ -415,7 +426,7 @@ export class Game {
     const near = this.entities.boxes.interactable(pl);
     if (near) return near.kind === 'heavy' ? 'GRAB' : 'LIFT';
     if (pl.pw.popper) return 'POP!';
-    return 'ACTION';
+    return this.side ? 'KICK' : 'ACTION';
   }
   firstTime(key, text) {
     if (this.seen.has(key)) return false;
@@ -445,14 +456,18 @@ export class Game {
   levelClear(goal) {
     if (this.mode === 'clear') return;
     this.mode = 'clear';
-    if (this.opts.onClear) { try { this.opts.onClear(this.level.id); } catch (e) { console.warn('could not save the clear', e); } }
+    if (this.opts.onClear) { try { this.opts.onClear(this.level.id, this.candles); } catch (e) { console.warn('could not save the clear', e); } }
     const pl = this.player;
+    if (this.level.finale) { this.level.finale(this, goal); return; }   // 12-castle: the ending plays instead of the LEVEL CLEAR panel
     pl.frozen = true; pl.cheer(99);
     pl.facing = (goal.def.yaw || 0) * Math.PI / 180;   // turn round to face the camera (the door is behind him)
+    if (this.side) pl.facing = this.camRig.yaw;          // 2.5D: face the side camera
     this.sfx('clear');
     for (let i = 0; i < 4; i++) setTimeout(() => this.particles.confetti(new THREE.Vector3(pl.pos.x, pl.pos.y + 6, pl.pos.z), 50), i * 350);
-    const back = new THREE.Vector3(Math.sin(pl.facing) * 8, 3.2, Math.cos(pl.facing) * 8);
-    this.camRig.override = { pos: pl.pos.clone().add(back), look: pl.pos.clone().add(new THREE.Vector3(0, -0.6, 0)) };
+    // 2.5D: further back and lower, so what waits behind him (the pelican) fits in the picture above the clear panel
+    const bd = this.side ? 12.5 : 8, bh = this.side ? 2.2 : 3.2, ly = this.side ? -0.8 : -0.6;
+    const back = new THREE.Vector3(Math.sin(pl.facing) * bd, bh, Math.cos(pl.facing) * bd);
+    this.camRig.override = { pos: pl.pos.clone().add(back), look: pl.pos.clone().add(new THREE.Vector3(0, ly, 0)) };
     this.hud.banner('LEVEL CLEAR!', this.level.clearText || '', 2.2);
     setTimeout(() => {
       this.hud.clear({ candles: this.candles, totalCandles: this.entities.totalCandles, golden: this.starsGot.filter(Boolean).length, totalGolden: this.entities.totalGolden, bops: this.stats.bops, time: this.stats.time });
@@ -466,6 +481,22 @@ export class Game {
     this.camRig.snap(this.player);
   }
   setCamYaw(deg) { this.camRig.yaw = deg * Math.PI / 180; this.camRig.manualT = 3; }
+  // 2.5D test helper: where Kinan is on the path and how the camera looks at it
+  //   off = Kinan's distance from the path line; camAlong = camera view . path direction (0 = square on);
+  //   camToward = camera view . (path -> camera side) (-1 = looking straight at the path from the camera side)
+  sideInfo() {
+    if (!this.side) return null;
+    const p = this.player.pos, pr = this.side.project(p.x, p.z);
+    const v = new THREE.Vector3(); this.camera.getWorldDirection(v);
+    const h = Math.hypot(v.x, v.z) || 1;
+    return {
+      s: +pr.s.toFixed(2), off: +pr.off.toFixed(3), length: +this.side.length.toFixed(1), tx: +pr.tx.toFixed(3), tz: +pr.tz.toFixed(3),
+      camAlong: +((v.x * pr.tx + v.z * pr.tz) / h).toFixed(3), camToward: +((v.x * pr.nx + v.z * pr.nz) / h).toFixed(3),
+      camYaw: +(this.camRig.yaw * 180 / Math.PI).toFixed(1), override: !!this.camRig.override, cutscene: !!this.cutsceneOn,
+    };
+  }
+  // the world position at distance s along the 2.5D path (y = the given height)
+  sidePoint(s, y = 0) { if (!this.side) return null; const a = this.side.at(s); return [a.x, y, a.z]; }
   info() {
     const p = this.player;
     return {

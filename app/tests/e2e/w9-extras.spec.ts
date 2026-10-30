@@ -65,14 +65,14 @@ test.describe('D · the title counts the released worlds', () => {
     const errors = watchErrors(page);
     await page.goto(DEV_URL);
     await ready(page);
-    expect(RELEASED).toBe(10);   /* 2026-10-29: World 10 (Niagara Falls) is released (it was 9) */
+    expect(RELEASED).toBe(11);   /* 2026-10-30 (v54): World 11 (Inside the Console) is released (it was 10) */
     await expect(page.locator('#saveNote')).toHaveText(`${RELEASED} worlds · 1 birthday · 4 cats · 2 dogs`);
     await expect(page.locator('#startBtn b')).toHaveText('PLAY · START');
     await expect(page.locator('h1.title .t2')).toHaveText('Birthday Remaster');
     await expect(page.locator('.titleeye')).toHaveText('A birthday game from Shad · Saskatoon, Saskatchewan');
     /* a release (a later build's OW_RELEASED, here a test's owRelease) changes it without a reload */
-    expect(await page.evaluate(() => (window as unknown as Win).__k11.owRelease(11))).toBe(11);   /* the next release (it was 10 while 9 were out) */
-    await expect(page.locator('#saveNote')).toHaveText('11 worlds · 1 birthday · 4 cats · 2 dogs');
+    expect(await page.evaluate(() => (window as unknown as Win).__k11.owRelease(12))).toBe(12);   /* the next release (it was 11 while 10 were out) */
+    await expect(page.locator('#saveNote')).toHaveText('12 worlds · 1 birthday · 4 cats · 2 dogs');
     expect(await page.evaluate(() => (window as unknown as Win).__k11.owRelease(1))).toBe(1);
     await expect(page.locator('#saveNote')).toHaveText('1 world · 1 birthday · 4 cats · 2 dogs');
     expect(await page.evaluate((n) => (window as unknown as Win).__k11.owRelease(n), RELEASED)).toBe(RELEASED);

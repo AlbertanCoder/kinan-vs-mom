@@ -1,8 +1,12 @@
 // Third-person camera: follows behind/above Kinan, swings round smoothly when he turns,
 // Q/E (or a drag) nudges it, it keeps steady height during jumps, and it pulls in instead of clipping walls.
 // Levels can set camera "zones" (boxes) with their own distance/pitch, e.g. tighter inside rooms.
+// SIDE MODE (2.5D, only for a level with `side`, see side.js): the camera sits beside the path, square on to it,
+// follows smoothly, looks a little ahead the way Kinan runs and swings round corners; Q/E and drags do nothing.
+// Camera zones still set distance/pitch/height there (their yaw is ignored); boss focus and cut-scenes still work.
 import * as THREE from 'three';
 import { clamp, damp, angleDiff } from './util.js';
+import { SidePath } from './side.js';
 
 export class CameraRig {
   constructor(camera, world) {
@@ -29,7 +33,24 @@ export class CameraRig {
     return this.defaults;
   }
 
+  // side mode on (path = a SidePath): defaults come from the level's side settings
+  setSide(path) {
+    this.side = path;
+    const d = path.def;
+    // a phone held sideways (a short screen) gets the camera about a quarter closer, so Kinan is not tiny
+    const near = Math.min(window.innerWidth, window.innerHeight) <= 500 ? 0.75 : 1;
+    Object.assign(this.defaults, { dist: (d.dist ?? 17) * near, pitch: d.pitch ?? 0.15, height: d.height ?? 2.2 });
+    this.lookAhead = d.lookAhead ?? 3.5;
+  }
+
   snap(player, yawDeg) {
+    if (this.side) {
+      const z = this.zoneFor(player.pos);
+      this.dist = z.dist || this.defaults.dist; this.pitch = z.pitch || this.defaults.pitch; this.height = z.height || this.defaults.height;
+      this.sideDir = undefined;
+      this.updateSide(0.016, player, true);
+      return;
+    }
     if (yawDeg !== undefined) this.yaw = yawDeg * Math.PI / 180;
     else this.yaw = player.facing + Math.PI;
     this.target.copy(player.pos);
@@ -42,6 +63,7 @@ export class CameraRig {
   shake(a) { this.shakeA = Math.max(this.shakeA, a); }
 
   update(dt, player, input, instant = false) {
+    if (this.side) { this.updateSide(dt, player, instant); return; }
     const p = player.pos;
     const z = this.zoneFor(p);
     this.dist = damp(this.dist, z.dist || this.defaults.dist, 2.5, dt);
@@ -118,6 +140,59 @@ export class CameraRig {
       if (allowed < this.curDist || instant) this.curDist = Math.min(allowed, this.dist);
       else this.curDist = damp(this.curDist, Math.min(allowed, this.dist), 3.5, dt);
       this.cam.position.set(this.look.x + dx * this.curDist, this.look.y + dy * this.curDist, this.look.z + dz * this.curDist);
+    }
+    if (this.shakeA > 0) {
+      this.cam.position.x += (Math.random() - 0.5) * this.shakeA;
+      this.cam.position.y += (Math.random() - 0.5) * this.shakeA;
+      this.shakeA = Math.max(0, this.shakeA - dt * 1.4);
+    }
+    this.cam.lookAt(this.look);
+  }
+
+  // 2.5D: no manual control at all (input is never read here)
+  updateSide(dt, player, instant) {
+    const S = this.side, p = player.pos;
+    const z = this.zoneFor(p);
+    const ease = (cur, want, rate) => (instant ? want : damp(cur, want, rate, dt));
+    this.dist = ease(this.dist, z.dist || this.defaults.dist, 2.5);
+    this.height = ease(this.height, z.height || this.defaults.height, 3);
+    this.pitch = ease(this.pitch, z.pitch || this.defaults.pitch, 3);
+    const pr = S.project(p.x, p.z, this._pr || (this._pr = {}));
+    // which way is Kinan heading along the path (+1 forward, -1 back)? the camera leads that way
+    const v = player.vel.x * pr.tx + player.vel.z * pr.tz;
+    const f = Math.sin(player.facing) * pr.tx + Math.cos(player.facing) * pr.tz;
+    const want = Math.abs(v) > 1.2 ? Math.sign(v) : Math.abs(f) > 0.5 ? Math.sign(f) : (this.sideDir ?? 1);
+    this.sideDir = instant || this.sideDir === undefined ? want : damp(this.sideDir, want, 1.3, dt);
+    let aheadS = pr.s + this.lookAhead * this.sideDir, extra = 0;
+    // boss fights: look between Kinan and the boss and back off a little so both stay in view
+    if (this.focus) {
+      const fp = S.project(this.focus.x, this.focus.z, this._fp || (this._fp = {}));
+      const ds = clamp(fp.s - pr.s, -16, 16);
+      aheadS = pr.s + ds * 0.5; extra = Math.abs(ds) * 0.45;
+    }
+    this.extraDist = ease(this.extraDist || 0, extra, 2);
+    const a = S.at(aheadS, this._at || (this._at = {}));
+    if (instant) this.target.set(a.x, p.y, a.z);
+    else {
+      this.target.x = damp(this.target.x, a.x, 6, dt);
+      this.target.z = damp(this.target.z, a.z, 6, dt);
+      const dy = p.y - this.target.y;
+      if (player.grounded || player.state === 'pound' || player.state === 'climb' || player.state === 'ledge' || dy < -1.5 || dy > 4) {
+        this.target.y = damp(this.target.y, p.y, dy < 0 ? 9 : 5, dt);
+      }
+    }
+    // square on to the path (its direction averaged around the look point, so a corner is a smooth swing)
+    const d = S.dirAround(aheadS, 7, this._dir || (this._dir = {}));
+    const wantYaw = SidePath.yawFor(d.x, d.z);
+    this.yaw = instant ? wantYaw : this.yaw + angleDiff(this.yaw, wantYaw) * (1 - Math.exp(-2.4 * dt));
+    this.look.set(this.target.x, this.target.y + this.height, this.target.z);
+    if (this.override) {
+      this.look.copy(this.override.look);
+      this.cam.position.lerp(this.override.pos, instant ? 1 : 1 - Math.exp(-3 * dt));
+    } else {
+      const dist = this.dist + this.extraDist, cp = Math.cos(this.pitch);
+      this.curDist = dist;
+      this.cam.position.set(this.look.x + Math.sin(this.yaw) * cp * dist, this.look.y + Math.sin(this.pitch) * dist, this.look.z + Math.cos(this.yaw) * cp * dist);
     }
     if (this.shakeA > 0) {
       this.cam.position.x += (Math.random() - 0.5) * this.shakeA;

@@ -76,8 +76,11 @@ The stop at index `i` (0-based) of World `N` launches the registered level with 
 (`docs/LEVEL-AUTHORING.md` §1–2). A stop with no such file is **Coming soon**. `app/tests/unit/overworld-map.test.ts`
 fails if a level file's kind or number disagrees with the stop at its slot (2026-10-27: World 3's map had 3-8 and the
 secret swapped against the files; the map was fixed — the secret is still drawn as a spur off 3-8).
-World 12: stops `12-1`, `12-2`, `12-3` open the 3D levels of the same name; the castle (`12-castle`) opens
-`12-arena` (BIG BRICK) until the Bessborough castle level exists (`OW_3D_LEVELS` in `index.html`).
+World 12: stops `12-1`, `12-2`, `12-3`, the rough-draft side levels `12-4` (THE WEIR RAPIDS), `12-5` (THE BROADWAY BRIDGE ARCHES),
+`12-fort` (FORT: DOWNTOWN SKYLINE), `12-6` (KINSMEN PARK RIDES), `12-7` (THE ART GALLERY), the secret (`12-secret`, SECRET: UNDER THE RIVER),
+`12-8` (THE ARENA), and the castle (`12-castle`, THE BESSBOROUGH BIRTHDAY FESTIVAL and the finale) open the 3D levels of the same name
+(`OW_3D_LEVELS` in `index.html`). `12-arena` (BIG BRICK) stays as a file, off the map. The secret opens (`unlockedLevels`) once Kinan walks
+into the glowing painting behind the start of 12-7 (3d/js/main.js `saveUnlocked`).
 
 ## 4. Progress (the save, `kinan-remaster-v1`)
 - `levelsBeaten { '1-1': 1, … }` — a level finished by any exit (written when the victory lap ends; the 3D levels

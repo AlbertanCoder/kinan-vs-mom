@@ -37,6 +37,20 @@ describe('the level talk bubbles speak (Dad and Grandpa)', () => {
     for (const f of FILES) expect(existsSync(join(ROOT, f)), f).toBe(true);
   });
 
+  it('the World 10 joke-off and the text-only fight lines of Dad and Grandpa have their clips too, and the fight line player falls back to them', () => {
+    const html = readFileSync(join(ROOT, 'index.html'), 'utf8');
+    expect(html).toContain("else if (self.KINAN_TALK_CLIPS && self.KINAN_TALK_CLIPS[talkHash(d[0], d[1])]) VO.playFile('audio/talk/' + talkHash(d[0], d[1]) + '.mp3');");
+    for (const id of ['t_w7_dad_01', 't_w10_gp_01', 't_w10_dad_01', 't_w10_gp_02', 't_w10_gp_03', 't_w10_dad_02', 't_w10_gp_04', 't_w10_kinan_05', 't_mf_11', 't_w10_dad_03', 't_w11_dad_01']) {
+      const m = new RegExp(String.raw`^\s+${id}: (\[.*\])`, 'm').exec(html);
+      expect(m, id).not.toBeNull();
+      const d = runInContext(m![1], createContext({})) as string[];
+      const h = talkHash(d[0], d[1]);
+      expect(CLIPS[h], id).toBeGreaterThan(0);
+      expect(Number(d[2]), `${id} stays up for its clip`).toBeGreaterThanOrEqual(CLIPS[h]);
+      expect(existsSync(join(ROOT, 'audio', 'talk', h + '.mp3')), id).toBe(true);
+    }
+  });
+
   it('the game and sw.js use the same key and load the list; the whole offline cache with the voices stays under 30 MB', () => {
     const html = readFileSync(join(ROOT, 'index.html'), 'utf8'), sw = readFileSync(join(ROOT, 'sw.js'), 'utf8');
     expect(html).toContain('<script src="audio/talk/clips.js"></script>');
