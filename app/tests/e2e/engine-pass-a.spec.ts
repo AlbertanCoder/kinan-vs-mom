@@ -8,7 +8,7 @@ import { devices, expect, test, type ConsoleMessage, type Page } from '@playwrig
    (step(n, hold) = held buttons, tapJump = one key press), the same input path
    a keyboard or the touch pad feeds. */
 
-const BASE = 'http://127.0.0.1:4174/index.html';
+const BASE = `http://127.0.0.1:${process.env.KVM_PORT || 4174}/index.html`;
 const DEV_URL = `${BASE}?devtools=1`;
 const CURRENT = 'kinan-remaster-v1';
 const T = 16;
@@ -195,7 +195,9 @@ type PetInfo = { ids: string[]; names: Record<string, string>; equippedCat: stri
   liveCats: number; liveDogs: number; stunnedFoes: number[]; pulledCoins: number; hunterUsed: boolean; hp: number; maxHp: number };
 type PetDev = Dev & { petInfo: () => PetInfo; state: () => { paused: boolean; airJumps: number; px: number }; goHome: () => boolean };
 const ALL_PETS = ['cat1', 'cat2', 'cat3', 'cat4', 'dog1', 'dog2'];
-const withPets = (cat: string | null, dog: string | null) => ({ ids: ALL_PETS, names: {}, equippedCat: cat, equippedDog: dog });
+/* null = no pet in that slot. Since fixes run 2 an empty slot auto-fills with the first pet of its kind (Shad: "I haven't
+   unlocked a pet yet"); only a pet sent home on the Pets screen (soloCat / soloDog) stays home, so null sets that flag */
+const withPets = (cat: string | null, dog: string | null) => ({ ids: ALL_PETS, names: {}, equippedCat: cat, equippedDog: dog, soloCat: cat === null, soloDog: dog === null });
 
 /* one held jump from 1-1's flat floor (S1): how high, and whether a second press in the air does anything */
 async function jumpProbe(page: Page): Promise<{ apex: number; airJumps: number; inAir: boolean; secondPressRose: boolean }> {

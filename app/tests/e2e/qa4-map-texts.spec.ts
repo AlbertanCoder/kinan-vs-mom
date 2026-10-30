@@ -8,7 +8,7 @@ import { expect, test, type ConsoleMessage, type Page } from '@playwright/test';
      no way to start a new save from the map flow (Start over, with a confirm screen);
    - the top bar read "LEVEL 1-castle": the fort / secret / castle levels have proper names.
    The title itself stays "Kinan vs. Mom" (it becomes Kinan vs. Worlds only after World 11). */
-const BASE = 'http://127.0.0.1:4174/index.html';
+const BASE = `http://127.0.0.1:${process.env.KVM_PORT || 4174}/index.html`;
 const DEV_URL = `${BASE}?devtools=1`;
 const CURRENT = 'kinan-remaster-v1';
 

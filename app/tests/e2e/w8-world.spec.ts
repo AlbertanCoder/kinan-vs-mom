@@ -11,13 +11,13 @@ import { expect, test, type ConsoleMessage, type Page } from '@playwright/test';
    - the KICK never hurts either boss (it bats the octopus's ink blobs back: they splat on it harmlessly),
    - 8-castle (CASA LOMA) reaches LEVEL CLEAR,
    - beating 7-castle opens World 8 on the map; beating 8-castle plays Glitchy's escape (a hockey bag on the train east
-     to Montreal), then Sabumnim's belt scene (red belt, 2 stripes), and the way on is World 9's "coming soon" sign,
+     to Montreal), then Sabumnim's belt scene (the red-black belt), and the way on is World 9's "coming soon" sign,
    - 8-castle's treasure room shows the moving-day box memory,
    - every World 8 level wears its own Toronto look (index.html TO_LOOKS 100-109; none borrows another world's), 8-2's
      viaduct opens onto the sky, and Milo's line in 8-5 is labelled MILO in the gold every name uses, with his face in a
      little video-call window while he talks, and no page errors anywhere. */
 
-const BASE = 'http://127.0.0.1:4174/index.html';
+const BASE = `http://127.0.0.1:${process.env.KVM_PORT || 4174}/index.html`;
 const DEV_URL = `${BASE}?devtools=1`;
 const CURRENT = 'kinan-remaster-v1';
 
@@ -557,7 +557,9 @@ test.describe('World 8 · on the map', () => {
     expect(errors).toEqual([]);
   });
 
-  test('the 8-castle: the exit stays shut until the Raccoon King is befriended; then Glitchy zips into a hockey bag on the train east, Sabumnim ties on the red belt with 2 stripes, and the way on is a "WORLD 9 COMING SOON!" sign', async ({ page }) => {
+  /* 2026-10-29: World 9 is released (OW_RELEASED 9), so the way on is open (it was a "WORLD 9 COMING SOON!" sign: that
+     sign now stands past the 9-castle for World 10: w9-world.spec.ts, c1-cutscenes.spec.ts) */
+  test('the 8-castle: the exit stays shut until the Raccoon King is befriended; then Glitchy zips into a hockey bag on the train east, Sabumnim ties on the red-black belt, and the way on leads into World 9', async ({ page }) => {
     test.setTimeout(300_000);
     const errors = watchErrors(page);
     await seedSave(page, `(ids) => ({ unlocked: 1, beaten: [], introSeen: true, beltSeen: 7, levelsBeaten: Object.fromEntries(ids.filter((id) => Number(id.split('-')[0]) <= 8 && id !== '8-castle').map((id) => [id, 1])), unlockedLevels: ['1-secret', '2-secret', '3-secret', '4-secret', '5-secret', '6-secret', '7-secret', '8-secret'], escapes: { 1: 1, 2: 1, 3: 1, 4: 1, 5: 1, 6: 1, 7: 1 }, wmap: { w: 8, at: 10 } })`);
@@ -589,7 +591,7 @@ test.describe('World 8 · on the map', () => {
     expect([...worlds]).toEqual(expect.arrayContaining([8, 9]));
     expect(riding.some((x) => x.riding === 'hockeybag'), 'the hockey bag rides the train').toBe(true);
     expect(riding.filter((x) => x.riding).every((x) => x.riding === 'hockeybag')).toBe(true);
-    /* Sabumnim's belt scene follows the escape: World 8's line, red belt with 2 stripes */
+    /* Sabumnim's belt scene follows the escape: World 8's line, the red-black belt */
     await expect.poll(async () => (await cutNow(page)).mode, { timeout: 30_000, intervals: [100] }).toBe('belt');
     const belt = await cutNow(page);
     /* "He's in a hockey bag! On the train!" first; at the test's 3x speed the flight ends before Annie's second line,
@@ -597,18 +599,18 @@ test.describe('World 8 · on the map', () => {
     expect(belt.lines.slice(0, 3)).toEqual(['w08_kinan_13', 'w08_glitchy_02', 'w08_annie_02']);
     for (const id of belt.lines) expect(['w08_kinan_13', 'w08_glitchy_02', 'w08_annie_02', 'w08_annie_pa01']).toContain(id);
     expect(belt.belt).toMatchObject({ rank: 8, catchup: false, line: 'belt_w08' });
-    expect(await page.evaluate(() => (window as unknown as Win).__k11.belt())).toMatchObject({ rank: 8, key: 'red', stripes: 2, label: 'Red belt · 2 stripes' });
+    expect(await page.evaluate(() => (window as unknown as Win).__k11.belt())).toMatchObject({ rank: 8, key: 'redblack', stripes: 0, label: 'Red-black belt' });   /* fixes run 2: the belt table starts at white */
     await expect.poll(async () => (await cutNow(page)).on, { timeout: 40_000 }).toBe(false);
     const s2 = await settle(page);
     expect(s2).toMatchObject({ world: 8, at: 10 });
     expect(s2.stops[10].state).toBe('beaten');
-    expect(s2.notice).toBe('WORLD 9 COMING SOON!');
-    expect(s2.gate).toBe(9);
+    expect(s2.notice).not.toBe('WORLD 9 COMING SOON!');
+    expect(s2.gate ?? null).toBeNull();
     expect(await page.evaluate(() => (window as unknown as Win).__k11.progress() as unknown as { escapes: Record<string, number>; beltSeen: number })).toMatchObject({ escapes: { 8: 1 }, beltSeen: 8 });
     await page.locator('#owNext').click();
-    await expect.poll(async () => (await mapNow(page)).banner).toBe('WORLD 9 COMING SOON!');
-    expect(await settle(page)).toMatchObject({ world: 8, at: 10 });
-    expect(await page.evaluate(() => (window as unknown as Win).__k11.progress().wmap)).toEqual({ w: 8, at: 10 });
+    await expect.poll(async () => (await mapNow(page)).crossing, { timeout: 10_000 }).toBe(true);
+    expect(await settle(page, 90_000)).toMatchObject({ world: 9, at: 0 });
+    expect(await page.evaluate(() => (window as unknown as Win).__k11.progress().wmap)).toEqual({ w: 9, at: 0 });
     expect(errors).toEqual([]);
   });
 

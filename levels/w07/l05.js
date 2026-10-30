@@ -163,11 +163,11 @@ KinanLevels.register({
   /* story bubbles as Kinan passes a column: [col, who, what they say, seconds] (subtitles only) */
   talk: [
     [2, 'MOM', 'The Capilano Suspension Bridge. Seventy metres up! I am holding the railing the WHOLE way.', 4.4],
-    [27, 'DAD', 'It sags in the middle, bud. Run down, jump the hole, climb up the other side.', 3.8],
+    [27, 'DAD', 'It sags in the middle, bud. Run down, jump the hole, climb up the other side. The suspense is killing me!', 3.8],
     [54, 'CHENOA', 'Little bridges from tree to tree, way up high in the cedars!', 3.2],
     [102, 'KINAN', 'Some of the planks are missing. Wait... is that a rock ledge way down there?', 3.8],
     [189, 'SHAD', 'A path bolted right onto the canyon wall. Mind your head on the rock!', 3.6],
     [261, 'KINAN', "There's that little cloud again, raining on the top of the mountain.", 3.4],
-    [284, 'DAD', 'Next: up the mountain on the gondola. Glitchy is heading for the top!', 3.6]
+    [284, 'DAD', "Next: the gondola up the mountain. Glitchy's heading for the top. That bug has peak energy.", 3.6]
   ]
 });

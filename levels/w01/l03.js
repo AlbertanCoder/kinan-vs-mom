@@ -56,6 +56,10 @@ KinanLevels.register({
             [145, 5], [146, 5], [147, 5], [148, 5]],              /* the high cupboard shelf (4 wide) */
     board: [[23, 8]]              /* BONUS: hop onto the cupboard's ledge from the right and KICK the board: 2 candles inside */
   },
+  talk: [   /* Dad's jokes, the wheeze-laugh, Mom's reactions (tools/dad-lines.mjs) */
+    [30, "DAD", "Hi bud, it's Dad on the phone from camp! Why did the cookie go to the... hee... HAHA... the... I can't—", 4.4, "wheeze"],
+    [30, "KINAN", "...to the doctor? Because it felt crummy. Dad, that one's older than you.", 3.6]
+  ],
   foes: [[15, 7, 'toast'], [48, 7, 'egg'], [56, 11, 'egg'], [67, 4, 'carrot'],
          [90, 7, 'toast'], [92, 11, 'egg'], [123, 7, 'egg'], [128, 11, 'broccoli'], [152, 11, 'cupcake']],
   candles: [[3, 11], [4, 11], [7, 9], [8, 9], [10, 7], [11, 7], [16, 7], [17, 7], [20, 11], [21, 11],

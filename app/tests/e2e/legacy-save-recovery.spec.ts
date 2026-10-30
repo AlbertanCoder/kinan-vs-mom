@@ -2,8 +2,8 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { expect, test, type ConsoleMessage, type Page } from '@playwright/test';
 
-const LEGACY_URL = 'http://127.0.0.1:4174/index.html?devtools=1';
-const PRODUCTION_URL = 'http://127.0.0.1:4174/index.html';
+const LEGACY_URL = `http://127.0.0.1:${process.env.KVM_PORT || 4174}/index.html?devtools=1`;
+const PRODUCTION_URL = `http://127.0.0.1:${process.env.KVM_PORT || 4174}/index.html`;
 const CURRENT = 'kinan-remaster-v1';
 const BACKUP = 'kinan-remaster-v1-backup';
 const K11 = 'k11v3';

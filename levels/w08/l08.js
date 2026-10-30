@@ -139,7 +139,7 @@ KinanLevels.register({
     [2, 'SHAD', 'The raccoons took Glitchy up onto the roofs of downtown. A whole GANG of them!', 3.8],
     [18, 'KINAN', 'Raccoons grab candles and run. Stomp them or KICK them to get the candles back!', 4],
     [70, 'CHENOA', 'Look at that billboard, little bro! There is a heart on top of it.', 3.2],
-    [140, 'DAD', 'Big jumps up here, bud. Run, and jump right at the edge.', 3],
+    [140, 'DAD', 'Big jumps up here, bud. Run, and jump right at the edge. Edge-ucation matters.', 3],
     [193, 'MOM', 'Last stretch, sweetie! You can do it. We are right behind you.', 3.2],
     [274, 'KINAN', "They are running to a CASTLE? There's a castle in Toronto?!", 3.2],
     [285, 'SHAD', 'Casa Loma. The Raccoon King lives there, and Glitchy is in his pile of shiny things!', 4.2]

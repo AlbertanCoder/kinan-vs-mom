@@ -4,7 +4,7 @@ import { expect, test, type ConsoleMessage, type Page } from '@playwright/test';
    title -> PLAY -> the map at the saved spot -> a stop launches its level file (world + slot) ->
    LEVEL CLEAR -> back on the map with the stop beaten and the next one open; secret exits open
    their secret stop; a castle opens the world's seam; "Coming soon" stops are safe. */
-const BASE = 'http://127.0.0.1:4174/index.html';
+const BASE = `http://127.0.0.1:${process.env.KVM_PORT || 4174}/index.html`;   /* the copy's own port, as every other spec (d599b82) */
 const DEV_URL = `${BASE}?devtools=1`;
 const CURRENT = 'kinan-remaster-v1';
 
@@ -236,7 +236,8 @@ test.describe('the overworld map between levels', () => {
     const plan = await page.evaluate(() => {
       const w = window as unknown as Win, k = w.__k11;
       let soon: { n: number; i: number } | null = null, castle: number | null = null;
-      for (let n = 1; n <= 9 && (!soon || castle === null); n++) {
+      /* World 9 is complete (v52): Worlds 10-11 have their maps but no level files yet */
+      for (let n = 1; n <= 11 && (!soon || castle === null); n++) {
         const s = k.mapWarp(n, 0)!;
         s.stops.forEach((q, i) => { if (!soon && !q.built && q.kind !== 'secret' && i < 10) soon = { n, i }; });
         if (castle === null && !s.stops[10].built) castle = n;

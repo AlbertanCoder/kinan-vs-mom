@@ -5,7 +5,7 @@ import { expect, test, type ConsoleMessage, type Page } from '@playwright/test';
    (§1.1 RUN_MAX), and holding SHIFT or X walks (WALK_MAX). Off = classic hold-to-run: no key walks, SHIFT / X
    runs. Gamepad B runs either way. The §1.1 numbers never change (FEEL.WALK_MAX 1.9, RUN_MAX 3.2): only which
    input means "run". Driven by real key events (and a stand-in gamepad); speeds read from the engine's probe. */
-const DEV_URL = 'http://127.0.0.1:4174/index.html?devtools=1';
+const DEV_URL = `http://127.0.0.1:${process.env.KVM_PORT || 4174}/index.html?devtools=1`;
 type Probe = { x: number; vx: number; onGround: boolean };
 type Dev = {
   playLevel: (id: string) => unknown; godMode: () => void; clearFoes: () => void; place: (x: number, y: number) => unknown;

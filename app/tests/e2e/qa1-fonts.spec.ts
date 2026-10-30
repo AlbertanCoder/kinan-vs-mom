@@ -5,7 +5,7 @@ import { expect, test, type ConsoleMessage, type Page } from '@playwright/test';
    WebKit). Pixelify Sans (the game's text) and Nunito (the story subtitles) now load from fonts/.
    Proven here on every browser: the face is "loaded", it was fetched from fonts/, and text set in
    it measures differently from the monospace fallback. */
-const BASE = 'http://127.0.0.1:4174/index.html';
+const BASE = `http://127.0.0.1:${process.env.KVM_PORT || 4174}/index.html`;
 
 function watchErrors(page: Page): string[] {
   const errors: string[] = [];

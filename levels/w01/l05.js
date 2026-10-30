@@ -23,18 +23,24 @@ KinanLevels.register({
     /* C2 reward run + gate */ 192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192
   ],
   deck: [64, 71],          /* ONE tile thick at y=128 — rows 9-11 under it are the tunnel */
+  /* the way into the tunnel (Shad, 2026-10-29: "three candles in a rectangle box underneath... how do I even get to
+     that"): a one-tile hole in the deck at c70, past the candles, with a spring set into the tunnel floor under it
+     (row 12) to bounce back out. The deck cells either side of the hole are shelves (tiles.shelf [69, 8], [71, 8]):
+     planks you walk over from above and jump up through from below, so the bounce out never bonks, and the planks show
+     the way in. c68 stays solid deck (slice1-seam measures the deck top and the tunnel floor there). */
+  open: [[70, 8, 70, 8]],
   fakeWall: [38, 39],      /* ground-looking column rows 8-10; the golden candle block sits inside */
   tiles: {
     gift: [[12, 8, 'popper'], [123, 8, 'heart'], [38, 9, 'gold']],
     brick: [[98, 8], [99, 8], [100, 8], [101, 8], [102, 8]],
-    spring: [[140, 11], [141, 11]],
-    shelf: [[90, 9], [91, 9], [92, 9], [143, 8], [144, 8], [145, 8], [146, 8], [148, 6], [149, 6], [150, 6], [152, 5], [153, 5], [154, 5]]
+    spring: [[140, 11], [141, 11], [70, 12]],
+    shelf: [[69, 8], [71, 8], [90, 9], [91, 9], [92, 9], [143, 8], [144, 8], [145, 8], [146, 8], [148, 6], [149, 6], [150, 6], [152, 5], [153, 5], [154, 5]]
   },
-  pipes: [[63, 11], [95, 11]],
+  pipes: [[108, 11]],   /* off the checkpoint flag (c96): a steel riser is solid since 2026-10-29 (the one at c63 sat inside the slope top, removed) */
   /* ER-10: the yard bug rides the sock walker's rhythm ("my socks are WALKING") */
   foes: [[6, 11, 'sock'], [45, 11, 'sock'], [46, 11, 'sock'], [66, 7, 'sock'], [69, 7, 'sock'],
          [101, 11, 'sock'], [102, 11, 'sock'], [113, 9, 'sock'], [130, 11, 'sock'], [131, 11, 'sock']],
-  candles: [[3,11],[4,11],[12,6],[21,11],[22,11],[36,9],[37,9],[38,9],[47,9],[49,9],[51,9],
+  candles: [[3,11],[4,11],[12,6],[21,11],[22,11],[36,9],[37,9],[37,8],[47,9],[49,9],[51,9],
             [65,10],[66,10],[67,10],[86,10],[87,10],[88,9],[89,9],[125,9],[127,9],[129,9],
             [144,7],[145,7],[148,4],[149,4],[150,4],[152,3],[153,3],[154,3]],
   secrets: [

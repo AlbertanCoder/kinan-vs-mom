@@ -82,7 +82,7 @@
     G.fillStyle='#e6e2d8';G.beginPath();G.moveTo(bx-8,by+1);G.quadraticCurveTo(bx-5,by-62,bx+29,by-111);G.lineTo(bx+41,by-103);G.quadraticCurveTo(bx+11,by-58,bx+10,by+1);G.fill();
     G.fillStyle='#c4beb0';G.beginPath();G.moveTo(bx+4,by+1);G.quadraticCurveTo(bx+5,by-60,bx+36,by-107);G.lineTo(bx+41,by-103);G.quadraticCurveTo(bx+11,by-58,bx+10,by+1);G.fill();
     G.fillStyle='#1b1220';G.beginPath();G.moveTo(bx+24,by-116);G.lineTo(bx+34,by-124);G.lineTo(bx+50,by-108);G.lineTo(bx+42,by-100);G.fill();G.fillStyle='#7ec8ff';G.beginPath();G.moveTo(bx+26,by-115);G.lineTo(bx+34,by-121);G.lineTo(bx+47,by-108);G.lineTo(bx+41,by-102);G.fill();
-    K.P.label(X+66,Y-52,'OLYMPIC STADIUM');};
+    K.P.label(X+66,Y-52,'THE BIG O');};
   K.P.w09_biodome=function(X,Y){const G=g();shadow(X+40,Y+3,46,5);box('#c9c4b8',X,Y-10,80,10);for(let i=4;i<78;i+=8)px('#9a968c',X+i,Y-8,3,8);
     G.fillStyle='#1b1220';G.beginPath();G.ellipse(X+40,Y-10,42,21,0,Math.PI,0);G.fill();G.fillStyle='#ececE6';G.beginPath();G.ellipse(X+40,Y-10,41,20,0,Math.PI,0);G.fill();
     for(let i=-4;i<=4;i++){const a=-Math.PI/2+i*0.33;G.strokeStyle='#1b1220';G.lineWidth=4;G.beginPath();G.moveTo(X+40,Y-11);G.lineTo(X+40+Math.cos(a)*37,Y-11+Math.sin(a)*18);G.stroke();G.strokeStyle='#7ec8ff';G.lineWidth=2;G.beginPath();G.moveTo(X+40,Y-11);G.lineTo(X+40+Math.cos(a)*37,Y-11+Math.sin(a)*18);G.stroke();}
@@ -178,7 +178,7 @@
       {at:[470,500],name:'9-3  THE METRO',st:'lock'},
       {at:[360,186],name:'9-4  MOUNT ROYAL LOOKOUT',st:'lock'},
       {at:[830,320],name:'9-5  THE BIODOME',st:'lock'},
-      {at:[885,262],name:'FORT  THE OLYMPIC TOWER',st:'fort'},
+      {at:[885,262],name:'FORT  THE MONTREAL TOWER',st:'fort'},
       {at:[990,300],name:'9-6  THE SPACE CENTRE',st:'lock'},
       {at:[1062,300],name:'SECRET  THE UNDERGROUND CITY',st:'secret'},
       {at:[905,425],name:'9-7  THE STARTUP LOFTS',st:'lock'},

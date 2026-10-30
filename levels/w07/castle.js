@@ -93,7 +93,7 @@ KinanLevels.register({
   talk: [
     [1, 'SHAD', "Kinan, it's Shad on the radio. That storm over Canada Place isn't a normal storm. It's Drizzle, and it's HUGE now!", 5],
     [9, 'KINAN', 'It is raining SO hard. Even the bats have umbrellas!', 3.2],
-    [13, 'DAD', 'The cruise-ship terminal roof! Up you go, bud. It looks like big white sails.', 4],
+    [13, 'DAD', 'The cruise-ship terminal roof! Up you go, bud. Those big white sails? Totally on sail.', 4],
     [24, 'DRIZZLE', '*sniff*... Everybody always runs inside when I come. *sniff*', 3.4],
     [35, 'SHAD', 'Glitchy woke Drizzle up, and now it rains on everything. I found three old sun lamps at the end of the pier.', 5],
     [44, 'CHENOA', 'Look at the flags! They are flapping like crazy in the wind.', 3.2],

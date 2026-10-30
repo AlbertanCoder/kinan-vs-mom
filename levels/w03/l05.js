@@ -87,8 +87,13 @@ KinanLevels.register({
              [144, 10], [167, 10], [185, 10]],    /* act 3: heads set in the pumpjack pads, right at the lip */
     shelf: [[63, 3], [64, 3], [65, 3]]   /* S3 the light tower's lamp deck (visible secret) */
   },
-  pipes: [[10, 11], [28, 11], [65, 11], [83, 11], [143, 9], [166, 9], [184, 9]],   /* wellheads beside the pumpjacks */
+  /* no pipes: the wellheads beside the pumpjacks were see-through decoration; as solid risers (2026-10-29) they stood in
+     the run-up to every head and broke the level's one idea (Shad: "I don't even know why this green pipe [is there]") */
   /* gophers hop out of the field, cones walk the lease, mud blobs split when stomped, crows fly. Nothing waits on a head. */
+  talk: [   /* Dad's jokes, the wheeze-laugh, Mom's reactions (tools/dad-lines.mjs) */
+    [30, "DAD", "Why did the pumpjack go to the... hee... HAHA... the... oh boy... the... I can't—", 4, "wheeze"],
+    [30, "KINAN", "...to the doctor? It wasn't feeling well. Get it? WELL? ...Oh no. I'm turning into you.", 4]
+  ],
   foes: [[25, 11, 'gopher'],
          [52, 11, 'cone'],
          [60, 10, 'gopher'],
@@ -102,7 +107,7 @@ KinanLevels.register({
             [34, 5], [35, 5], [40, 11], [41, 11], [45, 9], [46, 8], [47, 8], [48, 9],
             [57, 9], [59, 8], [61, 8], [62, 9], [68, 6], [68, 4], [70, 2], [72, 2], [63, 2], [65, 2], [76, 11], [77, 11],
             [88, 3], [89, 2], [90, 2], [91, 3], [97, 3], [98, 2], [99, 2], [100, 3], [106, 3], [107, 2], [108, 2], [109, 3],
-            [116, 4], [117, 4], [121, 9], [126, 11], [127, 11], [129, 11], [130, 11], [131, 10], [132, 9], [133, 8], [134, 8], [135, 9],
+            [116, 4], [117, 4], [121, 9], [126, 11], [127, 11], [129, 11], [130, 11], [131, 11], [132, 9], [133, 8], [134, 8], [135, 9],
             [140, 9], [141, 8], [145, 6], [146, 4], [147, 2], [148, 1], [150, 1], [151, 2], [152, 4], [153, 7],
             [164, 9], [165, 8], [168, 6], [169, 4], [170, 2], [171, 1], [173, 1], [174, 2], [175, 4], [176, 7],
             [182, 9], [183, 8], [186, 6], [187, 4], [188, 2], [189, 1], [191, 1], [192, 2], [193, 4], [194, 7],

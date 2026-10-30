@@ -79,7 +79,9 @@ KinanLevels.register({
     [119, 9, 121, 10],   /* S5 the pickup truck riding the ferry */
     [310, 10, 311, 11]   /* S12 the picnic table */
   ],
+  open: [[19, 13, 21, 13]],   /* SLAM SPOT (butt slam, 2026-10-29): the pocket under the cracked boards, solid floor under it */
   tiles: {
+    crack: [[19, 12], [20, 12], [21, 12]],   /* SLAM SPOT: cracked floorboards over a pocket of candles (a bonus, never needed) */
     gift: [
       [4, 8, 'popper'],   /* S1 */
       [50, 8],   /* S2 */
@@ -122,7 +124,7 @@ KinanLevels.register({
     [279, 5, 'goose'], [287, 11, 'puddlefrog'],   /* S11 */
     [305, 11, 'flyingfish']   /* S12 */
   ],
-  candles: [
+  candles: [[19, 13], [20, 13], [21, 13],
     [2, 11], [3, 11], [4, 11], [5, 11], [7, 10], [8, 10], [9, 10], [13, 11], [14, 9], [15, 8], [16, 8], [17, 9], [18, 11], [19, 11],
     [21, 11], [23, 11], [25, 11], [30, 11], [31, 9], [32, 8], [33, 8], [34, 9], [35, 11], [36, 12], [37, 12], [38, 12], [39, 10], [40, 9],
     [41, 9], [42, 10], [43, 12], [44, 12], [45, 12], [48, 11], [50, 11], [52, 11], [59, 11], [60, 11], [61, 12], [62, 12], [63, 12], [64, 10],

@@ -129,6 +129,10 @@ KinanLevels.register({
     ]
   },
   /* animatronic baby dinos hop, robot carts roll, security cameras fly, a raccoon sneaked in; nothing waits at a lip */
+  talk: [   /* Dad's jokes, the wheeze-laugh, Mom's reactions (tools/dad-lines.mjs) */
+    [30, "DAD", "What do you call a fossil that won't work? Lazy bones! ...Come on, that's a classic. Like a fossil.", 4],
+    [30, "MOM", "Ha! Oh no, I laughed. Don't tell him I laughed.", 3, "laugh"]
+  ],
   foes: [
     [14, 11, 'robot'],   /* S1 */
     [34, 11, 'babydino'],   /* S2 */

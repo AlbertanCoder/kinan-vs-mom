@@ -89,6 +89,9 @@ KinanLevels.register({
   },
   /* jackrabbits hop the trails, cyclists charge down the hills, geese guard the river, a magpie at the top;
      nothing waits at a ravine's lip */
+  talk: [   /* Dad's jokes, the wheeze-laugh, Mom's reactions (tools/dad-lines.mjs) */
+    [30, "GRANDPA", "Grandpa on the video call! Why don't trails ever argue? They always go their own way! Tell your dad I'm still funnier.", 4.8]
+  ],
   foes: [[24, 11, 'bunny'],
          [35, 9, 'biker'],
          [63, 13, 'bunny'],

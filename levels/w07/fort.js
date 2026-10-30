@@ -104,7 +104,7 @@ KinanLevels.register({
         [72, 9], [73, 9], [75, 7], [76, 7], [77, 7], [78, 7], [79, 7], [80, 7], [76, 11], [78, 11], [80, 11]
       ],
       talk: [
-        [2, 'DAD', "Grouse Mountain! We take the gondola to the top. Or you can hike the steep trail. It's basically stairs. For an hour.", 5],
+        [2, 'DAD', "Grouse Mountain! Gondola, or the steep trail? The trail is stairs. For an hour. I'm not grouse-ing, just saying.", 5],
         [28, 'KINAN', 'I bet Glitchy took the gondola. Glitchy is lazy.', 3],
         [64, 'CHENOA', "Climb up to the station and hop on a cabin! Don't fall off: it's a long way down.", 4]
       ]
@@ -190,7 +190,7 @@ KinanLevels.register({
       arena: { col: 48, cols: 24, boss: 'banana-slug' },
       goal: { col: 77, row: 9 },   /* past the boss door: down the mountain to Granville Island */
       talk: [
-        [2, 'DAD', 'The top of Grouse Mountain. You can see the whole city from up here!', 3.4],
+        [2, 'DAD', "The top of Grouse Mountain! The whole city down there. I'm on top of the world. And a mountain.", 3.4],
         [41, 'KINAN', 'The snow up ahead is all shiny and slimy. Something BIG went this way...', 4]
       ]
     }

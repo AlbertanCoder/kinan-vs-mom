@@ -9,7 +9,7 @@ import { expect, test, type ConsoleMessage, type Page } from '@playwright/test';
    buttons are gone (the header's pause / sound / audio / install buttons, the map's bottom row, the title's tool
    row); the touch controls stay. The reward codes are gone: everything unlocks by playing. KOFI_URL is set to
    Shad's page; the Support button and the credits line show only when it is set and never during play. */
-const BASE = 'http://127.0.0.1:4174/index.html';
+const BASE = `http://127.0.0.1:${process.env.KVM_PORT || 4174}/index.html`;
 const DEV_URL = `${BASE}?devtools=1`;
 const CURRENT = 'kinan-remaster-v1';
 const KOFI = 'https://ko-fi.com/albertancoder';

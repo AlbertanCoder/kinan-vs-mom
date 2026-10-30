@@ -4,7 +4,7 @@ import { expect, test, type ConsoleMessage, type Page } from '@playwright/test';
    into the next one (road trips 6.5 and 9.5 included), World 10 glitches into World 11, World 11 plays
    the 2D->3D transition into the 3D map, and a World 12 stop opens its 3D level, which saves its clear
    and comes back to the 3D map. The equipped pets follow Kinan in 3D. */
-const BASE = 'http://127.0.0.1:4174/index.html';
+const BASE = `http://127.0.0.1:${process.env.KVM_PORT || 4174}/index.html`;
 const DEV_URL = `${BASE}?devtools=1`;
 const CURRENT = 'kinan-remaster-v1';
 

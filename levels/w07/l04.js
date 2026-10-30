@@ -107,7 +107,7 @@ KinanLevels.register({
       ],
       goldenCandle: { col: 69, row: 7 },
       talk: [
-        [2, 'DAD', "Out of the park and over the Lions Gate Bridge. Hold on to your hood, it's windy up there!", 4.4],
+        [2, 'DAD', "Over the Lions Gate Bridge! Hold on to your hood, it's windy up there. This bridge has mane attractions.", 4.4],
         [29, 'CHENOA', 'Prospect Point! You can see the whole green bridge from here.', 3.2],
         [51, 'KINAN', 'Stone lions guarding the bridge! Can I stand on one?', 3],
         [63, 'SHAD', 'The road crew took panels out of the deck! Jump the holes, or climb the big cable up over the tower.', 4.6]
@@ -214,7 +214,7 @@ KinanLevels.register({
       goal: { col: 77, row: 11 },   /* the road up the canyon to the swinging bridge */
       talk: [
         [2, 'SHAD', "North Shore! Glitchy's headed up into the mountains.", 3],
-        [56, 'DAD', 'See the canyon up there? That little rain cloud went that way too.', 3.6]
+        [56, 'DAD', 'See the canyon up there? That little rain cloud went that way too. Typical cloud, always mist-ing out.', 3.6]
       ]
     }
   ]

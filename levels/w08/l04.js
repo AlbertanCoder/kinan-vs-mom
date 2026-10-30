@@ -144,12 +144,12 @@ KinanLevels.register({
   spawn: { col: 2, row: 11 },
   goal: { col: 268, row: 11 },   /* out the tower's doors, toward the toy store */
   talk: [
-    [2, 'DAD', 'The CN Tower! Five hundred and fifty-three metres tall. And the raccoon went all the way UP.', 4.4],
+    [2, 'DAD', 'The CN Tower! Five hundred and fifty-three metres. The raccoon went all the way UP. Talk about high-jinks!', 4.4],
     [30, 'KINAN', 'One thousand, seven hundred and seventy-six stairs. I am counting every one.', 3.8],
     [61, 'MOM', 'Hold on, sweetie! When you hear the wind coming, hold on tight!', 3.2],
     [94, 'CHENOA', 'The GLASS FLOOR! You can see the whole city under your feet. I am NOT looking down.', 4],
     [157, 'SHAD', 'The raccoon climbed out onto the outside ledge. Outside! On the edge! Of course it did.', 4],
     [237, 'KINAN', 'It jumped into the elevator! Going down!', 2.6],
-    [259, 'DAD', 'That raccoon is heading for the toy store on the corner. Come on, bud.', 3.6]
+    [259, 'DAD', "That raccoon is heading for the toy store on the corner. Come on, bud, let's block his path.", 3.6]
   ]
 });

@@ -83,7 +83,9 @@ KinanLevels.register({
     [110, 9, 110, 11], [133, 9, 133, 11],   /* S5 THE BULL PEN RUN's posts */
     [172, 10, 172, 11], [177, 8, 177, 11], [183, 8, 183, 11]   /* S7 THE STEER PEN: the low post, the tall post, the end post */
   ],
+  open: [[4, 13, 6, 13]],   /* SLAM SPOT (butt slam, 2026-10-29): the pocket under the cracked boards, solid floor under it */
   tiles: {
+    crack: [[4, 12], [5, 12], [6, 12]],   /* SLAM SPOT: cracked floorboards over a pocket of candles (a bonus, never needed) */
     gift: [
       [5, 8, 'lasso'],   /* S1 the LASSO (candles fly to you) */
       [28, 8],   /* S2 before the calf pen */
@@ -122,7 +124,7 @@ KinanLevels.register({
     [230, 3, 'crow'], [234, 11, 'minibull'], [240, 11, 'lassolizard'],   /* S9 */
     [262, 11, 'sheep']   /* S10 */
   ],
-  candles: [
+  candles: [[4, 13], [5, 13], [6, 13],
     [2, 11], [3, 11], [4, 11], [5, 7], [13, 8], [15, 8], [17, 8], [19, 8], [15, 11], [17, 11], [22, 11], [24, 11], [26, 11], [27, 7],
     [29, 7], [30, 11], [31, 11], [33, 8], [35, 8], [37, 8], [39, 8], [41, 8], [43, 8], [45, 7], [46, 6], [47, 6], [48, 7], [49, 9],
     [51, 11], [52, 11], [53, 11], [56, 11], [58, 11], [59, 12], [60, 9], [61, 9], [62, 7], [63, 7], [64, 9], [65, 9], [67, 12], [68, 11],

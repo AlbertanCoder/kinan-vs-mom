@@ -4,7 +4,7 @@ import { expect, test, type ConsoleMessage, type Page } from '@playwright/test';
    whole row under it); at 1920 x 1080 the game sat in a narrow ~880 px column. Sideways phones now put the
    tools in a slim column beside PLAY so the picture gets the panel's height; big screens let the game
    grow with the window (the picture keeps its 432:240 shape and never makes the page scroll). */
-const BASE = 'http://127.0.0.1:4174/index.html';
+const BASE = `http://127.0.0.1:${process.env.KVM_PORT || 4174}/index.html`;
 type Box = { x: number; y: number; width: number; height: number };
 type Win = Window & { KINAN?: { state: () => { mounted: boolean; busy: boolean; walking: boolean; crossing: boolean; banner: string | null } } };
 

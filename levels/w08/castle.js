@@ -99,7 +99,7 @@ KinanLevels.register({
     [27, 'THE RACCOON KING', 'Who goes there? This is the castle of the RACCOON KING! All the shiny things are MINE!', 4.4],
     [33, 'KINAN', 'A secret passage behind the bookcase! This castle is SO cool.', 3.2],
     [46, 'SHAD', "The Raccoon King collects shiny things. He thinks Glitchy is shiny garbage!", 4],
-    [53, 'DAD', 'Hop over that old bookcase, bud. And watch your head in this passage.', 3.6],
+    [53, 'DAD', 'Hop over that old bookcase, bud, and watch your head in this passage. This castle has great shelf-esteem.', 3.6],
     [63, 'CHENOA', 'The towers! You can see all of Toronto from up there. Even the CN Tower!', 3.8],
     [72, 'KINAN', "A big jump to the other tower. Don't look down... okay, I looked down.", 4],
     [90, 'KINAN', "His treasure pile... wait, that's my MOVING-DAY BOX! With my Pocket Critter dino card! I held it the whole drive to Saskatoon.", 6]   /* the age-8 memory (story bible) */

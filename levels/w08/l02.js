@@ -158,7 +158,7 @@ KinanLevels.register({
     [10, 'MOM', 'Kinan, you do NOT ride on top of trains. ...It is only a game? Okay. Be careful, sweetie.', 4.4],
     [55, 'CHENOA', 'Tunnel! The roof is right over your head in there. Little hops, little bro!', 3.6],
     [97, 'KINAN', 'Mind the gap! Mind ALL the gaps!', 2.6],
-    [109, 'DAD', "The Bloor Viaduct! There's a whole valley under us, bud. Don't look down.", 3.8],
+    [109, 'DAD', "The Bloor Viaduct! A whole valley under us, bud. Don't look down. I did. Real low point.", 3.8],
     [165, 'SHAD', 'Back underground. That raccoon keeps looking back at you. I think it likes Glitchy.', 4],
     [217, 'KINAN', "Out in the open again! I've almost got that raccoon!", 3],
     [272, 'CHENOA', 'Everybody off! Nathan Phillips Square is right upstairs. The raccoon went up there!', 4]

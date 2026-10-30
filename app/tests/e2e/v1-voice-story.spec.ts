@@ -8,8 +8,8 @@ import { expect, test, type ConsoleMessage, type Page } from '@playwright/test';
    World 3-5 checkpoint, Kinan's barks; the classic stages play audio/vo2; the device voice (speechSynthesis)
    is OFF by default, English-only when switched on, and the new flow never calls it.
    Lines are stepped with __k11.storyNext() (a line "heard to the end") so nothing waits on real seconds. */
-const DEV_URL = 'http://127.0.0.1:4174/index.html?devtools=1';
-const PROD_URL = 'http://127.0.0.1:4174/index.html';
+const DEV_URL = `http://127.0.0.1:${process.env.KVM_PORT || 4174}/index.html?devtools=1`;
+const PROD_URL = `http://127.0.0.1:${process.env.KVM_PORT || 4174}/index.html`;
 const CURRENT = 'kinan-remaster-v1';
 const ROOT = fileURLToPath(new URL('../../../', import.meta.url));
 
@@ -33,7 +33,7 @@ type Win = { __k11: Dev; KinanLevels: { ready: boolean; list: () => string[] }; 
 
 const STORY: Story = (() => {
   const c: Record<string, unknown> = {}; c.self = c;
-  new Function('self', readFileSync(`${ROOT}audio/lines/lines.js`, 'utf8'))(c);
+  new Function('self', readFileSync(`${ROOT}audio/lines/lines.js`, 'utf8') + '\n' + readFileSync(`${ROOT}audio/dad-lines.js`, 'utf8'))(c);   /* + Dad's joke pass, as the game loads it */
   return c.KINAN_STORY as Story;
 })();
 const fixture = (name: string): string => readFileSync(fileURLToPath(new URL(`../fixtures/saves/${name}`, import.meta.url)), 'utf8');
@@ -107,8 +107,8 @@ test.describe('V1 · the story lines of Worlds 1-5', () => {
       return out;
     }, [...new Set(Object.values(STORY.lines).map((l) => l[3]).filter((f): f is string => !!f))]);
     for (const f of files) { expect(f.status, f.f).toBe(200); expect(f.type, f.f).toContain('audio/mpeg'); }
-    /* subtitle only: the five Grandpa lines (no picked voice yet) */
-    expect(Object.keys(STORY.lines).filter((id) => !STORY.lines[id][3]).sort()).toEqual(['w03_grandpa_01', 'w03_grandpa_02', 'w03_grandpa_03', 'w03_grandpa_04', 'w03_grandpa_05']);
+    /* no subtitle-only lines left: Grandpa got his voice 2026-10-29 (audio/rerecord) */
+    expect(Object.keys(STORY.lines).filter((id) => !STORY.lines[id][3]).sort()).toEqual([]);
     /* Annie's Punjabi lines carry their English subtitle */
     expect(STORY.lines.w04_annie_pa01[1]).toBe('Wait, Shad, your console did all this? Oh, my goodness.');
     expect(STORY.lines.w05_annie_pa01[1]).toBe("Hurry up, guys! It's heading for the fireworks.");
@@ -331,7 +331,8 @@ test.describe('V1 · the world intro on the map', () => {
     expect(errors).toEqual([]);
   });
 
-  test("3-1 (Onion Lake): the whole visit plays the first time (Grandpa's lines as subtitles only), then only Grandma's first line", async ({ page }) => {
+  /* 2026-10-29 (Shad): the visit is now Dad and Grandpa's joke-off, cut to 5 lines (the rest moved to the checkpoint and LEVEL CLEAR) */
+  test("3-1 (Onion Lake): the whole visit plays the first time (Grandpa voiced), then only Grandma's first line", async ({ page }) => {
     const errors = watchErrors(page);
     await spy(page);
     await boot(page);
@@ -349,10 +350,10 @@ test.describe('V1 · the world intro on the map', () => {
       return { first, grandpa, clips, second: [s2.cur, ...s2.queue] };
     });
     expect(r.first).toEqual(STORY.open['3-1']);
-    expect(r.first.length).toBe(10);
-    expect(r.grandpa.length).toBe(5);
-    for (const g of r.grandpa) { expect(g.src).toBeNull(); expect(g.sub).toMatch(/^GRANDPA: /); }
-    expect(r.clips.length).toBe(5);                   /* Grandma x2, Dad x3: the five recorded lines */
+    expect(r.first.length).toBe(5);
+    expect(r.grandpa.length).toBe(2);
+    for (const g of r.grandpa) { expect(g.src).toMatch(/audio\/rerecord\/w03_grandpa_0\d\.mp3$/); expect(g.sub).toMatch(/^GRANDPA: /); }
+    expect(r.clips.length).toBe(5);                   /* all five opener lines are voiced now: Grandma, Grandpa x2, Dad, Kinan's groan (2026-10-29) */
     expect(r.second).toEqual(['w03_robinsmom_01']);
     expect(errors).toEqual([]);
   });
@@ -373,8 +374,11 @@ test.describe('V1 · no robot voice', () => {
     await expect.poll(async () => (await cut()).on, { timeout: 45_000 }).toBe(false);
     expect((await cut()).lines).toEqual(STORY.cutscene);
     await mapReady(page);
-    /* World 1's map intro goes on after the bedroom (its first lines were the bedroom's own story) */
-    await expect.poll(async () => (await info(page)).cur).toBe('w01_shad_01');
+    /* World 1's map intro goes on after the bedroom (its first lines were the bedroom's own story; index.html CUT_COVERS).
+       2026-10-29: the intro was cut to 5 lines (Shad: no conversation over 5), so it goes on with Mom, not Shad */
+    const after = STORY.intro['1'].find((id) => ['w01_kinan_01', 'w01_kinan_02', 'w01_glitchy_01', 'w01_kinan_03'].indexOf(id) < 0)!;
+    expect(after).toBe('w01_mom_01');
+    await expect.poll(async () => (await info(page)).cur).toBe(after);
     await page.evaluate(() => (window as unknown as Win).__k11.storyNext());
     await page.locator('#owPlay').click();
     await expect(page.locator('#stage')).toBeVisible();
@@ -386,7 +390,7 @@ test.describe('V1 · no robot voice', () => {
       for (let n = 0; n < 200 && !k.levelInfo().returned; n++) k.step(1, { right: true });
     });
     await mapReady(page);
-    expect((await info(page)).log.map((l) => l.id)).toEqual(expect.arrayContaining(['w01_shad_01', 'w01_kinan_05']));
+    expect((await info(page)).log.map((l) => l.id)).toEqual(expect.arrayContaining([after, 'w01_kinan_05']));
     expect(await page.evaluate(() => (window as unknown as Win).__speak)).toBe(0);
     expect(errors).toEqual([]);
   });

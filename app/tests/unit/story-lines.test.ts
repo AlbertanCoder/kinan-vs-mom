@@ -13,10 +13,11 @@ type Story = { lines: Record<string, Line>; intro: Record<string, string[]>; exi
   clear: Record<string, string[]>; joke: Record<string, string>; bark: Record<string, string[]>; cutscene: string[]; escape: Record<string, string[]> };
 const ctx: Record<string, unknown> = {}; ctx.self = ctx; createContext(ctx);
 runInContext(readFileSync(join(ROOT, 'audio', 'lines', 'lines.js'), 'utf8'), ctx);
+runInContext(readFileSync(join(ROOT, 'audio', 'dad-lines.js'), 'utf8'), ctx);   /* the game plays lines.js with Dad's joke pass over it (2026-10-29) */
 const S = ctx.KINAN_STORY as Story, FILES = ctx.KINAN_STORY_FILES as string[];
 const html = readFileSync(join(ROOT, 'index.html'), 'utf8');
 const ARENA = new Set([...(/const ARENA_LINES = \{([\s\S]*?)\n\};/.exec(html)![1]).matchAll(/^\s+([a-z0-9_]+):\s*\[/gm)].map((m) => m[1]));
-const SRC = 'C:/Users/SHADHUNTER/Desktop/Kinan Map Concept/voices/lines';
+const SRC = 'C:/Users/SHADHUNTER/Desktop/Kinan vs Mom/Map Concept/voices/lines';
 
 describe('the story line table', () => {
   it('is what tools/story-lines.mjs writes today (when the voice script is on this machine)', () => {
@@ -36,7 +37,7 @@ describe('the story line table', () => {
     expect(S.cutscene).toEqual(['w01_kinan_19', 'w01_shad_05', 'w01_kinan_02', 'w01_glitchy_01', 'w01_kinan_03', 'w01_mom_12', 'w01_glitchy_02', 'gen_kinan_24', 'w01_kinan_20']);
     for (const id of [...S.cutscene, ...Object.values(S.escape).flat()]) {
       expect(S.lines[id], id).toBeTruthy();
-      expect(S.lines[id][3], id).toMatch(/^audio\/lines\/.+\.mp3$/);
+      expect(S.lines[id][3], id).toMatch(/^audio\/(lines|rerecord)\/.+\.mp3$/);   /* rerecord: Dad's joke versions, 2026-10-29 */
       expect(existsSync(join(ROOT, S.lines[id][3]!)), id).toBe(true);
       expect(FILES, id).toContain(S.lines[id][3]);   /* precached: the cutscenes talk offline */
     }

@@ -44,7 +44,7 @@ KinanLevels.register({
     spring: [[41, 11]],
     shelf:  [[48, 8], [49, 8], [50, 8]]   /* semisolid: land from above, jump up through */
   },
-  pipes: [],                           /* [col, row] — decoration + a landmark for now (no warp yet) */
+  pipes: [],                           /* [col, row] — a solid 2-tile steel riser on open ground (only empty cells turn solid); no warp */
   foes: [[22, 11, 'sock'], [39, 11, 'lego']],   /* [col, row, type] — any type in index.html FOE{} */
   candles: [[3, 11], [4, 11], [44, 9], [45, 8], [46, 9]],   /* coins: arcs show the safe line */
   secrets: [                           /* exactly 3 in a regular level (or set noSecrets: 'why') */

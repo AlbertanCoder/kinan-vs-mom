@@ -26,7 +26,7 @@ import { fileURLToPath } from 'node:url';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const args = process.argv.slice(2);
 const CHECK = args.includes('--check');
-const SRC = args.find((a) => !a.startsWith('--')) || 'C:/Users/SHADHUNTER/Desktop/Kinan Map Concept/voices/lines';
+const SRC = args.find((a) => !a.startsWith('--')) || 'C:/Users/SHADHUNTER/Desktop/Kinan vs Mom/Map Concept/voices/lines';
 const OUT = join(ROOT, 'audio', 'lines');
 
 /* the memory gift of each world sits in this level (story bible "The 11 memory gifts" + the level files' notes) */

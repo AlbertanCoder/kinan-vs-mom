@@ -93,6 +93,10 @@ KinanLevels.register({
   },
   /* shoppers stroll, rollerbladers and carts roll, the Zambonis putter around the rink, magpies flew in the doors.
      Nothing waits at a lagoon lip, and nothing flies through a spin-up. */
+  talk: [   /* Dad's jokes, the wheeze-laugh, Mom's reactions (tools/dad-lines.mjs) */
+    [30, "DAD", "Dad here, on the phone! Why did the mall get a skating rink? It wanted to break the... hee... HAHA... I can't—", 4.4, "wheeze"],
+    [30, "CHENOA", "...to break the ice. Wow. Bye, Dad.", 2.6]
+  ],
   foes: [[9, 11, 'mallwalker'],
          [51, 11, 'rollerblader'],
          [60, 10, 'mallwalker'],

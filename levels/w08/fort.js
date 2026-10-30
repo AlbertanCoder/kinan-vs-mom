@@ -115,7 +115,7 @@ KinanLevels.register({
   talk: [
     [2, 'CHENOA', 'The aquarium! Sharks, rays, jellyfish... and one very sneaky raccoon.', 3.6],
     [57, 'KINAN', 'A tunnel UNDER the water! There is a shark right over my head!', 3.2],
-    [84, 'DAD', 'Ride the moving walkway, bud. The sharks are on the other side of the glass.', 3.8],
+    [84, 'DAD', "Ride the moving walkway, bud. The sharks are behind the glass. They're just fin-ishing lunch.", 3.8],
     [141, 'MOM', 'Something big just moved in the big tank, sweetie. Something with a LOT of arms.', 4],
     [172, 'SHAD', 'The raccoon ran right past the big tank. Wait. Is that an OCTOPUS?', 3.4]
   ]

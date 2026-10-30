@@ -13,7 +13,7 @@ import { expect, test, type ConsoleMessage, type Page } from '@playwright/test';
    - World 7's map stops are these level files,
    - no page errors anywhere. */
 
-const BASE = 'http://127.0.0.1:4174/index.html';
+const BASE = `http://127.0.0.1:${process.env.KVM_PORT || 4174}/index.html`;
 const DEV_URL = `${BASE}?devtools=1`;
 const CURRENT = 'kinan-remaster-v1';
 const W7 = ['1', '2', '3', '4', '5', 'fort', 'secret', '6', '7', '8', 'castle'].map((s) => `7-${s}`);

@@ -9,7 +9,7 @@ import { expect, test, type ConsoleMessage, type Page } from '@playwright/test';
  * camera later (M3); these pins move to the §3 acceptance in the same commit.
  */
 
-const DEV_URL = 'http://127.0.0.1:4174/index.html?devtools=1';
+const DEV_URL = `http://127.0.0.1:${process.env.KVM_PORT || 4174}/index.html?devtools=1`;
 const CURRENT = 'kinan-remaster-v1';
 const W = 432;
 const PLAYER_W = 10;

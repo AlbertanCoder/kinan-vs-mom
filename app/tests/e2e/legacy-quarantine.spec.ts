@@ -2,7 +2,7 @@
 import { fileURLToPath } from 'node:url';
 import { expect, test, type ConsoleMessage, type Page } from '@playwright/test';
 
-const LEGACY_URL = 'http://127.0.0.1:4174';
+const LEGACY_URL = `http://127.0.0.1:${process.env.KVM_PORT || 4174}`;
 
 const sampleSave = (name: string): string =>
   readFileSync(

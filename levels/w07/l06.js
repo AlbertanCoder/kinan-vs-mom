@@ -94,7 +94,9 @@ KinanLevels.register({
     [164, 8, 165, 10], [166, 5, 167, 10], [168, 2, 169, 10], [170, 5, 171, 10], [172, 8, 173, 10],   /* S7 THE PAINTED SILOS */
     [258, 7, 262, 10]   /* S10 the kids market shed */
   ],
+  open: [[12, 12, 14, 12]],   /* SLAM SPOT (butt slam, 2026-10-29): the pocket under the cracked dock boards, solid floor under it */
   tiles: {
+    crack: [[12, 11], [13, 11], [14, 11]],   /* SLAM SPOT: cracked dock boards over a pocket of candles (a bonus, never needed) */
     gift: [
       [4, 7, 'umbrella'], [24, 7],   /* S1 the umbrella (the market's rain gear) */
       [29, 7], [37, 3],   /* S2 */
@@ -142,7 +144,7 @@ KinanLevels.register({
     [276, 6, 'seagull'], [280, 10, 'puddlefrog'], [285, 6, 'seagull'], [292, 10, 'busker'],   /* S11 */
     [312, 10, 'puddlefrog']   /* S12 */
   ],
-  candles: [
+  candles: [[12, 12], [13, 12], [14, 12],
     [1, 10], [2, 10], [6, 10], [7, 10], [8, 9], [9, 8], [10, 8], [11, 9], [12, 10], [14, 10], [15, 10], [16, 9], [17, 7], [18, 7],
     [19, 7], [20, 7], [21, 7], [22, 9], [23, 10], [25, 10], [26, 10], [27, 10], [28, 10], [30, 10], [31, 7], [32, 7], [33, 6], [34, 6],
     [38, 6], [39, 6], [40, 6], [41, 7], [42, 7], [43, 9], [44, 8], [45, 7], [46, 8], [47, 9], [48, 10], [49, 10], [51, 10], [52, 10],
@@ -178,7 +180,7 @@ KinanLevels.register({
     [2, 'MOM', 'Granville Island! The market is built right on the docks. Ooh, look at those cherries...', 4],
     [28, 'KINAN', 'Awnings! I can bounce up them onto the roofs.', 3],
     [94, 'SHAD', 'Rope pulleys! Stand on one and it sinks, and its partner goes up. Ride it up to that gift!', 4.2],
-    [104, 'DAD', 'Boats tied up all along the dock. Roof to roof, boat to boat, bud!', 3.6],
+    [104, 'DAD', 'Boats tied up all along the dock. Roof to roof, boat to boat, bud! Sea what I did there?', 3.6],
     [161, 'CHENOA', 'The painted silos! They look like giants!', 3],
     [243, 'SHAD', "Glitchy's heading for the big silver ball across False Creek. That's Science World!", 4],
     [255, 'KINAN', "The toy stall at the kids market! That's where I got my foam block pickaxe when I was seven!", 4.4],   /* the age-7 memory (story bible) */

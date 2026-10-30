@@ -1,7 +1,9 @@
 import { defineConfig, devices } from '@playwright/test';
 
 const SKELETON_URL = 'http://127.0.0.1:4175';
-const LEGACY_URL = 'http://127.0.0.1:4174';
+/* KVM_PORT lets two copies of the repo (git worktrees) run their tests at once; 4174 by default */
+const PORT = process.env.KVM_PORT || '4174';
+const LEGACY_URL = `http://127.0.0.1:${PORT}`;
 
 /* Legacy-first decision: the real game is the root index.html, so the default
    gate runs the legacy regression + quarantine suites against it (any
@@ -11,7 +13,7 @@ const SKELETON = process.env.KV_SKELETON === '1';
 const SKELETON_SPECS = ['**/smoke.spec.ts', '**/gameplay.spec.ts'];
 
 const legacyServer = {
-  command: 'node ../tools/preview-server.mjs --root .. --port 4174',
+  command: `node ../tools/preview-server.mjs --root .. --port ${PORT}`,
   url: LEGACY_URL + '/index.html',
   reuseExistingServer: false,
   timeout: 60_000,
@@ -30,7 +32,10 @@ export default defineConfig({
   fullyParallel: true,
   /* Bound concurrent software-WebGL contexts. A 10-worker local run left a
      Firefox renderer unresponsive; the identical test passed in isolation. */
-  workers: process.env.CI ? 2 : 4,
+  workers: process.env.CI ? 2 : 1,   /* the laptop is shared and runs hot (~/claude-coord README: 1 worker) */
+  /* every run takes the shared heavy-job lock first and gives it back after (tests/coord-lock.ts) */
+  globalSetup: './tests/coord-global-setup.ts',
+  globalTeardown: './tests/coord-global-teardown.ts',
   forbidOnly: !!process.env.CI,
   retries: 0,
   reporter: [['list']],

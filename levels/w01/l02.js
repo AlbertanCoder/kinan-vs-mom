@@ -47,8 +47,12 @@ KinanLevels.register({
            [93, 3, 'heart'], [148, 2, 'hat']],
     brick: [[49, 9], [51, 9], [102, 9], [104, 9]],
     spring: [[140, 12]],          /* the bouncy cushion, flush with the floor */
-    shelf: [[92, 6], [93, 6], [94, 6], [147, 5], [148, 5], [149, 5], [150, 5]]
+    shelf: [[92, 6], [93, 6], [94, 6], [147, 5], [148, 5], [149, 5], [150, 5]],
+    crack: [[21, 12], [22, 12], [23, 12]],   /* SLAM SPOT 1 (the lesson): cracked floorboards in the rug over a pocket of candles */
+    crate: [[119, 9], [119, 10]]             /* SLAM SPOT 2: two crates built into the TV unit, a shortcut down into the crawl space by the golden candle */
   },
+  open: [[21, 13, 23, 13]],                  /* the pocket under the cracked floorboards (solid floor under it) */
+  talk: [[17, 'KINAN', 'Cracked floorboards? Time for my famous BUTT SLAM!']],
   foes: [[22, 11, 'robot'], [38, 10, 'ball'], [64, 9, 'roomba'], [72, 11, 'ball'],
          [95, 8, 'robot'], [101, 11, 'ball'], [120, 8, 'teddy'], [131, 11, 'robot'], [154, 11, 'teddy']],
   candles: [[2, 11], [3, 11], [10, 8], [11, 8], [13, 8], [14, 8],
@@ -57,7 +61,8 @@ KinanLevels.register({
             [73, 10], [74, 9], [75, 8], [76, 9], [77, 10],
             [84, 9], [86, 8], [90, 7], [91, 6], [93, 5], [94, 5],
             [111, 10], [112, 9], [113, 8], [114, 9], [124, 11], [125, 11], [126, 11],
-            [140, 7], [140, 5], [143, 4], [144, 4], [145, 4], [147, 4], [149, 4], [157, 11], [158, 11]],
+            [140, 7], [140, 5], [143, 4], [144, 4], [145, 4], [147, 4], [149, 4], [157, 11], [158, 11],
+            [21, 13], [22, 13], [23, 13]],                                 /* SLAM SPOT 1: the pocket under the cracked floorboards */
   secrets: [
     { kind: 'visible', col: 93, row: 3, prize: 'heart' },           /* Secret-1: up the sectional, onto the lampshade */
     { kind: 'hidden', col: 118, row: 10, prize: 'GOLDEN CANDLE' },  /* Secret-2: inside the TV unit (crawl in from the right) */

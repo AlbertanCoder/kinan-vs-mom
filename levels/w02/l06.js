@@ -64,7 +64,9 @@ KinanLevels.register({
     [116, 7, 121, 7],                     /* S5 the salad bar's sneeze guard (its far-left underside hides a hard hat) */
     [123, 10, 128, 11]                    /* S5 the serving counter */
   ],
+  open: [[3, 13, 5, 13]],   /* SLAM SPOT (butt slam, 2026-10-29): the pocket under the cracked boards, solid floor under it */
   tiles: {
+    crack: [[3, 12], [4, 12], [5, 12]],   /* SLAM SPOT: cracked floorboards over a pocket of candles (a bonus, never needed) */
     gift: [[10, 6, 'popper'], [35, 6], [96, 8], [116, 7, 'hat'], [139, 5], [176, 8, 'heart'], [193, 4, 'gold']],
     brick: [[34, 6], [36, 6], [124, 6], [125, 6], [126, 6],
             [192, 4], [194, 4], [195, 4]],                     /* S8 the tray stack over the rack (the golden candle block sits in it at c193) */
@@ -73,6 +75,9 @@ KinanLevels.register({
             [190, 7], [191, 7], [192, 7], [193, 7], [194, 7], [195, 7], [196, 7], [197, 7], [198, 7], [199, 7]]   /* S8 the tray rack: the spring throws you onto its right end */
   },
   /* nothing stands on the kickers (S4) or waits at a puddle's landing; the cart on the conveyor rolls toward you */
+  talk: [   /* Dad's jokes, the wheeze-laugh, Mom's reactions (tools/dad-lines.mjs) */
+    [30, "DAD", "Quick one from camp, bud: why was the math book sad? Too many problems. Like your dad's jokes. Kidding!", 4.6]
+  ],
   foes: [[11, 8, 'egg'],
          [36, 8, 'cupcake'],
          [69, 8, 'cart'],
@@ -80,7 +85,7 @@ KinanLevels.register({
          [142, 5, 'cart'], [146, 3, 'plane'],
          [164, 11, 'egg'], [187, 11, 'toast'],
          [206, 11, 'wetsign']],
-  candles: [[3, 11], [4, 11], [8, 11], [9, 11], [10, 11], [11, 11],
+  candles: [[3, 13], [4, 13], [5, 13],[3, 11], [4, 11], [8, 11], [9, 11], [10, 11], [11, 11],
             [15, 10], [16, 9], [17, 9], [18, 9], [19, 9], [21, 10], [22, 9], [23, 9], [24, 10],
             [29, 10], [31, 9], [33, 8], [43, 10], [44, 9], [45, 8], [46, 9], [47, 10],
             [57, 8], [59, 6], [61, 4], [63, 2], [65, 2], [68, 11], [69, 11], [70, 11],

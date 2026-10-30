@@ -112,11 +112,11 @@ KinanLevels.register({
   goal: { col: 212, row: 7 },   /* the viewpoint: back down to the city */
   /* story bubbles as Kinan passes a column: [col, who, what they say, seconds] (subtitles only) */
   talk: [
-    [2, 'DAD', 'The Sea-to-Sky Highway. The ocean on one side and the mountains on the other!', 3.6],
+    [2, 'DAD', 'The Sea-to-Sky Highway! Ocean on one side, mountains on the other. Talk about a sea-nic route!', 3.6],
     [54, 'CHENOA', 'Howe Sound! Look at all the little islands.', 3],
     [82, 'MOM', 'Shannon Falls! Climb up beside the water, sweetie, and catch the candles in the spray.', 4.2],
     [133, 'SHAD', "That giant rock is the Stawamus Chief. Climbers come from all over the world. Let's go UP.", 4.4],
     [163, 'KINAN', 'I can see EVERYTHING from up here. The ocean, the islands... and that little rain cloud, all by itself.', 5],
-    [190, 'DAD', 'Back down the mountain, bud. Time to find Glitchy in the city.', 3.4]
+    [190, 'DAD', "Back down the mountain, bud. Let's find Glitchy in the city. I'm all peaked out anyway.", 3.4]
   ]
 });

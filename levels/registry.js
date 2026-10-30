@@ -14,7 +14,7 @@
   var ROWS = 15, T = 16, SCREEN = 27;
   var MIN_COLS = SCREEN, MAX_COLS = 1200;
   var ID_RE = /^([1-9]|1[01])-([1-8]|fort|secret|castle)$/;
-  var TOY_KEYS = ['gift', 'brick', 'spring', 'shelf', 'board'];   /* board: a wooden taekwondo board, only a KICK breaks it (2026-10-28) */
+  var TOY_KEYS = ['gift', 'brick', 'spring', 'shelf', 'board', 'crack', 'crate'];   /* board: a wooden taekwondo board, only a KICK breaks it (2026-10-28) · crack, crate: only a BUTT SLAM breaks them (2026-10-29) */
   /* what a gift block can pop (index.html hitGift/giveItem); 'gold' marks the
      golden-candle block — its reward is not wired yet (ER-6), it pops nothing */
   var GIFT_PRIZES = ['candle', 'popper', 'cake', 'heart', 'hat', 'lasso', 'umbrella', 'gold'];
@@ -23,7 +23,8 @@
     'moose', 'foreman', 'conductor', 'chenoa', 'barker', 'bronco',   /* B2: Worlds 3-5 */
     'magpies', 'robo-rex',   /* World 6: the magpie flock (6-fort), Robo-Rex (6-castle) */
     'banana-slug', 'drizzle',   /* World 7: the Giant Banana Slug (7-fort), Drizzle (7-castle) */
-    'octopus', 'raccoon-king'];   /* World 8: the Big Octopus (8-fort), the Raccoon King (8-castle) */
+    'octopus', 'raccoon-king',   /* World 8: the Big Octopus (8-fort), the Raccoon King (8-castle) */
+    'hunter-drone', 'firewall'];   /* World 9: the hunter drone (9-fort), Annie's Firewall (9-castle) */
   /* the six family pets (index.html PET_DEFS): cat1 Ginger, dog1 Chikastino, cat2 Vader, dog2 Hunter, cat3 Duchess, cat4 Tuxedo */
   var PET_IDS = ['cat1', 'dog1', 'cat2', 'dog2', 'cat3', 'cat4'];
   var GAP_CAP = [3, 4, 5];   /* Playbook §2: widest pit in act 1 / 2 / 3 (thirds of the level) */
@@ -85,7 +86,7 @@
       var inside = function (cell) { return isCell(cell) && cell[0] >= 0 && cell[0] < a.cols && cell[1] >= 0 && cell[1] < ROWS; };
       var tiles = a.tiles || {};
       Object.keys(tiles).forEach(function (key) {
-        if (TOY_KEYS.indexOf(key) < 0) { out.push(tag + 'tiles.' + key + ' is not a tile kind (gift, brick, spring, shelf, board)'); return; }
+        if (TOY_KEYS.indexOf(key) < 0) { out.push(tag + 'tiles.' + key + ' is not a tile kind (gift, brick, spring, shelf, board, crack, crate)'); return; }
         (tiles[key] || []).forEach(function (cell) { if (!inside(cell)) out.push(tag + 'tiles.' + key + ' cell ' + JSON.stringify(cell) + ' is outside the area'); });
       });
       (tiles.gift || []).forEach(function (cell) {
@@ -113,8 +114,9 @@
         if (!a.pet || typeof a.pet !== 'object' || PET_IDS.indexOf(a.pet.id) < 0 || !inside([a.pet.col, a.pet.row])) out.push(tag + 'pet must be { id: ' + PET_IDS.join(' | ') + ', col, row } inside the area');
       }
       (a.talk || []).forEach(function (t) {   /* World 6: a story line as Kinan passes a column (LEVEL-AUTHORING §4.4) */
-        if (!Array.isArray(t) || !isInt(t[0]) || t[0] < 0 || t[0] >= a.cols || typeof t[1] !== 'string' || !t[1] || typeof t[2] !== 'string' || !t[2] || t[2].length > 140 || (t[3] != null && !(typeof t[3] === 'number' && t[3] > 0 && t[3] <= 8))) {
-          out.push(tag + 'talk ' + JSON.stringify(t) + " must be [col, 'WHO', 'what they say' (up to 140 letters), seconds?] inside the area");
+        if (!Array.isArray(t) || !isInt(t[0]) || t[0] < 0 || t[0] >= a.cols || typeof t[1] !== 'string' || !t[1] || typeof t[2] !== 'string' || !t[2] || t[2].length > 140 || (t[3] != null && !(typeof t[3] === 'number' && t[3] > 0 && t[3] <= 8)) ||
+            (t[4] != null && ['wheeze', 'laugh', 'walkoff'].indexOf(t[4]) < 0)) {   /* t[4]: Dad's wheeze-laugh, Mom laughs, Mom walks off (2026-10-29) */
+          out.push(tag + 'talk ' + JSON.stringify(t) + " must be [col, 'WHO', 'what they say' (up to 140 letters), seconds?, 'wheeze'|'laugh'|'walkoff'?] inside the area");
         }
       });
       if (a.goal) goals++;
@@ -150,7 +152,7 @@
       if (!Array.isArray(r)) return;
       for (var c = r[0]; c <= r[2]; c++) if (inArena(c, r[1])) { out.push(tag + 'arena must be open ground: solid ' + JSON.stringify(r) + ' stands inside it (desks are shelves)'); return; }
     });
-    ['gift', 'brick', 'spring', 'board'].forEach(function (key) {
+    ['gift', 'brick', 'spring', 'board', 'crack', 'crate'].forEach(function (key) {
       ((a.tiles || {})[key] || []).forEach(function (cell) { if (isCell(cell) && inArena(cell[0], cell[1])) out.push(tag + 'arena must be open ground: tiles.' + key + ' ' + JSON.stringify(cell) + ' stands inside it'); });
     });
   }

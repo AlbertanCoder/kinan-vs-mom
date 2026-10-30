@@ -8,7 +8,7 @@ import { expect, test, type ConsoleMessage, type Page } from '@playwright/test';
    · A phone held upright: menus and the map still work; a level pauses behind the rotate screen, which always explains how to
      turn Auto-rotate / the rotation lock off, and offers "Play sideways" where the browser can turn the game itself.
    · Auto LITE: a slow device switches to LITE effects once, with a note; choosing in Settings turns that off for good. */
-const BASE = 'http://127.0.0.1:4174/index.html';
+const BASE = `http://127.0.0.1:${process.env.KVM_PORT || 4174}/index.html`;
 const DEV_URL = `${BASE}?devtools=1`;
 const CURRENT = 'kinan-remaster-v1';
 const SAVED = { introSeen: true, levelsBeaten: { '1-1': 1 }, wmap: { w: 1, at: 1 } };

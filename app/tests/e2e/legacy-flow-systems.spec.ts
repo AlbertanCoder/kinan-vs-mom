@@ -11,8 +11,8 @@ import { expect, test, type ConsoleMessage, type Page } from '@playwright/test';
  * The seam walk-through suite (legacy-flow-seam-*.spec.ts) lands with the
  * M4/M5 seam engine, mapped to Contract §4.
  */
-const DEV_URL = 'http://127.0.0.1:4174/index.html?devtools=1';
-const PROD_URL = 'http://127.0.0.1:4174/index.html';
+const DEV_URL = `http://127.0.0.1:${process.env.KVM_PORT || 4174}/index.html?devtools=1`;
+const PROD_URL = `http://127.0.0.1:${process.env.KVM_PORT || 4174}/index.html`;
 const CURRENT = 'kinan-remaster-v1';
 
 type Dev = {

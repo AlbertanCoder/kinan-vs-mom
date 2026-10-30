@@ -154,7 +154,8 @@ KinanLevels.register({
     [84, 'MILO', "Kinan! It's Milo, on video call! See the BUILD block over your head? Bump it. I'll snap that wall into a bridge!", 5.5],
     [100, 'KINAN', 'Thanks, Milo! Best builder in the whole world.', 2.8],
     [150, 'MOM', 'We are NOT buying anything, sweetie. ...Okay. ONE thing.', 3.2],
+    [30, "GRANDPA", "Grandpa on the video call! What do you call a toy that's lost? A toy story! ...Tell your dad that one's mine.", 4.6],
     [199, 'SHAD', 'Bonk the brick off the top of that spring first, then bounce. Top shelf, buddy!', 3.8],
-    [244, 'DAD', 'The raccoon ran out the back door, toward the aquarium!', 3]
+    [244, 'DAD', 'The raccoon ran out the back door, toward the aquarium! Something smells fishy.', 3]
   ]
 });

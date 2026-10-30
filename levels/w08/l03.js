@@ -83,7 +83,9 @@ KinanLevels.register({
     [30, 9, 32, 11], [34, 9, 36, 11], [38, 9, 40, 11], [42, 9, 44, 11], [46, 9, 48, 11], [50, 9, 52, 11], [54, 9, 56, 11],   /* S2-S3 THE TORONTO SIGN */
     [172, 3, 177, 4]   /* S7 THE COUNCIL CHAMBER, hanging over the podium (the hidden gift is one of its panels) */
   ],
+  open: [[4, 13, 6, 13]],   /* SLAM SPOT (butt slam, 2026-10-29): the pocket under the cracked boards, solid floor under it */
   tiles: {
+    crack: [[4, 12], [5, 12], [6, 12]],   /* SLAM SPOT: cracked floorboards over a pocket of candles (a bonus, never needed) */
     gift: [
       [5, 8],   /* S1 */
       [39, 5],   /* S2 over the R */
@@ -122,7 +124,7 @@ KinanLevels.register({
     [224, 4, 'goose'], [233, 8, 'zamboni'], [238, 8, 'raccoon'],   /* S9 */
     [256, 11, 'raccoon']   /* S10 */
   ],
-  candles: [
+  candles: [[4, 13], [5, 13], [6, 13],
     [3, 10], [8, 11], [10, 11], [12, 11], [14, 11], [16, 11], [18, 11], [20, 11], [22, 11], [25, 11],
     [27, 11], [29, 10], [31, 8], [33, 7], [35, 8], [37, 7], [39, 8], [41, 7], [43, 8], [45, 7], [47, 8], [49, 7], [51, 8], [53, 7],
     [55, 8], [57, 7], [62, 11], [64, 11], [66, 11], [69, 7], [71, 7], [73, 7], [76, 10], [78, 11], [80, 11],
@@ -144,7 +146,9 @@ KinanLevels.register({
   spawn: { col: 2, row: 11 },
   goal: { col: 266, row: 11 },   /* the street to the CN Tower */
   talk: [
-    [2, 'DAD', 'Nathan Phillips Square! That is City Hall: two curved towers. And look, the big TORONTO sign!', 4.4],
+    [2, 'DAD', "Nathan Phillips Square! City Hall's two curved towers, and the big TORONTO sign. Very sign-ificant.", 4.4],
+    [30, "DAD", "What do you call a skating raccoon? A... hee hee... a trash... HAHA... a trash... I can't—", 4, "wheeze"],
+    [30, "MOM", "...a trash panda on ice. Oh, Robin. That was actually funny!", 3.4, "laugh"],
     [15, 'MOM', 'Careful, sweetie, that is ice. Slow to start, slow to stop.', 3],
     [28, 'KINAN', "I'm climbing the sign. Every. Single. Letter.", 3],
     [62, 'CHENOA', 'The skating rink! Keep running on the ice, little bro, and you will be fine.', 3.8],

@@ -110,6 +110,10 @@ KinanLevels.register({
     ]
   },
   /* raccoons and baby dinos on the sidewalks, magpies and a crow overhead; nothing waits at a lip */
+  talk: [   /* Dad's jokes, the wheeze-laugh, Mom's reactions (tools/dad-lines.mjs) */
+    [30, "DAD", "Why did the T-Rex never clap? Because his... hee hee... his arms are... HAHA... I can't—", 4, "wheeze"],
+    [30, "CHENOA", "...too short. Dad, the dinosaur was right there. You had ONE job.", 3.4]
+  ],
   foes: [
     [14, 9, 'raccoon'],   /* S1 */
     [40, 11, 'babydino'],   /* S2 */

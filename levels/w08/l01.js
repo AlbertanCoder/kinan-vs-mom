@@ -160,10 +160,10 @@ KinanLevels.register({
   talk: [
     [2, 'KINAN', "Toronto! Glitchy's parcel came off the cargo plane. It has to be in here somewhere!", 4],
     [10, 'MOM', 'A moving walkway! Stand still and it carries you, sweetie.', 3.2],
-    [43, 'DAD', "That one's going the wrong way, bud. Just keep running.", 3],
+    [43, 'DAD', "That one's going the wrong way, bud. Just keep running. It's a walk in the park, backwards.", 3],
     [84, 'CHENOA', 'Baggage claim! The carousels go round and round. Ride them, little bro!', 3.6],
     [150, 'SHAD', 'I just saw a RACCOON run past with a shiny parcel. Inside the airport!', 3.8],
     [244, 'KINAN', "That raccoon's got Glitchy! HEY! Come back!", 3],
-    [259, 'DAD', 'Welcome to Toronto, everybody. Now where did that raccoon go?', 3.4]
+    [259, 'DAD', "Welcome to Toronto, everybody! Now where'd that raccoon go? Probably out bin-ge shopping.", 3.4]
   ]
 });

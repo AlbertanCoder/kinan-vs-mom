@@ -89,7 +89,9 @@ KinanLevels.register({
     [189, 10, 189, 11], [191, 8, 197, 8],   /* S8 a stump and the third nurse log */
     [218, 4, 221, 11], [227, 4, 229, 11]   /* S9 THE CANOPY JUMP: cedar A (a broken top, 4 wide: the run-up) and cedar B */
   ],
+  open: [[3, 13, 5, 13]],   /* SLAM SPOT (butt slam, 2026-10-29): the pocket under the cracked boards, solid floor under it */
   tiles: {
+    crack: [[3, 12], [4, 12], [5, 12]],   /* SLAM SPOT: cracked floorboards over a pocket of candles (a bonus, never needed) */
     gift: [
       [4, 8, 'popper'],   /* S1 */
       [30, 8],   /* S2 */
@@ -138,7 +140,7 @@ KinanLevels.register({
     [248, 6, 'umbrellabat'], [253, 11, 'slug'], [267, 11, 'slug'],   /* S10 */
     [281, 11, 'slug']   /* S11 */
   ],
-  candles: [
+  candles: [[3, 13], [4, 13], [5, 13],
     [1, 11], [2, 11], [3, 11], [6, 11], [7, 11], [8, 9], [9, 9], [10, 10], [11, 10], [12, 9], [13, 9], [14, 10], [15, 11], [16, 9],
     [18, 7], [19, 7], [20, 7], [21, 7], [22, 7], [23, 7], [19, 11], [21, 11], [26, 11], [27, 11], [28, 11], [29, 11], [31, 11], [32, 11],
     [33, 11], [34, 8], [35, 8], [34, 5], [35, 5], [36, 3], [37, 3], [38, 7], [39, 7], [40, 10], [41, 11], [42, 11], [44, 11], [45, 11],
@@ -176,7 +178,9 @@ KinanLevels.register({
     [29, 'KINAN', "A tree is in the way. I'll climb it! Branch, branch, TOP!", 3.4],
     [56, 'SHAD', "Careful, bud: banana slugs. They're slow... and VERY slimy.", 3.4],
     [58, 'KINAN', 'Squishy green moss! It slows me right down.', 2.8],
-    [100, 'DAD', "A raccoon just took my sandwich. That's fine. I wasn't hungry.", 3.4],
+    [100, 'DAD', 'A raccoon just took my sandwich! Classic bandit. He even wore the mask.', 3.4],
+    [30, "DAD", "Why are trees in Stanley Park so good at parties? Because they really know how to... hee... HAHA... leave— I can't—", 4.4, "wheeze"],
+    [30, "MOM", "...how to LEAF. Robin, breathe. Kinan, keep running.", 3.2, "laugh"],
     [110, 'KINAN', 'A tree fell over! Do I go over it or under it?', 2.8],
     [213, 'SHAD', 'Treetop to treetop, bud. Run and JUMP!', 2.8],
     [284, 'CHENOA', 'I can see a green bridge through the trees! Glitchy went that way.', 3.4]

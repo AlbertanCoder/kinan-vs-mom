@@ -6,7 +6,7 @@ import { expect, test, type ConsoleMessage, type Page } from '@playwright/test';
  * features working: the styled title, Story mode, Family Brawl, Family Kart,
  * Builder, Party Shop and How to play — with zero console/page errors.
  */
-const GAME_URL = 'http://127.0.0.1:4174/index.html';
+const GAME_URL = `http://127.0.0.1:${process.env.KVM_PORT || 4174}/index.html`;
 
 function watchErrors(page: Page): string[] {
   const errors: string[] = [];

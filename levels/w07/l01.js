@@ -153,12 +153,12 @@ KinanLevels.register({
   goal: { col: 293, row: 11 },   /* Dad's truck waits at the city limits */
   /* story bubbles as Kinan passes a column: [col, who, what they say, seconds] (subtitles only) */
   talk: [
-    [2, 'DAD', "Over the mountains and down to the ocean. Vancouver's at the bottom of this highway, bud.", 4.4],
+    [2, 'DAD', "Over the mountains, down to the ocean, bud. Vancouver's at the bottom. It's all downhill from here!", 4.4],
     [21, 'KINAN', 'Why is it raining? It was sunny on the other side of the mountains!', 3.6],
     [33, 'MOM', 'Tunnel coming up! Keep your head down in there, sweetie.', 3.2],
     [100, 'SHAD', "Glitchy's tour bus went into the next tunnel. I can hear him giggling in there.", 4],
     [196, 'CHENOA', 'Look how far down the city is! All those glass towers!', 3.2],
     [258, 'KINAN', "There's a little grey cloud over the city. It's only raining in ONE spot...", 4],
-    [284, 'DAD', 'Welcome to Vancouver! First stop: the ocean.', 3]
+    [284, 'DAD', "Welcome to Vancouver! First stop: the ocean. Let's sea what it's got.", 3]
   ]
 });

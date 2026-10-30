@@ -59,6 +59,9 @@ KinanLevels.register({
     spring: [[166, 11]]
   },
   /* paint blobs hop, brushes fly. Nothing stands at a stepping stone or a bench. */
+  talk: [   /* Dad's jokes, the wheeze-laugh, Mom's reactions (tools/dad-lines.mjs) */
+    [30, "DAD", "Dad again, bud! What do you call a sad strawberry? A blue-berry! ...Hello? Did you hang up?", 4.4]
+  ],
   foes: [[11, 6, 'paint'],
          [41, 8, 'paint'],
          [77, 9, 'paint'], [69, 6, 'brush'],

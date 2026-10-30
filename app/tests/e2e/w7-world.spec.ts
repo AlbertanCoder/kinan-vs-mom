@@ -14,7 +14,7 @@ import { expect, test, type ConsoleMessage, type Page } from '@playwright/test';
      released, 2026-10-29: see w8-world.spec.ts; World 9's sign is checked there and in c1-cutscenes.spec.ts),
    - 7-6 shows the foam block pickaxe memory, and no page errors anywhere. */
 
-const BASE = 'http://127.0.0.1:4174/index.html';
+const BASE = `http://127.0.0.1:${process.env.KVM_PORT || 4174}/index.html`;
 const DEV_URL = `${BASE}?devtools=1`;
 const CURRENT = 'kinan-remaster-v1';
 

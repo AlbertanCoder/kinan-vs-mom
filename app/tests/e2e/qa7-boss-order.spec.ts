@@ -8,7 +8,7 @@ import { expect, test, type ConsoleMessage, type Page } from '@playwright/test';
    other boss tests play: the boss bot (it reads only what a kid can see) fights each castle boss from
    its checkpoint, from four different entries; the hits it takes must climb World 3 < World 4 < World 5,
    and it never loses a fight (the fights stay fair). */
-const BASE = 'http://127.0.0.1:4174/index.html';
+const BASE = `http://127.0.0.1:${process.env.KVM_PORT || 4174}/index.html`;
 const DEV_URL = `${BASE}?devtools=1`;
 const ENTRIES: [number, number][] = [[0, 0], [-16, 25], [16, 50], [8, 100]];
 

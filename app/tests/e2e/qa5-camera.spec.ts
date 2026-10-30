@@ -6,7 +6,7 @@ import { expect, test, type ConsoleMessage, type Page } from '@playwright/test';
    comes within 24 px of the top edge) and settles back down after. The jump numbers (§1.1) are
    untouched. Each level is played the way QA measured it — auto(…, { run: true }), foes on — with
    Math.random seeded so every browser plays the same run; Kinan's top must stay inside the picture. */
-const BASE = 'http://127.0.0.1:4174/index.html';
+const BASE = `http://127.0.0.1:${process.env.KVM_PORT || 4174}/index.html`;
 const DEV_URL = `${BASE}?devtools=1`;
 const LEVELS = ['1-1', '3-5', '3-6', '3-7', '3-8', '4-4', '4-6', '4-8', '5-7'];
 

@@ -5,8 +5,8 @@ import { expect, test, type ConsoleMessage, type Page } from '@playwright/test';
      first one and unlocked with a silent blip, and every line after reuses that one element.
    - Chenoa's first plate throw no longer says "Bounce it back!" (plates can't be bounced): "Hot plate! Move!".
    - The 3D level's title card names the real level, not always "KINAN'S 3D HOUSE". */
-const DEV_URL = 'http://127.0.0.1:4174/index.html?devtools=1';
-const BASE = 'http://127.0.0.1:4174/';
+const DEV_URL = `http://127.0.0.1:${process.env.KVM_PORT || 4174}/index.html?devtools=1`;
+const BASE = `http://127.0.0.1:${process.env.KVM_PORT || 4174}/`;
 type Arena = { state: string; line: string | null; gateL: number; voiceLog: string[] };
 type Dev = {
   storyInfo: () => { cur: string | null; log: { id: string }[] }; storyStop: () => boolean;
@@ -54,7 +54,8 @@ test.describe('V3 · iOS: one voice player, unlocked on the first tap', () => {
     await expect.poll(() => page.evaluate(() => (window as unknown as Win).__srcLog.some((s) => s.endsWith('audio/lines/w01/w01_kinan_19.mp3'))), { timeout: 15_000 }).toBe(true);
     await page.locator('#cutSkip').click();
     await page.waitForFunction(() => { const k = (window as unknown as Win).KINAN; return !!k && k.state().mounted && !k.state().busy; }, null, { timeout: 30_000 });
-    await expect.poll(() => page.evaluate(() => (window as unknown as Win).__k11.storyInfo().cur)).toBe('w01_shad_01');
+    /* 2026-10-29: World 1's intro was cut to 5 lines (Shad: no conversation over 5): after the bedroom it goes on with Mom */
+    await expect.poll(() => page.evaluate(() => (window as unknown as Win).__k11.storyInfo().cur)).toBe('w01_mom_01');
     const r = await page.evaluate(() => {
       const w = window as unknown as Win, k = w.__k11;
       k.playLevel('1-castle'); k.godMode(); k.clearFoes();
@@ -65,7 +66,7 @@ test.describe('V3 · iOS: one voice player, unlocked on the first tap', () => {
     });
     expect(r.log[0]).toMatch(/^data:audio\/wav;base64,/);                       /* the unlock blip, on the tap */
     expect(r.log.some((s) => s.endsWith('audio/lines/w01/w01_kinan_19.mp3'))).toBe(true);   /* the cutscene */
-    expect(r.log.some((s) => s.endsWith('audio/lines/w01/w01_shad_01.mp3'))).toBe(true);    /* the map intro */
+    expect(r.log.some((s) => s.endsWith('audio/lines/w01/w01_mom_01.mp3'))).toBe(true);     /* the map intro */
     expect(r.log.some((s) => s.endsWith('audio/lines/w01/w01_shad_02.mp3'))).toBe(true);
     expect(r.voice.length).toBeGreaterThan(0);
     expect(r.log.some((s) => s.endsWith(`audio/voice/${r.voice[0]}.mp3`))).toBe(true);

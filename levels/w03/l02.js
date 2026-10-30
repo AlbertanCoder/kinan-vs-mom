@@ -107,6 +107,10 @@ KinanLevels.register({
     ]
   },
   /* cones walk the roofs, the flag person's cones (hopcone) hop after you, gophers live on the shoulder, ravens patrol */
+  talk: [   /* Dad's jokes, the wheeze-laugh, Mom's reactions (tools/dad-lines.mjs) */
+    [30, "DAD", "What did the oil say to the pumpjack? Stop... hee hee... stop... HAHA... stop pumping me for... I can't—", 4.4, "wheeze"],
+    [30, "KINAN", "...for information. Dad. Breathe.", 2.6]
+  ],
   foes: [
       [25, 11, 'cone'], [40, 11, 'gopher'], [60, 6, 'cone'], [82, 4, 'crow'], [97, 9, 'cone'], [118, 7, 'cone'],
       [133, 11, 'hopcone'], [139, 4, 'crow'], [143, 6, 'cone'], [158, 11, 'gopher'], [177, 4, 'crow'], [178, 9, 'cone'],

@@ -67,7 +67,9 @@ KinanLevels.register({
     [70, 9, 76, 9], [70, 7, 73, 7], [70, 8, 70, 8],       /* taekwondo (2026-10-28): two sample lockers over the floor (walk under them); */
     [122, 9, 128, 9], [122, 7, 125, 7], [122, 8, 122, 8]  /* each one's board door faces right */
   ],
+  open: [[4, 13, 6, 13]],   /* SLAM SPOT (butt slam, 2026-10-29): the pocket under the cracked boards, solid floor under it */
   tiles: {
+    crack: [[4, 12], [5, 12], [6, 12]],   /* SLAM SPOT: cracked floorboards over a pocket of candles (a bonus, never needed) */
     gift: [[1, 3, 'gold'], [8, 8, 'popper'], [38, 4, 'candle'], [145, 8, 'candle'], [178, 8, 'heart']],
     spring: [[1, 12],                     /* the secret pad under the awning */
              [13, 12], [14, 12],          /* up the lab cabinet */
@@ -83,6 +85,10 @@ KinanLevels.register({
     board: [[73, 8], [125, 8]]    /* BONUS: hop onto a locker's ledge from the right and KICK its board: 2 candles inside each */
   },
   /* lab robots walk, the lab frogs hop at you, the spark flies over the machine */
+  talk: [   /* Dad's jokes, the wheeze-laugh, Mom's reactions (tools/dad-lines.mjs) */
+    [30, "DAD", "Dad on the phone! Why did the teacher wear sunglasses? Her students were so... hee... HAHA... bri— I can't—", 4.4, "wheeze"],
+    [30, "KINAN", "...so BRIGHT. Dad, I am literally at school right now.", 3.2]
+  ],
   foes: [[25, 11, 'robot'],
          [52, 6, 'robot'],                 /* a walker, not a seeker: it never waits at the top of the pads */
          [75, 11, 'robot'],
@@ -90,7 +96,7 @@ KinanLevels.register({
          [121, 11, 'robot'], [128, 11, 'puddlefrog'],
          [145, 11, 'robot'], [162, 11, 'robot'],
          [181, 11, 'robot']],
-  candles: [[2, 10], [2, 8], [2, 6], [6, 11], [7, 11], [12, 10], [13, 8], [14, 6], [16, 6], [18, 6], [20, 6],
+  candles: [[4, 13], [5, 13], [6, 13],[2, 10], [2, 8], [2, 6], [6, 11], [7, 11], [12, 10], [13, 8], [14, 6], [16, 6], [18, 6], [20, 6],
             [31, 9], [32, 8], [33, 9], [36, 11], [37, 11], [40, 9], [40, 7], [44, 6], [46, 6], [52, 6], [54, 6],
             [61, 11], [62, 11], [63, 4], [64, 3], [65, 4], [69, 11], [70, 11],
             [82, 11], [85, 10], [87, 3], [89, 3], [91, 3], [93, 3], [99, 11], [100, 11],

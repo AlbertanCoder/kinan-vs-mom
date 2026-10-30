@@ -65,7 +65,7 @@ KinanLevels.register({
             [122, 9], [123, 9], [124, 9], [125, 9], [126, 9],  /* S5 plank level with the tomato tower top */
             [151, 9], [152, 9], [153, 9], [154, 9], [155, 9]]  /* S6 plank over the 5-pit (catches the jump off the fence) */
   },
-  pipes: [[7, 11], [19, 11], [80, 11], [137, 11], [190, 11]],   /* sprinkler heads (ER-9) */
+  pipes: [[7, 11], [19, 11], [80, 11], [137, 11]],   /* sprinkler heads (ER-9); none on the run to the back gate (they are solid since 2026-10-29) */
   /* the neighbour throws newspapers; squirrels charge; bowling balls bounce. Nothing stands on a plank.
      In S7 the neighbour himself is the arena's boss (no foes on his lawn). */
   foes: [[14, 11, 'squirrel'],
@@ -73,7 +73,7 @@ KinanLevels.register({
          [65, 7, 'ball'], [69, 7, 'ball'],
          [82, 11, 'squirrel'], [93, 8, 'ball'],
          [120, 8, 'neighbor'], [131, 10, 'ball'],
-         [137, 11, 'squirrel'], [160, 11, 'ball']],
+         [140, 11, 'squirrel'], [160, 11, 'ball']],
   candles: [[3, 11], [4, 11], [9, 10], [10, 9], [11, 6], [20, 11], [21, 11], [23, 9], [24, 9],
             [29, 8], [30, 8], [34, 7], [35, 7], [43, 6], [50, 7], [51, 6], [52, 7],
             [57, 10], [59, 9], [61, 8], [64, 6], [66, 6], [68, 6], [70, 6],

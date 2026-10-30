@@ -10,7 +10,7 @@ import { expect, test, type ConsoleMessage, type Page } from '@playwright/test';
    integrity, state derivation, plaque targeting); the LOOK itself is
    VISUAL = UNVERIFIED until the Producer reviews it in person. */
 
-const DEV_URL = 'http://127.0.0.1:4174/index.html?devtools=1';
+const DEV_URL = `http://127.0.0.1:${process.env.KVM_PORT || 4174}/index.html?devtools=1`;
 const CURRENT = 'kinan-remaster-v1';
 
 type NodeInfo = { stage: number; kind: string; open: boolean; done: boolean };

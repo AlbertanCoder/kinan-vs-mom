@@ -4,7 +4,7 @@ import { expect, test, type ConsoleMessage, type Page } from '@playwright/test';
    the picture fits the screen with its ◀ ▶ PLAY buttons beside it (phone sideways) or under it
    (phone upright, tablet), nothing scrolls, every button is a comfortable thumb target and never
    covers the picture; with the network gone, a reload still plays (sw.js precache). */
-const BASE = 'http://127.0.0.1:4174/index.html';
+const BASE = `http://127.0.0.1:${process.env.KVM_PORT || 4174}/index.html`;
 
 type Box = { x: number; y: number; width: number; height: number };
 type MapState = { mounted: boolean; busy: boolean; world: number | null; at: number; walking: boolean; banner: string | null };

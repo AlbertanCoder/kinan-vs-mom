@@ -80,7 +80,9 @@ KinanLevels.register({
     [40, 5, 44, 7],   /* S2 THE WHEELHOUSE, on the upper deck */
     [234, 1, 237, 9]   /* S9 THE OLD LIGHTHOUSE: the path runs under its arch (rows 10-11) */
   ],
+  open: [[4, 13, 6, 13]],   /* SLAM SPOT (butt slam, 2026-10-29): the pocket under the cracked dock boards, solid floor under it */
   tiles: {
+    crack: [[4, 12], [5, 12], [6, 12]],   /* SLAM SPOT: cracked dock boards over a pocket of candles (a bonus, never needed) */
     gift: [
       [5, 8],   /* S1 */
       [36, 5],   /* S2 over the upper deck */
@@ -120,7 +122,7 @@ KinanLevels.register({
     [218, 11, 'raccoon'], [225, 7, 'seagull'], [240, 11, 'puddlefrog'],   /* S9 */
     [250, 11, 'raccoon']   /* S10 */
   ],
-  candles: [
+  candles: [[4, 13], [5, 13], [6, 13],
     [3, 10], [8, 11], [11, 11], [14, 11], [16, 10], [17, 9], [18, 8], [19, 8], [20, 8], [21, 9], [23, 10], [25, 10],
     [27, 10], [29, 10], [31, 10], [33, 10], [35, 10], [37, 10], [39, 10], [41, 10], [43, 10], [45, 10], [47, 10], [49, 10], [51, 10], [53, 10],
     [31, 7], [33, 7], [35, 7], [37, 7], [46, 7], [48, 7], [50, 7],
@@ -143,12 +145,12 @@ KinanLevels.register({
   spawn: { col: 2, row: 11 },
   goal: { col: 266, row: 11 },   /* the ferry home */
   talk: [
-    [2, 'DAD', 'All aboard the ferry to the Toronto Islands! The raccoon snuck on board with Glitchy.', 4],
+    [2, 'DAD', 'All aboard the ferry to the Toronto Islands! The raccoon snuck on with Glitchy. Ferry sneaky.', 4],
     [22, 'CHENOA', 'Little bro! Jump up to the top deck. The view of the city is amazing!', 3.6],
     [58, 'KINAN', 'Little boats! They float back and forth. I can ride one across!', 3.2],
     [95, 'MOM', 'Centre Island! Sand, sun... and geese. So many geese, sweetie.', 3.4],
     [151, 'SHAD', 'The raccoon is heading for the old lighthouse at the end of the island.', 3.6],
     [229, 'KINAN', 'The old lighthouse! The oldest one on the whole lake. Something in that arch is glinting...', 4.2],
-    [255, 'DAD', 'Back on the ferry, bud. That raccoon swam for it! Next stop: Kensington Market.', 3.8]
+    [255, 'DAD', 'Back on the ferry, bud. That raccoon swam for it! Next stop: Kensington Market. Shore thing.', 3.8]
   ]
 });

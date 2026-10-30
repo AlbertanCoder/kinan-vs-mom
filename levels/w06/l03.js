@@ -73,7 +73,9 @@ KinanLevels.register({
   solid: [
     [22, 10, 22, 11]   /* S1 a trail marker post */
   ],
+  open: [[4, 13, 6, 13]],   /* SLAM SPOT (butt slam, 2026-10-29): the pocket under the cracked boards, solid floor under it */
   tiles: {
+    crack: [[4, 12], [5, 12], [6, 12]],   /* SLAM SPOT: cracked floorboards over a pocket of candles (a bonus, never needed) */
     gift: [
       [4, 8, 'popper'],   /* S1 */
       [40, 8],   /* S2 */
@@ -116,7 +118,7 @@ KinanLevels.register({
     [248, 6, 'magpie'], [256, 6, 'crow'], [266, 11, 'squirrel'],   /* S10 */
     [272, 11, 'gopher']   /* S11 */
   ],
-  candles: [
+  candles: [[4, 13], [5, 13], [6, 13],
     [2, 11], [3, 11], [4, 11], [5, 11], [6, 11], [7, 11], [8, 11], [9, 9], [10, 8], [11, 8], [12, 9], [13, 10], [14, 10], [15, 10],
     [16, 10], [17, 8], [18, 7], [19, 8], [20, 9], [21, 9], [23, 9], [25, 9], [28, 9], [29, 9], [30, 10], [34, 11], [35, 9], [36, 8],
     [37, 8], [38, 9], [39, 11], [40, 11], [41, 11], [42, 11], [43, 9], [44, 8], [45, 8], [46, 9], [47, 11], [48, 11], [50, 11], [52, 11],

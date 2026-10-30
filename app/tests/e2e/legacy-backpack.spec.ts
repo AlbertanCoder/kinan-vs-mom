@@ -1,6 +1,6 @@
 import { expect, test, type ConsoleMessage, type Page } from '@playwright/test';
 
-const GAME_URL = 'http://127.0.0.1:4174/index.html';
+const GAME_URL = `http://127.0.0.1:${process.env.KVM_PORT || 4174}/index.html`;
 function watchErrors(page: Page): string[] {
   const errors: string[] = [];
   page.on('console', (msg: ConsoleMessage) => { if (msg.type() === 'error') errors.push(`console.error: ${msg.text()}`); });

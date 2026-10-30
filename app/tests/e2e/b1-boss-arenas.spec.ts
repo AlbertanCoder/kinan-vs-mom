@@ -11,7 +11,7 @@ import { expect, test, type ConsoleMessage, type Page } from '@playwright/test';
    __k11.arenaInfo(). The bot only reads what a kid can see: the boss's pose,
    the floor marks, where a throw is headed, what is rolling at him. */
 
-const BASE = 'http://127.0.0.1:4174/index.html';
+const BASE = `http://127.0.0.1:${process.env.KVM_PORT || 4174}/index.html`;
 const DEV_URL = `${BASE}?devtools=1`;
 const CURRENT = 'kinan-remaster-v1';
 
@@ -66,7 +66,9 @@ async function boot(page: Page): Promise<void> {
   await page.addInitScript(({ key, raw }) => {
     if (sessionStorage.getItem('kv-seeded')) return;
     const data = JSON.parse(raw);
-    data.pets = { ids: [], names: {} };
+    /* the plain bot plays plain Kinan: since fixes run 2 a rescued pet follows by itself (Ginger from 1-1 jumps higher and the
+       bot overshoots, dies 5 times, Glitchy's offer pauses the run); soloCat/soloDog keep rescues at home, as before */
+    data.pets = { ids: [], names: {}, soloCat: true, soloDog: true };
     delete data.explorer;
     localStorage.setItem(key, JSON.stringify(data));
     sessionStorage.setItem('kv-seeded', '1');

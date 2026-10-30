@@ -5,10 +5,11 @@ import { expect, test, type ConsoleMessage, type Page } from '@playwright/test';
    bible: Ginger 1-1, Chikastino 1-5, Vader 2-4, Hunter 3-3, Duchess 4-castle, Tuxedo 5-fort). The
    crate glows with a gold arrow over it and the pet calls out ("MEOW?" / "WOOF?") as Kinan comes
    near; walking into it rescues the pet: it joins the collection, Kinan's "joins the team" line plays
-   at that moment (it used to wait for LEVEL CLEAR), and the pet shows on the Pets screen, ready to
-   equip. Nothing is equipped for him: he picks who comes along (Ginger's higher jump carries further
-   than the levels' jumps were built for, so taking her is his choice). */
-const BASE = 'http://127.0.0.1:4174/index.html';
+   at that moment (it used to wait for LEVEL CLEAR), and the pet shows on the Pets screen.
+   Fixes run 2 (Shad, on World 2-3: "I haven't unlocked a pet yet"): the first cat and the first dog
+   rescued join the team for real (equipped, following Kinan at once, "GINGER JOINED THE TEAM!");
+   a later rescue joins the collection without replacing the one following. */
+const BASE = `http://127.0.0.1:${process.env.KVM_PORT || 4174}/index.html`;
 const DEV_URL = `${BASE}?devtools=1`;
 
 type Story = { cur: string | null; queue: string[]; log: { id: string }[] };
@@ -76,13 +77,13 @@ test.describe('QA fix: the six pets can be rescued', () => {
       expect(r.cleared, r.id).toBe(true);
       expect(r.atRescue, `${r.id}: rescued on the way`).not.toBeNull();
       expect(r.atRescue, `${r.id}: the joins-the-team line is said at the rescue`).toContain(r.line);
-      if (r.id === '1-1') expect(r.rescueToast, r.id).toContain('joined your collection');   /* (later on, Shad's drop-in banner can share that moment) */
+      if (r.id === '1-1') expect(r.rescueToast, r.id).toContain('GINGER JOINED THE TEAM!');   /* fixes run 2: the pet joins the team at the rescue */
       expect(r.said, `${r.id}: the pet line was heard to the end`).toBe(1);
     }
     expect([...out.pets.ids].sort()).toEqual(['cat1', 'cat2', 'cat3', 'cat4', 'dog1', 'dog2']);
-    /* nothing was equipped for him: he picks on the Pets screen */
-    expect(out.pets.equippedCat).toBeNull();
-    expect(out.pets.equippedDog).toBeNull();
+    /* fixes run 2: the first cat (Ginger, 1-1) and the first dog (Chikastino, 1-5) joined the team; later rescues did not replace them */
+    expect(out.pets.equippedCat).toBe('cat1');
+    expect(out.pets.equippedDog).toBe('dog1');
     expect(errors).toEqual([]);
   });
 
@@ -170,17 +171,17 @@ test.describe('QA fix: the six pets can be rescued', () => {
       k.freeze(true);
     }, PETS);
     expect([...(await page.evaluate(() => (window as unknown as Win).__k11.progress().pets.ids))].sort()).toEqual(['cat1', 'cat2', 'cat3', 'cat4', 'dog1', 'dog2']);
-    /* a fresh load (the rescues were saved), then Pets: all six found, none taken along yet */
+    /* a fresh load (the rescues were saved), then Pets: all six found; the first cat and dog rescued joined the team (fixes run 2) */
     await page.goto(DEV_URL);
     await page.waitForFunction(() => !!(window as unknown as Win).__k11 && (window as unknown as Win).KinanLevels?.ready);
-    await page.locator('#menuBtn').click(); /* 2026-10-28: Pets / Shop / How to play are in THE MENU (c2-menu.spec.ts) */ 
+    await page.locator('#menuBtn').click(); /* 2026-10-28: Pets / Shop / How to play are in THE MENU (c2-menu.spec.ts) */
     await page.locator('#petsBtnP').click();
     await expect(page.locator('.petcard.locked')).toHaveCount(0);
     for (const [, , name] of PETS) await expect(page.locator('.petcard').filter({ hasText: name })).toHaveCount(1);
-    await expect(page.locator('.petcard.on')).toHaveCount(0);
-    /* take Ginger, then swap her for Duchess, and take Hunter: one cat and one dog */
-    await page.locator('.petcard[data-equip="cat1"]').click();
+    await expect(page.locator('.petcard.on')).toHaveCount(2);
     await expect(page.locator('.petcard[data-equip="cat1"]')).toHaveClass(/\bon\b/);
+    await expect(page.locator('.petcard[data-equip="dog1"]')).toHaveClass(/\bon\b/);
+    /* swap Ginger for Duchess, and Chikastino for Hunter: still one cat and one dog */
     await page.locator('.petcard[data-equip="cat3"]').click();
     await page.locator('.petcard[data-equip="dog2"]').click();
     await expect(page.locator('.petcard[data-equip="cat3"]')).toHaveClass(/\bon\b/);
@@ -197,6 +198,90 @@ test.describe('QA fix: the six pets can be rescued', () => {
     });
     expect(follow).toMatchObject({ equippedCat: 'cat3', liveCats: 1, liveDogs: 1 });
     expect(follow.dogs.map((d) => d.id)).toEqual(['dog2']);
+    expect(errors).toEqual([]);
+  });
+});
+
+/* Fixes run 2 (Shad, on World 2-3: "I haven't unlocked a pet yet"): a rescue left both slots empty, so no pet followed
+   Kinan unless he found the Pets menu. Now the first cat and the first dog rescued join the team on the spot. */
+type PetLive = { equippedCat: string | null; equippedDog: string | null; liveCats: number; ids: string[]; cats: { id: string; x: number; y: number }[] };
+type Win2 = Window & { __k11: Dev & { petInfo: () => PetLive; state: () => { px: number; py: number } } };
+test.describe('Fixes run 2: pets join the team', () => {
+  test('rescuing Ginger in 1-1 equips her, says GINGER JOINED THE TEAM!, and she follows Kinan at once', async ({ page }) => {
+    const errors = watchErrors(page);
+    await boot(page);
+    const r = await page.evaluate(() => {
+      const k = (window as unknown as Win2).__k11;
+      k.playLevel('1-1'); k.godMode(); k.clearFoes(); k.storyStop();
+      const before = k.petInfo();
+      const c = k.petSpot()!;
+      k.place(c.x - 40, c.y); k.step(5);
+      let f = 0;
+      for (; f < 200 && k.progress().pets.ids.indexOf('cat1') < 0; f++) k.step(1, { right: true });
+      const at = k.petInfo(), toast = k.levelInfo().toast;
+      /* run on for two seconds: she keeps up with him */
+      k.step(120, { right: true });
+      const later = k.petInfo(), s = k.state();
+      return { before, at, toast, later, px: s.px, rescued: f < 200 };
+    });
+    expect(r.before).toMatchObject({ equippedCat: null, liveCats: 0 });
+    expect(r.rescued).toBe(true);
+    expect(r.at).toMatchObject({ equippedCat: 'cat1', liveCats: 1 });
+    expect(r.at.cats.map((c) => c.id)).toEqual(['cat1']);
+    expect(r.toast).toContain('GINGER JOINED THE TEAM!');
+    expect(r.later.cats).toHaveLength(1);
+    expect(Math.abs(r.later.cats[0].x - r.px), 'Ginger is right behind Kinan').toBeLessThan(5 * 16);
+    expect(errors).toEqual([]);
+  });
+
+  test('a cat rescued later joins the collection but does not replace Ginger', async ({ page }) => {
+    const errors = watchErrors(page);
+    await boot(page);
+    const r = await page.evaluate(() => {
+      const k = (window as unknown as Win2).__k11;
+      const rescue = (id: string, pet: string) => {
+        k.playLevel(id); k.godMode(); k.clearFoes(); k.storyStop();
+        const c = k.petSpot()!;
+        k.place(c.x - 40, c.y); k.step(5);
+        for (let f = 0; f < 200 && k.progress().pets.ids.indexOf(pet) < 0; f++) k.step(1, { right: true });
+      };
+      rescue('1-1', 'cat1');
+      rescue('2-4', 'cat2');
+      const p = k.petInfo(), toast = k.levelInfo().toast;
+      k.freeze(true);
+      return { p, toast };
+    });
+    expect(r.p.ids).toEqual(['cat1', 'cat2']);
+    expect(r.p.equippedCat).toBe('cat1');
+    expect(r.p.cats.map((c) => c.id)).toEqual(['cat1']);
+    expect(r.toast).toContain('VADER JOINED THE TEAM!');
+    expect(r.toast).toContain('Ginger keeps following you');
+    expect(errors).toEqual([]);
+  });
+
+  test('an old save with Ginger rescued but nothing equipped loads with Ginger following', async ({ page }) => {
+    const errors = watchErrors(page);
+    const old = JSON.stringify({ unlocked: 1, beaten: [], pets: { ids: ['cat1'], names: {}, equippedCat: null, equippedDog: null } });
+    await page.addInitScript((raw) => { if (!sessionStorage.getItem('seeded')) { localStorage.setItem('kinan-remaster-v1', raw); sessionStorage.setItem('seeded', '1'); } }, old);
+    await boot(page);
+    const r = await page.evaluate(() => {
+      const k = (window as unknown as Win2).__k11;
+      const saved = k.progress().pets;
+      k.playLevel('1-2'); k.freeze(true);
+      return { saved, live: k.petInfo() };
+    });
+    expect(r.saved).toMatchObject({ ids: ['cat1'], equippedCat: 'cat1', equippedDog: null });
+    expect(r.live).toMatchObject({ equippedCat: 'cat1', liveCats: 1 });
+    /* sending her home on the Pets screen is still his choice, and it survives a reload */
+    await page.reload();
+    await page.waitForFunction(() => !!(window as unknown as Win).__k11 && (window as unknown as Win).KinanLevels?.ready);
+    await page.locator('#menuBtn').click();
+    await page.locator('#petsBtnP').click();
+    await page.locator('.petcard[data-equip="cat1"]').click();
+    await expect(page.locator('.petcard.on')).toHaveCount(0);
+    await page.reload();
+    await page.waitForFunction(() => !!(window as unknown as Win).__k11 && (window as unknown as Win).KinanLevels?.ready);
+    expect(await page.evaluate(() => (window as unknown as Win).__k11.progress().pets.equippedCat)).toBeNull();
     expect(errors).toEqual([]);
   });
 });

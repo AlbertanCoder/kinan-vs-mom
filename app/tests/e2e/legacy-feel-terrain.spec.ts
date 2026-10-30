@@ -10,7 +10,7 @@ import { expect, test, type ConsoleMessage, type Page } from '@playwright/test';
  * Geometry is discovered deterministically through probe().rows / platforms().
  */
 
-const DEV_URL = 'http://127.0.0.1:4174/index.html?devtools=1';
+const DEV_URL = `http://127.0.0.1:${process.env.KVM_PORT || 4174}/index.html?devtools=1`;
 const CURRENT = 'kinan-remaster-v1';
 const T = 16;
 const PLAYER_H = 16;

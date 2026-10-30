@@ -54,6 +54,7 @@
 KinanLevels.register({
   id: '3-6', world: 3, slot: 7, kind: 'level',
   name: 'THE HYDRO VAC YARD',
+  pipesSolid: false,        /* its pipes are the hose tops and the pipes in the dug holes: markers, not risers (Shad 2026-10-29) */
   theme: 15,                /* the Hydro Vac Yard: the shop, a row of vac trucks, concrete ground, red bricks */
   toyBricks: true,          /* the trucks' tanks are red bricks: they never break */
   cols: 216,
@@ -92,7 +93,9 @@ KinanLevels.register({
     [161, 5, 167, 11], [168, 8, 168, 11], [169, 10, 169, 11],   /* the wash bay (7 tall) and steps down */
     [204, 3, 207, 4]                      /* the vac tank up on its stand (walk under it) */
   ],
+  open: [[3, 13, 5, 13], [22, 13, 24, 13]],   /* SLAM SPOTS (butt slam, 2026-10-29): the pockets under the cracked boards, solid floor under them */
   tiles: {
+    crack: [[3, 12], [4, 12], [5, 12], [22, 12], [23, 12], [24, 12]],   /* SLAM SPOTS: cracked floorboards over pockets of candles (bonuses, never needed) */
     gift: [[4, 8, 'popper'], [15, 2], [53, 1], [68, 5, 'gold'], [107, 1], [144, 0], [172, 8, 'heart'], [193, 8]],
     brick: [
       /* TRUCK A's tank */ [11, 6], [12, 6], [13, 6], [14, 6], [15, 6], [16, 6], [17, 6],
@@ -125,7 +128,7 @@ KinanLevels.register({
          [149, 8, 'mosquito'], [158, 11, 'cone'],
          [175, 11, 'cone'], [185, 8, 'mosquito'], [187, 11, 'mud'],
          [196, 11, 'cone']],
-  candles: [[3, 11], [4, 11], [9, 10], [9, 8], [10, 6], [12, 5], [13, 5], [15, 5], [16, 5], [22, 11], [23, 11],
+  candles: [[3, 13], [4, 13], [5, 13], [22, 13], [23, 13], [24, 13],[3, 11], [4, 11], [9, 10], [9, 8], [10, 6], [12, 5], [13, 5], [15, 5], [16, 5], [22, 11], [23, 11],
             [30, 13], [31, 13], [32, 13], [35, 11], [37, 11], [39, 13], [40, 13], [41, 13], [46, 10], [46, 8], [47, 6], [50, 4], [52, 4], [55, 4], [57, 4],
             [63, 9], [64, 8], [66, 8], [70, 8], [75, 10], [76, 9], [77, 8], [78, 9], [79, 10],
             [85, 13], [86, 13], [89, 13], [91, 13], [99, 10], [99, 8], [100, 6], [102, 4], [104, 4], [108, 4], [110, 4], [112, 4],

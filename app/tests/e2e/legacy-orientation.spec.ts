@@ -1,7 +1,7 @@
 import { expect, test, type Browser, type ConsoleMessage, type Page } from '@playwright/test';
 
-const DEV_URL = 'http://127.0.0.1:4174/index.html?devtools=1';
-const PROD_URL = 'http://127.0.0.1:4174/index.html';
+const DEV_URL = `http://127.0.0.1:${process.env.KVM_PORT || 4174}/index.html?devtools=1`;
+const PROD_URL = `http://127.0.0.1:${process.env.KVM_PORT || 4174}/index.html`;
 const LANDSCAPE = { width: 844, height: 390 };
 const PORTRAIT = { width: 390, height: 844 };
 

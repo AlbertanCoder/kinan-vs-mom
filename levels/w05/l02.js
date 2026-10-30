@@ -114,6 +114,10 @@ KinanLevels.register({
     ]
   },
   /* corn dogs on legs run the line, hay bales roll, lasso lizards throw, magpies steal breakfast (stomp one to get it back); nothing waits at a gap's lip */
+  talk: [   /* Dad's jokes, the wheeze-laugh, Mom's reactions (tools/dad-lines.mjs) */
+    [30, "DAD", "Pancake breakfast! You know what I call a pancake that... hee... HAHA... that tells... I can't—", 4, "wheeze"],
+    [30, "MOM", "...a stack-up comedian. Robin. You told me that one on our first date.", 3.6, "laugh"]
+  ],
   foes: [
     [24, 11, 'corndog'],   /* S1 */
     [44, 11, 'haybale'],   /* S2 */

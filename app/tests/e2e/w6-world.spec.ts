@@ -14,7 +14,7 @@ import { expect, test, type ConsoleMessage, type Page } from '@playwright/test';
      w7-world.spec.ts; World 8's sign is checked there),
    - no page errors anywhere. */
 
-const BASE = 'http://127.0.0.1:4174/index.html';
+const BASE = `http://127.0.0.1:${process.env.KVM_PORT || 4174}/index.html`;
 const DEV_URL = `${BASE}?devtools=1`;
 const CURRENT = 'kinan-remaster-v1';
 const W6 = ['1', '2', '3', '4', '5', 'fort', '6', '7', 'secret', '8', 'castle'].map((s) => `6-${s}`);

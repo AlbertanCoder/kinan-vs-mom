@@ -188,7 +188,7 @@ KinanLevels.register({
     [11, 'MOM', 'KINAN! Get back inside this minute! ...Oh, fine. Hold on tight!', 3.6],
     [35, 'CHENOA', 'Signs over the track! Keep your jumps short under them.', 3.2],
     [70, 'SHAD', "A low sign ahead! When it flashes STAY LOW, don't jump under it.", 3.6],
-    [100, 'DAD', 'Main Street station. That was the science dome right there!', 3.2],
+    [100, 'DAD', "Main Street station! That was the science dome. I'd tell a chemistry joke, but I'd get no reaction.", 3.2],
     [136, 'KINAN', 'A tunnel! The train goes underground downtown.', 3],
     [190, 'SHAD', 'A springboard on the platform! Bounce up onto the express car, bud.', 3.4],
     [268, 'KINAN', "That little rain cloud got HUGE. It's sitting right on top of Canada Place.", 4],

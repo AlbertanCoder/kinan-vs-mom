@@ -13,7 +13,7 @@ import { expect, test, type ConsoleMessage, type Page } from '@playwright/test';
    tracking IS 3.2 px/f). The no-snap claim is pinned as: 0 px while breathing
    inside the deadzone, and never more than the tracking rate outside it. */
 
-const DEV_URL = 'http://127.0.0.1:4174/index.html?devtools=1';
+const DEV_URL = `http://127.0.0.1:${process.env.KVM_PORT || 4174}/index.html?devtools=1`;
 const CURRENT = 'kinan-remaster-v1';
 const T = 16, W = 432, H = 240;
 
