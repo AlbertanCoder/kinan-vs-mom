@@ -307,6 +307,22 @@ html.sideways .pad button.jump{font-size:14px;width:clamp(70px,11.5vmin,98px);he
 html.sideways .pad button.held{opacity:1}
 html.sideways .dpad,html.sideways .acts{pointer-events:auto;padding:14px;margin:-14px}   /* the gaps and a ring around the buttons count too (for the nearest one) */
 html.sideways .pad button.pow{font-size:12px}
+/* 2026-10-31 (Kinan's mom: "locked out"): a phone that will not turn still plays. The picture keeps its
+   432:240 shape at full width, the top bar and the touch buttons are compact, and nothing is cut off at the
+   sides. The pad's single grid row used to stretch to the leftover height (359 px on an iPhone 13) and squeeze
+   the picture down to 144 px; here the rows hug their buttons and the picture gets the space instead. */
+html.uprightplay body{padding:max(6px,env(safe-area-inset-top,0px)) 8px max(6px,env(safe-area-inset-bottom,0px))}
+html.uprightplay .app{gap:8px}
+html.uprightplay .hud{padding:4px 8px;gap:4px 6px;font-size:13px}
+html.uprightplay .lvl{font-size:12.5px}
+html.uprightplay .hearts{font-size:14px}
+html.uprightplay .stat{font-size:12px;padding:1px 5px}
+html.uprightplay .stage{width:100%;max-width:none;flex:0 0 auto;margin:auto 0}
+html.uprightplay .pad{grid-auto-rows:min-content;align-content:start;gap:6px}
+html.uprightplay .dpad,html.uprightplay .acts{gap:6px;grid-auto-rows:min-content;align-content:start}
+html.uprightplay .pad button{min-height:64px;height:64px;font-size:20px}
+html.uprightplay .pad button.jump{font-size:17px}
+html.uprightplay .pad button.pow{font-size:15px}
 html.sideways .pad button.pow:not(:disabled){opacity:.85}
 html.sideways .pad.smashpad .dpad{display:grid;grid-template-columns:auto auto auto;grid-template-rows:auto auto;gap:6px;align-items:center}
 html.sideways .pad.smashpad .dpad [data-k="up"],html.sideways .pad.smashpad .dpad [data-k="down"]{width:clamp(44px,6.4vmin,58px);height:clamp(44px,6.4vmin,58px);font-size:16px}
@@ -853,6 +869,7 @@ html.nosubs #storyLine,html.nosubs #storyLineMap,html.nosubs #bossLine,html.nosu
     <h2 id="portraitGateTitle">Rotate to landscape</h2>
     <p>Turn your device sideways to keep playing.</p>
     <button class="btn go rotatego" type="button" id="rotateGo" hidden>Play sideways</button>
+    <button class="btn go rotatego" type="button" id="rotateAnyway" hidden>Keep playing upright</button>
     <p class="rotatehelp" id="rotateHelp">Phone won't turn? <b>Android:</b> swipe down from the top and tap <b>Auto rotate</b>. <b>iPhone:</b> swipe down from the top-right corner and tap the <b>lock</b> to turn it off.</p>
     <small>Your game is paused. Kinan will wait right here.</small>
   </div>
@@ -7733,6 +7750,7 @@ function loadProgress() {
   out.gold = p.gold && typeof p.gold === 'object' ? Object.assign({}, p.gold) : {};
   out.smashItems = p.smashItems !== false;
   out.buzz = p.buzz !== false; out.kartTilt = p.kartTilt === true;
+  out.portraitOk = p.portraitOk === true;   /* 2026-10-31: "Keep playing upright" was chosen on this device */
   out.subtitles = p.subtitles !== false; out.voices = p.voices !== false;   /* fixes run 2: only an explicit OFF turns one off */
   out.smashSpeed = ['relaxed', 'normal', 'fast'].indexOf(p.smashSpeed) >= 0 ? p.smashSpeed : 'normal';
   delete out.codes;   /* the reward codes are gone (2026-10-28): every world opens by playing */
@@ -15458,11 +15476,18 @@ function showGame(on) {
 const MQ_LAND = window.matchMedia ? matchMedia('(hover: none) and (orientation: landscape), (orientation: landscape) and (max-height: 560px)') : null;
 const MQ_PORT = window.matchMedia ? matchMedia('(hover: none) and (orientation: portrait) and (max-width: 1100px)') : null;
 let portraitBlocked = false, orientationPaused = false;
+/* 2026-10-31 (Kinan's mom: "locked out"): an iPhone with Rotation Lock on can NEVER turn, and no web page can
+   turn it, so the rotate gate was a dead end on every Apple phone (the "Play sideways" button is deliberately
+   hidden there). "Keep playing upright" sets this, and the gate then never blocks that player again. */
+let portraitOk = false;
 function setOrientationUI() {
   const root = document.documentElement, app = $('#app'), gate = $('#portraitGate');
-  const block = !!(MQ_PORT && MQ_PORT.matches) && !el.stage.hidden;
+  const portrait = !!(MQ_PORT && MQ_PORT.matches);
+  const block = portrait && !el.stage.hidden && !portraitOk;
   const changed = block !== portraitBlocked;
   portraitBlocked = block;
+  /* upright play: the player said the phone will not turn, so use the whole screen for the picture */
+  root.classList.toggle('uprightplay', portrait && portraitOk);
   root.classList.toggle('sideways', !!(MQ_LAND && MQ_LAND.matches));
   root.classList.remove('rotated');
   root.classList.toggle('portraitBlocked', block);
@@ -15489,6 +15514,23 @@ window.addEventListener('resize', setOrientationUI);
   if (!go) return;
   const apple = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);   /* iPhone/iPad can't lock sideways: the help line does the job */
   go.hidden = apple || !(screen.orientation && typeof screen.orientation.lock === 'function' && document.documentElement.requestFullscreen);
+  /* 2026-10-31: everyone gets a way out of the gate. On Apple there is no automatic turn at all (and Rotation
+     Lock is the usual reason a phone "is stuck"), so the button is there from the start; anywhere else it
+     appears after 10 s of not turning, so a phone that never turns is never trapped either. */
+  const anyway = $('#rotateAnyway');
+  const revealAnyway = () => { if (anyway) anyway.hidden = false; };
+  portraitOk = progress.portraitOk === true;
+  if (portraitOk) anyway && (anyway.hidden = false);
+  if (anyway) {
+    if (apple) revealAnyway(); else setTimeout(revealAnyway, 10000);
+    anyway.addEventListener('click', () => {
+      portraitOk = true;
+      progress.portraitOk = true;
+      save();
+      setOrientationUI();
+      SFX.click();
+    });
+  }
   go.addEventListener('click', async () => {
     try {
       if (!document.fullscreenElement) await document.documentElement.requestFullscreen({ navigationUI: 'hide' });
