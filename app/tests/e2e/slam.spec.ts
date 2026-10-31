@@ -4,7 +4,8 @@ import { expect, test, type ConsoleMessage, type Page } from '@playwright/test';
    them unless you do a butt slam"). In the air, DOWN (↓ / S, a gamepad's down, the touch ▼ that shows only in
    the air) is a 0.2 s spin in place, then a fast straight drop: it smashes CRACKED FLOOR BOARDS (tiles.crack)
    and CRATES (tiles.crate) directly under him, and since 2026-10-31 also the GIFT block he lands on (its prize
-   pops, the same payout as a head bump) and any floating BRICK (one with nothing solid under it; a brick that
+   pops out DOWNWARDS, the way it was hit, and falls to the ground below - the same payout as a head bump, which
+   still pops it up) and any floating BRICK (one with nothing solid under it; a brick that
    holds up a floor, wall or staircase stays). Its shockwave leaves small foes within about two tiles dizzy for
    1.5 s, and it never touches a boss. The jump is unchanged (a NEW action;
    the §1.1 feel table is LOCKED). Every World 1-9 slam spot is a bonus: reachable from above, a floor under it,
@@ -25,6 +26,7 @@ type Dev = {
   playLevel: (id: string) => unknown; place: (x: number, y: number) => unknown; step: (n: number, o?: Record<string, boolean>) => Probe[];
   clearFoes: () => void; addFoe: (type: string, tx: number, ty: number) => number; godMode: () => void;
   paint: (tx: number, ty: number, t: number) => number; tile: (tx: number, ty: number) => number | null; slamInfo: () => Slam;
+  prizes: () => { kind: string; x: number; y: number; rise: number; drop: number; got: boolean }[];
   arenaInfo: () => Arena; arenaBot: (n: number) => Arena;
 };
 type Lv = { world: number; areas?: { tiles?: Record<string, unknown> }[]; tiles?: Record<string, unknown> };
@@ -125,6 +127,44 @@ test.describe('Butt slam', () => {
     expect(r.t56).toBe(2);                                       /* a brick holding the floor up stays: a slam never opens a hole */
     expect(r.t49).toBe(0);                                       /* 2026-10-31: a floating brick is smashed by the slam */
     expect(r.t50).toBe(4);                                       /* 2026-10-31: the gift block opens (a spent block, prize paid) */
+    expect(errors).toEqual([]);
+  });
+
+  /* 2026-10-31 (Shad: "when Kinan buttslams on top of the gift box, the item inside shouldn't go up... it should
+     drop underneath on the ground or whatever it lands"): a prize comes out the way the box was hit. */
+  test('a slam sends the gift box prize DOWN and it lands on the ground; a head bump still pops it UP', async ({ page }) => {
+    const errors = watchErrors(page);
+    await boot(page);
+    const r = await page.evaluate((T) => {
+      const k = (window as unknown as Win).__k11;
+      const slamAt = (x: number, y: number) => {
+        k.step(10);
+        k.place(x, y); k.step(1); k.step(1, { down: true }); k.step(1, { down: false });
+        for (let n = 0; n < 90; n++) { k.step(1); const s = k.slamInfo(); if (!s.slam && s.onGround) break; }
+      };
+      /* 1-1's hat box at (13,9): a real item prize, so a loose prize appears (candles pay instantly) */
+      k.playLevel('1-1'); k.godMode(); k.clearFoes();
+      slamAt(13 * T + 3, 4 * T);
+      const atLanding = k.prizes();
+      k.step(80);                                     /* let it fall */
+      const settled = k.prizes();
+      /* the same box on a fresh level, head-bumped from below */
+      k.playLevel('1-1'); k.godMode(); k.clearFoes();
+      k.step(10); k.place(13 * T + 3, 11 * T); k.step(10);
+      k.step(1, { tapJump: true, jump: true }); k.step(20, { jump: true });
+      const bumped = k.prizes();
+      return { atLanding, settled, bumped, boxTop: 9 * T };
+    }, T);
+    expect(r.atLanding.length, 'the slam dropped a prize').toBe(1);
+    expect(r.atLanding[0].y, 'it starts BELOW the box it came out of').toBeGreaterThan(r.boxTop);
+    expect(r.atLanding[0].drop, 'and it is falling').toBeGreaterThan(0);
+    expect(r.atLanding[0].rise, 'never rising from a slam').toBe(0);
+    expect(r.settled.length).toBe(1);
+    expect(r.settled[0].drop, 'it has landed').toBe(0);
+    expect((r.settled[0].y + 12) % 16, 'it rests on a tile top').toBe(0);
+    expect(r.settled[0].y, 'it fell further down').toBeGreaterThan(r.atLanding[0].y);
+    expect(r.bumped.length, 'the head bump still pops a prize').toBe(1);
+    expect(r.bumped[0].y, 'a head bump pops it UP, above the box').toBeLessThan(r.boxTop);
     expect(errors).toEqual([]);
   });
 
