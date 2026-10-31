@@ -3,8 +3,10 @@ import { expect, test, type ConsoleMessage, type Page } from '@playwright/test';
 /* BUTT SLAM (Shad, 2026-10-29: "if there's boxes or things you can break underneath you, how would you break
    them unless you do a butt slam"). In the air, DOWN (↓ / S, a gamepad's down, the touch ▼ that shows only in
    the air) is a 0.2 s spin in place, then a fast straight drop: it smashes CRACKED FLOOR BOARDS (tiles.crack)
-   and CRATES (tiles.crate) directly under him and nothing else (floor, bricks stay), its shockwave leaves small
-   foes within about two tiles dizzy for 1.5 s, and it never touches a boss. The jump is unchanged (a NEW action;
+   and CRATES (tiles.crate) directly under him, and since 2026-10-31 also the GIFT block he lands on (its prize
+   pops, the same payout as a head bump) and any floating BRICK (one with nothing solid under it; a brick that
+   holds up a floor, wall or staircase stays). Its shockwave leaves small foes within about two tiles dizzy for
+   1.5 s, and it never touches a boss. The jump is unchanged (a NEW action;
    the §1.1 feel table is LOCKED). Every World 1-9 slam spot is a bonus: reachable from above, a floor under it,
    and Kinan can always jump back out. index.html block "BUTT SLAM"; docs/LEVEL-AUTHORING.md §4.3b. */
 const BASE = `http://127.0.0.1:${process.env.KVM_PORT || 4174}/index.html`;
@@ -94,7 +96,7 @@ test.describe('Butt slam', () => {
     expect(errors).toEqual([]);
   });
 
-  test('normal floor, bricks and a brick set in the floor never break; neither does a slam on a gift block', async ({ page }) => {
+  test('nothing structural breaks: the plain floor and a brick set in the floor stay; a floating brick is smashed and the gift block beside it opens (2026-10-31)', async ({ page }) => {
     const errors = watchErrors(page);
     await boot(page);
     const r = await page.evaluate((T) => {
@@ -118,11 +120,11 @@ test.describe('Butt slam', () => {
     expect(r.brickFloor.slammed).toBe(2);
     expect(r.brick.slammed).toBe(3);
     expect(r.gift.slammed).toBe(4);
-    expect(r.gift.broken).toBe(r.b0);                            /* nothing broke */
-    expect(r.t55).toBe(1);
-    expect(r.t56).toBe(2);
-    expect(r.t49).toBe(2);
-    expect(r.t50).toBe(3);
+    expect(r.gift.broken).toBe(r.b0);                            /* no slab broke: the brick and gift counters are their own */
+    expect(r.t55).toBe(1);                                       /* the plain floor never breaks */
+    expect(r.t56).toBe(2);                                       /* a brick holding the floor up stays: a slam never opens a hole */
+    expect(r.t49).toBe(0);                                       /* 2026-10-31: a floating brick is smashed by the slam */
+    expect(r.t50).toBe(4);                                       /* 2026-10-31: the gift block opens (a spent block, prize paid) */
     expect(errors).toEqual([]);
   });
 

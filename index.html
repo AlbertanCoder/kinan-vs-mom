@@ -10555,13 +10555,31 @@ function slamTick() {
   P.vx = 0; P.vy = SLAM_V;
   if (frame % 2 === 0) part(P.x + P.w / 2 + rand(-4, 4), P.y - 2, { vx: 0, vy: -0.6, life: 10, size: 1, color: 'rgba(255,255,255,.8)', g: 0 });   /* speed lines */
 }
+/* a brick the slam may smash (2026-10-31): one nothing is holding up, with ground close enough underneath that
+   he lands on it. So a slam never opens a hole in a floor, wall or staircase, and never strands him by dropping
+   a brick bridge over a chasm. */
+function brickGives(tx, ty) {
+  if (solid(tx, ty + 1)) return false;
+  for (let y = ty + 2; y < ROWS && y <= ty + 7; y++) if (solid(tx, y)) return true;
+  return false;
+}
 /* after the move: landed on something made to break? Smash it and keep dropping. Landed on anything else: the slam */
 function slamAfterMove() {
   slamBtnShow();   /* again after the move: the frame he lands, the ▼ goes */
   if (P.slam !== 'drop' || !P.onGround) return;
   const ty = Math.floor((P.y + P.h + 1) / T), x0 = Math.floor(P.x / T), x1 = Math.floor((P.x + P.w - 1) / T);
   let broke = 0;
-  for (let tx = x0; tx <= x1; tx++) if (isSlab(tx, ty)) { breakSlab(tx, ty); broke++; }
+  /* 2026-10-31 (Shad: "make the butt slam break boxes/bricks and the boxes that give you coins/items/etc"):
+     he now also lands on a GIFT block (its prize pops out, the same payout as a head bump) and on a BRICK with
+     nothing holding it up (it smashes and he keeps dropping through). A brick with something solid under it is
+     part of the level - a floor, a wall, a bridge, a staircase - and stays, so a slam can never open a hole
+     under his own feet; 1-4 Brick City's toy bricks stay as they always have. */
+  for (let tx = x0; tx <= x1; tx++) {
+    const code = tileAt(tx, ty);
+    if (code === 3) hitGift(tx, ty);
+    else if (code === 2 && L.authored && !L.toyBricks && brickGives(tx, ty)) { breakBrick(tx, ty); broke++; }
+    else if (isSlab(tx, ty)) { breakSlab(tx, ty); broke++; }
+  }
   if (broke) { P.onGround = false; P.vy = SLAM_V; hitStop = Math.max(hitStop || 0, 2); shakeIt(2); return; }
   slamImpact();
 }
