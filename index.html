@@ -983,6 +983,42 @@ if (window.__k11DevOnly()) {
 }
 </script>
 <script>
+/* FAIL-SAFE - a blank page instead of the game (2026-10-31).
+   A phone or tablet whose browser cannot run the game script below (older syntax rejected at parse
+   time, e.g. Safari/iOS under 13.4 or Chrome/WebView under 80: the whole inline script fails, so not
+   one frame is drawn) used to show nothing at all. This first script is ES5 only, so every browser
+   runs it: if the game never marks itself booted, say so in plain words and offer a reload. */
+(function () {
+  var PANEL = 'oldBrowserPanel';
+  function booted() { return !!window.__kvBooted; }
+  function show() {
+    if (document.getElementById(PANEL) || booted()) return;
+    var p = document.createElement('div');
+    p.id = PANEL;
+    p.setAttribute('role', 'alertdialog');
+    p.style.cssText = 'position:fixed;left:0;right:0;top:0;bottom:0;z-index:9999;display:block;' +
+      'padding:24px;background:#0b0d20;color:#f4f1e8;font:16px/1.5 system-ui,-apple-system,sans-serif;' +
+      'overflow:auto;text-align:left;-webkit-text-size-adjust:100%';
+    p.innerHTML =
+      '<h2 style="margin:0 0 12px;font-size:24px;line-height:1.2;color:#f6c445">This game needs a newer browser</h2>' +
+      '<p style="margin:0 0 10px">The page loaded, but the game could not start on this device.</p>' +
+      '<p style="margin:0 0 10px">It needs <b>Safari 13.4 or newer</b> on an iPhone or iPad, or <b>Chrome 80 or newer</b> on an Android phone or tablet. Updating the browser is usually all it takes.</p>' +
+      '<p style="margin:0 0 16px">Still stuck? Tell Shad which phone or tablet it is and he will make a version for it.</p>' +
+      '<button type="button" id="oldBrowserRetry" style="font:inherit;padding:12px 20px;border:0;border-radius:8px;background:#f6c445;color:#1b1e46;font-weight:700">Try again</button>';
+    document.body.appendChild(p);
+    var b = document.getElementById('oldBrowserRetry');
+    if (b) b.onclick = function () { if (p.parentNode) p.parentNode.removeChild(p); location.reload(); };
+  }
+  /* a script that will not parse fires an error before anything is on screen: no need to wait 9 s */
+  window.addEventListener('error', function (e) {
+    if (e && /SyntaxError|Unexpected token|Invalid or unexpected token/i.test(String((e && e.message) || ''))) setTimeout(show, 1500);
+  }, true);
+  window.addEventListener('load', function () { setTimeout(show, 9000); });
+  setTimeout(show, 20000);   /* even if "load" never fires */
+})();
+</script>
+
+<script>
 (() => {
 'use strict';
 /* ============================================================
@@ -3254,7 +3290,14 @@ function worldMapScreen(o) {
   }).catch((e) => {
     console.warn('[map] could not open the world map', e);
     const host = $('#owHost');
-    if (host && tok === owToken) host.innerHTML = '<p class="owload">The map could not load. Check the connection and try again.</p>';
+    if (host && tok === owToken) {
+      /* a retry button (2026-10-31): a phone on a flaky connection should not need a page reload.
+         A plain map comes back, so no one-shot callback (o.ready) runs twice. */
+      host.innerHTML = '<p class="owload">The map could not load. Check the connection and try again.</p>' +
+        '<p class="owload"><button class="btn go" type="button" id="owRetry">Try again</button></p>';
+      const again = $('#owRetry');
+      if (again) again.onclick = () => { again.disabled = true; again.textContent = 'Trying...'; worldMapScreen(); };
+    }
   });
 }
 
@@ -27325,7 +27368,10 @@ window.__k11 = window.__k11DevOnly() ? {
   explorerInfo: () => ({ world: L && L.explorer ? L.explorer : 0, onMap: !!(L && L.explorer), x: P ? Math.round(P.x) : 0, y: P ? Math.round(P.y) : 0,
     camX: Math.round(camX), camY: Math.round(camY), entrances: L && L.nodes ? L.nodes.length : 0,
     nodes: L && L.nodes ? L.nodes.map((n) => ({ stage: n.stage, kind: n.kind, open: stageOpen(n.stage), done: progress.beaten.indexOf(n.stage) >= 0 })) : [],
-    near: L && L.nodes && P ? ((L.nodes.find((n) => Math.abs(n.x * T + T / 2 - (P.x + P.w / 2)) < 12 && Math.abs(n.y * T + T / 2 - (P.y + P.h - 8)) < 12) || {}).stage ?? null) : null }),
+    /* no "??" here (2026-10-31): the nullish operator is ES2020, and one use in this file stopped the
+       WHOLE game script from parsing on a Safari/iOS older than 13.4 or a Chrome/WebView older than 80,
+       which is a blank page with no message. Written out longhand so older phones can still parse it. */
+    near: L && L.nodes && P ? (function (hit) { return hit && hit.stage !== undefined ? hit.stage : null; }(L.nodes.find((n) => Math.abs(n.x * T + T / 2 - (P.x + P.w / 2)) < 12 && Math.abs(n.y * T + T / 2 - (P.y + P.h - 8)) < 12))) : null }),
   explorerTeleport: (x, y) => { if (L && L.explorer && P) { P.x = x; P.y = y; P.vx = 0; P.vy = 0; } return { x: P.x, y: P.y }; },
   explorerGo: (w) => { startExplorer(w); return { world: L.explorer }; },
   explorerDoor: (k) => (L && L.nodes && L.nodes[k] ? { x: L.nodes[k].x * T + T / 2, y: L.nodes[k].y * T + T / 2, stage: L.nodes[k].stage } : null),
@@ -27739,6 +27785,9 @@ window.__k11 = window.__k11DevOnly() ? {
 } : undefined;
 
 })();
+/* the game script ran to the end: the fail-safe panel at the top of the page stands down (2026-10-31) */
+window.__kvBooted = 1;
+
 </script>
 </body>
 </html>
