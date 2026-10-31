@@ -1265,6 +1265,16 @@ const MIDI = (m) => 440 * Math.pow(2, (m - 69) / 12);
    voices only. Follows the ♪ mute switch.
    ============================================================ */
 const VO_DIR = 'audio/vo2/';
+/* which recorded voice a speaker uses (VO.pick). The story and arena tables name speakers in capitals, and
+   since 2026-10-31 the device voice fills in for a line with no recording, so every speaker who speaks needs
+   an entry here (Grandpa, Grandma, Aiden and Milo were missing: his 5 story lines had no voice at all). */
+const VO_WHO = {
+  KINAN: 'k', MOM: 'm', CHENOA: 'c', DAD: 'd', ROBIN: 'd', SHAD: 's', GLITCHY: 'mech', ANNIE: 'a', AMANDEEP: 'a',
+  GRANDPA: 'd', GRANDMA: 'm', 'GRANDMA HUNTER': 'm', AIDEN: 'k', MILO: 'b', REX: 'mech', FOREMAN: 'f',
+  'SAFETY FOREMAN': 'f', LIFEGUARD: 'lg', CONDUCTOR: 'cd', BARKER: 'br', LUMBERJACK: 'lj', 'PROFESSOR STATIC': 'ps',
+  DRIZZLE: 'dz', 'BIG KID': 'b', 'NOSY NEIGHBOUR': 'n', NEIGHBOUR: 'n', 'MEGA-MECH': 'mech'
+};
+const whoOfVoice = (name) => VO_WHO[String(name || '').trim().toUpperCase()] || null;
 const VO = {
   clips: null, clipsP: null, voices: [], tok: 0,
   loadClips() {
@@ -1294,6 +1304,34 @@ const VO = {
       return en[0] || null;
     } catch (e) { return null; }
   },
+  /* the device voice says one line: the fallback for a line the recordings do not cover (2026-10-31).
+     The Settings switch decides; a recorded clip always wins, since every caller tries the clip first.
+     Returns true when it spoke. English voices only: never a voice in another language. */
+  sayText(html, who) {
+    try {
+      if (progress.deviceVoice !== true || !window.speechSynthesis) return false;
+      const text = String(html || '').replace(/<[^>]+>/g, ' ').replace(/&[a-z#0-9]+;/gi, ' ').replace(/[\uD83C-\uD83F][\uDC00-\uDFFF]/g, ' ').replace(/\s+/g, ' ').trim()
+        .replace(/^[A-Z][A-Z0-9 .'!?()\-]{0,26}:\s+/, '');   /* the speaker's name is on the screen already: never read it aloud */
+      if (!text) return false;
+      const vol = clamp((progress.vol ? progress.vol.vo : 100) / 100, 0, 1);
+      if (!vol) return false;   /* the voice channel is turned down */
+      const v = VO.pick(who);
+      if (!v) return false;   /* no English voice on this device: the text alone */
+      speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.voice = v; u.lang = v.lang;
+      u.volume = vol;
+      const tune = {
+        k: [1.35, 1.06], m: [1.04, 1.0], c: [0.94, 1.04], d: [0.8, 0.98], s: [1.12, 1.02],
+        n: [0.9, 0.95], b: [0.7, 0.95], f: [0.85, 0.95], lg: [1.1, 1.02], cd: [0.8, 0.95],
+        br: [1.05, 1.05], lj: [0.75, 0.92], ps: [1.15, 1.05], dz: [0.6, 0.88], mech: [0.65, 0.9]
+      }[who] || [1, 1];
+      u.pitch = tune[0];
+      u.rate = tune[1];
+      speechSynthesis.speak(u);
+      return true;
+    } catch (e) { return false; }
+  },
   speak(html, who) {
     try {
       const tok = ++VO.tok;
@@ -1319,26 +1357,14 @@ const VO = {
         VO.audio.play().catch(() => {});
         return;
       }
-      if (progress.deviceVoice !== true || !window.speechSynthesis) return;   /* the device voice is OFF unless switched on */
-      const v = VO.pick(who);
-      if (!v) return;   /* no English voice on this device: the text alone */
-      speechSynthesis.cancel();
-      const u = new SpeechSynthesisUtterance(text);
-      u.voice = v; u.lang = v.lang;
-      u.volume = vol;
-      const tune = {
-        k: [1.35, 1.06], m: [1.04, 1.0], c: [0.94, 1.04], d: [0.8, 0.98], s: [1.12, 1.02],
-        n: [0.9, 0.95], b: [0.7, 0.95], f: [0.85, 0.95], lg: [1.1, 1.02], cd: [0.8, 0.95],
-        br: [1.05, 1.05], lj: [0.75, 0.92], ps: [1.15, 1.05], dz: [0.6, 0.88], mech: [0.65, 0.9]
-      }[who] || [1, 1];
-      u.pitch = tune[0];
-      u.rate = tune[1];
-      speechSynthesis.speak(u);
+      VO.sayText(text, who);   /* no recording for this line: the device voice fills in (Settings switch) */
     } catch (e) {}
   },
-  /* B1: play one recorded clip by path (the boss lines in audio/voice/); the subtitle is shown by the caller.
-     Same rules as a story line: the ♪ switch and the voice volume decide, the device voice never fills in. */
-  playFile(src) {
+  /* B1: play one recorded clip by path (the story, the belt scenes, the boss lines in audio/voice/); the subtitle
+     is shown by the caller. Same rules as a story line: the ♪ switch and the voice volume decide.
+     2026-10-31: alt = { html, who } - the line to say with the device voice when there is no clip, or when the
+     clip file is missing/refused. That is what stops a rewritten line from being a silent subtitle. */
+  playFile(src, alt) {
     try {
       if (!AudioSys.on || progress.voices === false) return false;   /* Settings "Voices: OFF" (fixes run 2): the subtitle alone, same timing */
       const vol = clamp((progress.vol ? progress.vol.vo : 100) / 100, 0, 1);
@@ -1346,9 +1372,23 @@ const VO = {
       VO.tok++;   /* a classic line still waiting for its clip list never talks over this one */
       if (window.speechSynthesis) speechSynthesis.cancel();
       if (!VO.audio) VO.audio = new Audio();
+      if (!src) {   /* nothing recorded for this line */
+        if (alt) VO.sayText(alt.html, alt.who);
+        return false;
+      }
       VO.audio.src = src;
       VO.audio.volume = vol;
-      VO.audio.play().catch(() => {});
+      /* a clip that cannot load (a missing file, a dropped mobile connection) must not be a silent subtitle:
+         play() rejects on some browsers and only fires "error" on others, so watch both - once (2026-10-31) */
+      let fell = false;
+      const fallback = () => {
+        if (fell || !alt) return;
+        fell = true;
+        VO.audio.onerror = null;
+        VO.sayText(alt.html, alt.who);
+      };
+      VO.audio.onerror = alt ? fallback : null;
+      VO.audio.play().then(() => { if (alt) VO.audio.onerror = null; }).catch(fallback);
       return true;
     } catch (e) { return false; }
   },
@@ -3351,7 +3391,9 @@ const Story = {
     Story.log.push({ id: it.id, kind: it.kind, src: d[3] || null, fx: fx, at: Date.now() });
     if (fx === 'wheeze') { Story.wheezes++; SFX.wheeze(); }   /* Dad can't get the joke out: the breathy hee-hee-hee */
     if (Story.log.length > 300) Story.log.shift();
-    if (d[3]) VO.playFile(d[3]);   /* muted or the voice turned down: the subtitle alone */
+    /* 2026-10-31: a line with no recording is said by the device voice (a clip always wins); muted or the
+       voice turned down, the subtitle alone */
+    VO.playFile(d[3], { html: '<b>' + escAttr(d[0]) + ':</b> ' + escAttr(d[1]), who: whoOfVoice(d[0]) });
     Story.render();
     clearTimeout(Story.timer);
     Story.timer = setTimeout(Story.done, Math.round(Math.max(1.2, d[2]) * 1000) + 300);
@@ -3509,8 +3551,11 @@ function cutSay(id) {
   const d = cutLine(id);
   if (!d) return 0;
   Cut.log.push(id);
-  if (d[3]) VO.playFile(d[3]);
-  cutSub.innerHTML = '<b>' + escAttr(CUT_LABEL[id] || d[0]) + ':</b> ' + escAttr(d[1]);
+  /* 2026-10-31: a line with no recording (or a clip file that has gone) is said by the device voice when the
+     Settings switch is on; a recorded clip always wins */
+  const html = '<b>' + escAttr(CUT_LABEL[id] || d[0]) + ':</b> ' + escAttr(d[1]);
+  VO.playFile(d[3], { html: html, who: whoOfVoice(d[0]) });
+  cutSub.innerHTML = html;
   cutSub.hidden = false;
   const ms = Math.round(Math.max(1.2, d[2]) * 1000 / Cut.speed);
   Cut.subUntil = performance.now() + ms;
@@ -3833,8 +3878,10 @@ function beltSay(id) {
   const d = cutLine(id);
   if (!d) return;
   Cut.belt.lines.push(id);
-  if (d[3]) VO.playFile(d[3]);
-  cutSub.innerHTML = '<b>' + escAttr(d[0]) + ':</b> ' + escAttr(d[1]);
+  /* 2026-10-31: no recording yet - the device voice says it (a clip always wins) */
+  const html = '<b>' + escAttr(d[0]) + ':</b> ' + escAttr(d[1]);
+  VO.playFile(d[3], { html: html, who: whoOfVoice(d[0]) });
+  cutSub.innerHTML = html;
   cutSub.hidden = false;
   const ms = Math.round(Math.max(1.2, d[2]) * 1000 / Cut.speed);
   Cut.subUntil = performance.now() + ms;
@@ -5377,8 +5424,11 @@ function arenaLines(A) {
     box.hidden = false;
     box.classList.toggle('skippable', !!(A.w10 && A.state === 'friend'));   /* World 10's endings: a tap skips the beat */
   }
-  if (!d[3]) VO.playFile('audio/voice/' + id + '.mp3');
-  else if (self.KINAN_TALK_CLIPS && self.KINAN_TALK_CLIPS[talkHash(d[0], d[1])]) VO.playFile('audio/talk/' + talkHash(d[0], d[1]) + '.mp3');   /* no boss clip: its talk recording (Dad, Grandpa; audio/talk/clips.js) */
+  /* 2026-10-31: when the boss clip and the talk recording are both missing, the device voice says the line */
+  const sayAlt = { html: '<b>' + d[0] + ':</b> ' + d[1], who: whoOfVoice(d[0]) };
+  if (!d[3]) VO.playFile('audio/voice/' + id + '.mp3', sayAlt);
+  else if (self.KINAN_TALK_CLIPS && self.KINAN_TALK_CLIPS[talkHash(d[0], d[1])]) VO.playFile('audio/talk/' + talkHash(d[0], d[1]) + '.mp3', sayAlt);   /* no boss clip: its talk recording (Dad, Grandpa; audio/talk/clips.js) */
+  else VO.playFile(d[3], sayAlt);
 }
 function arenaHud(A) {
   if (!A || A.state !== 'fight') { el.bossHud.hidden = true; el.stage.classList.remove('bossmode'); return; }
@@ -7602,7 +7652,7 @@ function buildGalaxy(i) {
    ============================================================ */
 const DEFAULT_PROGRESS = { unlocked: 1, beaten: [], stars: {}, bestScore: {}, totalCandles: 0, pets: { ids: [], names: {}, equippedCat: null, equippedDog: null }, friendAssist: null, friendsUnlocked: [], hat: 'none', won: false, sound: true, lite: false,
   wallet: 0, owned: [], outfit: 'classic', trail: 'none', costumes: {}, gold: {}, smashItems: true, wonWorlds: [], builds: [], buildCoins: {}, bossLosses: {},
-  vol: { music: 100, sfx: 100, vo: 100 }, deviceVoice: false, captions: true,   /* V1: the device voice is OFF by default (it was "narration: true") */
+  vol: { music: 100, sfx: 100, vo: 100 }, deviceVoice: true, captions: true,   /* 2026-10-31 (Shad: "a lot of the characters' voices don't work"): ON by default. 41% of the written dialog lines have no recording (Annie and Grandpa have none at all, Glitchy has 2), and the device voice is what fills those in. A recorded clip always wins; the Settings switch still turns this off for good. */
   subtitles: true, voices: true,   /* fixes run 2: Settings "Subtitles" and "Voices" switches (both ON unless he turns one off) */
   autoRun: true,   /* V2: Kinan runs by himself; holding SHIFT or X walks. Off = classic hold-to-run (wantRun()) */
   storyHeard: {},   /* V1: the story lines already heard to the end (each is said once) */
@@ -7713,7 +7763,10 @@ function loadProgress() {
   const vol100 = (x) => { const n = Math.floor(Number(x)); return Number.isFinite(n) ? clamp(n, 0, 100) : 100; };
   out.vol = { music: vol100(p.vol && p.vol.music), sfx: vol100(p.vol && p.vol.sfx), vo: vol100(p.vol && p.vol.vo) };
   /* V1: the device voice is a new switch, OFF unless chosen: an old save's "narration: true" was only the old default */
-  out.deviceVoice = p.deviceVoice === true;
+  /* 2026-10-31: the device voice starts ON, so a line with no recording is spoken instead of being a silent
+     subtitle. A save only keeps it off if the player turned the switch off himself (deviceVoiceSet), so an old
+     save - which stored the old default of false - comes back with the voices working. */
+  out.deviceVoice = p.deviceVoiceSet === 1 ? p.deviceVoice === true : true;
   delete out.narration;
   out.autoRun = p.autoRun !== false;   /* V2: on unless switched off (old saves too) */
   out.storyHeard = {};
@@ -8456,6 +8509,7 @@ function saveAudioPrefs() {
     music: Number($('#volMusic').value), sfx: Number($('#volSfx').value), vo: Number($('#volVo').value)
   };
   progress.deviceVoice = $('#volNarr').checked;
+  progress.deviceVoiceSet = 1;   /* 2026-10-31: this was the player's own choice, so the next load keeps it (the default is ON) */
   progress.captions = $('#volCaps').checked;
   if (progress.captions === false) { const c = document.getElementById('captions'); if (c) c.hidden = true; }   /* hide a caption the moment it is off */
   applyAudioPrefs();
