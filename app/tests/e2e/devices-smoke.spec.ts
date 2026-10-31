@@ -127,6 +127,44 @@ test.describe('D1 · the game on every device', () => {
     expect(errors).toEqual([]);
   });
 
+  /* 2026-10-31 (Kinan's mom: "locked out"): an iPhone with Rotation Lock on can never turn, and no page can turn
+     it, so the gate used to be a dead end on every Apple phone. "Keep playing upright" is the way out, and it
+     sticks, so the same phone is never blocked again. */
+  test('a phone that cannot turn is never locked out: "Keep playing upright" gets in, and the choice sticks', async ({ page }, info) => {
+    test.skip(!info.project.use.hasTouch, 'touch devices only');
+    const errors = watchErrors(page);
+    await seed(page, SAVED);
+    const vp = page.viewportSize()!;
+    if (vp.width > vp.height) await page.setViewportSize({ width: vp.height, height: vp.width });   /* hold it upright */
+    await boot(page);
+    await page.locator('#startBtn').click({ force: true });
+    await mapUp(page);
+    await page.locator('#owPlay').click();
+    await expect(page.locator('#portraitGate')).toBeVisible();
+    const anyway = page.locator('#rotateAnyway');
+    /* at once on an Apple phone (it has no automatic turn); after 10 s of not turning anywhere else */
+    await expect(anyway).toBeVisible({ timeout: 15_000 });
+    await anyway.click();
+    await expect(page.locator('#portraitGate')).toBeHidden();
+    await page.waitForFunction(() => !(window as unknown as Win).__k11.state().paused, null, { timeout: 5000 });
+    expect(await page.evaluate(() => document.documentElement.classList.contains('uprightplay')), 'upright layout is on').toBe(true);
+    const pic = await page.evaluate(() => {
+      const r = document.querySelector('#stage')!.getBoundingClientRect();
+      return { pct: Math.round((r.width * r.height) / (innerWidth * innerHeight) * 100), sidesOk: document.documentElement.scrollWidth <= innerWidth + 1 };
+    });
+    expect(pic.pct, 'the picture keeps a usable share of an upright phone').toBeGreaterThan(25);
+    expect(pic.sidesOk, 'the buttons do not push the page sideways').toBe(true);
+    /* it sticks: this device is never blocked again */
+    await page.reload();
+    await boot(page);
+    await page.locator('#startBtn').click({ force: true });
+    await mapUp(page);
+    await page.locator('#owPlay').click();
+    await expect(page.locator('#portraitGate')).toBeHidden();
+    await page.waitForFunction(() => !(window as unknown as Win).__k11.state().paused, null, { timeout: 5000 });
+    expect(errors).toEqual([]);
+  });
+
   test('auto LITE: a slow device switches to LITE effects once, with a note; a Settings choice turns it off for good', async ({ page }) => {
     const errors = watchErrors(page);
     await seed(page, SAVED);

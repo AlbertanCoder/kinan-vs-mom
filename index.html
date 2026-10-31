@@ -307,6 +307,22 @@ html.sideways .pad button.jump{font-size:14px;width:clamp(70px,11.5vmin,98px);he
 html.sideways .pad button.held{opacity:1}
 html.sideways .dpad,html.sideways .acts{pointer-events:auto;padding:14px;margin:-14px}   /* the gaps and a ring around the buttons count too (for the nearest one) */
 html.sideways .pad button.pow{font-size:12px}
+/* 2026-10-31 (Kinan's mom: "locked out"): a phone that will not turn still plays. The picture keeps its
+   432:240 shape at full width, the top bar and the touch buttons are compact, and nothing is cut off at the
+   sides. The pad's single grid row used to stretch to the leftover height (359 px on an iPhone 13) and squeeze
+   the picture down to 144 px; here the rows hug their buttons and the picture gets the space instead. */
+html.uprightplay body{padding:max(6px,env(safe-area-inset-top,0px)) 8px max(6px,env(safe-area-inset-bottom,0px))}
+html.uprightplay .app{gap:8px}
+html.uprightplay .hud{padding:4px 8px;gap:4px 6px;font-size:13px}
+html.uprightplay .lvl{font-size:12.5px}
+html.uprightplay .hearts{font-size:14px}
+html.uprightplay .stat{font-size:12px;padding:1px 5px}
+html.uprightplay .stage{width:100%;max-width:none;flex:0 0 auto;margin:auto 0}
+html.uprightplay .pad{grid-auto-rows:min-content;align-content:start;gap:6px}
+html.uprightplay .dpad,html.uprightplay .acts{gap:6px;grid-auto-rows:min-content;align-content:start}
+html.uprightplay .pad button{min-height:64px;height:64px;font-size:20px}
+html.uprightplay .pad button.jump{font-size:17px}
+html.uprightplay .pad button.pow{font-size:15px}
 html.sideways .pad button.pow:not(:disabled){opacity:.85}
 html.sideways .pad.smashpad .dpad{display:grid;grid-template-columns:auto auto auto;grid-template-rows:auto auto;gap:6px;align-items:center}
 html.sideways .pad.smashpad .dpad [data-k="up"],html.sideways .pad.smashpad .dpad [data-k="down"]{width:clamp(44px,6.4vmin,58px);height:clamp(44px,6.4vmin,58px);font-size:16px}
@@ -853,6 +869,7 @@ html.nosubs #storyLine,html.nosubs #storyLineMap,html.nosubs #bossLine,html.nosu
     <h2 id="portraitGateTitle">Rotate to landscape</h2>
     <p>Turn your device sideways to keep playing.</p>
     <button class="btn go rotatego" type="button" id="rotateGo" hidden>Play sideways</button>
+    <button class="btn go rotatego" type="button" id="rotateAnyway" hidden>Keep playing upright</button>
     <p class="rotatehelp" id="rotateHelp">Phone won't turn? <b>Android:</b> swipe down from the top and tap <b>Auto rotate</b>. <b>iPhone:</b> swipe down from the top-right corner and tap the <b>lock</b> to turn it off.</p>
     <small>Your game is paused. Kinan will wait right here.</small>
   </div>
@@ -982,6 +999,42 @@ if (window.__k11DevOnly()) {
   });
 }
 </script>
+<script>
+/* FAIL-SAFE - a blank page instead of the game (2026-10-31).
+   A phone or tablet whose browser cannot run the game script below (older syntax rejected at parse
+   time, e.g. Safari/iOS under 13.4 or Chrome/WebView under 80: the whole inline script fails, so not
+   one frame is drawn) used to show nothing at all. This first script is ES5 only, so every browser
+   runs it: if the game never marks itself booted, say so in plain words and offer a reload. */
+(function () {
+  var PANEL = 'oldBrowserPanel';
+  function booted() { return !!window.__kvBooted; }
+  function show() {
+    if (document.getElementById(PANEL) || booted()) return;
+    var p = document.createElement('div');
+    p.id = PANEL;
+    p.setAttribute('role', 'alertdialog');
+    p.style.cssText = 'position:fixed;left:0;right:0;top:0;bottom:0;z-index:9999;display:block;' +
+      'padding:24px;background:#0b0d20;color:#f4f1e8;font:16px/1.5 system-ui,-apple-system,sans-serif;' +
+      'overflow:auto;text-align:left;-webkit-text-size-adjust:100%';
+    p.innerHTML =
+      '<h2 style="margin:0 0 12px;font-size:24px;line-height:1.2;color:#f6c445">This game needs a newer browser</h2>' +
+      '<p style="margin:0 0 10px">The page loaded, but the game could not start on this device.</p>' +
+      '<p style="margin:0 0 10px">It needs <b>Safari 13.4 or newer</b> on an iPhone or iPad, or <b>Chrome 80 or newer</b> on an Android phone or tablet. Updating the browser is usually all it takes.</p>' +
+      '<p style="margin:0 0 16px">Still stuck? Tell Shad which phone or tablet it is and he will make a version for it.</p>' +
+      '<button type="button" id="oldBrowserRetry" style="font:inherit;padding:12px 20px;border:0;border-radius:8px;background:#f6c445;color:#1b1e46;font-weight:700">Try again</button>';
+    document.body.appendChild(p);
+    var b = document.getElementById('oldBrowserRetry');
+    if (b) b.onclick = function () { if (p.parentNode) p.parentNode.removeChild(p); location.reload(); };
+  }
+  /* a script that will not parse fires an error before anything is on screen: no need to wait 9 s */
+  window.addEventListener('error', function (e) {
+    if (e && /SyntaxError|Unexpected token|Invalid or unexpected token/i.test(String((e && e.message) || ''))) setTimeout(show, 1500);
+  }, true);
+  window.addEventListener('load', function () { setTimeout(show, 9000); });
+  setTimeout(show, 20000);   /* even if "load" never fires */
+})();
+</script>
+
 <script>
 (() => {
 'use strict';
@@ -1229,6 +1282,16 @@ const MIDI = (m) => 440 * Math.pow(2, (m - 69) / 12);
    voices only. Follows the ♪ mute switch.
    ============================================================ */
 const VO_DIR = 'audio/vo2/';
+/* which recorded voice a speaker uses (VO.pick). The story and arena tables name speakers in capitals, and
+   since 2026-10-31 the device voice fills in for a line with no recording, so every speaker who speaks needs
+   an entry here (Grandpa, Grandma, Aiden and Milo were missing: his 5 story lines had no voice at all). */
+const VO_WHO = {
+  KINAN: 'k', MOM: 'm', CHENOA: 'c', DAD: 'd', ROBIN: 'd', SHAD: 's', GLITCHY: 'mech', ANNIE: 'a', AMANDEEP: 'a',
+  GRANDPA: 'd', GRANDMA: 'm', 'GRANDMA HUNTER': 'm', AIDEN: 'k', MILO: 'b', REX: 'mech', FOREMAN: 'f',
+  'SAFETY FOREMAN': 'f', LIFEGUARD: 'lg', CONDUCTOR: 'cd', BARKER: 'br', LUMBERJACK: 'lj', 'PROFESSOR STATIC': 'ps',
+  DRIZZLE: 'dz', 'BIG KID': 'b', 'NOSY NEIGHBOUR': 'n', NEIGHBOUR: 'n', 'MEGA-MECH': 'mech'
+};
+const whoOfVoice = (name) => VO_WHO[String(name || '').trim().toUpperCase()] || null;
 const VO = {
   clips: null, clipsP: null, voices: [], tok: 0,
   loadClips() {
@@ -1258,6 +1321,34 @@ const VO = {
       return en[0] || null;
     } catch (e) { return null; }
   },
+  /* the device voice says one line: the fallback for a line the recordings do not cover (2026-10-31).
+     The Settings switch decides; a recorded clip always wins, since every caller tries the clip first.
+     Returns true when it spoke. English voices only: never a voice in another language. */
+  sayText(html, who) {
+    try {
+      if (progress.deviceVoice !== true || !window.speechSynthesis) return false;
+      const text = String(html || '').replace(/<[^>]+>/g, ' ').replace(/&[a-z#0-9]+;/gi, ' ').replace(/[\uD83C-\uD83F][\uDC00-\uDFFF]/g, ' ').replace(/\s+/g, ' ').trim()
+        .replace(/^[A-Z][A-Z0-9 .'!?()\-]{0,26}:\s+/, '');   /* the speaker's name is on the screen already: never read it aloud */
+      if (!text) return false;
+      const vol = clamp((progress.vol ? progress.vol.vo : 100) / 100, 0, 1);
+      if (!vol) return false;   /* the voice channel is turned down */
+      const v = VO.pick(who);
+      if (!v) return false;   /* no English voice on this device: the text alone */
+      speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.voice = v; u.lang = v.lang;
+      u.volume = vol;
+      const tune = {
+        k: [1.35, 1.06], m: [1.04, 1.0], c: [0.94, 1.04], d: [0.8, 0.98], s: [1.12, 1.02],
+        n: [0.9, 0.95], b: [0.7, 0.95], f: [0.85, 0.95], lg: [1.1, 1.02], cd: [0.8, 0.95],
+        br: [1.05, 1.05], lj: [0.75, 0.92], ps: [1.15, 1.05], dz: [0.6, 0.88], mech: [0.65, 0.9]
+      }[who] || [1, 1];
+      u.pitch = tune[0];
+      u.rate = tune[1];
+      speechSynthesis.speak(u);
+      return true;
+    } catch (e) { return false; }
+  },
   speak(html, who) {
     try {
       const tok = ++VO.tok;
@@ -1283,26 +1374,14 @@ const VO = {
         VO.audio.play().catch(() => {});
         return;
       }
-      if (progress.deviceVoice !== true || !window.speechSynthesis) return;   /* the device voice is OFF unless switched on */
-      const v = VO.pick(who);
-      if (!v) return;   /* no English voice on this device: the text alone */
-      speechSynthesis.cancel();
-      const u = new SpeechSynthesisUtterance(text);
-      u.voice = v; u.lang = v.lang;
-      u.volume = vol;
-      const tune = {
-        k: [1.35, 1.06], m: [1.04, 1.0], c: [0.94, 1.04], d: [0.8, 0.98], s: [1.12, 1.02],
-        n: [0.9, 0.95], b: [0.7, 0.95], f: [0.85, 0.95], lg: [1.1, 1.02], cd: [0.8, 0.95],
-        br: [1.05, 1.05], lj: [0.75, 0.92], ps: [1.15, 1.05], dz: [0.6, 0.88], mech: [0.65, 0.9]
-      }[who] || [1, 1];
-      u.pitch = tune[0];
-      u.rate = tune[1];
-      speechSynthesis.speak(u);
+      VO.sayText(text, who);   /* no recording for this line: the device voice fills in (Settings switch) */
     } catch (e) {}
   },
-  /* B1: play one recorded clip by path (the boss lines in audio/voice/); the subtitle is shown by the caller.
-     Same rules as a story line: the ♪ switch and the voice volume decide, the device voice never fills in. */
-  playFile(src) {
+  /* B1: play one recorded clip by path (the story, the belt scenes, the boss lines in audio/voice/); the subtitle
+     is shown by the caller. Same rules as a story line: the ♪ switch and the voice volume decide.
+     2026-10-31: alt = { html, who } - the line to say with the device voice when there is no clip, or when the
+     clip file is missing/refused. That is what stops a rewritten line from being a silent subtitle. */
+  playFile(src, alt) {
     try {
       if (!AudioSys.on || progress.voices === false) return false;   /* Settings "Voices: OFF" (fixes run 2): the subtitle alone, same timing */
       const vol = clamp((progress.vol ? progress.vol.vo : 100) / 100, 0, 1);
@@ -1310,9 +1389,23 @@ const VO = {
       VO.tok++;   /* a classic line still waiting for its clip list never talks over this one */
       if (window.speechSynthesis) speechSynthesis.cancel();
       if (!VO.audio) VO.audio = new Audio();
+      if (!src) {   /* nothing recorded for this line */
+        if (alt) VO.sayText(alt.html, alt.who);
+        return false;
+      }
       VO.audio.src = src;
       VO.audio.volume = vol;
-      VO.audio.play().catch(() => {});
+      /* a clip that cannot load (a missing file, a dropped mobile connection) must not be a silent subtitle:
+         play() rejects on some browsers and only fires "error" on others, so watch both - once (2026-10-31) */
+      let fell = false;
+      const fallback = () => {
+        if (fell || !alt) return;
+        fell = true;
+        VO.audio.onerror = null;
+        VO.sayText(alt.html, alt.who);
+      };
+      VO.audio.onerror = alt ? fallback : null;
+      VO.audio.play().then(() => { if (alt) VO.audio.onerror = null; }).catch(fallback);
       return true;
     } catch (e) { return false; }
   },
@@ -3254,7 +3347,14 @@ function worldMapScreen(o) {
   }).catch((e) => {
     console.warn('[map] could not open the world map', e);
     const host = $('#owHost');
-    if (host && tok === owToken) host.innerHTML = '<p class="owload">The map could not load. Check the connection and try again.</p>';
+    if (host && tok === owToken) {
+      /* a retry button (2026-10-31): a phone on a flaky connection should not need a page reload.
+         A plain map comes back, so no one-shot callback (o.ready) runs twice. */
+      host.innerHTML = '<p class="owload">The map could not load. Check the connection and try again.</p>' +
+        '<p class="owload"><button class="btn go" type="button" id="owRetry">Try again</button></p>';
+      const again = $('#owRetry');
+      if (again) again.onclick = () => { again.disabled = true; again.textContent = 'Trying...'; worldMapScreen(); };
+    }
   });
 }
 
@@ -3308,7 +3408,9 @@ const Story = {
     Story.log.push({ id: it.id, kind: it.kind, src: d[3] || null, fx: fx, at: Date.now() });
     if (fx === 'wheeze') { Story.wheezes++; SFX.wheeze(); }   /* Dad can't get the joke out: the breathy hee-hee-hee */
     if (Story.log.length > 300) Story.log.shift();
-    if (d[3]) VO.playFile(d[3]);   /* muted or the voice turned down: the subtitle alone */
+    /* 2026-10-31: a line with no recording is said by the device voice (a clip always wins); muted or the
+       voice turned down, the subtitle alone */
+    VO.playFile(d[3], { html: '<b>' + escAttr(d[0]) + ':</b> ' + escAttr(d[1]), who: whoOfVoice(d[0]) });
     Story.render();
     clearTimeout(Story.timer);
     Story.timer = setTimeout(Story.done, Math.round(Math.max(1.2, d[2]) * 1000) + 300);
@@ -3466,8 +3568,11 @@ function cutSay(id) {
   const d = cutLine(id);
   if (!d) return 0;
   Cut.log.push(id);
-  if (d[3]) VO.playFile(d[3]);
-  cutSub.innerHTML = '<b>' + escAttr(CUT_LABEL[id] || d[0]) + ':</b> ' + escAttr(d[1]);
+  /* 2026-10-31: a line with no recording (or a clip file that has gone) is said by the device voice when the
+     Settings switch is on; a recorded clip always wins */
+  const html = '<b>' + escAttr(CUT_LABEL[id] || d[0]) + ':</b> ' + escAttr(d[1]);
+  VO.playFile(d[3], { html: html, who: whoOfVoice(d[0]) });
+  cutSub.innerHTML = html;
   cutSub.hidden = false;
   const ms = Math.round(Math.max(1.2, d[2]) * 1000 / Cut.speed);
   Cut.subUntil = performance.now() + ms;
@@ -3790,8 +3895,10 @@ function beltSay(id) {
   const d = cutLine(id);
   if (!d) return;
   Cut.belt.lines.push(id);
-  if (d[3]) VO.playFile(d[3]);
-  cutSub.innerHTML = '<b>' + escAttr(d[0]) + ':</b> ' + escAttr(d[1]);
+  /* 2026-10-31: no recording yet - the device voice says it (a clip always wins) */
+  const html = '<b>' + escAttr(d[0]) + ':</b> ' + escAttr(d[1]);
+  VO.playFile(d[3], { html: html, who: whoOfVoice(d[0]) });
+  cutSub.innerHTML = html;
   cutSub.hidden = false;
   const ms = Math.round(Math.max(1.2, d[2]) * 1000 / Cut.speed);
   Cut.subUntil = performance.now() + ms;
@@ -5334,8 +5441,11 @@ function arenaLines(A) {
     box.hidden = false;
     box.classList.toggle('skippable', !!(A.w10 && A.state === 'friend'));   /* World 10's endings: a tap skips the beat */
   }
-  if (!d[3]) VO.playFile('audio/voice/' + id + '.mp3');
-  else if (self.KINAN_TALK_CLIPS && self.KINAN_TALK_CLIPS[talkHash(d[0], d[1])]) VO.playFile('audio/talk/' + talkHash(d[0], d[1]) + '.mp3');   /* no boss clip: its talk recording (Dad, Grandpa; audio/talk/clips.js) */
+  /* 2026-10-31: when the boss clip and the talk recording are both missing, the device voice says the line */
+  const sayAlt = { html: '<b>' + d[0] + ':</b> ' + d[1], who: whoOfVoice(d[0]) };
+  if (!d[3]) VO.playFile('audio/voice/' + id + '.mp3', sayAlt);
+  else if (self.KINAN_TALK_CLIPS && self.KINAN_TALK_CLIPS[talkHash(d[0], d[1])]) VO.playFile('audio/talk/' + talkHash(d[0], d[1]) + '.mp3', sayAlt);   /* no boss clip: its talk recording (Dad, Grandpa; audio/talk/clips.js) */
+  else VO.playFile(d[3], sayAlt);
 }
 function arenaHud(A) {
   if (!A || A.state !== 'fight') { el.bossHud.hidden = true; el.stage.classList.remove('bossmode'); return; }
@@ -7559,7 +7669,7 @@ function buildGalaxy(i) {
    ============================================================ */
 const DEFAULT_PROGRESS = { unlocked: 1, beaten: [], stars: {}, bestScore: {}, totalCandles: 0, pets: { ids: [], names: {}, equippedCat: null, equippedDog: null }, friendAssist: null, friendsUnlocked: [], hat: 'none', won: false, sound: true, lite: false,
   wallet: 0, owned: [], outfit: 'classic', trail: 'none', costumes: {}, gold: {}, smashItems: true, wonWorlds: [], builds: [], buildCoins: {}, bossLosses: {},
-  vol: { music: 100, sfx: 100, vo: 100 }, deviceVoice: false, captions: true,   /* V1: the device voice is OFF by default (it was "narration: true") */
+  vol: { music: 100, sfx: 100, vo: 100 }, deviceVoice: true, captions: true,   /* 2026-10-31 (Shad: "a lot of the characters' voices don't work"): ON by default. 41% of the written dialog lines have no recording (Annie and Grandpa have none at all, Glitchy has 2), and the device voice is what fills those in. A recorded clip always wins; the Settings switch still turns this off for good. */
   subtitles: true, voices: true,   /* fixes run 2: Settings "Subtitles" and "Voices" switches (both ON unless he turns one off) */
   autoRun: true,   /* V2: Kinan runs by himself; holding SHIFT or X walks. Off = classic hold-to-run (wantRun()) */
   storyHeard: {},   /* V1: the story lines already heard to the end (each is said once) */
@@ -7640,6 +7750,7 @@ function loadProgress() {
   out.gold = p.gold && typeof p.gold === 'object' ? Object.assign({}, p.gold) : {};
   out.smashItems = p.smashItems !== false;
   out.buzz = p.buzz !== false; out.kartTilt = p.kartTilt === true;
+  out.portraitOk = p.portraitOk === true;   /* 2026-10-31: "Keep playing upright" was chosen on this device */
   out.subtitles = p.subtitles !== false; out.voices = p.voices !== false;   /* fixes run 2: only an explicit OFF turns one off */
   out.smashSpeed = ['relaxed', 'normal', 'fast'].indexOf(p.smashSpeed) >= 0 ? p.smashSpeed : 'normal';
   delete out.codes;   /* the reward codes are gone (2026-10-28): every world opens by playing */
@@ -7670,7 +7781,10 @@ function loadProgress() {
   const vol100 = (x) => { const n = Math.floor(Number(x)); return Number.isFinite(n) ? clamp(n, 0, 100) : 100; };
   out.vol = { music: vol100(p.vol && p.vol.music), sfx: vol100(p.vol && p.vol.sfx), vo: vol100(p.vol && p.vol.vo) };
   /* V1: the device voice is a new switch, OFF unless chosen: an old save's "narration: true" was only the old default */
-  out.deviceVoice = p.deviceVoice === true;
+  /* 2026-10-31: the device voice starts ON, so a line with no recording is spoken instead of being a silent
+     subtitle. A save only keeps it off if the player turned the switch off himself (deviceVoiceSet), so an old
+     save - which stored the old default of false - comes back with the voices working. */
+  out.deviceVoice = p.deviceVoiceSet === 1 ? p.deviceVoice === true : true;
   delete out.narration;
   out.autoRun = p.autoRun !== false;   /* V2: on unless switched off (old saves too) */
   out.storyHeard = {};
@@ -8413,6 +8527,7 @@ function saveAudioPrefs() {
     music: Number($('#volMusic').value), sfx: Number($('#volSfx').value), vo: Number($('#volVo').value)
   };
   progress.deviceVoice = $('#volNarr').checked;
+  progress.deviceVoiceSet = 1;   /* 2026-10-31: this was the player's own choice, so the next load keeps it (the default is ON) */
   progress.captions = $('#volCaps').checked;
   if (progress.captions === false) { const c = document.getElementById('captions'); if (c) c.hidden = true; }   /* hide a caption the moment it is off */
   applyAudioPrefs();
@@ -15361,11 +15476,18 @@ function showGame(on) {
 const MQ_LAND = window.matchMedia ? matchMedia('(hover: none) and (orientation: landscape), (orientation: landscape) and (max-height: 560px)') : null;
 const MQ_PORT = window.matchMedia ? matchMedia('(hover: none) and (orientation: portrait) and (max-width: 1100px)') : null;
 let portraitBlocked = false, orientationPaused = false;
+/* 2026-10-31 (Kinan's mom: "locked out"): an iPhone with Rotation Lock on can NEVER turn, and no web page can
+   turn it, so the rotate gate was a dead end on every Apple phone (the "Play sideways" button is deliberately
+   hidden there). "Keep playing upright" sets this, and the gate then never blocks that player again. */
+let portraitOk = false;
 function setOrientationUI() {
   const root = document.documentElement, app = $('#app'), gate = $('#portraitGate');
-  const block = !!(MQ_PORT && MQ_PORT.matches) && !el.stage.hidden;
+  const portrait = !!(MQ_PORT && MQ_PORT.matches);
+  const block = portrait && !el.stage.hidden && !portraitOk;
   const changed = block !== portraitBlocked;
   portraitBlocked = block;
+  /* upright play: the player said the phone will not turn, so use the whole screen for the picture */
+  root.classList.toggle('uprightplay', portrait && portraitOk);
   root.classList.toggle('sideways', !!(MQ_LAND && MQ_LAND.matches));
   root.classList.remove('rotated');
   root.classList.toggle('portraitBlocked', block);
@@ -15392,6 +15514,23 @@ window.addEventListener('resize', setOrientationUI);
   if (!go) return;
   const apple = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);   /* iPhone/iPad can't lock sideways: the help line does the job */
   go.hidden = apple || !(screen.orientation && typeof screen.orientation.lock === 'function' && document.documentElement.requestFullscreen);
+  /* 2026-10-31: everyone gets a way out of the gate. On Apple there is no automatic turn at all (and Rotation
+     Lock is the usual reason a phone "is stuck"), so the button is there from the start; anywhere else it
+     appears after 10 s of not turning, so a phone that never turns is never trapped either. */
+  const anyway = $('#rotateAnyway');
+  const revealAnyway = () => { if (anyway) anyway.hidden = false; };
+  portraitOk = progress.portraitOk === true;
+  if (portraitOk) anyway && (anyway.hidden = false);
+  if (anyway) {
+    if (apple) revealAnyway(); else setTimeout(revealAnyway, 10000);
+    anyway.addEventListener('click', () => {
+      portraitOk = true;
+      progress.portraitOk = true;
+      save();
+      setOrientationUI();
+      SFX.click();
+    });
+  }
   go.addEventListener('click', async () => {
     try {
       if (!document.fullscreenElement) await document.documentElement.requestFullscreen({ navigationUI: 'hide' });
@@ -27325,7 +27464,10 @@ window.__k11 = window.__k11DevOnly() ? {
   explorerInfo: () => ({ world: L && L.explorer ? L.explorer : 0, onMap: !!(L && L.explorer), x: P ? Math.round(P.x) : 0, y: P ? Math.round(P.y) : 0,
     camX: Math.round(camX), camY: Math.round(camY), entrances: L && L.nodes ? L.nodes.length : 0,
     nodes: L && L.nodes ? L.nodes.map((n) => ({ stage: n.stage, kind: n.kind, open: stageOpen(n.stage), done: progress.beaten.indexOf(n.stage) >= 0 })) : [],
-    near: L && L.nodes && P ? ((L.nodes.find((n) => Math.abs(n.x * T + T / 2 - (P.x + P.w / 2)) < 12 && Math.abs(n.y * T + T / 2 - (P.y + P.h - 8)) < 12) || {}).stage ?? null) : null }),
+    /* no "??" here (2026-10-31): the nullish operator is ES2020, and one use in this file stopped the
+       WHOLE game script from parsing on a Safari/iOS older than 13.4 or a Chrome/WebView older than 80,
+       which is a blank page with no message. Written out longhand so older phones can still parse it. */
+    near: L && L.nodes && P ? (function (hit) { return hit && hit.stage !== undefined ? hit.stage : null; }(L.nodes.find((n) => Math.abs(n.x * T + T / 2 - (P.x + P.w / 2)) < 12 && Math.abs(n.y * T + T / 2 - (P.y + P.h - 8)) < 12))) : null }),
   explorerTeleport: (x, y) => { if (L && L.explorer && P) { P.x = x; P.y = y; P.vx = 0; P.vy = 0; } return { x: P.x, y: P.y }; },
   explorerGo: (w) => { startExplorer(w); return { world: L.explorer }; },
   explorerDoor: (k) => (L && L.nodes && L.nodes[k] ? { x: L.nodes[k].x * T + T / 2, y: L.nodes[k].y * T + T / 2, stage: L.nodes[k].stage } : null),
@@ -27739,6 +27881,9 @@ window.__k11 = window.__k11DevOnly() ? {
 } : undefined;
 
 })();
+/* the game script ran to the end: the fail-safe panel at the top of the page stands down (2026-10-31) */
+window.__kvBooted = 1;
+
 </script>
 </body>
 </html>

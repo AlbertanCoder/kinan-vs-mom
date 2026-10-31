@@ -395,7 +395,7 @@ test.describe('V1 · no robot voice', () => {
     expect(errors).toEqual([]);
   });
 
-  test('the device voice is OFF by default (an old save\'s "narration: true" too); switched on, it only ever picks an English voice', async ({ page }) => {
+  test('the device voice is ON by default (an old save\'s "narration: true" too), an explicit OFF is kept, and it only ever picks an English voice', async ({ page }) => {
     const errors = watchErrors(page);
     await spy(page, [{ name: 'Microsoft Natural Voice (French)', lang: 'fr-FR' }, { name: 'Google Deutsch Natural', lang: 'de-DE' }, { name: 'Daniel', lang: 'en-GB' }]);
     await seed(page, (d) => { d.narration = true; delete d.deviceVoice; });
@@ -404,13 +404,23 @@ test.describe('V1 · no robot voice', () => {
       const k = (window as unknown as Win).__k11;
       return { a: k.audioInfo(), saved: k.progress(), kid: k.voPick('k'), mom: k.voPick('m') };
     });
-    expect(r.a.deviceVoice).toBe(false);
+    /* 2026-10-31 (Shad: "a lot of the characters' voices don't work"): ON by default. 41% of the written dialog
+       lines have no recording, so an old save that only stored the old default of false comes back speaking. */
+    expect(r.a.deviceVoice).toBe(true);
     expect(r.saved.narration).toBeUndefined();
     expect(r.kid).toEqual({ name: 'Daniel', lang: 'en-GB' });   /* "natural" matches the French voice first: skipped, it is not English */
     expect(r.mom).toEqual({ name: 'Daniel', lang: 'en-GB' });
     await page.locator('#menuBtn').click();   /* 2026-10-28: the audio settings are THE MENU's Settings page */
     await page.locator('#settingsBtn').click();
-    await expect(page.locator('#volNarr')).not.toBeChecked();
+    await expect(page.locator('#volNarr')).toBeChecked();
+    /* the player turns it off: that choice sticks (deviceVoiceSet), through a reload as well */
+    await page.locator('#volNarr').uncheck();
+    const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('kinan-remaster-v1') || '{}'));
+    expect(saved.deviceVoice).toBe(false);
+    expect(saved.deviceVoiceSet).toBe(1);
+    await page.reload();
+    await boot(page);
+    expect(await page.evaluate(() => (window as unknown as Win).__k11.audioInfo().deviceVoice)).toBe(false);
     expect(errors).toEqual([]);
   });
 
