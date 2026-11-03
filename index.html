@@ -5481,6 +5481,11 @@ function arenaLines(A) {
     else { A.lineHold = 0; A.line = null; if (box) box.hidden = true; }
   }
   if (A.line || !A.lineQ.length) return;
+  /* 2026-11-03 audit: a story line still being said finishes first (Dad's 3-castle storm line lost its punchline to the
+     Foreman's opener): the fight's line waits for it, 8 s at most (a pet's joins-the-team line runs 7.7 s), then wins as before */
+  const va = VO.audio, storyTalking = Story.cur && va && !va.paused && !va.ended;
+  if (storyTalking && (A.storyWait = (A.storyWait || 0) + 1) < 480) return;
+  A.storyWait = 0;
   const id = A.lineQ.shift(), d = ARENA_LINES[id];
   A.line = id; A.lineT = Math.round(lineSecs(d) * 60) + 20;
   A.voiceLog.push(id);
