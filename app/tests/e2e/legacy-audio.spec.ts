@@ -32,7 +32,7 @@ test.describe('Natural audio — channel controls, captions, clips-first voice',
     await expect(page.locator('#volSfx')).toBeVisible();
     await expect(page.locator('#volVo')).toBeVisible();
     await expect(page.locator('#volNarr')).toBeChecked();   /* 2026-10-31 (Shad): the device voice is ON by default, so an unrecorded line is never a silent subtitle */
-    await expect(page.locator('#volCaps')).toBeChecked();
+    await expect(page.locator('#volCaps')).not.toBeChecked();   /* 2026-11-03 (Shad, audit answer 12): sound captions start OFF */
     await page.locator('#menuX').click();
     await expect(page.locator('#menu')).toBeHidden();
     expect(errors).toEqual([]);

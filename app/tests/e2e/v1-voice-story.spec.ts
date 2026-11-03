@@ -33,8 +33,13 @@ type Win = { __k11: Dev; KinanLevels: { ready: boolean; list: () => string[] }; 
 
 const STORY: Story = (() => {
   const c: Record<string, unknown> = {}; c.self = c;
-  new Function('self', readFileSync(`${ROOT}audio/lines/lines.js`, 'utf8') + '\n' + readFileSync(`${ROOT}audio/dad-lines.js`, 'utf8'))(c);   /* + Dad's joke pass, as the game loads it */
-  return c.KINAN_STORY as Story;
+  new Function('self', ['audio/lines/lines.js', 'audio/dad-lines.js', 'audio/story-fixes.js', 'audio/talk/clips.js', 'audio/talk/clips-all.js']
+    .map((f) => readFileSync(`${ROOT}${f}`, 'utf8')).join('\n'))(c);   /* + Dad's joke pass and the 2026-11-03 story fixes, as the game loads them */
+  /* a line with no clip of its own plays its talk recording by speaker + words (index.html lineClip, 2026-11-03) */
+  const S = c.KINAN_STORY as Story, C = (c.KINAN_TALK_CLIPS || {}) as Record<string, number>;
+  const hash = (who: string, text: string): string => { let h = 0x811c9dc5; const s = who + '|' + text; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; } return ('0000000' + h.toString(16)).slice(-8); };
+  for (const id of Object.keys(S.lines)) { const d = S.lines[id]; if (!d[3] && C[hash(d[0], d[1])]) d[3] = 'audio/talk/' + hash(d[0], d[1]) + '.mp3'; }
+  return S;
 })();
 const fixture = (name: string): string => readFileSync(fileURLToPath(new URL(`../fixtures/saves/${name}`, import.meta.url)), 'utf8');
 

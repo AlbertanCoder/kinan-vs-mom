@@ -147,7 +147,7 @@ const ROUTE = `(id) => {
   k.playLevel(id); k.godMode(); k.clearFoes();
   let n = 0, far = 0;
   const fellNear = [];
-  for (; n < 500 && !k.levelInfo().cleared; n++) {
+  for (; n < 900 && !k.levelInfo().cleared; n++) {   /* 2026-11-03: the castle's party now holds THE JOKE-OFF (three beats) */
     const x0 = k.probe().x, f0 = k.levelInfo().falls || 0;
     k.auto(30, { run: true });
     far = Math.max(far, Math.floor(k.probe().x / 16));
