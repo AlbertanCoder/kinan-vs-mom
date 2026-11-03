@@ -142,7 +142,7 @@
       [100, 'KINAN', '...Dad. Please press UNDO.', 2.8],
       [123, 'ANNIE', "Shabash! (Well done!) A flickering ghost can't hold you. Real stones are solid.", 3.8],
       [144, 'CHENOA', "Third copy. Something's different again, little bro. Check the third roof.", 3.8],
-      [196, 'MOM', "Is that all you do, tell jokes? Last street, honey. A five-tile gap ahead.", 3.8, 'walkoff'],
+      [196, 'MOM', "I'm saving these up so I can groan at them later. Last street, honey. A five-tile gap ahead.", 3.8, 'walkoff'],
       [196, 'DAD', "...I'll be here all week! Don't be a copy-cat, bud!", 3],
       [214, 'SHAD', "A 5 gap. Take a running start. The checkpoint is right behind you.", 3.8],
       [234, 'ANNIE', "That lone block over the street... it doesn't belong there. It's glowing.", 4],

@@ -176,7 +176,7 @@
       [68, 'SHAD', "The yellow lamp flashes just before the lift leaves, little bro. And the express lift only waits a moment!", 4],
       [94, 'MOM', "This is the real tower, sweetie. The lift only goes where you step on it. I'll be right behind you.", 3.8],
       [112, 'DAD', "I used to be afraid of elevators, but now I'm taking steps to avoid them!", 3.4],
-      [112, 'MOM', "Is that all you do, tell jokes? I am going up the lift. Alone.", 3.2, 'walkoff'],
+      [112, 'MOM', "Robin, I married you for your hugs, not your jokes. I am going up the lift.", 3.2, 'walkoff'],
       [112, 'DAD', "...I'll be here all week! Well, till the top.", 2.8],
       [117, 'CHENOA', "A gap in the skybridge! Jump it, little bro. The floor is a long way down from here.", 3.6],
       [144, 'MOM', "Hold on up here, sweetie. The wind pushes you back, but never off the edge.", 3.6],

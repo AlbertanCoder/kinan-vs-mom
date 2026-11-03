@@ -172,7 +172,7 @@
       [90, 'SHAD', "A swarm of butterflies is a moving platform. Land on the glowing line along its top, little bro.", 3.8],
       [100, 'MOM', "These leaves are very bouncy, sweetie. Hold RIGHT as you take off, and look where you're landing.", 3.8],
       [118, 'DAD', "Why do butterflies make bad party guests? They're always flitting in and out!", 3.4],
-      [118, 'MOM', "Is that all you do, tell jokes? I am going to sit with the orchids. Alone.", 3.4, 'walkoff'],
+      [118, 'MOM', "I did NOT just laugh. Nobody saw that. I am going to sit with the orchids.", 3.4, 'walkoff'],
       [118, 'DAD', "...I'll be here all week! Well, till the butterflies leave.", 3],
       [185, 'MOM', "The ponds are wider now, sweetie. The swarms are faster, too. Take a running jump, or ride one.", 4],
       [201, 'KINAN', "That last leaf points at a swarm flying way up high! There's a canopy ledge on the other side...", 4],

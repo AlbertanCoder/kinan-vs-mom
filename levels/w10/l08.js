@@ -200,7 +200,7 @@
       [62, 'CHENOA', "A wooden board on that mirror cabinet! Stand next to it and press KICK.", 3.4],
       [94, 'DAD', "Those glass steps light up one after the other, bud. A wave of mirrors! Hop up with it.", 3.8],
       [120, 'DAD', "What do you call a mirror that tells jokes? A real crack-up!", 3.2],
-      [120, 'MOM', "Is that all you do, tell jokes? I am going to stand in front of the quiet mirror. Alone.", 3.6, 'walkoff'],
+      [120, 'MOM', "If that mirror could groan, it would. I am going to stand in front of the quiet one.", 3.6, 'walkoff'],
       [120, 'DAD', "...I'll be here all week! Seven years' bad luck, though.", 3.2],
       [166, 'DAD', "That mirror hanging over the path is twinkling, bud. It's twinkling twice! Jump up under it.", 3.8],
       [190, 'SHAD', "The hardest part, little bro. Three glass doors in a row, and wide pits. Take your time. The doors never trap you.", 4.8],

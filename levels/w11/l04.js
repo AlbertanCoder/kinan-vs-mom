@@ -177,7 +177,7 @@
       [93, 'SHAD', 'It will follow you now. I animated it myself. The peeping is my favourite part.', 4],
       [98, 'CHENOA', "See that thin ledge by the vent? Ride the puff, then step LEFT. There's a treat up there.", 4.4],
       [122, 'ANNIE', 'Hai Rabba! (Oh my goodness!) That arch of bones has a glowing block. Jump up and see.', 4.4],
-      [150, 'MOM', "Is that all you do, tell jokes? I'm going to ride the geyser in peace.", 3.4, 'walkoff'],
+      [150, 'MOM', "Every. Single. Level. I'm going to ride the geyser in peace.", 3.4, 'walkoff'],
       [150, 'DAD', "...I'll be here all week! Dino-mite!", 3],
       [176, 'SHAD', "A 5 gap next, bud. Take a running start. The checkpoint's right behind you.", 4],
       [236, 'CHENOA', "Open ground ahead. I think I hear a big roar, little bro. The baby knows that voice!", 4.4],

@@ -111,7 +111,7 @@ const P={
   bessborough(X,Y){shadow(X,Y+2,40,6);box('#efe0bc',X-34,Y-38,68,38);px('#d4c29a',X-34,Y-14,68,2);for(let r=0;r<3;r++)for(let i=0;i<8;i++)box('#5a6fa0',X-29+i*8,Y-33+r*10,3,5);
     px('#1b1220',X-38,Y-54,76,17);px('#3fa88a',X-37,Y-53,74,15);px('#8ce0c4',X-37,Y-53,74,3);
     [-36,26].forEach(a=>{box('#efe0bc',X+a,Y-64,12,28);px('#1b1220',X+a-2,Y-80,16,17);px('#3fa88a',X+a-1,Y-79,14,15);px('#8ce0c4',X+a+4,Y-86,4,8);});
-    box('#efe0bc',X-8,Y-74,16,38);px('#1b1220',X-10,Y-94,20,21);px('#3fa88a',X-9,Y-93,18,19);px('#8ce0c4',X-2,Y-102,4,9);box('#2b2f45',X-5,Y-13,10,13);px('#1b1220',X,Y-114,1,12);P.label(X,Y+4,'THE BESSBOROUGH');},
+    box('#efe0bc',X-8,Y-74,16,38);px('#1b1220',X-10,Y-94,20,21);px('#3fa88a',X-9,Y-93,18,19);px('#8ce0c4',X-2,Y-102,4,9);box('#2b2f45',X-5,Y-13,10,13);px('#1b1220',X,Y-114,1,12);P.label(X,Y+4,'THE RIVER CASTLE HOTEL');},
   uofsTower(X,Y){shadow(X+32,Y+2,38,4);box('#c4bcaa',X,Y-26,64,26);for(let r=0;r<4;r++)px('#a8a08e',X,Y-22+r*6,64,1);px('#1b1220',X-3,Y-33,70,8);px('#6f7889',X-2,Y-32,68,6);[[6,-20],[50,-20]].forEach(([a,b])=>box('#cfeeff',X+a,Y+b,6,8));
     box('#c4bcaa',X+24,Y-58,16,34);px('#1b1220',X+22,Y-64,20,7);px('#6f7889',X+23,Y-63,18,5);box('#f6ead2',X+28,Y-50,8,8);px('#1b1220',X+32,Y-48,1,4);P.label(X+32,Y+4,'U of S');},
   school(X,Y){shadow(X+30,Y+2,34,4);box('#c8603c',X,Y-24,56,24);px('#1b1220',X-3,Y-31,62,8);px('#6b6f7a',X-2,Y-30,60,6);[[6,-18],[20,-18],[34,-18],[46,-18]].forEach(([a,b])=>box('#cfeeff',X+a,Y+b,6,7));box('#3f63a8',X+24,Y-10,8,10);

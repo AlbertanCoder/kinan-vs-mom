@@ -187,7 +187,7 @@
       [114, 'ANNIE', "A real working flower clock! Chalo! (Let's go!)", 3],
       [128, 'MOM', "The big hand swings right past that floating ledge, sweetie. Step off when they're level.", 3.8],
       [172, 'DAD', "I'd tell a joke about time, but it's about time I stopped. Wait, no, it's a bit late for that.", 4],
-      [172, 'MOM', "Is that all you do, tell jokes? I am going to look at the flowers. Alone.", 3.4, 'walkoff'],
+      [172, 'MOM', "Ten jokes in one day. That's a new record, Robin. I am going to look at the flowers.", 3.4, 'walkoff'],
       [172, 'DAD', "...I'll be here all week! Well, till the clock strikes thirteen.", 3],
       [188, 'SHAD', "The hands are faster now, and the pits are wider. Take a running jump, or time the hand.", 3.8],
       [240, 'ANNIE', "Shabash, Kinan! (Well done!) You told time like a pro!", 3.2],

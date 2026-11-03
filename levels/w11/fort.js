@@ -144,7 +144,7 @@
       [140, 'ANNIE', "Shabash! (Well done!) Fire-pixel walls. They come in pairs that take turns. Pass the open one, wait in the pocket.", 5],
       [150, 'DAD', "Why was the wall of fire so shy? It always... hee hee... went to pieces... pixel-ly... I can't—", 4, 'wheeze'],
       [150, 'KINAN', '...Dad. Breathe.', 2.4],
-      [172, 'MOM', "Is that all you do, tell jokes? The next wall is the Guardian's. Be careful.", 3.8, 'walkoff'],
+      [172, 'MOM', "Robin, save one joke for later. The next wall is the Guardian's. Be careful.", 3.8, 'walkoff'],
       [172, 'DAD', "...I'll be here all week! Don't burn out, bud!", 3],
       [226, 'ANNIE', "That great wall of fire-pixels is the Core Guardian. I can read its code: it is afraid, not angry.", 4.6],
       [229, 'KINAN', "The Guardian... Glitchy's heart is right behind it. Let's find out what it wants.", 4.2],

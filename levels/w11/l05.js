@@ -171,7 +171,7 @@
       [56, 'CHENOA', '...Dad. Stop. Please. The glass is going to hear you.', 3.4],
       [96, 'ANNIE', "Hai Rabba! (Oh my goodness!) One block in that cake roof is glowing. Maybe a secret.", 4.2],
       [142, 'SHAD', "Glass stairs above the next bridge, little bro. Hop them while the glass waits for you.", 4.2],
-      [172, 'MOM', "Is that all you do, tell jokes? Ahead, one switch lights three bridges. Keep going, honey.", 4, 'walkoff'],
+      [172, 'MOM', "Your dad, everybody. Ahead, one switch lights three bridges. Keep going, honey.", 4, 'walkoff'],
       [172, 'DAD', "...I'll be here all week! Cake-walk, bud!", 3],
       [226, 'ANNIE', "The glass... I can see another Kinan in it. A glitch copy. Be ready, Kinan.", 4.2],
       [229, 'KINAN', "That's... me?! A mirror copy. Glitchy's panic made it. We'll show it it's okay.", 4.4],

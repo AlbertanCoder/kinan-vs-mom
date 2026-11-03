@@ -6,6 +6,7 @@ importScripts('./levels/manifest.js');
    every story clip plus the boss clips in audio/voice/, so Worlds 1-5 talk offline after one load */
 importScripts('./audio/lines/lines.js');
 importScripts('./audio/dad-lines.js');
+importScripts('./audio/story-fixes.js');   /* the 2026-11-03 audit's story fixes */
 importScripts('./audio/talk/clips.js');   /* the level talk bubbles' voices (Dad, Grandpa): sets KINAN_TALK_FILES */   /* Dad's joke pass over the story lines (2026-10-29); adds any re-recorded clip to KINAN_STORY_FILES */
 /* the overworld map, World 12 (3D map + 3D levels) and the fonts (docs/OVERWORLD-MAP.md).
    app/tests/unit/overworld-map.test.ts fails if a file in map/, 3d/ or fonts/ is missing here. */
@@ -46,7 +47,9 @@ const ASSETS = [
   './levels/registry.js',
   './audio/lines/lines.js',
   './audio/dad-lines.js',
-  './audio/talk/clips.js'
+  './audio/story-fixes.js',
+  './audio/talk/clips.js',
+  './audio/talk/clips-all.js'   /* every other line's recording (2026-11-03): the list only; each clip is kept after it first plays */
 ].concat((self.KINAN_LEVEL_FILES || []).map((f) => './levels/' + f)).concat(MAP_FILES).concat(BELT_FILES)
   .concat((self.KINAN_STORY_FILES || []).map((f) => './' + f)).concat((self.KINAN_TALK_FILES || []).map((f) => './' + f));
 /* big files that only change with a new cache version: served from the cache first (no 7 MB refetch on a phone) */

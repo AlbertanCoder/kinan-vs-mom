@@ -65,7 +65,7 @@ export const STORY_ADD = {
    no conversation over 5 lines (Shad, 2026-10-29): the long ones are cut to their best lines, every story fact kept */
 export const GROUPS = {
   intro: {
-    1: ['w01_kinan_01', 'w01_kinan_02', 'w01_kinan_03', 'w01_mom_01', 'w01_mom_02'],                 /* was 8 (Shad's "did you open it", Glitchy's beep, the socks line cut) */
+    1: ['w01_kinan_01', 'w01_kinan_03', 'w01_mom_01', 'w01_kinan_04', 'w01_mom_02'],                 /* was 8 (Shad's "did you open it", Glitchy's beep, the peek line cut); 2026-11-03 audit: the socks line is back, so Mom's "Then catch them" answers something */
     2: ['w02_kinan_01', 'w02_shad_01', 'w02_milo_01', 'w02_aiden_01', 'w02_kinan_02'],               /* was 6 (Glitchy's beep cut) */
     4: ['w04_kinan_01', 'w04_shad_02', 'w04_kinan_02', 'w04_annie_01', 'w04_annie_pa01'],            /* was 7 (Shad's hello and "hold that thought" cut) */
     5: ['w05_kinan_01', 'w05_robin_01', 'w05_kinan_02', 'w05_annie_01', 'w05_annie_pa01']            /* was 8 (Chenoa's "stay together", Glitchy, Aiden's hello cut) */
@@ -183,12 +183,12 @@ export const ADD_TALK = {
   'levels/w07/l03.js': [[30, 'DAD', "How do the trees in Stanley Park get online? They... hee hee... they... HAHA... I can't—", 4, 'wheeze'],
     [30, 'MOM', '...They LOG IN. Robin, breathe. Kinan, keep running.', 3.2, 'laugh']],
   'levels/w07/l07.js': [[30, 'DAD', 'Hon, what did one magnet say to the other? I find you very attractive. ...Get it? Like you and me?', 4.4],
-    [30, 'MOM', 'Is that all you do, tell jokes? I am going to see the planets. Without you.', 3.4, 'walkoff'],
+    [30, 'MOM', 'Robin. ROBIN. ...Fine, that one was a little funny. I am going to see the planets.', 3.4, 'walkoff'],
     [30, 'DAD', "...I'll be here all week! She'll be back. Opposites attract.", 3]],
   'levels/w08/l03.js': [[30, 'DAD', "Toronto built raccoon-proof garbage bins. And the raccoons said... hee hee... they said... HAHA... I can't—", 4.2, 'wheeze'],
     [30, 'MOM', "...'Challenge accepted.' Oh, Robin. That was actually funny!", 3.4, 'laugh']],
   'levels/w08/l07.js': [[30, 'DAD', "What do you call cheese that isn't yours? Nacho cheese! Get it? Not-yo cheese? Because it's not yours?", 4.4],
-    [30, 'MOM', 'Is that all you do, tell jokes? Peaches. I am going to look at peaches.', 3.4, 'walkoff'],
+    [30, 'MOM', 'This is my not-laughing face. See? Not laughing. Peaches. I am going to look at peaches.', 3.4, 'walkoff'],
     [30, 'DAD', "...I'll be here all week, folks! Try the brie, it's un-brie-lievable!", 3.2]],
   /* Grandpa's video call, with Dad: the toy brick on the stairs */
   'levels/w08/l05.js': [[30, 'GRANDPA', 'Grandpa on the video call! Toy bricks, eh? Your dad left one on the stairs once. My foot still remembers.', 4.6],

@@ -60,11 +60,19 @@ test.describe('Natural audio — channel controls, captions, clips-first voice',
     expect(errors).toEqual([]);
   });
 
-  test('captions describe sounds and the toggle hides them', async ({ page }) => {
+  test('captions start off (Shad, 2026-11-03), describe sounds once switched on, and the toggle hides them', async ({ page }) => {
     const errors = watchErrors(page);
     await page.goto(DEV_URL);
     await page.waitForFunction(() => typeof (window as unknown as { __k11?: Dev }).__k11 === 'object');
+    expect(await page.evaluate(() => (window as unknown as { __k11: Dev }).__k11.audioCue('win')), 'sound captions start off').toMatchObject({ caption: null });
+    await openAudioBox(page);
+    await expect(page.locator('#volCaps')).not.toBeChecked();
+    await page.locator('#volCaps').check();
+    await page.locator('#menuX').click();
     expect(await page.evaluate(() => (window as unknown as { __k11: Dev }).__k11.audioCue('win'))).toMatchObject({ caption: '(victory jingle)' });
+    await page.reload();
+    await page.waitForFunction(() => typeof (window as unknown as { __k11?: Dev }).__k11 === 'object');
+    expect(await page.evaluate(() => (window as unknown as { __k11: Dev }).__k11.audioCue('win')), 'the choice is kept').toMatchObject({ caption: '(victory jingle)' });
     await openAudioBox(page);
     await page.locator('#volCaps').uncheck();
     await page.locator('#menuX').click();

@@ -44,7 +44,7 @@
   };
   var G = {
     intro: {
-      1: ['w01_kinan_01', 'w01_kinan_02', 'w01_kinan_03', 'w01_mom_01', 'w01_mom_02'],
+      1: ['w01_kinan_01', 'w01_kinan_03', 'w01_mom_01', 'w01_kinan_04', 'w01_mom_02'],   /* 2026-11-03 audit: Mom's "Then catch them" answers the socks line again */
       2: ['w02_kinan_01', 'w02_shad_01', 'w02_milo_01', 'w02_aiden_01', 'w02_kinan_02'],
       4: ['w04_kinan_01', 'w04_shad_02', 'w04_kinan_02', 'w04_annie_01', 'w04_annie_pa01'],
       5: ['w05_kinan_01', 'w05_robin_01', 'w05_kinan_02', 'w05_annie_01', 'w05_annie_pa01']

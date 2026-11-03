@@ -223,7 +223,7 @@
       [84, 'CHENOA', "Two signs make a staircase! Hop up the glowing ones and see what is on that shelf.", 3.8],
       [93, 'CHENOA', "A wooden board on that arcade! Kick it, little bro: stand next to it and press KICK.", 3.6],
       [112, 'DAD', "Why did the arcade get such great grades? Because it had so many high scores!", 3.4],
-      [112, 'MOM', "Is that all you do, tell jokes? I am going to look at the Ferris wheel. Alone.", 3.4, 'walkoff'],
+      [112, 'MOM', "Oh, you think you're SO funny. ...You are, a little. I am going to look at the Ferris wheel.", 3.4, 'walkoff'],
       [112, 'DAD', "...I'll be here all week! Well, till the fireworks.", 3],
       [119, 'SHAD', "These three signs light up one after the other, like a wave. Climb with it, little bro!", 3.6],
       [136, 'DAD', "I was scared of the Ferris wheel once, bud. But then I came around!", 3.4],

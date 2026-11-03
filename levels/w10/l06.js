@@ -178,7 +178,7 @@
       [112, 'SHAD', "A pad on the cliff, and a cable car on its own wire way up high! Run onto the pad and steer for the floating ledge.", 4.6],
       [136, 'DAD', "Look at that, bud. A cable car on its own wire. It's really hanging out up there!", 3.6],
       [172, 'DAD', "I tried a joke on the cable car, but it went right over everyone's heads!", 3.4],
-      [172, 'MOM', "Is that all you do, tell jokes? I am taking the other cable car. Alone.", 3.4, 'walkoff'],
+      [172, 'MOM', "Kinan, don't encourage him. ...Okay, that one was good. I am taking the other cable car.", 3.4, 'walkoff'],
       [172, 'DAD', "...I'll be here all week! Well, till the wire runs out.", 3],
       [190, 'SHAD', "Longer chasms now, and the cars are faster. Take a running jump, or ride, little bro.", 3.6],
       [240, 'KINAN', "The last station! Glitchy is racing off toward the flower gardens!", 3.4]

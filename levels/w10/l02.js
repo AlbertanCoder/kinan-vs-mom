@@ -189,7 +189,7 @@
       [70, 'SHAD', "Before each gust the white mist rises on the right. Wait for it to pass, little bro.", 3.6],
       [85, 'CHENOA', "A wooden board on the pier shed! Stand next to it and press KICK.", 3.4],
       [100, 'DAD', "Why are waterfalls so polite? They always say pardon the spray!", 3],
-      [100, 'MOM', "Is that all you do, tell jokes? I am going to sit where it's dry. Alone.", 3.4, 'walkoff'],
+      [100, 'MOM', "That one was so bad it was good. I am going to sit where it's dry.", 3.4, 'walkoff'],
       [100, 'DAD', "...I'll be here all week! Well, till the boat docks.", 3],
       [186, 'MOM', "The channels are wider now, sweetie. Hop on a boat, or take a running jump. No spray on this part.", 4],
       [203, 'KINAN', "A spring by the dock, and a little lifeboat swinging on a hook way up high! Maybe I can ride it across!", 4.2],
