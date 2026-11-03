@@ -148,7 +148,7 @@
       [172, 'DAD', "...I'll be here all week! Don't burn out, bud!", 3],
       [226, 'ANNIE', "That great wall of fire-pixels is the Core Guardian. I can read its code: it is afraid, not angry.", 4.6],
       [229, 'KINAN', "The Guardian... Glitchy's heart is right behind it. Let's find out what it wants.", 4.2],
-      [258, 'SHAD', "The core is open. Glitchy's in there, bud. Whatever happens next... we're all with you.", 4.2]
+      [258, 'SHAD', "The core is up ahead. Glitchy's in there somewhere, bud. Whatever happens next... we're all with you.", 4.2]
     ]
   });
 })();

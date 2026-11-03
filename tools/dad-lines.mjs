@@ -161,7 +161,7 @@ export const ADD_TALK = {
   'levels/w01/l07.js': [[30, 'DAD', 'Dad again, bud! Why did the painting go to jail? It was framed! ...Hello? Did you hang up? Like a painting?', 5]],
   'levels/w02/l03.js': [[30, 'DAD', "Dad on the phone! Why can't you trust atoms? Because they... hee hee... they... HAHA... I can't—", 4, 'wheeze'],
     [30, 'KINAN', "...make up everything. Dad, you're on speaker. My whole class heard that.", 3.4]],
-  'levels/w02/l06.js': [[30, 'DAD', "Quick one from camp, bud: why is the cafeteria clock always slow? It goes back four seconds. The camp cook didn't laugh either.", 5.2]],
+  'levels/w02/l06.js': [[30, 'DAD', "Driving back from camp, bud! Why is the cafeteria clock always slow? It goes back four seconds. The cook didn't laugh either.", 5.2]],
   'levels/w03/l02.js': [[30, 'DAD', 'What did the oil say to the pumpjack? Stop... hee hee... stop... HAHA... stop pumping me for... I can\'t—', 4.4, 'wheeze'],
     [30, 'KINAN', '...for information. Dad. Breathe. Grandpa would give that a two.', 3.2]],
   'levels/w03/l05.js': [[30, 'DAD', 'Why did the pumpjack go to the... hee... HAHA... the... oh boy... the... I can\'t—', 4, 'wheeze'],

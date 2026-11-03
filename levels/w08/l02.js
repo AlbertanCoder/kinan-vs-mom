@@ -155,7 +155,7 @@ KinanLevels.register({
   goal: { col: 286, row: 11 },   /* the stairs up to Nathan Phillips Square */
   talk: [
     [2, 'SHAD', 'The raccoon jumped down into the subway with Glitchy! It is riding on top of that train!', 4],
-    [10, 'MOM', 'Kinan, you do NOT ride on top of trains. ...It is only a game? Okay. Be careful, sweetie.', 4.4],
+    [10, 'MOM', 'Kinan, you do NOT ride on top of trains. ...Just this once, to catch Glitchy. Be careful, sweetie.', 4.4],
     [55, 'CHENOA', 'Tunnel! The roof is right over your head in there. Little hops, little bro!', 3.6],
     [97, 'KINAN', 'Mind the gap! Mind ALL the gaps!', 2.6],
     [109, 'DAD', "The Bloor Viaduct! A whole valley under us, bud. Don't look down. I did. Real low point.", 3.8],

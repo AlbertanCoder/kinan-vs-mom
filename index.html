@@ -4103,14 +4103,14 @@ const END_LINES = {
   end_kinan_01: ['KINAN', "FRIENDS! You're on the team now, Glitchy. For real.", 3.4],
   end_mom_01: ['MOM', 'Group hug. Everybody. Yes, you too, Glitchy.', 3],
   end_shad_01: ['SHAD', 'Hey bud... look at the title. I think the game just got a new name.', 3.8],
-  end_kinan_02: ['KINAN', 'We did it! ...Why can I see the BACK of my house?!', 3.6],
+  end_kinan_02: ['KINAN', "We did it! ...Wait, we're HOME? Why can I see the BACK of my house?!", 3.8],
   end_mom_02: ['MOM', 'Kinan, stay close!', 2.2],
   end_kinan_03: ['KINAN', "WHAT IS GOING ON HERE?! My hands are 3D! ...Okay, that's cool, BUT WHAT?!", 4.8],
   end_annie_01: ['ANNIE', "My scanners can't even measure this. The whole world just got DEEPER!", 3.6],
   end_chenoa_01: ['CHENOA', "Little bro, don't touch anything!", 2.6],
   end_dad_01: ['DAD', 'One dimension at a time, guys.', 2.8],
   end_glitchy_02: ['GLITCHY', 'Ooooh... beep!', 3],
-  end_shad_02: ['SHAD', 'Welcome to your eleventh birthday, bud.', 3.4],
+  end_shad_02: ['SHAD', 'Happy birthday week, bud. Welcome to year eleven.', 3.4],   /* 2026-11-03: the trip is his birthday WEEK (World 1 is the day itself) */
   end_kinan_04: ['KINAN', 'Wait... is that SASKATOON? In 3D?!', 3]
 };
 if (STORY && STORY.lines) for (const id of Object.keys(END_LINES)) STORY.lines[id] = END_LINES[id].concat([null]);
@@ -4144,7 +4144,7 @@ const END_PEEK_AT = 3000;   /* ms into the TO BE CONTINUED beat: after its 18 le
 const END_CREDITS = [['KINAN vs. WORLDS', 'title'], ['STARRING', 'head'], ['Kinan', 'name'], ['THE TEAM', 'head'], ['Mom', 'name'], ['Dad', 'name'], ['Big Sis Chenoa', 'name'], ['Big Bro Shad', 'name'],
   ['Annie', 'name'], ['Glitchy', 'name'], ['THE FAMILY', 'head'], ['GRANDPA', 'name'], ['the Grandmas', 'name'], ['Sabumnim', 'name'], ['THE PETS', 'head'], ['Ginger', 'name'], ['Chikastino', 'name'],
   ['Vader', 'name'], ['Hunter', 'name'], ['Duchess', 'name'], ['Tuxedo', 'name'], ['FRIENDS MADE ON THE WAY', 'head'], ['Bronco', 'name'], ['Robo-Rex', 'name'], ['Drizzle', 'name'],
-  ['the Raccoon King', 'name'], ['Brick-Rex', 'name'], ['the Alpha T-Rex', 'name'], ['', 'gap'], ["Made for Kinan's 11th birthday", 'made'], ['by Big Bro Shad', 'made'], ['', 'gap'], ['HAPPY BIRTHDAY, KINAN!', 'title']];
+  ['the Raccoon King', 'name'], ['Brick-Rex', 'name'], ['the Alpha T-Rex', 'name'], ['Milo', 'name'], ['Aiden', 'name'], ['', 'gap'], ["Made for Kinan's 11th birthday", 'made'], ['by Big Bro Shad', 'made'], ['', 'gap'], ['HAPPY BIRTHDAY, KINAN!', 'title']];
 /* the ending plays now: false when it can't (another cutscene is on) */
 function cutEnding(o) {
   o = o || {};
@@ -4794,7 +4794,7 @@ const ARENA_LINES = {
   t_gm_ol_04: ['GRANDMA (ONION LAKE)', "Whew... we're all out of steam, dear.", 2.8, true],
   t_gm_ed_05: ['GRANDMA (EDMONTON)', "Then there's only one thing left to do... GROUP HUG!", 3.2, true],
   t_w10_kinan_02: ['KINAN', "Can't... breathe... love you too...", 2.8, true],
-  t_gm_ol_05: ['GRANDMA (ONION LAKE)', "Now eat something. Sandwiches, pie, and your other grandma's bannock. You're too skinny for a big trip!", 4.2, true],
+  t_gm_ol_05: ['GRANDMA (ONION LAKE)', "Now eat something. Sandwiches, pie, and my bannock. You're too skinny for a big trip!", 4.2, true],
   t_w10_gp_02: ['GRANDPA', "That's my grandson! Now save me a sandwich, Kinan. A king needs his lunch!", 8.6, true],
   t_mf_01: ['MOM', "Kinan. The party's all set up... but first, one last inspection.", 3.8, true],
   t_w10_kinan_03: ['KINAN', "Mom! It's my BIRTHDAY!", 2.2, true],

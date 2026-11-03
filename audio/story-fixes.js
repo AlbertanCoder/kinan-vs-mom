@@ -22,7 +22,11 @@
     w07_glitchy_01: 'Bwee-ee-ee-EEP! Beep beep!',
     w08_glitchy_02: 'Toot-toot! Beep!',
     w08_annie_pa01: "Leave it to me, Shad. I'll have it deleted by breakfast.",
-    w01_shad_02: "He's headed for the River Castle Hotel, bud. Go, go, go!"   /* answer 19: no real business names */
+    w01_shad_02: "He's headed for the River Castle Hotel, bud. Go, go, go!",   /* answer 19: no real business names */
+    /* the story read-through (2026-11-03): the trip is his birthday WEEK; Mom drives down to Calgary; Shad says hi in person */
+    w02_kinan_01: "He's in my school? In my birthday week?",
+    w05_kinan_01: 'The Stampede! On parade day! And Mom drove down to meet us!',
+    w04_shad_02: "It's me, bud, in person this time! ...I'm so sorry. I built that console, and now it's loose all over Canada."
   };
   var WHO = { 'GRANDMA HUNTER': 'GRANDMA (EDMONTON)', GRANDMA: 'GRANDMA (ONION LAKE)' };
   var id, d;

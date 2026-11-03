@@ -173,7 +173,7 @@
       [62, 'SHAD', "A hill! The little red wagons carry you over the ditches. Hop on and ride, or jump across.", 3.8],
       [82, 'MOM', "That checked quilt is a trampoline, sweetie. Run onto it and it will throw you across the grass.", 3.8],
       [108, 'DAD', "Nice picnic! I'd say we've really got a lot of... pun-ic. Ha! Panic. Get it?", 3.4],
-      [128, 'MOM', "The Grandmas have been waiting all year to see you, Kinan. I do want you to be ready.", 3.6],
+      [128, 'MOM', "The Grandmas can't wait to see you again, Kinan. I do want you to be ready.", 3.6],
       [156, 'GRANDMA (EDMONTON)', "That's it, Kinan! Don't stop now! Mind the wagon!", 3],
       [181, 'KINAN', "What's that big open lawn up ahead? It's all quiet... a bit too quiet.", 3.4],
       [226, 'GRANDPA', "Over here, Kinan! Why did the picnic basket cross the road? To get to the other... SIDE DISH! Tell your dad that one's mine!", 5.6]
