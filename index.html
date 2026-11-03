@@ -1302,7 +1302,7 @@ const VO_WHO = {
   DRIZZLE: 'dz', 'BIG KID': 'b', 'NOSY NEIGHBOUR': 'n', NEIGHBOUR: 'n', 'MEGA-MECH': 'mech',
   /* 2026-11-03 audit: speakers that had no entry (they fell back to "any English voice", often the wrong sex) */
   'GRANDMA (EDMONTON)': 'm', 'GRANDMA (ONION LAKE)': 'm', GRANDMOTHERS: 'm', 'PASSER-BY': 'n', 'MALL WALKER': 'n', 'RODEO CLOWN': 'br',
-  'PUMPJACK PETE': 'f', 'THE RACCOON KING': 'br', 'BRICK-REX': 'mech', 'MIRROR KINAN': 'k', SABUMNIM: 'd', EVERYONE: 'k', 'SHAD AND CHENOA': 's'
+  'PUMPJACK PETE': 'f', "THE NEIGHBOUR'S WIFE": 'm', 'THE RACCOON KING': 'br', 'BRICK-REX': 'mech', 'MIRROR KINAN': 'k', SABUMNIM: 'd', EVERYONE: 'k', 'SHAD AND CHENOA': 's'
 };
 const whoOfVoice = (name) => VO_WHO[String(name || '').trim().toUpperCase()] || null;
 const VO = {
@@ -6288,7 +6288,7 @@ function arenaBefriend(A) {
   A.cap = null; A.capHeld = false; A.ink = null;
   A.lock = null; A.pads = null; A.walls = null;   /* World 9: the cube opens */
   P.inv = Math.max(P.inv, 90);
-  A.lineQ = []; A.line = null; A.lineT = 0;
+  A.lineQ = [];   /* 2026-11-03 audit: the line being said finishes first (Mom's "...Kinan!" in 1-castle was cut off at the calm) */
   for (const id of A.K.lines.defeat) arenaSay(A, id);
   if (A.music) Music.play(A.music);
   SFX.win();

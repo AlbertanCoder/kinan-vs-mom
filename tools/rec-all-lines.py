@@ -39,6 +39,7 @@ V = {
     'MIRROR KINAN': ('en-US-AnaNeural', '+4%', '-18Hz', 'mirror'),
     'THE CORE GUARDIAN': ('en-US-ChristopherNeural', '-12%', '-30Hz', 'robot'),   # = the Firewall's pick
     'PASSER-BY': ('en-US-EricNeural', '+0%', '+0Hz', None),                       # *
+    "THE NEIGHBOUR'S WIFE": ('en-US-AriaNeural', '-8%', '-10Hz', None),             # *
     'THE BIG OCTOPUS': ('en-US-GuyNeural', '-18%', '-20Hz', 'echo'),               # *
     'THE GIANT BANANA SLUG': ('en-US-ChristopherNeural', '-25%', '-6Hz', None),    # *
     'THE HUNTER DRONE': ('en-US-SteffanNeural', '+4%', '+10Hz', 'robot'),          # *
@@ -81,7 +82,9 @@ for i, l in enumerate(todo):
 # clips-all.js: every audio/talk clip that is not in clips.js (Dad/Grandpa, precached) -> seconds
 pre = set(re.findall(r'"([0-9a-f]{8})":', open(os.path.join(out, 'clips.js'), encoding='utf-8').read()))
 want = {l['hash'] for l in lines}
-extra = {}
+# MERGE with the list already there (a short run must never drop the other lines' entries: 2026-11-03 bug)
+old = os.path.join(out, 'clips-all.js')
+extra = dict((h, float(v)) for h, v in re.findall(r'"([0-9a-f]{8})": ([0-9.]+)', open(old, encoding='utf-8').read())) if os.path.exists(old) else {}
 for f in sorted(os.listdir(out)):
     h = f[:-4]
     if f.endswith('.mp3') and len(h) == 8 and h not in pre and h in want: extra[h] = round(dur(os.path.join(out, f)), 2)

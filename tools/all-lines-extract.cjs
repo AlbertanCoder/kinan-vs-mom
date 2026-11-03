@@ -27,7 +27,7 @@ const S = ctx.self.KINAN_STORY;
 for (const id of Object.keys(S.lines)) { const d = S.lines[id]; add(d[0], d[1], 'story ' + id, typeof d[3] === 'string' && d[3]); }
 /* 2. index.html line tables */
 const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
-const re = /^\s+([A-Za-z0-9_]+): (\[\s*(['"])[A-Z][^'"]{0,40}\3\s*,\s*(['"]).*?\4\s*,\s*[0-9.]+[^\]]*\]),?\s*(?:\/\*.*)?$/gm;
+const re = /^\s+([A-Za-z0-9_]+): (\[\s*(?:"[A-Z][^"]{0,40}"|'[A-Z][^']{0,40}')\s*,\s*(['"]).*?\3\s*,\s*[0-9.]+[^\]]*\]),?\s*(?:\/\*.*)?$/gm;   /* a speaker may have an apostrophe ("THE NEIGHBOUR'S WIFE") */
 let m;
 while ((m = re.exec(html))) {
   let d; try { d = vm.runInContext(m[2], vm.createContext({})); } catch (e) { continue; }
