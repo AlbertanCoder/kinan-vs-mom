@@ -256,3 +256,24 @@ Mom's laugh `t_mf_11`), five lines in all (the same words are `WORLD10_LATER` in
   "Big day, bud. Bring-Your-Kid-to-Work Day..."), voiced from audio/vo2 by their exact text: a new text would lose
   the clip, so they wait for a vo2 re-record pass. Also the end-screen lines ("Well. I always said we needed more
   yard.", "That's one ocean, bud...") are already witty and were left alone.
+
+## The third pass (2026-11-03, deep audit): Dad finishes his jokes, and THE JOKE-OFF
+
+Shad: "Robin and his jokes are top quality dad humor, best of the best ... him and his dad will have a head-to-head
+battle on who can tell the best dad jokes ... you decide who wins."
+
+- **The wheeze was in every World 10-11 level** (Dad can't finish, someone finishes for him, Mom laughs). Kept where it
+  lands best (10-1 neon, 10-3 drip-lomatic, 10-8 mirror, 11-7 the Stampede callback in the Save File Vault); everywhere
+  else Dad now delivers a real punchline and someone else gets the comeback (Chenoa: "That one was... uplifting. ...Oh
+  no. I'm doing it now." · 11-1 Kinan: "Dad. You FINISHED one. Are you okay?").
+- **"...I'll be here all week!"** after nearly every joke: kept in 10-1, 10-8, 11-7, 11-8; the rest cut.
+- **Weak puns swapped for classics or family jokes:** "They call it Niagara Falls. Your mom calls it 'Robin on the dance
+  floor.'" · "Water you waiting for?" · "I'd tell you how they dug that tunnel, but it's kind of boring." · "the
+  calendar... its days are numbered" · "a late bloomer" · "a moth-ball" · "it needed a filling" · "the P is silent" ·
+  "a copycat... See? I did it again." · Grandpa's "Fireworks are like your dad's jokes. Loud, bright, and gone before
+  anybody gets them."
+- **THE JOKE-OFF** (10-castle ending, three beats, Kinan judges): Grandpa wins round one (the anti-gravity book), Dad wins
+  round two (two-tired), and in the final round Dad's "I'm in TIERS" gets the first TEN out of ten Grandpa has ever
+  given: "I've kept your jokes in here since you were eight, son. You win." Dad: "It's the spray from the Falls."
+  Grandpa: "Rematch at Christmas." (index.html `t_jo_*`, `t_w10_gp_04`, `t_w10_kinan_05`; WORLD10_LATER in
+  tools/dad-lines.mjs.) **Dad wins**: Grandpa had won every round since 3-1 (3, 5, 4 out of ten).

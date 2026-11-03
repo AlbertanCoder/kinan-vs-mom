@@ -176,7 +176,7 @@
       [120, 'KINAN', "A bus running the wrong way after a gap. Keep running!", 3.6],
       [146, 'CHENOA', "The blue ring on that high ledge is a shortcut. It's a tight jump, little bro.", 4],
       [172, 'MOM', "Is that all you do, tell jokes? I'm counting the portals instead. That's four.", 3.8, 'walkoff'],
-      [172, 'DAD', "...I'll be here all week! Portal-ly honest, bud!", 3],
+      [172, 'DAD', "...I'll be here all week! Well. The console will.", 3],
       [184, 'ANNIE', "The machine's log says Glitchy used it to run away, every time he was scared. He isn't attacking us. He's afraid.", 5],
       [200, 'SHAD', "The last chamber. A 5 gap, then gates in a wave, then a fire pair. You've got this, little bro.", 4.4],
       [244, 'KINAN', "That's the way to the core. Glitchy, we're coming. You're not broken.", 4]

@@ -183,17 +183,16 @@
       [3, 'DAD', "Welcome aboard, bud! Lovely day for it. I'm a little boat-tered by the spray already!", 3.6],
       [4, 'MOM', "Still not sure about this, Kinan. Ride the boats across the water, and mind the spray.", 3.6],
       [17, 'CHENOA', "The big tour boat is tied up here. Climb up to its top deck, little bro!", 3.4],
-      [36, 'DAD', "Why did the tour boat win a prize? Because it made such a big... hee... such a big SPLASH... I can't—", 4.4, 'wheeze'],
-      [36, 'CHENOA', "...splash. Dad, I am sitting right here.", 2.8],
+      [36, 'DAD', "Why did the tour boat get such good grades? It always knew the current events!", 3.6],
+      [36, 'CHENOA', "Okay, that one floats. Barely.", 2.6],
       [45, 'DAD', "See the lifebuoy on that boathouse, bud? It looks fishy. Something might be hiding up on the roof!", 3.8],
       [70, 'SHAD', "Before each gust the white mist rises on the right. Wait for it to pass, little bro.", 3.6],
       [85, 'CHENOA', "A wooden board on the pier shed! Stand next to it and press KICK.", 3.4],
-      [100, 'DAD', "Why are waterfalls so polite? They always say pardon the spray!", 3],
+      [100, 'DAD', "They call it Niagara Falls, bud. Your mom calls it 'Robin on the dance floor.'", 3.6],
       [100, 'MOM', "That one was so bad it was good. I am going to sit where it's dry.", 3.4, 'walkoff'],
-      [100, 'DAD', "...I'll be here all week! Well, till the boat docks.", 3],
       [186, 'MOM', "The channels are wider now, sweetie. Hop on a boat, or take a running jump. No spray on this part.", 4],
       [203, 'KINAN', "A spring by the dock, and a little lifeboat swinging on a hook way up high! Maybe I can ride it across!", 4.2],
-      [236, 'DAD', "Almost there, bud! You're making a big splash today. Get it? I'm on a roll!", 3.6],
+      [236, 'DAD', "Almost there, bud! Water you waiting for?", 2.8],
       [258, 'KINAN', "The Horseshoe Falls, right ahead! And Glitchy just zipped behind the water!", 3.4]
     ]
   });

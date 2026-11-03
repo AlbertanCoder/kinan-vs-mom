@@ -138,12 +138,11 @@
       [10, 'CHENOA', "A copy can have a bug, little bro. Compare it with the first one before you jump.", 4],
       [34, 'MOM', "The blue stamp says COPY, the red one says PASTE. I'll watch for the differences too, sweetie.", 4.2],
       [92, 'SHAD', "Same stone in the middle gap? Look closely. Does it look the same to you?", 3.8],
-      [100, 'DAD', "Why did the copy cat get in trouble? It kept... hee hee... paws-ting the same thing... I can't—", 4, 'wheeze'],
+      [100, 'DAD', "What do you call a cat that copies everything? A copycat. ...What do you call a cat that copies everything? See? I did it again.", 5],
       [100, 'KINAN', '...Dad. Please press UNDO.', 2.8],
       [123, 'ANNIE', "Shabash! (Well done!) A flickering ghost can't hold you. Real stones are solid.", 3.8],
       [144, 'CHENOA', "Third copy. Something's different again, little bro. Check the third roof.", 3.8],
       [196, 'MOM', "I'm saving these up so I can groan at them later. Last street, honey. A five-tile gap ahead.", 3.8, 'walkoff'],
-      [196, 'DAD', "...I'll be here all week! Don't be a copy-cat, bud!", 3],
       [214, 'SHAD', "A 5 gap. Take a running start. The checkpoint is right behind you.", 3.8],
       [234, 'ANNIE', "That lone block over the street... it doesn't belong there. It's glowing.", 4],
       [254, 'KINAN', "So many copies. Glitchy made them all because he was afraid to be alone. We have to find him.", 4.6]

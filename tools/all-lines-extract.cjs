@@ -10,14 +10,14 @@ const [root, out] = process.argv.slice(2);
 const hash = (who, text) => { let h = 0x811c9dc5; const s = who + '|' + text; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; } return ('0000000' + h.toString(16)).slice(-8); };
 const spokenOf = (t) => String(t).replace(/<[^>]+>/g, ' ').replace(/\([^)]*\)/g, ' ').replace(/[—–]/g, ', ').replace(/\s+/g, ' ').trim();
 const ctx = { self: {} }; vm.createContext(ctx);
-for (const f of ['audio/talk/clips.js', 'audio/lines/lines.js', 'audio/dad-lines.js', 'audio/story-fixes.js']) vm.runInContext(fs.readFileSync(path.join(root, f), 'utf8'), ctx);
+for (const f of ['audio/talk/clips.js', 'audio/talk/clips-all.js', 'audio/lines/lines.js', 'audio/dad-lines.js', 'audio/story-fixes.js']) vm.runInContext(fs.readFileSync(path.join(root, f), 'utf8'), ctx);
 const talk = ctx.self.KINAN_TALK_CLIPS || {};
 const lines = new Map(), recorded = { own: 0, boss: 0, talk: 0 };
 const add = (who, text, where, own) => {
   if (typeof who !== 'string' || typeof text !== 'string' || !/^[A-Z]/.test(who)) return;
   const h = hash(who, text);
   if (own) { recorded.own++; return; }
-  if (talk[h]) { recorded.talk++; return; }
+  if (process.env.ALL_LINES !== "1" && talk[h]) { recorded.talk++; return; }
   const spoken = spokenOf(text);
   if (!/[A-Za-z0-9]/.test(spoken)) return;   // a stage direction only: nothing to say
   if (!lines.has(h)) lines.set(h, { hash: h, who, text, spoken, where });

@@ -210,6 +210,6 @@ export const ADD_TALK = {
 export const WORLD10_LATER = [
   ['GRANDPA', 'Niagara Falls, Robin. Twelve thousand years of the same routine, and people still clap. Remind you of anyone?'],
   ['DAD', "Okay, Dad. Three-layer cake, my boy's birthday, and the Falls. Look at me... I'm in TIERS."],
-  ['GRANDPA', "(writing in a little notebook) Eight out of ten. I've kept one of yours since you were eight, son. Don't tell your father, Kinan."],
-  ['KINAN', "'Robin's jokes. Do not show Robin.' ...Dad! He keeps one TOO!"]
+  ['GRANDPA', "(writing in a little notebook) Ten out of ten. First one ever. I've kept your jokes in here since you were eight, son. You win."],
+  ['KINAN', "'Robin's jokes. Do not show Robin.' ...Dad! He keeps one TOO! DAD WINS!"]
 ];

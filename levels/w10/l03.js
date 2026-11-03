@@ -188,10 +188,10 @@
       [51, 'CHENOA', "A wooden board on that rock! Stand next to it and press KICK. There are candles inside.", 3.8],
       [60, 'GRANDPA', "Grandpa on the video call! Why don't waterfalls ever get lost? They always know which way is down! Tell your dad that one's mine.", 5.4],
       [104, 'SHAD', "Three curtains in this tunnel, little bro. Only one pours at a time. Watch which one is dripping fast!", 4],
-      [144, 'DAD', "Look at the lookout! This view is so good, it's really something to... see. Hey, something sparkles up there!", 4],
+      [144, 'DAD', "What a lookout, bud! Don't look out, though. Look UP: something sparkles up there!", 3.8],
       [177, 'MOM', "The calms are shorter now, sweetie. And no curtains near a jump. Not a single splash on a gap.", 3.8],
       [224, 'KINAN', "A ledge inside the waterfall! If it pours, the water pushes me back. Wait for the drips, then climb!", 4],
-      [243, 'DAD', "Daylight, bud! That tunnel was a real rock-star. Get it? Because it's all rock!", 3.6],
+      [243, 'DAD', "Daylight, bud! I'd tell you how they dug that tunnel, but it's kind of boring.", 3.6],
       [258, 'KINAN', "I see him! Glitchy's on the other side, heading for the big tower!", 3.4]
     ]
   });
