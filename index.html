@@ -2938,7 +2938,9 @@ function lineClip(d) {
    recording must never be cut off by the next line) */
 function lineSecs(d) {
   if (!d) return 0;
-  const h = !(typeof d[3] === 'string' && d[3]) && self.KINAN_TALK_CLIPS ? self.KINAN_TALK_CLIPS[talkHash(d[0], d[1])] : 0;
+  const own = typeof d[3] === 'string' && d[3] ? d[3] : '';
+  /* no clip of its own, or a talk recording named in its 4th place (World 10's exit lines): the recording's length */
+  const h = (!own || own.indexOf('audio/talk/') === 0) && self.KINAN_TALK_CLIPS ? self.KINAN_TALK_CLIPS[talkHash(d[0], d[1])] : 0;
   return h ? Math.max(d[2], h + 0.4) : d[2];
 }
 function talkHash(who, text) { let h = 0x811c9dc5; const s = who + '|' + text; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; } return ('0000000' + h.toString(16)).slice(-8); }
@@ -4127,7 +4129,20 @@ if (STORY && STORY.lines) {
   STORY.intro = STORY.intro || {};
   if (!STORY.intro[11]) STORY.intro[11] = Object.keys(W11_INTRO);
 }
-const END_BEATS = [
+const END_BEATS_FIT = (beats) => {   /* 2026-11-03 audit: Kinan's "FRIENDS!..." was cut by Mom's "Group hug" (3.6 s apart, a 5.5 s recording) */
+  for (const b of beats) {
+    let free = 0;
+    for (const L of b.lines) {
+      const d = STORY && STORY.lines ? STORY.lines[L[1]] : null;
+      if (!d) continue;
+      if (L[0] < free) L[0] = free;
+      free = L[0] + Math.round(lineSecs(d) * 1000) + 250;
+    }
+    if (b.min < free) b.min = free;
+  }
+  return beats;
+};
+const END_BEATS = END_BEATS_FIT([
   { name: 'friend', min: 9000, lines: [[600, 'end_glitchy_01'], [4200, 'end_kinan_01'], [7800, 'end_mom_01']] },
   { name: 'name', min: 7600, lines: [[3000, 'end_shad_01']] },
   { name: 'unfold', min: 26000, hold: 3000, lines: [[4200, 'end_kinan_02'], [9800, 'end_mom_02'], [13200, 'end_kinan_03'], [20400, 'end_annie_01']] },
@@ -4135,7 +4150,7 @@ const END_BEATS = [
   { name: 'teaser', min: 10000, lines: [[3600, 'end_kinan_04']] },
   { name: 'tbc', min: 9000, lines: [] },   /* 4600 until the sneak peek card (END_PEEK) needed time to be read */
   { name: 'credits', min: 24000, lines: [] }
-];
+]);
 /* THE WORLD 12 SNEAK PEEK card (Shad, 2026-10-30), shown under TO BE CONTINUED while the sneak peek is on (owPeek12): the hint that
    four levels of 3D Saskatoon are open now and a lot more is coming. Three short lines; as one sentence it reads
    "WORLD 12 SNEAK PEEK: Four levels of 3D Saskatoon are open now. Much more is coming!" (__k11.ending().peek) */
@@ -6343,7 +6358,9 @@ function arenaUpdate() {
   if (A.K.task && !A.x) x11Fresh(A);   /* World 11: the task's things stand ready before the fight (the baby's nest, the wall) */
   if (A.state === 'wait' && !P.dead && P.x > (A.gateL + 3) * T && P.x < A.gateR * T) {
     /* World 11: Sabumnim's black belt, by video call with the whole team watching, right before Glitchy's Last Stand */
-    if (A.K.blackBelt && progress.blackBelt !== true && !A.beltAsked) {
+    const talking = Story.cur && VO.audio && !VO.audio.paused && !VO.audio.ended;   /* 2026-11-03 audit: Annie's 11.8 s line was cut by the scene */
+    if (A.K.blackBelt && progress.blackBelt !== true && !A.beltAsked && talking && (A.beltHold = (A.beltHold || 0) + 1) < 780) { /* let her finish (13 s at most) */ }
+    else if (A.K.blackBelt && progress.blackBelt !== true && !A.beltAsked) {
       A.beltAsked = true; A.beltWait = true; arenaLog(A, 'belt');
       beltBlackScene((skipped) => { A.beltWait = false; arenaLog(A, 'beltdone', { skipped: !!skipped }); });
     } else if (!A.beltWait) arenaStart(A);
