@@ -29,7 +29,7 @@
    ============================================================ */
 KinanLevels.register({
   id: '1-7', world: 1, slot: 8, kind: 'level',
-  name: "CHENOA'S ART ROOM (REMAI MODERN)",
+  name: "CHENOA'S ART ROOM (THE BIG ART BOX)",
   theme: 6,                 /* Chenoa's Art Room look */
   cols: 189,
   heights: [

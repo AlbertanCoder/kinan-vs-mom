@@ -138,7 +138,11 @@ test.describe('B1 · boss arenas load in authored terrain', () => {
       for (let n = 0; n < 200 && a.state === 'wait'; n++) a = k.arenaBot(1);
       const atStart = a;
       const s = k.step(6, { right: false });
-      return { before, atStart, after: k.arenaInfo()!, moved: s.length, toast: k.levelInfo().toast, dialog: k.levelInfo().dialog };
+      /* 2026-11-03 audit: the boss's first line waits while a story line is still being said (8 s at most), so it is
+         never cut off; the intro subtitle shows once that line is done */
+      let after = k.arenaInfo()!;
+      for (let n = 0; n < 600 && !after.subtitle; n++) { k.step(1, { right: false }); after = k.arenaInfo()!; }
+      return { before, atStart, after, moved: s.length, toast: k.levelInfo().toast, dialog: k.levelInfo().dialog };
     }, TO_ARENA);
     expect(r.before.cpHit).toBe(false);
     expect(r.atStart.cpHit).toBe(true);                          /* walked past the arena's flag on the way in */

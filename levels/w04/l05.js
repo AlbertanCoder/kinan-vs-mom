@@ -95,7 +95,7 @@ KinanLevels.register({
      Nothing waits at a lagoon lip, and nothing flies through a spin-up. */
   talk: [   /* Dad's jokes, the wheeze-laugh, Mom's reactions (tools/dad-lines.mjs) */
     [30, "DAD", "Dad here, on the phone! What do hockey players and magicians have in... hee... HAHA... in com— I can't—", 4.4, "wheeze"],
-    [30, "CHENOA", "...in common? Hat tricks. Wow. Bye, Dad.", 2.8]
+    [30, "KINAN", "...in common? Hat tricks. Wow. Bye, Dad.", 2.8]   /* 2026-11-03 audit: was Chenoa, who only joins at 4-castle */
   ],
   foes: [[9, 11, 'mallwalker'],
          [51, 11, 'rollerblader'],

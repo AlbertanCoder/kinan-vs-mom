@@ -190,7 +190,7 @@ KinanLevels.register({
     [96, 'SHAD', 'A red door! See the switch with the lightning bolt? Jump and bump it from underneath.', 4],
     [104, 'DAD', 'I could spend all day at the vacuum exhibit. For work. It really sucks me in.', 3.6],
     [30, "DAD", "Hon, what did one magnet say to the other? I find you very attractive. ...Get it? Like you and me?", 4.4],
-    [30, "MOM", "Is that all you do, tell jokes? I am going to see the planets. Without you.", 3.4, "walkoff"],
+    [30, "MOM", "Robin. ROBIN. ...Fine, that one was a little funny. I am going to see the planets.", 3.4, "walkoff"],
     [30, "DAD", "...I'll be here all week! She'll be back. Opposites attract.", 3],
     [140, 'KINAN', 'Now the BLUE door is shut! Every switch flips red and blue.', 3.2],
     [308, 'CHENOA', 'A magnet lift! Stand in the purple light and it pulls you right up.', 3.4],

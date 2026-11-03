@@ -62,13 +62,13 @@
     tri(X-19,X+19,Y-84,Y-118,CR);px(HI,X-2,Y-112,4,22);[-16,12].forEach(a=>{box(C,X+a,Y-96,5,14);tri(X+a-2,X+a+7,Y-96,Y-106,CR);});
     box('#8a5426',X-7,Y-16,14,16);px('#f6c445',X-5,Y-14,10,3);
     for(let i=-44;i<=44;i+=11){px('#2f8a3a',X+i-3,Y+5,7,4);px('#ff6fae',X+i-1,Y+6,2,2);}
-    K.P.label(X,Y-168,'THE BESSBOROUGH');};
+    K.P.label(X,Y-168,'THE RIVER CASTLE HOTEL');};
   K.P.w01_remai=function(X,Y){shadow(X+34,Y+3,42,5);[[0,0,62,'#5a4038'],[10,-11,64,'#6e4e40'],[-6,-22,60,'#5a4038'],[8,-33,56,'#6e4e40']].forEach(([a,b,w,c])=>{box(c,X+a,Y+b-10,w,10);for(let i=2;i<w-2;i+=3)px('rgba(232,184,96,.45)',X+a+i,Y+b-9,1,8);px('#e8b860',X+a,Y+b-3,w,2);px('rgba(255,255,255,.18)',X+a,Y+b-10,w,1);});
-    box('#cfeeff',X+24,Y-8,12,8);K.P.label(X+34,Y-64,'REMAI MODERN');};
+    box('#cfeeff',X+24,Y-8,12,8);K.P.label(X+34,Y-64,'THE BIG ART BOX');};
 
   K.W.push({ n:1, hud:'SASKATOON', name:'Kinan vs. Mom',
-    where:'His birthday, at home in Saskatoon. He wakes up in his bedroom, sneaks through the house, past the nosy neighbour, downtown and across the river before bedtime at the Bessborough.',
-    marks:"Kinan's house (roof off), the nosy neighbour's yard, downtown, River Landing and the Remai Modern, the weir and its pelicans, the Traffic Bridge, the Broadway Bridge, Broadway Avenue, the Bessborough, Kinsmen Park's Ferris wheel and the University of Saskatchewan.",
+    where:'His birthday, at home in Saskatoon. He wakes up in his bedroom, sneaks through the house, past the nosy neighbour, downtown and across the river before bedtime at the River Castle Hotel.',
+    marks:"Kinan's house (roof off), the nosy neighbour's yard, downtown, River Landing and the Big Art Box gallery, the weir and its pelicans, the Traffic Bridge, the Broadway Bridge, Broadway Avenue, the River Castle Hotel, Kinsmen Park's Ferris wheel and the University of Saskatchewan.",
     size:[1100,680], ground:'grass', water:'blue', cliff:'dirt', path:'tan',
     rivers:[{pts:[[-20,600],[150,578],[320,548],[470,508],[620,490],[760,492],[880,472],[990,392],[1120,325]],w:24}],
     zones:[
@@ -94,10 +94,10 @@
       {at:[96,290], name:'1-5  THE FRONT YARD', st:'lock'},
       {at:[290,292],name:'FORT  FENCE-LINE FEUD', st:'fort'},
       {at:[470,298],name:'1-6  BUNNY PHOTO STUDIO', st:'lock'},
-      {at:[545,458],name:"1-7  CHENOA'S ART ROOM  -  REMAI MODERN", st:'lock'},
+      {at:[545,458],name:"1-7  CHENOA'S ART ROOM  -  THE BIG ART BOX", st:'lock'},
       {at:[452,478],name:'SECRET  THE WEIR AND THE PELICANS', st:'secret'},
       {at:[760,576],name:'1-8  BROADWAY AVENUE DINNER', st:'lock'},
-      {at:[826,446],name:'CASTLE  BEDTIME CASTLE  -  THE BESSBOROUGH  -  MOM', st:'boss'}],
+      {at:[826,446],name:'CASTLE  BEDTIME CASTLE  -  THE RIVER CASTLE HOTEL  -  MOM', st:'boss'}],
     edges:[
       [0,1,[[145,112]]],[1,2,[[199,155]]],[2,3,[[145,198]]],[3,4,[[94,240]]],
       [4,5,[[150,286],[196,289],[245,292]]],

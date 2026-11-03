@@ -87,7 +87,7 @@ KinanLevels.register({
     [1, 'KINAN', "The tech conference! Glitchy's signal goes straight through here, to the main stage.", 3.8],
     [9, 'ANNIE', "(over the speakers) Attention, everyone: the main stage is closed. A rogue program is loose. Please stay safe!", 4.6],
     [14, 'MOM', 'Up the keynote riser, sweetie. And say thank you if a robot hands you a sticker.', 3.8],
-    [27, 'SHAD', "Kinan, it's Shad on the radio. That's Annie! She thinks he's a virus... She's not mean, bud. She's trying to keep people safe.", 5.4],
+    [27, 'SHAD', "Shad here, bud. Annie's firewall is just ahead. Stay calm... She's not mean, bud. She's trying to keep people safe.", 5.4],
     [33, 'KINAN', 'The robot demo booths! A robot dog, a robot arm, a robot that makes pancakes...', 3.6],
     [46, 'DAD', "Hop that road case, bud. Those robots are just showing off their byte-sized moves.", 3.6],
     [53, 'ANNIE', "(over the speakers) Firewall at full power. Deletion drones on standby. Nobody go near that cube!", 4.2],

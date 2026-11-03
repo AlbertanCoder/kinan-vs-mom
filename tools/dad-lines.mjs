@@ -65,7 +65,7 @@ export const STORY_ADD = {
    no conversation over 5 lines (Shad, 2026-10-29): the long ones are cut to their best lines, every story fact kept */
 export const GROUPS = {
   intro: {
-    1: ['w01_kinan_01', 'w01_kinan_02', 'w01_kinan_03', 'w01_mom_01', 'w01_mom_02'],                 /* was 8 (Shad's "did you open it", Glitchy's beep, the socks line cut) */
+    1: ['w01_kinan_01', 'w01_kinan_03', 'w01_mom_01', 'w01_kinan_04', 'w01_mom_02'],                 /* was 8 (Shad's "did you open it", Glitchy's beep, the peek line cut); 2026-11-03 audit: the socks line is back, so Mom's "Then catch them" answers something */
     2: ['w02_kinan_01', 'w02_shad_01', 'w02_milo_01', 'w02_aiden_01', 'w02_kinan_02'],               /* was 6 (Glitchy's beep cut) */
     4: ['w04_kinan_01', 'w04_shad_02', 'w04_kinan_02', 'w04_annie_01', 'w04_annie_pa01'],            /* was 7 (Shad's hello and "hold that thought" cut) */
     5: ['w05_kinan_01', 'w05_robin_01', 'w05_kinan_02', 'w05_annie_01', 'w05_annie_pa01']            /* was 8 (Chenoa's "stay together", Glitchy, Aiden's hello cut) */
@@ -161,7 +161,7 @@ export const ADD_TALK = {
   'levels/w01/l07.js': [[30, 'DAD', 'Dad again, bud! Why did the painting go to jail? It was framed! ...Hello? Did you hang up? Like a painting?', 5]],
   'levels/w02/l03.js': [[30, 'DAD', "Dad on the phone! Why can't you trust atoms? Because they... hee hee... they... HAHA... I can't—", 4, 'wheeze'],
     [30, 'KINAN', "...make up everything. Dad, you're on speaker. My whole class heard that.", 3.4]],
-  'levels/w02/l06.js': [[30, 'DAD', "Quick one from camp, bud: why is the cafeteria clock always slow? It goes back four seconds. The camp cook didn't laugh either.", 5.2]],
+  'levels/w02/l06.js': [[30, 'DAD', "Driving back from camp, bud! Why is the cafeteria clock always slow? It goes back four seconds. The cook didn't laugh either.", 5.2]],
   'levels/w03/l02.js': [[30, 'DAD', 'What did the oil say to the pumpjack? Stop... hee hee... stop... HAHA... stop pumping me for... I can\'t—', 4.4, 'wheeze'],
     [30, 'KINAN', '...for information. Dad. Breathe. Grandpa would give that a two.', 3.2]],
   'levels/w03/l05.js': [[30, 'DAD', 'Why did the pumpjack go to the... hee... HAHA... the... oh boy... the... I can\'t—', 4, 'wheeze'],
@@ -183,12 +183,12 @@ export const ADD_TALK = {
   'levels/w07/l03.js': [[30, 'DAD', "How do the trees in Stanley Park get online? They... hee hee... they... HAHA... I can't—", 4, 'wheeze'],
     [30, 'MOM', '...They LOG IN. Robin, breathe. Kinan, keep running.', 3.2, 'laugh']],
   'levels/w07/l07.js': [[30, 'DAD', 'Hon, what did one magnet say to the other? I find you very attractive. ...Get it? Like you and me?', 4.4],
-    [30, 'MOM', 'Is that all you do, tell jokes? I am going to see the planets. Without you.', 3.4, 'walkoff'],
+    [30, 'MOM', 'Robin. ROBIN. ...Fine, that one was a little funny. I am going to see the planets.', 3.4, 'walkoff'],
     [30, 'DAD', "...I'll be here all week! She'll be back. Opposites attract.", 3]],
   'levels/w08/l03.js': [[30, 'DAD', "Toronto built raccoon-proof garbage bins. And the raccoons said... hee hee... they said... HAHA... I can't—", 4.2, 'wheeze'],
     [30, 'MOM', "...'Challenge accepted.' Oh, Robin. That was actually funny!", 3.4, 'laugh']],
   'levels/w08/l07.js': [[30, 'DAD', "What do you call cheese that isn't yours? Nacho cheese! Get it? Not-yo cheese? Because it's not yours?", 4.4],
-    [30, 'MOM', 'Is that all you do, tell jokes? Peaches. I am going to look at peaches.', 3.4, 'walkoff'],
+    [30, 'MOM', 'This is my not-laughing face. See? Not laughing. Peaches. I am going to look at peaches.', 3.4, 'walkoff'],
     [30, 'DAD', "...I'll be here all week, folks! Try the brie, it's un-brie-lievable!", 3.2]],
   /* Grandpa's video call, with Dad: the toy brick on the stairs */
   'levels/w08/l05.js': [[30, 'GRANDPA', 'Grandpa on the video call! Toy bricks, eh? Your dad left one on the stairs once. My foot still remembers.', 4.6],
@@ -210,6 +210,6 @@ export const ADD_TALK = {
 export const WORLD10_LATER = [
   ['GRANDPA', 'Niagara Falls, Robin. Twelve thousand years of the same routine, and people still clap. Remind you of anyone?'],
   ['DAD', "Okay, Dad. Three-layer cake, my boy's birthday, and the Falls. Look at me... I'm in TIERS."],
-  ['GRANDPA', "(writing in a little notebook) Eight out of ten. I've kept one of yours since you were eight, son. Don't tell your father, Kinan."],
-  ['KINAN', "'Robin's jokes. Do not show Robin.' ...Dad! He keeps one TOO!"]
+  ['GRANDPA', "(writing in a little notebook) Ten out of ten. First one ever. I've kept your jokes in here since you were eight, son. You win."],
+  ['KINAN', "'Robin's jokes. Do not show Robin.' ...Dad! He keeps one TOO! DAD WINS!"]
 ];

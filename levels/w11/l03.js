@@ -160,13 +160,13 @@
       [20, 'MOM', "Take your time, sweetie. The beam will go dark again.", 3.4],
       [29, 'CHENOA', 'That low beam by the floor? Hop right over it, little bro.', 3.4],
       [60, 'SHAD', "That's the energy wand! I made it glow on purpose. With it, a KICK cuts the GOLD gates.", 4.4],
-      [66, 'DAD', "Oh, a wand. Let me guess: it's a laser-pointer? Hee hee... I'll see myself out. Hmm... a gate to cut, bud!", 5, 'wheeze'],
+      [66, 'DAD', "A laser wand! Point it at that gold gate, bud. Now THAT is a cutting-edge idea.", 3.8],
       [66, 'KINAN', '...Dad. The gold gate on that block is shut for good. Only the wand opens it.', 4],
       [96, 'ANNIE', 'Shabash! (Well done!) Two gates that take turns. Stop in the safe middle if you need to.', 4.2],
       [124, 'CHENOA', "The ceiling comes down low here. One of those panels is glowing. Try a jump!", 4],
       [140, 'SHAD', 'Up the step, a hop, then the thin catwalk with the trip-beams. That one is a challenge.', 4.2],
       [174, 'MOM', "The next hall is a corridor run, honey. The gates open in a wave. A steady run gets you through.", 4.4],
-      [222, 'DAD', "Wide open floor ahead. That's where a droid commander would stand. Command-ing view!", 4],
+      [222, 'DAD', "Wide open floor ahead. A droid commander would stand right there and give orders. Like your mother. Don't tell her.", 4.6],
       [226, 'KINAN', "I can hear someone coming. Glitchy's panic woke the Robot Commander up!", 3.6],
       [256, 'KINAN', "Every drone is home, and the Commander is in friendly mode. Next stop: the dino valley!", 4.2]
     ]

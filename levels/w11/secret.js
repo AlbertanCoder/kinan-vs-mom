@@ -78,9 +78,9 @@
       [28, 'SHAD', "Those are my sketches of everybody. Pencil first, then pixels.", 3.6],
       [50, 'CHENOA', "You drew me with my ponytail, Shad. Okay, that one is really good.", 3.8],
       [76, 'KINAN', "And there's the map of everywhere we've been. And the door in the mist!", 3.8],
-      [96, 'DAD', "Why did the pencil go to the dev room? It wanted to... hee hee... draw some attention... I can't—", 4.2, 'wheeze'],
-      [96, 'KINAN', '...Dad. Breathe.', 2.4],
-      [110, 'MOM', "Ha! That one was drawn out. Come on, there's a note on the desk, sweetie.", 3.8, 'laugh'],
+      [96, 'DAD', "Why did the pencil sneak into Shad's dev room? To draw some attention!", 3.4],
+      [96, 'KINAN', '...Dad. That was pointless.', 2.4],
+      [110, 'MOM', "Ha! Pointless! Come on, there's a note on the desk, sweetie.", 3.4, 'laugh'],
       /* THE NOTE: four bubbles at the desk, word for word (split only at sentence ends; 140 letters a bubble at most) */
       [118, 'SHAD', "Hey bud, you found my secret room! This is where I built your game: every world, every boss, and every one of Dad's jokes (sorry).", 6.5],
       [118, 'SHAD', "I made it for your 11th birthday because you're the best little brother there is.", 5],

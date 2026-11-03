@@ -46,7 +46,7 @@ test.describe('World 12 sneak peek · the files', () => {
     expect(previewList('3d/js/main.js'), 'W12_PREVIEW in 3d/js/main.js').toEqual(PREVIEW);
     expect(readFileSync(`${ROOT}index.html`, 'utf8')).toContain('const OW_RELEASED = 11;');
     const sw = readFileSync(`${ROOT}sw.js`, 'utf8');
-    expect(sw, 'the cache name was bumped for the sneak peek').toContain("const CACHE = 'kinan-vs-mom-v55';");
+    expect(sw, 'the cache name was bumped (v55 the sneak peek, v56 the 2026-11-03 audit)').toMatch(/const CACHE = 'kinan-vs-mom-v(5[5-9]|[6-9]\d)';/);
     for (const f of ['3d/level-12-1.html', '3d/js/main.js', '3d/js/side.js', '3d/js/props-city.js', '3d/js/props-festival.js', '3d/assets/models.js', ...PREVIEW.map((id) => `3d/levels/${id}.js`)]) expect(sw, `${f} is cached`).toContain(`./${f}`);
   });
 });

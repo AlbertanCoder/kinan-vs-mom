@@ -39,7 +39,9 @@ describe('the level talk bubbles speak (Dad and Grandpa)', () => {
 
   it('the World 10 joke-off and the text-only fight lines of Dad and Grandpa have their clips too, and the fight line player falls back to them', () => {
     const html = readFileSync(join(ROOT, 'index.html'), 'utf8');
-    expect(html).toContain("else if (self.KINAN_TALK_CLIPS && self.KINAN_TALK_CLIPS[talkHash(d[0], d[1])]) VO.playFile('audio/talk/' + talkHash(d[0], d[1]) + '.mp3', sayAlt);");   /* 2026-10-31: sayAlt is the device-voice fallback for a line with no recording */
+    /* 2026-11-03 audit: the fight line player asks lineClip() (its talk recording by speaker + words, audio/talk/<hash>.mp3) */
+    expect(html).toContain("else if (lineClip([d[0], d[1]])) VO.playFile(lineClip([d[0], d[1]]), sayAlt);");
+    expect(html).toMatch(/function lineClip\(d\) \{[\s\S]{0,260}KINAN_TALK_CLIPS\[h\] \? 'audio\/talk\/' \+ h \+ '\.mp3'/);   /* 2026-10-31: sayAlt is the device-voice fallback for a line with no recording */
     for (const id of ['t_w7_dad_01', 't_w10_gp_01', 't_w10_dad_01', 't_w10_gp_02', 't_w10_gp_03', 't_w10_dad_02', 't_w10_gp_04', 't_w10_kinan_05', 't_mf_11', 't_w10_dad_03', 't_w11_dad_01']) {
       const m = new RegExp(String.raw`^\s+${id}: (\[.*\])`, 'm').exec(html);
       expect(m, id).not.toBeNull();

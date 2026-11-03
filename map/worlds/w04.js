@@ -223,7 +223,7 @@
     for(let i=4;i<H;i+=5)px('#56789f',X,Y-H+i,W,1);for(let i=0;i<H;i+=10)px('#cfe2f6',X+8,Y-H+i,2,5);
     /* the slanted, notched crown */
     tri(O,[[X-1,Y-H],[X+W+1,Y-H-14],[X+W+1,Y-H]]);tri('#5a7cb0',[[X+1,Y-H],[X+W,Y-H-12],[X+W,Y-H]]);px(O,X+W-2,Y-H-26,1,14);
-    P.label(X+W/2,Y-H-42,'ICE DISTRICT TOWER');};
+    P.label(X+W/2,Y-H-42,'THE TALL TOWER');};
   P.w04_rogers=function(X,Y){const G=g();
     shadow(X,Y+3,52,7);
     /* dark glass base */
@@ -234,7 +234,7 @@
     G.lineWidth=1;for(let k=0;k<5;k++){G.strokeStyle=k%2?'#9aa3b2':'#ffffff';G.beginPath();G.ellipse(X-4+k*3,Y-19,42-k*7,14-k*2.4,-0.12,Math.PI*1.05,Math.PI*1.95);G.stroke();}
     G.strokeStyle='#ff8a3d';G.lineWidth=2;G.beginPath();G.ellipse(X,Y-18,47,16,0,0.15,Math.PI*0.85);G.stroke();
     G.strokeStyle='#2a5bd7';G.lineWidth=2;G.beginPath();G.ellipse(X,Y-14,46,13,0,0.1,Math.PI*0.9);G.stroke();
-    P.label(X,Y+4,'THE ARENA');P.label(X,Y+16,'ICE DISTRICT','#ffb46a');};
+    P.label(X,Y+4,'THE ARENA');P.label(X,Y+16,'HOCKEY TOWN','#ffb46a');};
   P.w04_chenoa=function(X,Y){shadow(X+22,Y+2,24,3);box('#c8603c',X,Y-24,44,24);for(let i=0;i<11;i++)px(i%2?'#e8364b':'#ffffff',X+i*4,Y-28,4,6);box('#cfeeff',X+4,Y-18,12,8);box('#cfeeff',X+28,Y-18,12,8);box('#3b2618',X+18,Y-14,8,14);
     box('#2b2f45',X+6,Y-38,32,9);txt("CHENOA'S",X+8,Y-37,'#f6c445',6,1);px(O,X+12,Y-29,1,2);px(O,X+32,Y-29,1,2);};
 

@@ -256,7 +256,7 @@ test.describe("World 11 · Glitchy's Last Stand", () => {
       const k = (window as unknown as Win).__k11 as Dev & { cut: () => { on: boolean; mode: string; belt: { rank: number; line: string; team: string[]; call: boolean } | null }; progress: () => { beltSeen: number } };
       (0, eval)(src)('11-castle');
       let a = k.arenaInfo()!;
-      for (let n = 0; n < 600 && !a.beltWait && a.state === 'wait'; n++) a = k.arenaBot(1);
+      for (let n = 0; n < 1500 && !a.beltWait && a.state === 'wait'; n++) a = k.arenaBot(1);   /* 2026-11-03: the scene first lets Annie's line finish (13 s at most) */
       const during = { wait: a.beltWait, state: a.state, cut: k.cut(), saved: JSON.parse(localStorage.getItem('kinan-remaster-v1') || '{}').blackBelt === true };
       k.cutSkip();
       for (let n = 0; n < 200 && a.state !== 'fight'; n++) a = k.arenaBot(1);
@@ -489,14 +489,15 @@ test.describe('World 11 · on the map, and the ending', () => {
     for (const id of ['end_glitchy_01', 'end_kinan_02', 'end_mom_02', 'end_kinan_03', 'end_annie_01', 'end_chenoa_01', 'end_dad_01', 'end_glitchy_02', 'end_shad_02']) expect(said, id).toContain(id);
     const info = await dev(page).ending();
     const text = Object.fromEntries(info.lines.map(([id, who, t]) => [id, `${who}: ${t}`]));
-    expect(text.end_kinan_02).toBe('KINAN: We did it! ...Why can I see the BACK of my house?!');
+    /* 2026-11-03 audit: the ending's words fixed (home, Annie's line, Glitchy's first words stay World 11's, the birthday week) */
+    expect(text.end_kinan_02).toBe("KINAN: We did it! ...Wait, we're HOME? Why can I see the BACK of my house?!");
     expect(text.end_mom_02).toBe('MOM: Kinan, stay close!');
     expect(text.end_kinan_03).toBe("KINAN: WHAT IS GOING ON HERE?! My hands are 3D! ...Okay, that's cool, BUT WHAT?!");
-    expect(text.end_annie_01).toBe('ANNIE: Definitely not in the recipe.');
+    expect(text.end_annie_01).toBe("ANNIE: My scanners can't even measure this. The whole world just got DEEPER!");
     expect(text.end_chenoa_01).toBe("CHENOA: Little bro, don't touch anything!");
     expect(text.end_dad_01).toBe('DAD: One dimension at a time, guys.');
-    expect(text.end_glitchy_02).toBe('GLITCHY: Th... thank... you.');
-    expect(text.end_shad_02).toBe('SHAD: Welcome to your eleventh birthday, bud.');
+    expect(text.end_glitchy_02).toBe('GLITCHY: Ooooh... beep!');
+    expect(text.end_shad_02).toBe('SHAD: Happy birthday week, bud. Welcome to year eleven.');
     for (const who of ['Kinan', 'Mom', 'Dad', 'Big Sis Chenoa', 'Big Bro Shad', 'Annie', 'GRANDPA', 'the Grandmas',   /* GRANDPA as labelled (the World 11 review, 4477a7b) */ 'Sabumnim', 'Glitchy', 'Ginger', 'Chikastino', 'Vader', 'Hunter', 'Duchess', 'Tuxedo',
       'Bronco', 'Robo-Rex', 'Drizzle', 'the Raccoon King', 'Brick-Rex', 'the Alpha T-Rex']) expect(info.credits, who).toContain(who);
     expect(info.credits.join(' ')).toContain("Made for Kinan's 11th birthday by Big Bro Shad");

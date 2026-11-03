@@ -161,13 +161,12 @@
       [6, 'DAD', "A brick dinosaur? Don't worry, bud. He's all bark and no brick. I mean, bite.", 3.6],
       [8, 'CHENOA', 'See those square pads with studs on the floor? Step on one and bricks snap into place!', 4.2],
       [19, 'ANNIE', 'Shabash! (Well done!) The bricks build themselves. What lovely code, Shad.', 3.8],
-      [56, 'DAD', "I wanted to tell you a joke about bricks, but I'd lay it on too... hee hee... too thick... AHAHA...", 4, 'wheeze'],
-      [56, 'KINAN', '...lay it on too thick. Okay, that one is a little good. Dad. Breathe.', 3.6],
+      [56, 'DAD', "I'd tell you a joke about bricks, bud, but it takes a while to build up.", 3.6],
+      [56, 'KINAN', '...Okay. That one is a little good.', 2.6],
       [68, 'CHENOA', "That floating ledge has a gold stud on it, little bro. I'd jump up and step on it.", 4],
       [90, 'SHAD', 'Two studs in a row: the first builds stairs to the landing, then the second one builds the rest. Take your time!', 5],
       [140, 'ANNIE', "Hai Rabba! (Oh my goodness!) That archway has a glowing block. A loose brick, maybe?", 4],
-      [166, 'MOM', "Is that all you do, tell jokes? I'll be up the next tower. Careful, sweetie.", 3.6, 'walkoff'],
-      [166, 'DAD', "...I'll be here all week! Don't brick yourself, bud!", 3],
+      [166, 'MOM', "That's the worst one yet. I love it. I'll be up the next tower. Careful, sweetie.", 3.6, 'walkoff'],
       [228, 'CHENOA', 'Wide open ground ahead. Something big lives here, little bro. Get ready.', 4],
       [260, 'KINAN', "Brick-Rex's heart is whole, and the Heart of the Blocks is glowing again. The whole realm feels happy!", 4.4]
     ]

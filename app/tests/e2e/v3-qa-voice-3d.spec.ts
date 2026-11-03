@@ -67,7 +67,7 @@ test.describe('V3 · iOS: one voice player, unlocked on the first tap', () => {
     expect(r.log[0]).toMatch(/^data:audio\/wav;base64,/);                       /* the unlock blip, on the tap */
     expect(r.log.some((s) => s.endsWith('audio/lines/w01/w01_kinan_19.mp3'))).toBe(true);   /* the cutscene */
     expect(r.log.some((s) => s.endsWith('audio/lines/w01/w01_mom_01.mp3'))).toBe(true);     /* the map intro */
-    expect(r.log.some((s) => s.endsWith('audio/lines/w01/w01_shad_02.mp3'))).toBe(true);
+    expect(r.log.some((s) => s.endsWith('audio/talk/c24a16e3.mp3'))).toBe(true);   /* the 1-castle opener w01_shad_02, re-recorded 2026-11-03 ("the River Castle Hotel") */
     expect(r.voice.length).toBeGreaterThan(0);
     expect(r.log.some((s) => s.endsWith(`audio/voice/${r.voice[0]}.mp3`))).toBe(true);
     expect(r.els).toBe(1);                                                    /* one element for every voice line */
