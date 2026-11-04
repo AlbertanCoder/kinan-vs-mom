@@ -205,7 +205,7 @@ test.describe('World 9 · the hunter drone and Annie\'s Firewall', () => {
     const talk = await page.evaluate(() => (window as unknown as { KinanLevels: { get: (id: string) => { talk: [number, string, string][]; theme: number } } }).KinanLevels.get('9-castle'));
     const who = new Set(talk.talk.map((t) => t[1]));
     for (const w of ['KINAN', 'SHAD', 'ANNIE', 'MOM', 'DAD', 'CHENOA']) expect(who.has(w), w).toBe(true);
-    expect(talk.talk.some((t) => t[1] === 'SHAD' && t[2].includes("That's Annie! She thinks he's a virus..."))).toBe(true);
+    expect(talk.talk.some((t) => t[1] === 'SHAD' && t[2].includes("Annie's firewall is just ahead"))).toBe(true);
     expect(talk.theme).toBe(120);   /* its own conference-stage backdrop */
     expect(errors).toEqual([]);
   });
