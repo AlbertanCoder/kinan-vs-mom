@@ -587,7 +587,8 @@ test.describe('World 7 · the memory gift', () => {
       const at = talk.findIndex((t) => /foam block pickaxe/.test(t[2]));
       k.playLevel('7-6'); k.godMode(); k.clearFoes();
       const seen = new Set<string>();
-      for (let n = 0; n < 200 && !k.levelInfo().cleared; n++) {
+      /* 2026-11-04 final QC: the memory line is a 'hold' (Kinan stands still for it, about 7 s of frames), so the run needs more frames */
+      for (let n = 0; n < 320 && !k.levelInfo().cleared; n++) {
         k.auto(10, { run: true });
         const s = k.storyInfo();
         for (const id of [s.cur, ...s.queue]) if (id) seen.add(id);

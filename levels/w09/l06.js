@@ -164,6 +164,6 @@ KinanLevels.register({
     [112, 'PASSER-BY', 'Bonjour! Climb the launch tower and look at the rocket!', 3],
     [146, 'SHAD', "Careful: Annie's drones are scanning the exhibits. And past the moon walk the gravity is normal again.", 4.2],
     [214, 'KINAN', 'A launch tube! LANCEMENT means launch. Whoosh!', 3],
-    [248, 'KINAN', "My STOMP ROCKET! I got it here at the space centre when I was nine. One big stomp on the air pad and WHOOSH, way up!", 5]   /* the age-9 memory (Shad, 2026-10-29) */
+    [248, 'KINAN', "My STOMP ROCKET! I got it here at the space centre when I was nine. One big stomp on the air pad and WHOOSH, way up!", 5, 'hold']   /* the age-9 memory (Shad, 2026-10-29); 'hold' (2026-11-04): he stops to look, so a running kid hears it */
   ]
 });

@@ -157,7 +157,7 @@ const SEEK = `(id, k, from) => {
   fresh();
   const tx = sec.col * 16 + 8, ty = sec.row * 16 + 8;
   const still = { left: false, right: false, jump: false, fire: false };
-  K.place(from * 16 + 3, H[from] - 16); K.step(12, still);
+  K.place(from * 16 + 3, H[from] - 16); K.step(12, still); K.storyStop();   /* 2026-11-04: a 'hold' talk line near the start would keep Kinan standing; the route search is not about talk */
   const found = () => !!K.levelInfo().secretsFound[k];
   if (found()) return { found: true, tries: 0, from };
   const MOVES = [];

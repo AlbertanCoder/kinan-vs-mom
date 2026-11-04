@@ -218,7 +218,7 @@
       [41, 'DAD', "Why did the neon sign get a standing ovation? Because it was just so... hee... so... HA... I can't—", 4.6, 'wheeze'],
       [41, 'CHENOA', "...BRIGHT. It was so bright. Dad, you told that one at breakfast.", 3.2],
       [41, 'MOM', "Ha! Okay, that one got me. Go on, sweetie, the sign is glowing!", 3.2, 'laugh'],
-      [64, 'KINAN', "The prize counter! My Chicken Rider popcorn bucket and my Idol Hunter light stick. I won them at this arcade when I was ten!", 5.4],
+      [64, 'KINAN', "The prize counter! My Chicken Rider popcorn bucket and my Idol Hunter light stick. I won them at this arcade when I was ten!", 5.4, 'hold'],   /* the age-10 memory; 'hold' (2026-11-04): he stops to look, so a running kid hears it */
       [65, 'DAD', "Ten years old and already a champion. You really know how to play your cards, bud. And your claws!", 4],
       [84, 'CHENOA', "Two signs make a staircase! Hop up the glowing ones and see what is on that shelf.", 3.8],
       [93, 'CHENOA', "A wooden board on that arcade! Kick it, little bro: stand next to it and press KICK.", 3.6],

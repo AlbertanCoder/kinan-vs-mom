@@ -118,8 +118,8 @@
       }
       (a.talk || []).forEach(function (t) {   /* World 6: a story line as Kinan passes a column (LEVEL-AUTHORING §4.4) */
         if (!Array.isArray(t) || !isInt(t[0]) || t[0] < 0 || t[0] >= a.cols || typeof t[1] !== 'string' || !t[1] || typeof t[2] !== 'string' || !t[2] || t[2].length > 140 || (t[3] != null && !(typeof t[3] === 'number' && t[3] > 0 && t[3] <= 8)) ||
-            (t[4] != null && ['wheeze', 'laugh', 'walkoff'].indexOf(t[4]) < 0)) {   /* t[4]: Dad's wheeze-laugh, Mom laughs, Mom walks off (2026-10-29) */
-          out.push(tag + 'talk ' + JSON.stringify(t) + " must be [col, 'WHO', 'what they say' (up to 140 letters), seconds?, 'wheeze'|'laugh'|'walkoff'?] inside the area");
+            (t[4] != null && ['wheeze', 'laugh', 'walkoff', 'hold'].indexOf(t[4]) < 0)) {   /* t[4]: Dad's wheeze-laugh, Mom laughs, Mom walks off (2026-10-29); 'hold': Kinan stands still for the line (2026-11-04) */
+          out.push(tag + 'talk ' + JSON.stringify(t) + " must be [col, 'WHO', 'what they say' (up to 140 letters), seconds?, 'wheeze'|'laugh'|'walkoff'|'hold'?] inside the area");
         }
       });
       if (a.goal) goals++;

@@ -18,7 +18,8 @@
    gaps, no lasers, nothing that can hurt him: the floor is one long
    flat carpet; the furniture is low enough to hop.
    THE NOTE (word for word, a first draft by Shad): four story bubbles
-   at c118, one after the other (the engine allows 140 letters a bubble,
+   at c122, beside the desk, one after the other; Kinan stands still
+   until they are read (the 'hold' mark; the engine allows 140 letters a bubble,
    so it takes four): "Hey bud, you found my secret room! This is where
    I built your game: every world, every boss, and every one of Dad's
    jokes (sorry)." · "I made it for your 11th birthday because you're
@@ -81,11 +82,13 @@
       [96, 'DAD', "Why did the pencil sneak into Shad's dev room? To draw some attention!", 3.4],
       [96, 'KINAN', '...Dad. That was pointless.', 2.4],
       [110, 'MOM', "Ha! Pointless! Come on, there's a note on the desk, sweetie.", 3.4, 'laugh'],
-      /* THE NOTE: four bubbles at the desk, word for word (split only at sentence ends; 140 letters a bubble at most) */
-      [118, 'SHAD', "Hey bud, you found my secret room! This is where I built your game: every world, every boss, and every one of Dad's jokes (sorry).", 6.5],
-      [118, 'SHAD', "I made it for your 11th birthday because you're the best little brother there is.", 5],
-      [118, 'SHAD', "Thanks for playing, for laughing, and for never giving up, even on the hard levels. Keep kicking, keep building, keep being you.", 6.5],
-      [118, 'SHAD', "Happy birthday, Kinan. Love, Big Bro Shad.", 4.5],
+      /* THE NOTE: four bubbles at the desk, word for word (split only at sentence ends; 140 letters a bubble at most).
+         2026-11-04 final QC: 'hold' = Kinan stops beside the desk (c122, the desk is c124-127) and stays until the note is
+         read out (a tap skips it); before, a running kid reached the exit in 12 s and the note was skipped as late. */
+      [122, 'SHAD', "Hey bud, you found my secret room! This is where I built your game: every world, every boss, and every one of Dad's jokes (sorry).", 6.5, 'hold'],
+      [122, 'SHAD', "I made it for your 11th birthday because you're the best little brother there is.", 5, 'hold'],
+      [122, 'SHAD', "Thanks for playing, for laughing, and for never giving up, even on the hard levels. Keep kicking, keep building, keep being you.", 6.5, 'hold'],
+      [122, 'SHAD', "Happy birthday, Kinan. Love, Big Bro Shad.", 4.5, 'hold'],
       [134, 'KINAN', "Thank you, Shad. This is the best birthday present ever. I'll keep kicking.", 4.4]
     ]
   });

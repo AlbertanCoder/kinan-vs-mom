@@ -163,9 +163,11 @@
     goal: { col: 236, row: 11 },   /* Grandpa's chair and the picnic blankets beyond */
     talk: [
       [2, 'KINAN', "Glitchy led us out of the conservatory into the park... and look! A picnic! Those are the Grandmas!", 4.2],
-      [3, 'GRANDMA (EDMONTON)', "Kinan! Come here, my boy! We drove all the way from Edmonton for your birthday!", 3.8],
-      [4, 'GRANDMA (ONION LAKE)', "And I brought sandwiches and pie from Onion Lake. But first, show us what you can do, dear.", 4.4],
-      [5, 'ANNIE', "The Grandmas want to see you cross the park. Chalo! (Let's go!)", 3.2],
+      /* 2026-11-04 final QC: the arrival is ONE conversation at c2 (Kinan's line and the three greetings), so all four
+         are said: at c2, c3, c4, c5 a running kid heard only Kinan's (the late-line rule skipped the rest) */
+      [2, 'GRANDMA (EDMONTON)', "Kinan! Come here, my boy! We drove all the way from Edmonton for your birthday!", 3.8],
+      [2, 'GRANDMA (ONION LAKE)', "And I brought sandwiches and pie from Onion Lake. But first, show us what you can do, dear.", 4.4],
+      [2, 'ANNIE', "The Grandmas want to see you cross the park. Chalo! (Let's go!)", 3.2],
       [18, 'CHENOA', "Picnic baskets are steps, and blankets and lawn chairs are ledges. Jump up through them, little bro!", 4],
       [29, 'CHENOA', "A wooden board on that picnic hamper! Stand next to it and press KICK. There are candles inside.", 3.8],
       [40, 'DAD', "What did the picnic blanket say to the grass? Don't worry, I've got you covered!", 3.6],
