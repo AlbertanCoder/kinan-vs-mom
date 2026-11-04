@@ -630,9 +630,9 @@ test.describe('World 8 · on the map', () => {
       const talk = (window as unknown as Win).KinanLevels.get('8-castle').talk || [];
       return { seen: [...seen], n: talk.length, who: [...new Set(talk.map((t) => t[1]))], log: k.storyInfo().log.filter((x) => /^talk_/.test(x.id)) };
     });
-    expect(r.n).toBe(10);
+    expect(r.n).toBe(2);   /* 2026-11-04 (Shad's answer 30): the walk-up keeps Shad's opener and Dad's joke; the moving-day box line is in the boss intro */
     expect(r.seen.length, 'every bubble comes up on the way to the arena').toBe(r.n);
-    expect(r.who).toEqual(expect.arrayContaining(['SHAD', 'KINAN', 'MOM', 'DAD', 'CHENOA', 'THE RACCOON KING']));
+    expect(r.who).toEqual(expect.arrayContaining(['SHAD', 'DAD']));
     expect(r.log.length).toBeGreaterThan(0);
     expect(r.log[0].id).toBe('talk_8-castle_0');
     for (const x of r.log) expect(x.src, 'its cast-voice recording (2026-11-03: every line recorded)').toMatch(/^audio\/talk\/[0-9a-f]{8}\.mp3$/);

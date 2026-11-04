@@ -565,9 +565,9 @@ test.describe('World 7 · on the map', () => {
       }
       return { seen: [...seen], log: k.storyInfo().log.filter((x) => /^talk_/.test(x.id)) };
     });
-    /* every one of the castle's nine bubbles comes up as Kinan passes its column (the bot runs faster than they can
-       all be said: the ones still waiting are dropped when the fight starts, as in every arena level) */
-    expect(r.seen.length).toBe(9);
+    /* the walk-up keeps the two lines a running kid hears (2026-11-04, Shad's answer 30): both come up as Kinan passes
+       their columns; Kinan's "Drizzle is SAD" is in the boss intro */
+    expect(r.seen.length).toBe(2);
     expect(r.log.length).toBeGreaterThan(0);
     expect(r.log[0].id).toBe('talk_7-castle_0');
     for (const x of r.log) expect(x.src, 'its cast-voice recording (2026-11-03: every line recorded)').toMatch(/^audio\/talk\/[0-9a-f]{8}\.mp3$/);
