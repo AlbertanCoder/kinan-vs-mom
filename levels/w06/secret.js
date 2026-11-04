@@ -121,5 +121,12 @@ KinanLevels.register({
   ],
   checkpoint: { col: 84, row: 11 },
   spawn: { col: 2, row: 5 },
-  goal: { col: 184, row: 11 }   /* up through the crack into the canyon sunshine */
+  goal: { col: 184, row: 11 },   /* up through the crack into the canyon sunshine */
+  /* World 6's talk (2026-11-03 audit: the header's written beats, wired; strangers are PASSER-BY) */
+  talk: [
+    [2, 'KINAN', "Whoa. The rocks are GLOWING.", 2.4],
+    [31, 'KINAN', "Springboard! Into the ceiling!", 2.4],
+    [84, 'CHENOA', "Kinan? Where ARE you? ...Answer your walkie-talkie!", 3.4],
+    [182, 'KINAN', "Back to the canyon. Best secret EVER.", 2.5]
+  ]
 });

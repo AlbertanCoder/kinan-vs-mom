@@ -1,7 +1,7 @@
 ﻿# Render real voice-over clips for Kinan vs. Mom from the system voices,
 # shaped per character with ffmpeg (pitch / EQ / reverb). Output: vo/*.mp3 + vo/clips.json
 Add-Type -AssemblyName System.Speech
-$VO = 'C:\Users\SHADHUNTER\Desktop\Kinan vs. Mom\vo'
+$VO = Join-Path $env:USERPROFILE "Desktop\Kinan vs. Mom\vo"
 New-Item -ItemType Directory -Force $VO | Out-Null
 $FF = 'ffmpeg'
 

@@ -41,7 +41,7 @@
      a pale winter sky. Per-world art comes later.
    Bubble beats for ER-4 (not wired): c2 Kinan: "This is my old street!
      I used to build snow forts here." · c12 (a white jackrabbit) Kinan:
-     "The bunnies are WHITE here in winter." · c50 Grandma Hunter, on
+     "The bunnies are WHITE here in winter." · c50 Grandma (Edmonton), on
      her walker by the snowbank: "Here, eat something warm. Look how
      tall you got!" (the heart gift is her bannock) · c110 checkpoint,
      Kinan: "That's the hill! The BIG one!" · c120 a neighbourhood kid
@@ -55,7 +55,7 @@
      thrower's newspapers · a white-jackrabbit skin ('bunny' stands in)
      · a real winter look with snowbanks and Christmas lights (theme 45
      stands in) · toboggans: ride a sled down a slope (speed builds
-     downhill) · Grandma Hunter cameo with her walker (ER-4).
+     downhill) · Grandma (Edmonton) cameo with her walker (ER-4).
    ============================================================ */
 KinanLevels.register({
   id: '4-2', world: 4, slot: 2, kind: 'level',

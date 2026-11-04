@@ -283,7 +283,7 @@ const L = {
     { pos: [30, T3, 26], yaw: 0 },
   ],
   hints: [
-    { pos: [-86, 0, -53], r: 4, text: 'Look! The river, the bridges, and the Bessborough across the water. The pelicans are fishing below the weir.', cam: { pos: [-56, 18, -36], look: [0, -18, 120], time: 3.6 } },
+    { pos: [-86, 0, -53], r: 4, text: 'Look! The river, the bridges, and the River Castle Hotel across the water. The pelicans are fishing below the weir.', cam: { pos: [-56, 18, -36], look: [0, -18, 120], time: 3.6 } },
     { pos: [TOWER.x, 0, TOWER.z + 9], r: 4.5, text: 'The LOOKOUT TOWER! Climb the ladder, then hop up the decks, round and round. Best view in Saskatoon!' },
     { pos: [0, 0, -66], r: 4, text: 'The MUD SLIDE! Jump in and steer. Hold on to your hat!' },
     { pos: [-12, T1, -30], r: 4, dy: 3, text: 'The footbridge is broken! Jump the gap. (Fall in and you slide all the way down!)' },

@@ -1,9 +1,9 @@
 # Blender -> Kinan vs. Mom: model the game's characters and props, export game-ready meshes.
 # Run: blender.exe --background --python blender-models.py
-# Output: C:\Users\SHADHUNTER\Desktop\Kinan vs. Mom\galaxy3d-models.js  (window.G3_MODELS)
+# Output: %USERPROFILE%\Desktop\Kinan vs. Mom\galaxy3d-models.js  (window.G3_MODELS)
 import bpy, bmesh, math, random, json, os
 
-OUT = r"C:\Users\SHADHUNTER\Desktop\Kinan vs. Mom\galaxy3d-models.js"
+OUT = os.path.join(os.path.expanduser("~"), r"Desktop\Kinan vs. Mom\galaxy3d-models.js")
 PARTS = {}
 
 def clean():

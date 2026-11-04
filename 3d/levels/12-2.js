@@ -2,7 +2,7 @@
 //  WORLD 12-2  ·  NEIGHBOURHOOD ROOFTOPS  ·  "run across the roofs of his street"
 // =====================================================================================
 // Kinan steps out of his front door onto his own street, now in full 3D, on an October afternoon in Saskatoon.
-// The party is at the Bessborough, way past the east end of the street, across the river valley.
+// The party is at the River Castle Hotel, way past the east end of the street, across the river valley.
 // The quickest way there is OVER THE ROOFTOPS:
 //   car / bins / ladder -> three bungalows (gutter to gutter) -> ivy trellis up the grey infill -> jump to the tall white
 //   infill -> BALLOON RAFT over the flooded road work -> yellow house -> the purple Victorian -> climb the ivy on its tower
@@ -46,7 +46,7 @@ const L = {
   subtitle: 'run across the roofs of his street',
   cardText: 'Run across the roofs of your street!',
   clearText: 'What a view! Next stop: the river valley.',
-  intro: 'Your whole STREET went 3D! The party is at the Bessborough, way past the end of the street. Take the ROOFTOPS!',
+  intro: 'Your whole STREET went 3D! The party is at the River Castle Hotel, way past the end of the street. Take the ROOFTOPS!',
   helpAfter: 5,
   assets: { kinan: '../worlds/w12_assets/kinan.glb', glitchy: '../worlds/w12_assets/glitchy.glb', pets: '../worlds/w12_assets/pet_{id}.glb' },
   props: CITY,
@@ -311,7 +311,7 @@ const L = {
     { pos: [-30, 0, -44], yaw: 90 },
   ],
   hints: [
-    { pos: [-94, 0, 17], r: 3.6, text: 'Whoa... your whole STREET is 3D! See the castle way past the end of the street? That is the Bessborough. Party time!', cam: { pos: [-64, 30, 44], look: [70, 12, -8], time: 3.6 } },
+    { pos: [-94, 0, 17], r: 3.6, text: 'Whoa... your whole STREET is 3D! See the castle way past the end of the street? That is the River Castle Hotel. Party time!', cam: { pos: [-64, 30, 44], look: [70, 12, -8], time: 3.6 } },
     { pos: [-84, 0, 3], r: 4.2, text: 'Hop on the car or the bins (or climb the ladder), then jump to the roof. Kinan grabs the gutter by himself!' },
     { pos: [-62, 8, -4], r: 6, dy: 6, text: 'ROOFTOP RUN! Jump from gutter to gutter. Push the stick all the way (or hold SHIFT) for longer jumps.' },
     { pos: [ELM.x, 0, ELM.z + 5], r: 4.6, text: 'THE BIG ELM! Its branches go round and up like stairs. Something pink is stuck way up top...' },

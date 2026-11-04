@@ -11,7 +11,7 @@
      exit[w]    World w's exit lines, on the map when Kinan first stands in World w+1
      open[id]   a level's opener, at level start (lines after the 2nd only the first time: 3-1's Onion Lake visit)
      clear[id]  once, at that level's LEVEL CLEAR: a pet joining (SCRIPT.md "Joins the team" with a level),
-                the world's memory gift (MEMORY_AT), Grandma Hunter's kitchen (4-2), and the castle's
+                the world's memory gift (MEMORY_AT), the Edmonton grandma's kitchen (4-2), and the castle's
                 "joins the team" lines (no level in the script = after the boss)
      joke[id]   Robin's dad joke for that level (Worlds 3-5), at the checkpoint (40% in when there is none)
      bark       Kinan's barks: a golden candle, a secret found, LEVEL CLEAR (only when nothing else talks)
@@ -22,16 +22,17 @@
 import { readFileSync, writeFileSync, existsSync, mkdirSync, copyFileSync, readdirSync, rmSync, statSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { homedir } from 'node:os';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const args = process.argv.slice(2);
 const CHECK = args.includes('--check');
-const SRC = args.find((a) => !a.startsWith('--')) || 'C:/Users/SHADHUNTER/Desktop/Kinan vs Mom/Map Concept/voices/lines';
+const SRC = args.find((a) => !a.startsWith('--')) || join(homedir(), 'Desktop', 'Kinan vs Mom', 'Map Concept', 'voices', 'lines');
 const OUT = join(ROOT, 'audio', 'lines');
 
 /* the memory gift of each world sits in this level (story bible "The 11 memory gifts" + the level files' notes) */
 const MEMORY_AT = { 1: '1-1', 2: '2-secret', 3: '3-6', 4: '4-2', 5: '5-7' };
-/* "Grandma Hunter's kitchen": "His Edmonton Grandma feeds the whole team" after the old neighbourhood (4-2) */
+/* the voice script's "Grandma ...'s kitchen" moment: "His Edmonton Grandma feeds the whole team" after the old neighbourhood (4-2) */
 const KITCHEN_AT = '4-2';
 const BARKS = { golden: ['gen_kinan_12', 'gen_kinan_13'], secret: ['gen_kinan_11'], clear: ['gen_kinan_22', 'gen_kinan_25', 'gen_kinan_23', 'gen_kinan_21', 'gen_kinan_24'] };
 /* the opening cutscene (Shad's picks, 2026-10-28), in playing order: Kinan wakes up, Shad's gift-card message, one
@@ -41,7 +42,13 @@ const BARKS = { golden: ['gen_kinan_12', 'gen_kinan_13'], secret: ['gen_kinan_11
 const CUTSCENE = ['w01_kinan_19', 'w01_shad_05', 'w01_kinan_02', 'w01_glitchy_01', 'w01_kinan_03', 'w01_mom_12', 'w01_glitchy_02', 'gen_kinan_24', 'w01_kinan_20'];
 /* the subtitle's name for each speaker. Robin is Kinan's dad, so the subtitles call him DAD */
 const LABEL = { kinan: 'KINAN', glitchy: 'GLITCHY', shad: 'SHAD', mom: 'MOM', milo: 'MILO', aiden: 'AIDEN', robin: 'DAD',
-  robinsmom: 'GRANDMA', grandpa: 'GRANDPA', annie: 'ANNIE', grandmahunter: 'GRANDMA HUNTER', chenoa: 'CHENOA' };
+  robinsmom: 'GRANDMA', grandpa: 'GRANDPA', annie: 'ANNIE', chenoa: 'CHENOA' };
+/* Mom's mom, GRANDMA (EDMONTON): the voice script's speaker key for her (and so her line ids and clip names) carries the
+   family surname, which stays out of the public repo (2026-11-03 audit, Shad's answer 9). Her key is the one other
+   "grandma..." key; her ids and clips come out as ..._grandmaedm_NN */
+const EDM = (k) => /^grandma[a-z]+$/.test(k) && !LABEL[k];
+const edmKeys = new Set();
+const pub = (t) => { for (const k of edmKeys) t = t.split('_' + k + '_').join('_grandmaedm_'); return t; };
 
 const manifest = JSON.parse(readFileSync(join(SRC, 'manifest.json'), 'utf8'));
 const html = readFileSync(join(ROOT, 'index.html'), 'utf8');
@@ -90,7 +97,7 @@ for (const e of manifest.entries) {
       if (ARENA.has(e.id)) continue;
       if (e.where) push(clear, levelOf(w, e.where), e.id); else (team[w] = team[w] || []).push(e.id);
     } else if (/^Memory gift found/.test(mo)) (memory[w] = memory[w] || []).push(e.id);
-    else if (/^Grandma Hunter's kitchen/.test(mo)) kitchen.push(e.id);
+    else if (/^Grandma [A-Z][a-z]+'s kitchen/.test(mo)) kitchen.push(e.id);
     continue;
   }
   const em = /^w(0[6-9]|10)$/.exec(e.world);
@@ -109,13 +116,13 @@ const cutscene = CUTSCENE.map(use);
 const copies = [];
 for (const id of [...used].sort()) {
   const e = byId.get(id);
-  const label = LABEL[e.speaker];
+  const label = LABEL[e.speaker] || (EDM(e.speaker) && edmKeys.add(e.speaker) ? 'GRANDMA (EDMONTON)' : null);
   if (!label) throw new Error(`no subtitle name for speaker "${e.speaker}" (${id})`);
   let file = null;
   if (e.file && existsSync(join(SRC, e.file))) {
     const voice = join(ROOT, 'audio', 'voice', `${id}.mp3`);
     if (ARENA.has(id) && existsSync(voice) && readFileSync(voice).equals(readFileSync(join(SRC, e.file)))) file = `audio/voice/${id}.mp3`;
-    else { file = `audio/lines/${e.file}`; copies.push([join(SRC, e.file), join(ROOT, file)]); }
+    else { file = `audio/lines/${pub(e.file)}`; copies.push([join(SRC, e.file), join(ROOT, file)]); }
   }
   /* no clip (Grandpa has no picked voice yet): the subtitle stays up for a reading pace */
   const secs = file ? Number(e.seconds) : Math.max(2.2, Math.round((e.subtitle.split(/\s+/).length * 0.4 + 1) * 10) / 10);
@@ -132,14 +139,15 @@ const source = [
   '   manifest.json + SCRIPT.md, Shad\'s picked voices). Do not hand-edit: change the tool and re-run it.',
   '   index.html (block "STORY LINES") plays these; sw.js precaches KINAN_STORY_FILES (these clips + audio/voice/).',
   '   lines: id -> [speaker, subtitle, seconds, clip or null (subtitle only)] */',
-  'self.KINAN_STORY = ' + JSON.stringify(story, null, 1).replace(/\[\n\s+("[^"\n]*"|[\d.]+|null),\n\s+("[^"\n]*"|[\d.]+|null),\n\s+("[^"\n]*"|[\d.]+|null),\n\s+("[^"\n]*"|[\d.]+|null)\n\s*\]/g, '[$1, $2, $3, $4]') + ';',
+  'self.KINAN_STORY = ' + pub(JSON.stringify(story, null, 1)).replace(/\[\n\s+("[^"\n]*"|[\d.]+|null),\n\s+("[^"\n]*"|[\d.]+|null),\n\s+("[^"\n]*"|[\d.]+|null),\n\s+("[^"\n]*"|[\d.]+|null)\n\s*\]/g, '[$1, $2, $3, $4]') + ';',
   'self.KINAN_STORY_FILES = ' + JSON.stringify(files, null, 1) + ';',
   ''
 ].join('\n');
 
 const outJs = join(OUT, 'lines.js');
 if (CHECK) {
-  const stale = !existsSync(outJs) || readFileSync(outJs, 'utf8') !== source || copies.some(([from, to]) => !existsSync(to) || !readFileSync(to).equals(readFileSync(from)));
+  /* a Windows checkout turns the file's line ends into CRLF (git autocrlf): the same text, so compare without them */
+  const stale = !existsSync(outJs) || readFileSync(outJs, 'utf8').replace(/\r\n/g, '\n') !== source || copies.some(([from, to]) => !existsSync(to) || !readFileSync(to).equals(readFileSync(from)));
   if (stale) { console.error('audio/lines/ is stale: run node tools/story-lines.mjs'); process.exit(1); }
   console.log(`audio/lines/ is up to date (${Object.keys(lines).length} lines, ${files.length} clips)`);
 } else {

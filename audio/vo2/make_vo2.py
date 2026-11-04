@@ -23,7 +23,7 @@ import tempfile
 import time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-CONCEPT = r'C:\Users\SHADHUNTER\Desktop\Kinan vs Mom\Map Concept\voices'
+CONCEPT = os.path.join(os.path.expanduser("~"), r'Desktop\Kinan vs Mom\Map Concept\voices')
 CAST_FILE = os.path.join(CONCEPT, 'voice_cast_final.json')
 MANIFEST = os.path.join(CONCEPT, 'lines', 'manifest.json')
 LOG = os.path.join(HERE, 'gen_log.json')

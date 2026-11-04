@@ -147,6 +147,6 @@ KinanLevels.register({
     [116, 'PASSER-BY', 'Bonjour! Beautiful day for a climb, non?', 3],
     [146, 'SHAD', "Annie's drones can't see under the trees up here. Good spot for Glitchy to hide.", 4],
     [165, 'MOM', 'Hold on, sweetie! When you hear the wind coming, stand still and let it pass.', 3.6],
-    [244, 'KINAN', 'The lookout! You can see the whole city from up here... and there goes Glitchy, toward the Biodome!', 4.4]
+    [244, 'KINAN', 'The lookout! You can see the whole city from up here... and there goes Glitchy, toward the Nature Dome!', 4.4]
   ]
 });

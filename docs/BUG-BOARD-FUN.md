@@ -6,7 +6,7 @@
 **Session:** 2026-10-26 · build `bb825a1` (clean tree) · World 1 focus + all-worlds atmosphere sweep.
 **Evidence method:** headless Chromium (the repo's own Playwright) at 1280×720 desktop, driving the real
 `index.html` via the `?devtools=1` harness (localhost). Screenshots + runtime telemetry captured and
-reviewed. Shots kept out-of-repo at `C:\Users\SHADHUNTER\qc1-review\shots\`.
+reviewed. Shots kept out-of-repo at `%USERPROFILE%\qc1-review\shots\`.
 **Coverage honesty:** no ears (AUDIO = UNVERIFIED), no hands/controller/touch (DEVICE = UNVERIFIED),
 no phone/tablet viewport, no full sequential world clear (boss tested via auto-drive only). Labels are
 strict: VISUAL = reviewed screenshots of the running game; AUTOMATED = command/telemetry with counts.

@@ -215,7 +215,7 @@
       G.save();G.beginPath();G.moveTo(x-h+1,Y-4);G.lineTo(x,Y-h-3);G.lineTo(x+h-1,Y-4);G.closePath();G.clip();G.strokeStyle='rgba(255,255,255,.75)';G.lineWidth=1;
       for(let k=-h;k<h;k+=5){G.beginPath();G.moveTo(x+k,Y-4);G.lineTo(x+k+h,Y-4-h);G.stroke();G.beginPath();G.moveTo(x+k,Y-4);G.lineTo(x+k-h,Y-4-h);G.stroke();}G.restore();
       px('#ffffff',x-1,Y-h-3,2,3);});
-    P.label(X+56,Y+2,'MUTTART PYRAMIDS');};
+    P.label(X+56,Y+2,'THE GLASS PYRAMIDS');};
 
   /* ---------------- DOWNTOWN: STANTEC TOWER, ROGERS PLACE / ICE DISTRICT ---------------- */
   P.w04_stantec=function(X,Y){const G=g();const W=18,H=150;
@@ -332,7 +332,7 @@
       {at:[116,452],name:'FORT  THE INDOOR ROLLERCOASTER',st:'fort'},
       {at:[430,384],name:"4-6  SHAD'S JOB SITE",st:'lock'},
       {at:[604,496],name:'4-7  THE RIVER VALLEY AND FUNICULAR',st:'lock'},
-      {at:[610,576],name:'SECRET  THE MUTTART PYRAMIDS',st:'secret'},
+      {at:[610,576],name:'SECRET  THE GLASS PYRAMIDS',st:'secret'},
       {at:[556,640],name:'4-8  WHYTE AVE AT NIGHT',st:'lock'},
       {at:[740,352],name:"CASTLE  CHENOA'S RESTAURANT RUSH  -  CHENOA",st:'boss'}],
     edges,

@@ -1297,7 +1297,7 @@ const VO_DIR = 'audio/vo2/';
    an entry here (Grandpa, Grandma, Aiden and Milo were missing: his 5 story lines had no voice at all). */
 const VO_WHO = {
   KINAN: 'k', MOM: 'm', CHENOA: 'c', DAD: 'd', ROBIN: 'd', SHAD: 's', GLITCHY: 'mech', ANNIE: 'a', AMANDEEP: 'a',
-  GRANDPA: 'd', GRANDMA: 'm', 'GRANDMA HUNTER': 'm', AIDEN: 'k', MILO: 'b', REX: 'mech', FOREMAN: 'f',
+  GRANDPA: 'd', GRANDMA: 'm', AIDEN: 'k', MILO: 'b', REX: 'mech', FOREMAN: 'f',
   'SAFETY FOREMAN': 'f', LIFEGUARD: 'lg', CONDUCTOR: 'cd', BARKER: 'br', LUMBERJACK: 'lj', 'PROFESSOR STATIC': 'ps',
   DRIZZLE: 'dz', 'BIG KID': 'b', 'NOSY NEIGHBOUR': 'n', NEIGHBOUR: 'n', 'MEGA-MECH': 'mech',
   /* 2026-11-03 audit: speakers that had no entry (they fell back to "any English voice", often the wrong sex) */
@@ -1540,7 +1540,7 @@ const PAL = {
   q: '#6b6f7a', Q: '#c9c9cf', F: '#4f7a5a', a: '#9a9aa6', A: '#5e5e6a', n: '#a8692e', L: '#6b3f18', W: '#f0e2c8', Y: '#f3e6a6',
   S: '#c98d63', l: '#c6f03a',
   /* five colours the approved family designs (27 Oct) add: Mom's purple, Annie's skin, Robin's and Grandma Ol's
-     skin, Grandma Hunter's teal sweater, Grandma Ol's lilac */
+     skin, Grandma (Edmonton)'s teal sweater, Grandma Ol's lilac */
   v: '#5b46a8', K: '#b97f57', f: '#ecbd98', e: '#2f9a95', i: '#b49ad8'
 };
 /* Kinan, the approved "braid1" look (Shad, 27 Oct): long dark hair pulled back into ONE braid down his
@@ -1591,12 +1591,12 @@ const CHENOA_V1 = ['.....uuuuuu.....', '....uuuuuuuu....', '...uuuuuuuuuu...', '
 const ANNIE = ['...kkkkkkkkk....', '..kHHHHHHHHHHk..', '.kHHHHHHHHHHHHk.', '.kHHKKKKKKKHHHk.', 'kHHKkKKKkKKHHHk.', 'kHHKKKKKKKKHHHHk',
   'kHHKKmwwmKKHHHHk', 'kHHHKKKKKKHHHHk.', 'kHHknnHHnnkHHHk.', '.kHknnnHnnnkHk..', '.kKnnnnLnnnnKk..', '..knLLLLLLLnk...',
   '..knnnnLnnnnk...', '..knnnnLnnnnk...', '..kHHHH..HHHHk..'];
-/* Grandma Hunter (Mom's mom): grey hair, glasses, a teal cardigan, a plum skirt, and her walker with tennis balls */
-const GRANDMA_HUNTER = ['....kkkkkkkk....', '...kaaaaaaaak...', '..kaaaaaaaaaak..', '..kaSSSSSSSSak..', '..kpkpSSpkpSak..', '..kaSSSSSSSSak..',
+/* Grandma (Edmonton) (Mom's mom): grey hair, glasses, a teal cardigan, a plum skirt, and her walker with tennis balls */
+const GRANDMA_EDM = ['....kkkkkkkk....', '...kaaaaaaaak...', '..kaaaaaaaaaak..', '..kaSSSSSSSSak..', '..kpkpSSpkpSak..', '..kaSSSSSSSSak..',
   '..kaSSmwwmSSak..', '...kaSSSSSSaQk..', '..keeyRbyRbyeQk.', '.keeeewwwweeeQk.', '.keeeewwwweeeek.', 'kSeeeewwwweeeeSk',
   'QkppppppppppppkQ', 'Q.kpppppppppppkQ', 'Q.kpppp..ppppk.Q'];
 /* her walker continues below her: use these instead of LEGS */
-const GRANDMA_HUNTER_LEGS = { stand: ['Q...SSS..SSS...Q', 'Q...SSS..SSS...Q', 'l..kkkk..kkkk..l'], walk: ['Q..SSS....SSS..Q', 'Q.SSS......SSS.Q', 'lkkkk......kkkkl'] };
+const GRANDMA_EDM_LEGS = { stand: ['Q...SSS..SSS...Q', 'Q...SSS..SSS...Q', 'l..kkkk..kkkk..l'], walk: ['Q..SSS....SSS..Q', 'Q.SSS......SSS.Q', 'lkkkk......kkkkl'] };
 /* Robin's mom (Onion Lake): curly white hair, a lilac sweater, grey trousers */
 const GRANDMA_OL = ['...kwkwkwkwk....', '..kwwwwwwwwwwk..', '.kwwwwwwwwwwwwk.', '.kwwffffffffwwk.', '.kwykyffykyfwwk.', '..kwffffffffwk..',
   '..kwffPmmPffwk..', '...kwffffffwk...', '..kiiiiLLiiiik..', '.kiiiiLiiLiiiik.', '.kiiikAAkAAkiiik', 'kfiiikAAkAAkiifk',
@@ -1762,8 +1762,8 @@ SP.annieJump = bake(legs(ANNIE, LEGS.jump, 'k'));
 SP.glitchyStand = bake(legs(GLITCHY, LEGS.stand, 'j'));
 SP.glitchyWalk = bake(legs(GLITCHY, LEGS.walk, 'j'));
 /* the two grandmothers (World 10's Kitchen Legends) */
-SP.ghStand = bake(legs(GRANDMA_HUNTER, GRANDMA_HUNTER_LEGS.stand, 'S'));
-SP.ghWalk = bake(legs(GRANDMA_HUNTER, GRANDMA_HUNTER_LEGS.walk, 'S'));
+SP.ghStand = bake(legs(GRANDMA_EDM, GRANDMA_EDM_LEGS.stand, 'S'));
+SP.ghWalk = bake(legs(GRANDMA_EDM, GRANDMA_EDM_LEGS.walk, 'S'));
 SP.goStand = bake(legs(GRANDMA_OL, LEGS.stand, 'q'));
 SP.goWalk = bake(legs(GRANDMA_OL, LEGS.walk, 'q'));
 /* ---- the family pets: four cats, two dogs. Shad's ruling (story bible, 27 Oct): at most one
@@ -2878,13 +2878,13 @@ const TO_LOOKS = {
   100: { place: 'The Toronto Airport', bg: 'toskyline', windows: true, sky: ['#5aa8e8', '#d4ecf8'], far: '#6f7f96', mid: '#8a96a8', ground: '#5f6672', top: '#c9ced6', brick: '#2f5fb3', accent: '#f6c445' },
   101: { place: 'The Subway', bg: 'tosubway', open: [127, 169], sky: ['#14161c', '#2a2f38'], far: '#3a3f4a', mid: '#2a2e36', ground: '#4a4f57', top: '#9aa1ab', brick: '#c2414f', accent: '#f6c445' },
   102: { place: 'Nathan Phillips Square', bg: 'tosquare', sky: ['#7fb6e8', '#e6f2fb'], far: '#8a94a6', mid: '#a8b2c0', ground: '#7a7f88', top: '#e8eef4', brick: '#5a6a8a', accent: '#e8364b' },
-  103: { place: 'Up the CN Tower', bg: 'toskyline', high: true, sky: ['#3f8ee0', '#c4e4fa'], far: '#7a8aa0', mid: '#9aa6b6', ground: '#8a8f96', top: '#c9ced6', brick: '#6a6f78', accent: '#e8364b' },
+  103: { place: 'Up the Giant Tower', bg: 'toskyline', high: true, sky: ['#3f8ee0', '#c4e4fa'], far: '#7a8aa0', mid: '#9aa6b6', ground: '#8a8f96', top: '#c9ced6', brick: '#6a6f78', accent: '#e8364b' },
   104: { place: 'The Toronto Islands', bg: 'tolake', sky: ['#4fa8ff', '#d8f0ff'], far: '#6f8098', mid: '#3f8a4a', ground: '#7a6a52', top: '#5aa04a', brick: '#2f5fb3', accent: '#f6c445' },
   105: { place: 'The Aquarium Tunnel', bg: 'toaquarium', sky: ['#0a2a4a', '#1f6a9a'], far: '#123a5a', mid: '#1a4a6a', ground: '#3a4a5a', top: '#8fd0e8', brick: '#e8833a', accent: '#f6c445' },
   106: { place: 'Kensington Market', bg: 'kensington', sky: ['#3b2a6b', '#ff9a6a'], far: '#4a3a6a', mid: '#5a4a7a', ground: '#5a4a46', top: '#b9a99a', brick: '#a8452f', accent: '#f6c445' },
   107: { place: 'The Rooftops at Dusk', bg: 'toskyline', dusk: true, roofs: true, sky: ['#2a2a5a', '#ff8a5c'], far: '#3a3560', mid: '#4a4570', ground: '#4a4046', top: '#8a7f88', brick: '#a8452f', accent: '#f6c445' },
   108: { place: 'The Islands at Sunset', bg: 'tolake', dusk: true, sky: ['#4a3a7a', '#ffb070'], far: '#4a4060', mid: '#2f5a3a', ground: '#6a5a46', top: '#4a8a3a', brick: '#e8ecf2', accent: '#f6c445' },
-  109: { place: 'Casa Loma', bg: 'casaloma', sky: ['#2a2350', '#7a5a9a'], far: '#3a3456', mid: '#4a4466', ground: '#6a6470', top: '#a8a2b0', brick: '#8a6a4a', accent: '#f6c445' }
+  109: { place: 'The Hilltop Castle', bg: 'casaloma', sky: ['#2a2350', '#7a5a9a'], far: '#3a3456', mid: '#4a4466', ground: '#6a6470', top: '#a8a2b0', brick: '#8a6a4a', accent: '#f6c445' }
 };
 /* World 9's own looks (Montreal), numbered from 110 the same way (W9BG draws them). Worlds 1-8 never wear one. */
 const MTL_LOOKS = {
@@ -2892,7 +2892,7 @@ const MTL_LOOKS = {
   111: { place: 'The Old Port', bg: 'oldport', sky: ['#4f9ee8', '#d8eefa'], far: '#6f8098', mid: '#9a948a', ground: '#5f5a52', top: '#c9c2b4', brick: '#3f6f9a', accent: '#e8364b' },
   112: { place: 'The Metro', bg: 'metro', sky: ['#14161c', '#2a2630'], far: '#3a3640', mid: '#4a4450', ground: '#4a4652', top: '#d8d2c4', brick: '#e8833a', accent: '#3f8fd8' },
   113: { place: 'Mount Royal Lookout', bg: 'mountroyal', sky: ['#5aa0e0', '#f0e6d0'], far: '#7a8aa0', mid: '#4f7a3a', ground: '#5a4632', top: '#7aa84a', brick: '#a8452f', accent: '#f6a23c' },
-  114: { place: 'The Biodome', bg: 'biodome', sky: ['#1f4a3a', '#7ab89a'], far: '#2f5a44', mid: '#3f7a4a', ground: '#4a3a2a', top: '#5aa04a', brick: '#8a6a4a', accent: '#f6c445' },
+  114: { place: 'The Nature Dome', bg: 'biodome', sky: ['#1f4a3a', '#7ab89a'], far: '#2f5a44', mid: '#3f7a4a', ground: '#4a3a2a', top: '#5aa04a', brick: '#8a6a4a', accent: '#f6c445' },
   115: { place: 'The Montreal Tower', bg: 'olympic', sky: ['#5a9ae0', '#dceaf6'], far: '#9aa1ab', mid: '#c9ccd2', ground: '#7a7f88', top: '#d8dce2', brick: '#5a6a8a', accent: '#e8364b' },
   116: { place: 'The Space Centre', bg: 'spacectr', sky: ['#0a0f2a', '#2a2f5a'], far: '#2a3054', mid: '#3a4068', ground: '#4a4f6a', top: '#c9d2e8', brick: '#e8833a', accent: '#6fe0ff' },
   117: { place: 'The Startup Lofts', bg: 'lofts', sky: ['#a8c8e8', '#f4ecdc'], far: '#9a5a46', mid: '#b86a4e', ground: '#6a4a3a', top: '#c9a27a', brick: '#a8452f', accent: '#4fc06a' },
@@ -18298,10 +18298,10 @@ function drawAnnie(b, sx, sy) {
   if (b.state === 'windup') { ctx.fillStyle = '#ff6fae'; ctx.font = 'bold 11px monospace'; ctx.fillText('!', Math.round(cx), sy - 5); }
 }
 function drawGrandmothers(b, sx, sy) {
-  /* the two grandmothers share one health bar: Grandma Hunter (with her walker) and Robin's mom, side by side,
+  /* the two grandmothers share one health bar: Grandma (Edmonton) (with her walker) and Robin's mom, side by side,
      in their approved designs (27 Oct) */
   /* drawn x1.6 like the other bosses, so their 18-row sprites fill the same 29 px tall boss box the tall stand-ins
-     did; Robin's mom stands just behind Grandma Hunter */
+     did; Robin's mom stands just behind Grandma (Edmonton) */
   const walking = Math.abs(b.vx) > 0.2 && b.onGround, cx = sx + b.w / 2, step = walking && Math.floor(frame / 14) % 2;
   drawBig(step ? SP.goWalk : SP.goStand, cx + 7, sy + b.h, -1, 1.6);
   drawBig(step ? SP.ghWalk : SP.ghStand, cx - 7, sy + b.h, 1, 1.6);

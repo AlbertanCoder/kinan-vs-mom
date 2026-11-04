@@ -88,7 +88,7 @@
     box('#2b2f45',X+80,Y-12,14,12);px('#f6c445',X+80,Y-14,14,2);
     /* a skeleton on the lawn sign */
     px('#f4f1e8',X+6,Y-30,1,1);
-    P.label(X+W/2,Y+4,'ROYAL TYRRELL MUSEUM');};
+    P.label(X+W/2,Y+4,'THE DINOSAUR MUSEUM');};
   /* the T-rex skeleton sculpture out front */
   P.w06_skeleton=function(X,Y){const c='#f4f1e8';shadow(X+12,Y+1,16,3);
     line(O,3,[[X-14,Y-14],[X,Y-18],[X+16,Y-20]]);line(c,1,[[X-14,Y-14],[X,Y-18],[X+16,Y-20]]);

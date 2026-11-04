@@ -40,7 +40,7 @@
    ============================================================ */
 KinanLevels.register({
   id: '9-5', world: 9, slot: 5, kind: 'level',
-  name: 'THE BIODOME',
+  name: 'THE NATURE DOME',
   theme: 114,   /* the Biodome: the rainforest under the ribbed roof; ice cliffs and snow in the cold zone */
   cols: 270,
   moss: [[9, 14], [47, 51]],   /* sticky moss: a slow walk across it (never within 8 tiles of a lip) */
@@ -131,7 +131,7 @@ KinanLevels.register({
   spawn: { col: 2, row: 11 },
   goal: { col: 266, row: 10 },   /* the colony's far door: out to the Olympic Stadium */
   talk: [
-    [2, 'KINAN', "The Biodome! It's a real jungle in here! Glitchy, where are you hiding?", 3.4],
+    [2, 'KINAN', "The Nature Dome! It's a real jungle in here! Glitchy, where are you hiding?", 3.4],
     [7, 'MOM', "That green moss is sticky, sweetie. You'll walk slowly across it.", 3.4],
     [56, 'DAD', "The floor's wet by the waterfall, bud. Slippery! It's hard to stop. Don't fall for it.", 3.4],
     [30, "DAD", "There are penguins in here, bud! How does a penguin build its house? Igloos it together!", 3.8],

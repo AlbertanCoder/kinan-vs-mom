@@ -151,5 +151,15 @@ KinanLevels.register({
   goldenCandle: { col: 117, row: 9 },
   checkpoint: { col: 103, row: 10 },
   spawn: { col: 2, row: 11 },
-  goal: { col: 320, row: 11 }   /* Dad's truck: the museum lights ahead */
+  goal: { col: 320, row: 11 },   /* Dad's truck: the museum lights ahead */
+  /* World 6's talk (2026-11-03 audit: the header's written beats, wired; strangers are PASSER-BY) */
+  talk: [
+    [2, 'DAD', "The sun's going down. We have to catch him before the museum closes!", 4.5],
+    [60, 'KINAN', "Hats, hats, hats!", 2.4],
+    [103, 'PASSER-BY', "Why did the dinosaur cross the road? Because chickens weren't invented yet!", 5],
+    [103, 'DAD', "...That's actually science. I hate that it's good.", 3.3],
+    [155, 'CHENOA', "There's a skeleton sticking out of that hill!", 3],
+    [225, 'KINAN', "Downhill... JUMP! Downhill... JUMP!", 2.4],
+    [315, 'SHAD', "There's the museum. Glitchy's inside. Something's moving in there...", 4.5]
+  ]
 });

@@ -10,12 +10,12 @@ This is the controlling design and safety document for the ground-up overhaul. I
 
 ## 1. Repository and Handoff State
 
-- Repository: `C:\Users\SHADHUNTER\Desktop\Kinan vs. Mom`.
+- Repository: `%USERPROFILE%\Desktop\Kinan vs. Mom`.
 - `origin/main` was last observed at `db99047` and represents the last-known live baseline.
 - Local `main` remains at `ebff64a`, one commit ahead of that baseline; it was not pushed, reset, or otherwise modified during discovery/handoff.
 - `archive/world6-experiment` preserves `ebff64a`, including the unpublished 3D work and its 26-test mocked smoke harness.
 - `overhaul/staging` was created from `origin/main`; the overhaul design document is added here before any production game code.
-- The Desktop handoff prompt is `C:\Users\SHADHUNTER\Desktop\KINAN_VS_WORLDS_OVERHAUL_KICKOFF_PROMPT.md`.
+- The Desktop handoff prompt is `%USERPROFILE%\Desktop\KINAN_VS_WORLDS_OVERHAUL_KICKOFF_PROMPT.md`.
 - No production deployment, remote branch change, or live `main` merge is authorized by this document.
 
 ## 2. Non-Negotiable Safety and Scope Rules

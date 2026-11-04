@@ -142,6 +142,6 @@ KinanLevels.register({
     [140, 'DAD', "Big jumps up here, bud. Run, and jump right at the edge. I'll be right behind you. Way behind.", 3.8],
     [193, 'MOM', 'Last stretch, sweetie! You can do it. We are right behind you.', 3.2],
     [274, 'KINAN', "They are running to a CASTLE? There's a castle in Toronto?!", 3.2],
-    [285, 'SHAD', 'Casa Loma. The Raccoon King lives there, and Glitchy is in his pile of shiny things!', 4.2]
+    [285, 'SHAD', 'The Hilltop Castle. The Raccoon King lives there, and Glitchy is in his pile of shiny things!', 4.2]
   ]
 });

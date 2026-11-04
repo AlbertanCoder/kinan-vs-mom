@@ -142,5 +142,15 @@ KinanLevels.register({
   goldenCandle: { col: 143, row: 6 },
   checkpoint: { col: 101, row: 10 },
   spawn: { col: 2, row: 5 },
-  goal: { col: 293, row: 11 }   /* Dad's truck waits under the welcome sign */
+  goal: { col: 293, row: 11 },   /* Dad's truck waits under the welcome sign */
+  /* World 6's talk (2026-11-03 audit: the header's written beats, wired; strangers are PASSER-BY) */
+  talk: [
+    [2, 'DAD', "Glitchy's tumbleweed went THAT way, bud. Right into... a hole in the ground?", 5.1],
+    [30, 'KINAN', "WHOA. The whole prairie just stops!", 2.4],
+    [66, 'SHAD', "That's the badlands, bud. Real dinosaurs lived right here, a long, long time ago.", 5.4],
+    [101, 'PASSER-BY', "Why don't dinosaurs drive trucks? Their arms can't reach the wheel!", 4.5],
+    [104, 'DAD', "Ooh. I'm stealing that one.", 2.4],
+    [172, 'CHENOA', "Hey! That magpie took my candle!", 2.4],
+    [290, 'KINAN', "WELCOME TO DRUMHELLER. The dinosaur on the sign is waving at me!", 4.3]
+  ]
 });

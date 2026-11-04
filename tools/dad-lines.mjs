@@ -123,7 +123,7 @@ export const REPLACE = [
   ['levels/w07/l03.js', `"A raccoon just took my sandwich. That's fine. I wasn't hungry."`, `'A raccoon just took my sandwich! Classic bandit. He even wore the mask.'`],
   ['levels/w07/castle.js', `'The cruise-ship terminal roof! Up you go, bud. It looks like big white sails.'`, `'The cruise-ship terminal roof! Up you go, bud. Those big white sails? Totally on sail.'`],
   /* World 8: Toronto */
-  ['levels/w08/secret.js', `'Look at that view, bud. The whole city, the CN Tower and the lake. Worth the climb.'`, `'Look at that view, bud: the city, the CN Tower, the lake. No wonder this lighthouse is beaming.'`],
+  ['levels/w08/secret.js', `'Look at that view, bud. The whole city, the CN Tower and the lake. Worth the climb.'`, `'Look at that view, bud: the city, the Giant Tower, the lake. No wonder this lighthouse is beaming.'`],   /* 2026-11-03: look-alike name (answer 19) */
   ['levels/w08/l08.js', `'Big jumps up here, bud. Run, and jump right at the edge.'`, `"Big jumps up here, bud. Run, and jump right at the edge. I'll be right behind you. Way behind."`],
   ['levels/w08/l07.js', `'That car is covered in plants! A whole garden on a car, bud.'`, `'That car is covered in plants! A whole garden on wheels, bud. Talk about a car-rot.'`],
   ['levels/w08/l06.js', `'All aboard the ferry to the Toronto Islands! The raccoon snuck on board with Glitchy.'`, `'All aboard the ferry to the Toronto Islands! The raccoon snuck on with Glitchy. Ferry sneaky.'`],
@@ -132,7 +132,7 @@ export const REPLACE = [
   ['levels/w08/l01.js', `"That one's going the wrong way, bud. Just keep running."`, `"That one's going the wrong way, bud. Just keep running. I've had jobs like this."`],
   ['levels/w08/l01.js', `'Welcome to Toronto, everybody. Now where did that raccoon go?'`, `"Welcome to Toronto, everybody! Now where'd that raccoon go? Probably out bin-ge shopping."`],
   ['levels/w08/fort.js', `'Ride the moving walkway, bud. The sharks are on the other side of the glass.'`, `"Ride the moving walkway, bud. The sharks are behind the glass. They're just fin-ishing lunch."`],
-  ['levels/w08/l04.js', `'The CN Tower! Five hundred and fifty-three metres tall. And the raccoon went all the way UP.'`, `'The CN Tower! Five hundred and fifty-three metres. The raccoon went all the way UP. Talk about high-jinks!'`],
+  ['levels/w08/l04.js', `'The CN Tower! Five hundred and fifty-three metres tall. And the raccoon went all the way UP.'`, `'The Giant Tower! Five hundred and fifty-three metres. The raccoon went all the way UP. Talk about high-jinks!'`],   /* 2026-11-03: look-alike name (answer 19) */
   ['levels/w08/l04.js', `'That raccoon is heading for the toy store on the corner. Come on, bud.'`, `"That raccoon is heading for the toy store on the corner. Come on, bud, let's block his path."`],
   ['levels/w08/l02.js', `"The Bloor Viaduct! There's a whole valley under us, bud. Don't look down."`, `"The Bloor Viaduct! A whole valley under us, bud. Don't look down. I did. Real low point."`],
   ['levels/w08/l05.js', `'The raccoon ran out the back door, toward the aquarium!'`, `'The raccoon ran out the back door, toward the aquarium! Something smells fishy.'`],

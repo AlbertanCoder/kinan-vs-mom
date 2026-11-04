@@ -307,7 +307,7 @@ const L = {
     { pos: W(324, -24.6), yaw: FWD(324) },
   ],
   hints: [
-    { pos: W(10, T0), r: 2.5, text: 'Look! The river, the bridges, and the Bessborough across the water. The pelicans are fishing below the weir.', cam: { pos: W(30, 14, -26), look: [-30, -10, 300], time: 3.2 } },
+    { pos: W(10, T0), r: 2.5, text: 'Look! The river, the bridges, and the River Castle Hotel across the water. The pelicans are fishing below the weir.', cam: { pos: W(30, 14, -26), look: [-30, -10, 300], time: 3.2 } },
     { pos: W(TS - 11, T0), r: 3.5, text: 'The LOOKOUT TOWER! Push into the ladder and hold UP to climb, then hop up the decks. Best view in Saskatoon!' },
     { pos: W(149, T1), r: 3, text: 'A ravine! Hop across on the pillar. Fall in? Jump at a wall, then jump again to kick off it: WALL JUMP!' },
     { pos: W(155.5, RAV), r: 3, dy: 3, text: 'WALL JUMP out: jump at the wall, press JUMP again to kick off, back and forth. (Or climb the rock and DOUBLE JUMP.)' },

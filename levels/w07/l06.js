@@ -182,7 +182,7 @@ KinanLevels.register({
     [94, 'SHAD', 'Rope pulleys! Stand on one and it sinks, and its partner goes up. Ride it up to that gift!', 4.2],
     [104, 'DAD', 'Boats tied up all along the dock. Roof to roof, boat to boat, bud! Whatever floats your boat.', 4],
     [161, 'CHENOA', 'The painted silos! They look like giants!', 3],
-    [243, 'SHAD', "Glitchy's heading for the big silver ball across False Creek. That's Science World!", 4],
+    [243, 'SHAD', "Glitchy's heading for the big silver ball across False Creek. That's the Science Dome!", 4],
     [255, 'KINAN', "The toy stall at the kids market! That's where I got my foam block pickaxe when I was seven!", 4.4],   /* the age-7 memory (story bible) */
     [298, 'MOM', 'I got cherries, and a fish, and a hat. The hat was on sale.', 3.4]
   ]

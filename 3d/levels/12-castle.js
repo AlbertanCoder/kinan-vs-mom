@@ -1,5 +1,5 @@
 // =====================================================================================
-//  WORLD 12 CASTLE  ·  THE BESSBOROUGH BIRTHDAY FESTIVAL  ·  ROUGH DRAFT (2026-10-30, Developer mode only)
+//  WORLD 12 CASTLE  ·  THE RIVER CASTLE HOTEL BIRTHDAY FESTIVAL  ·  ROUGH DRAFT (2026-10-30, Developer mode only)
 // =====================================================================================
 // A 2.5D festival run along the riverbank to the Bessborough, and World 12's finale. Nobody is beaten up: there are no
 // enemies at all, the last stretch is a happy challenge (KICK the five firework fuses for Glitchy), falling in the river
@@ -50,11 +50,11 @@ const GOAL_S = 410;
 
 const L = {
   id: '12-castle',
-  title: 'THE BESSBOROUGH BIRTHDAY FESTIVAL',
+  title: 'THE RIVER CASTLE HOTEL BIRTHDAY FESTIVAL',
   subtitle: 'the whole city throws a party',
   cardText: 'The whole team is waiting! Run along the river to the party!',
   clearText: 'Happy birthday, Kinan!',
-  intro: 'The whole team is waiting at the Bessborough! Run RIGHT along the river!',
+  intro: 'The whole team is waiting at the River Castle Hotel! Run RIGHT along the river!',
   helpAfter: 5,
   assets: { kinan: '../worlds/w12_assets/kinan.glb', glitchy: '../worlds/w12_assets/glitchy.glb', pets: '../worlds/w12_assets/pet_{id}.glb' },
   props: { ...CITY, ...FESTIVAL },
