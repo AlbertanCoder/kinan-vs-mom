@@ -137,8 +137,7 @@ KinanLevels.register({
     [40, 'KINAN', "I can walk right under its ribs!", 2.4],
     [104, 'PASSER-BY', "Why didn't the skeleton go to the party? It had no BODY to go with!", 4.5],
     [145, 'SHAD', "That sea reptile's spine makes a pretty good bridge.", 3.5],
-    [228, 'KINAN', "I'm standing on a T-REX's HEAD.", 2.4],
-    [300, 'KINAN', "The gift shop! I KNOW this gift shop!", 2.5]
+    [228, 'KINAN', "I'm standing on a T-REX's HEAD.", 2.4]
   ],
   foes: [
     [14, 11, 'robot'],   /* S1 */

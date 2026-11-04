@@ -36,7 +36,7 @@
   /* World 6's memory gift (age 6), the one hole between age 5 and age 7: the Pop Pad and the Squish Pal in the museum gift
      shop, found at 6-5's LEVEL CLEAR like Worlds 1-5's gifts (Kinan names it, someone sees that Glitchy left it) */
   var ADD = {
-    w06_kinan_mem1: ['KINAN', 'My Pop Pad! I popped it the whole way home from here when I was six!'],
+    w06_kinan_mem1: ['KINAN', 'The gift shop! My Pop Pad! I popped it the whole way home from here when I was six!'],   /* the level's own gift-shop line came after the find (watch-play 2026-11-04): now one line */
     w06_kinan_mem2: ['KINAN', 'And my Squish Pal stegosaurus! Still squishy!'],
     w06_mom_mem1: ['MOM', 'Right by the door, sweetie. Like he wanted you to find them.']
   };
