@@ -3446,7 +3446,7 @@ const Story = {
   /* 2026-11-04 audit (Shad's answer 30): a level's talk line whose moment has passed is skipped, not said late: Kinan is
      already 48+ columns past its spot, or the level is over (on the map, another level). A conversation that has started
      (lines at the same column: a joke and its answer) always finishes, and the level's closing line may end on the map. */
-  started: {}, skipped: [],
+  started: {}, late: [],
   stale(id) {
     const ta = TALK_AT[id];
     if (!ta || Story.started[ta.group]) return false;
@@ -3458,7 +3458,7 @@ const Story = {
     if (Story.cur || !Story.q.length) return;
     clearTimeout(Story.poll);
     if (Story.blocked()) { Story.poll = setTimeout(Story.pump, 250); return; }
-    while (Story.q.length && Story.stale(Story.q[0].id)) { Story.skipped.push(Story.q.shift().id); if (Story.skipped.length > 300) Story.skipped.shift(); }
+    while (Story.q.length && Story.stale(Story.q[0].id)) { Story.late.push(Story.q.shift().id); if (Story.late.length > 300) Story.late.shift(); }
     if (!Story.q.length) return;
     const it = Story.q.shift(), d = Story.line(it.id), fx = (STORY.fx && STORY.fx[it.id]) || null;
     if (TALK_AT[it.id]) Story.started[TALK_AT[it.id].group] = true;
@@ -27585,7 +27585,7 @@ window.__k11 = window.__k11DevOnly() ? {
   storyInfo: () => {
     const m = document.getElementById('storyLineMap');
     return { cur: Story.cur ? Story.cur.id : null, kind: Story.cur ? Story.cur.kind : null, queue: Story.q.map((x) => x.id),
-      log: Story.log.map((x) => Object.assign({}, x)), skipped: Story.skipped.slice(), heard: Object.keys(progress.storyHeard || {}), mapWorld: Story.mapWorld,
+      log: Story.log.map((x) => Object.assign({}, x)), late: Story.late.slice(), heard: Object.keys(progress.storyHeard || {}), mapWorld: Story.mapWorld,
       levelSub: storyBox && !storyBox.hidden ? storyBox.textContent : '', mapSub: m && !m.hidden && m.isConnected ? m.textContent : '',
       voSrc: VO.audio ? VO.audio.src : null, loaded: !!STORY,
       fx: Story.cur ? Story.cur.fx || null : null, wheezes: Story.wheezes, skipped: Story.skipped,
