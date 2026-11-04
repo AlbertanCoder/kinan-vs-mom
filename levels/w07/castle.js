@@ -90,16 +90,10 @@ KinanLevels.register({
             [68, 10], [69, 9], [70, 8], [71, 7], [72, 8], [73, 9], [74, 10], [77, 11],
             [108, 11], [110, 11], [111, 11], [113, 11], [114, 11]],   /* the way out, in the sunshine */
   /* story bubbles as Kinan passes a column: [col, who, what they say, seconds] (subtitles only) */
+  /* walk-up trimmed 2026-11-04 (Shad's answer 30): a running kid reaches the boss before more lines can be said; the key line is in the boss intro */
   talk: [
     [1, 'SHAD', "Kinan, it's Shad on the radio. That storm over Canada Place isn't a normal storm. It's Drizzle, and it's HUGE now!", 5],
-    [9, 'KINAN', 'It is raining SO hard. Even the bats have umbrellas!', 3.2],
-    [13, 'DAD', 'The cruise-ship terminal roof! Up you go, bud. Those big white sails? Totally on sail.', 4],
-    [24, 'DRIZZLE', '*sniff*... Everybody always runs inside when I come. *sniff*', 3.4],
-    [35, 'SHAD', 'Glitchy woke Drizzle up, and now it rains on everything. I found three old sun lamps at the end of the pier.', 5],
-    [44, 'CHENOA', 'Look at the flags! They are flapping like crazy in the wind.', 3.2],
-    [51, 'KINAN', "Drizzle isn't being mean. I think Drizzle is lonely. Nobody ever stays to talk to a rain cloud.", 4.6],
-    [64, 'SHAD', 'When Drizzle stops to rest, switch on a sun lamp. Sunshine plus rain makes...', 4],
-    [71, 'MOM', 'Rainbows! Go show Drizzle, sweetie. And be careful on the wet pier!', 3.6]
+    [13, 'DAD', 'The cruise-ship terminal roof! Up you go, bud. Those big white sails? Totally on sail.', 4]
   ],
   arena: { col: 82, cols: 24, boss: 'drizzle' },   /* 3 phases (the default), one sun lamp each; its checkpoint flag stands at c78 */
   spawn: { col: 2, row: 11 },

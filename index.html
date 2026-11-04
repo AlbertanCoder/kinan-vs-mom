@@ -3059,9 +3059,14 @@ function buildLevel(def) {
       if (STORY && STORY.lines) STORY.lines[id] = [t[1], t[2], clipS ? Math.max(readS, Math.round((clipS + 0.4) * 10) / 10) : readS, clipS ? 'audio/talk/' + talkHash(t[1], t[2]) + '.mp3' : null];
       if (STORY) { STORY.fx = STORY.fx || {}; if (t[4]) STORY.fx[id] = t[4]; else delete STORY.fx[id]; }   /* 'wheeze' | 'laugh' | 'walkoff' (block "WHEEZE-LAUGH") */
       talk.push({ x: (talkBase + t[0]) * T, id: id, done: false });
+      TALK_AT[id] = { x: (talkBase + t[0]) * T, lvl: def.id, group: def.id + ':' + (talkBase + t[0]), last: false };
     });
     talkBase += a.cols;
   });
+  /* the level's closing line(s) (the last column with talk) may finish on the map; see Story.stale */
+  for (const g in Story.started) if (g.indexOf(def.id + ':') === 0) delete Story.started[g];   /* a new visit: its conversations start fresh */
+  const lastX = talk.reduce((m, t) => Math.max(m, t.x), -1);
+  for (const t of talk) if (t.x === lastX) TALK_AT[t.id].last = true;
   return {
     i: 0, g, w, foes, candles, gifts, checkpoint, petSpot: null, petCrate, talk,
     arenaX: w + 4, arenaW: 28, len: cols, buildPads: [], ice: false, wind: false, up: 0,   /* no arena: the boss gate can never fire */
@@ -3417,6 +3422,7 @@ function worldMapScreen(o) {
    ============================================================ */
 const STORY = window.KINAN_STORY || null;
 const storyBox = document.getElementById('storyLine');
+const TALK_AT = {};   /* a level talk line's id -> its spot: { x, lvl, group, last } (the level builder fills it; Story.stale reads it) */
 const Story = {
   q: [], cur: null, timer: 0, poll: 0, log: [], mapWorld: 0, barkN: {},
   line(id) { return STORY && STORY.lines[id] ? STORY.lines[id] : null; },
@@ -3437,11 +3443,25 @@ const Story = {
     Story.add([list[(n - 1) % list.length]], 'bark');
   },
   blocked() { if (Cut.on) return true; const A = L && L.arena; return !!(A && running && !el.stage.hidden && (A.state === 'fight' || A.line || A.lineQ.length)); },   /* a cutscene talks first */
+  /* 2026-11-04 audit (Shad's answer 30): a level's talk line whose moment has passed is skipped, not said late: Kinan is
+     already 48+ columns past its spot, or the level is over (on the map, another level). A conversation that has started
+     (lines at the same column: a joke and its answer) always finishes, and the level's closing line may end on the map. */
+  started: {}, skipped: [],
+  stale(id) {
+    const ta = TALK_AT[id];
+    if (!ta || Story.started[ta.group]) return false;
+    const here = !!(L && L.levelId === ta.lvl && !L.cleared && !el.stage.hidden);
+    if (!here) return !ta.last;
+    return !!(P && P.x > ta.x + 48 * T);
+  },
   pump() {
     if (Story.cur || !Story.q.length) return;
     clearTimeout(Story.poll);
     if (Story.blocked()) { Story.poll = setTimeout(Story.pump, 250); return; }
+    while (Story.q.length && Story.stale(Story.q[0].id)) { Story.skipped.push(Story.q.shift().id); if (Story.skipped.length > 300) Story.skipped.shift(); }
+    if (!Story.q.length) return;
     const it = Story.q.shift(), d = Story.line(it.id), fx = (STORY.fx && STORY.fx[it.id]) || null;
+    if (TALK_AT[it.id]) Story.started[TALK_AT[it.id].group] = true;
     Story.cur = { id: it.id, kind: it.kind, d: d, fx: fx };
     Story.log.push({ id: it.id, kind: it.kind, src: d[3] || null, fx: fx, at: Date.now() });
     if (fx === 'wheeze') { Story.wheezes++; SFX.wheeze(); }   /* Dad can't get the joke out: the breathy hee-hee-hee */
@@ -4717,6 +4737,7 @@ const ARENA_LINES = {
   t_rex_05: ['ROBO-REX', 'beep... boop... purrrr. (Its eyes go from red to green.)', 3.4, true],
   t_w6_shad_04: ["SHAD", "All three wires! You didn't fight it, Kinan. You fixed it.", 4, true],
   t_w6_kinan_04: ['KINAN', 'Robo-Rex is my friend now! Can I ride him?', 3, true],
+  t_w6_kinan_05: ['KINAN', "So he's not mean. He's just broken. Like my remote-control car when its wires came loose!", 4, true],   /* from the castle walk-up (2026-11-04) */
   /* World 7 — Vancouver. Text only, like World 6 (no recordings): every line is a subtitle */
   t_slug_01: ['THE GIANT BANANA SLUG', 'SLLLURRRP. (A banana slug as big as a car rears up. It looks GRUMPY.)', 3.4, true],
   t_w7_kinan_01: ['KINAN', "Whoa! That's the biggest banana slug in the whole world!", 3, true],
@@ -4755,6 +4776,7 @@ const ARENA_LINES = {
   t_octo_08: ['THE BIG OCTOPUS', '(It waves all eight arms goodbye.)', 3, true],
   t_king_01: ['THE RACCOON KING', 'HALT! Who dares to enter the shiny treasure room of the RACCOON KING?', 4, true],
   t_w8_kinan_03: ['KINAN', "That's not garbage, Your Majesty. That's my friend Glitchy!", 3.4, true],
+  t_w8_kinan_mem: ['KINAN', "His treasure pile... wait, that's my MOVING-DAY BOX! With my Pocket Critter dino card! I held it the whole drive to Saskatoon.", 6, true],   /* the age-8 memory, from the castle walk-up (2026-11-04) */
   t_w8_shad_01: ['SHAD', "Kinan, it's Shad on the radio. He collects shiny things! When he sits down to count his treasure, look for a shiny bottle cap.", 5.4, true],
   t_w8_shad_02: ['SHAD', 'Dodge the paws. When he sits down, grab the shiny bottle cap and offer it to him!', 4.2, true],
   t_king_02: ['THE RACCOON KING', 'MINE! MINE! (Big paws reach down from above. Watch the shadows!)', 3.4, true],
@@ -4779,7 +4801,7 @@ const ARENA_LINES = {
   t_w9_kinan_02: ['KINAN', 'Bye, drone! Tell Annie Glitchy is NOT a virus.', 3, true],
   t_fw_01: ['ANNIE', "Kinan?! Stand back, sweetie! That glitch has wrecked a city a day. My firewall keeps everyone safe.", 4.6, true],
   t_w9_kinan_03: ['KINAN', "Annie, wait! Glitchy is my FRIEND! He's scared in there!", 3.2, true],
-  t_w9_shad_01: ['SHAD', "Kinan, it's Shad on the radio. That's Annie! She thinks he's a virus... When the firewall rests, a LOGIC LOCK on the cube glows. Touch it to crack it!", 6, true],
+  t_w9_shad_01: ['SHAD', "Kinan, it's Shad on the radio. Annie's not mean, bud. She thinks he's a virus... When the firewall rests, a LOGIC LOCK on the cube glows. Touch it to crack it!", 6, true],
   t_w9_shad_02: ['SHAD', 'Dodge the drones. When a logic lock glows on the cube, touch it!', 3.6, true],
   t_fw_02: ['ANNIE', 'Deletion drones, sweep the stage! Kinan, keep clear of the shadows, okay?', 3.8, true],
   t_fw_03: ['ANNIE', 'The firewall walls are closing in! ...Wait. Kinan, why are you rerouting my circuits?!', 4.2, true],
@@ -5111,7 +5133,7 @@ const ARENA_KINDS = {
     hint: 'He isn\'t mean, his wires are scrambled! Jump the stomp shockwaves and stay out of reach of his tail. When he stops to cool down, a loose wire sparks on his back: land on it to <b>FIX</b> it!',
     smarter: ['One wire fixed! Now he ROARS (it pushes you back), shakes bones off the exhibits, kicks bones at you and FAKES a stomp. Three baby dino robots wake up. Shad built you two platforms!', 'Two wires fixed! He aims where you are GOING, and then he CHARGES, turns and charges BACK. Jump him twice, and fix the last wire while he is dizzy!'],
     friend: '🦖 <b>ROBO-REX IS FIXED!</b> His eyes turn green and he purrs. Hop on his back for a ride!',
-    lines: { intro: ['t_rex_01', 't_w6_kinan_02', 't_w6_shad_01', 't_w6_shad_02'], retry: ['t_rex_01', 't_w6_shad_02'], phase: [null, 't_w6_shad_03', 't_w6_kinan_03'],
+    lines: { intro: ['t_rex_01', 't_w6_kinan_02', 't_w6_shad_01', 't_w6_kinan_05', 't_w6_shad_02'], retry: ['t_rex_01', 't_w6_shad_02'], phase: [null, 't_w6_shad_03', 't_w6_kinan_03'],
       first: { wave: 't_rex_02', blow: 't_rex_03', sweep: 't_rex_04' }, defeat: ['t_rex_05', 't_w6_shad_04', 't_w6_kinan_04'] },
     phases: [
       { walk: 0.7, windup: 52, rest: 42, tired: 132, pattern: ['wave', 'sweep', 'wave'], n: 1, speed: 1.25 },
@@ -5198,7 +5220,7 @@ const ARENA_KINDS = {
     hint: "He isn't mean, he just LOVES shiny things! Step off the shadows (his paws grab from above) and dodge his junk. When he sits down to count his treasure, grab the glinting <b>BOTTLE CAP</b> and offer it to him!",
     smarter: ['One cap! Now he ROLLS green bins at you (jump them!), FAKES a grab, and two little raccoons sneak in to snatch candles.', 'Two caps! He grabs where you are GOING, three paws at a time, and the bins roll faster. One more cap for the trade!'],
     friend: '👑 <b>THE RACCOON KING IS YOUR FRIEND NOW!</b> Three shiny caps for Glitchy: a fair trade!',
-    lines: { intro: ['t_king_01', 't_w8_kinan_03', 't_w8_shad_01'], retry: ['t_king_01', 't_w8_shad_02'], phase: [null, 't_king_05', 't_w8_kinan_04'],
+    lines: { intro: ['t_king_01', 't_w8_kinan_03', 't_w8_kinan_mem', 't_w8_shad_01'], retry: ['t_king_01', 't_w8_shad_02'], phase: [null, 't_king_05', 't_w8_kinan_04'],
       first: { grab: 't_king_02', toss: 't_king_03', roll: 't_king_04', charge: 't_king_08' }, defeat: ['t_king_06', 't_w8_kinan_05', 't_king_07', 't_w8_shad_03'] },
     /* shorter tells and rests than Drizzle's and longer patterns; the rest windows are a little longer than Drizzle's
        because the trade takes two steps (fetch the cap, then offer it), and a cap he has picked up stays his */
@@ -27563,7 +27585,7 @@ window.__k11 = window.__k11DevOnly() ? {
   storyInfo: () => {
     const m = document.getElementById('storyLineMap');
     return { cur: Story.cur ? Story.cur.id : null, kind: Story.cur ? Story.cur.kind : null, queue: Story.q.map((x) => x.id),
-      log: Story.log.map((x) => Object.assign({}, x)), heard: Object.keys(progress.storyHeard || {}), mapWorld: Story.mapWorld,
+      log: Story.log.map((x) => Object.assign({}, x)), skipped: Story.skipped.slice(), heard: Object.keys(progress.storyHeard || {}), mapWorld: Story.mapWorld,
       levelSub: storyBox && !storyBox.hidden ? storyBox.textContent : '', mapSub: m && !m.hidden && m.isConnected ? m.textContent : '',
       voSrc: VO.audio ? VO.audio.src : null, loaded: !!STORY,
       fx: Story.cur ? Story.cur.fx || null : null, wheezes: Story.wheezes, skipped: Story.skipped,
