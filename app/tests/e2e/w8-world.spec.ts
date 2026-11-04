@@ -647,28 +647,30 @@ test.describe('World 8 · the memory gift', () => {
     await boot(page);
     const r = await page.evaluate(() => {
       const w = window as unknown as Win;
-      const k = w.__k11 as Dev & { storyInfo: () => { cur: string | null; queue: string[] }; arenaInfo: () => Arena | null };
+      const k = w.__k11 as Dev & { storyInfo: () => { cur: string | null; queue: string[] }; arenaInfo: () => Arena | null; arenaLines: () => { id: string; who: string; text: string }[] };
+      /* 2026-11-04 (Shad's answer 30): the memory line moved out of the walk-up into the Raccoon King's intro, where the
+         game pauses to talk, so a running kid hears it (the walk-up keeps only Shad's opener and Dad's joke) */
       const talk = w.KinanLevels.get('8-castle').talk || [];
-      const at = talk.findIndex((t) => /MOVING-DAY BOX/.test(t[2]));
+      const inWalkUp = talk.findIndex((t) => /MOVING-DAY BOX/.test(t[2]));
+      const line = k.arenaLines().find((l) => /MOVING-DAY BOX/.test(l.text)) || null;
       k.playLevel('8-castle'); k.godMode(); k.clearFoes();
-      const seen = new Set<string>();
-      let arenaAt = -1;
+      let introSaid: string[] = [];
       for (let n = 0; n < 700 && !k.levelInfo().cleared; n++) {
         k.auto(10, { run: true });
-        const s = k.storyInfo();
-        for (const id of [s.cur, ...s.queue]) if (id) seen.add(id);
-        if (arenaAt < 0 && k.arenaInfo()!.state !== 'wait') arenaAt = n;
+        const a = k.arenaInfo()!;
+        if (a.state === 'fight' && a.boss.state === 'intro') introSaid = [...new Set([...introSaid, ...a.lineQ, ...(a.line ? [a.line] : [])])];
       }
       const a = k.arenaInfo()!;
-      return { at, line: at >= 0 ? talk[at] : null, seen: [...seen], cleared: k.levelInfo().cleared, gateL: a.gateL, cpTx: a.cp.tx };
+      return { inWalkUp, line, introSaid, voiceLog: a.voiceLog, cleared: k.levelInfo().cleared };
     });
-    expect(r.at, 'the moving-day box line is in 8-castle').toBeGreaterThanOrEqual(0);
-    expect(r.line![1]).toBe('KINAN');
-    expect(r.line![2]).toContain('Pocket Critter dino card');
-    expect(r.line![2]).toContain('Saskatoon');
-    expect(r.line![0], 'in the treasure room: past the checkpoint, before the arena gate').toBeGreaterThanOrEqual(r.cpTx);
-    expect(r.line![0]).toBeLessThan(r.gateL);
-    expect(r.seen, 'it comes up on the way through').toContain(`talk_8-castle_${r.at}`);
+    expect(r.inWalkUp, 'the moving-day box line is no longer in the walk-up').toBe(-1);
+    expect(r.line, 'the moving-day box line is a boss line').not.toBeNull();
+    expect(r.line!.id).toBe('t_w8_kinan_mem');
+    expect(r.line!.who).toBe('KINAN');
+    expect(r.line!.text).toContain('Pocket Critter dino card');
+    expect(r.line!.text).toContain('Saskatoon');
+    expect(r.introSaid, "it is in the Raccoon King's intro").toContain('t_w8_kinan_mem');
+    expect(r.voiceLog, 'and it was said').toContain('t_w8_kinan_mem');
     expect(r.cleared).toBe(true);
     expect(errors).toEqual([]);
   });
