@@ -3549,7 +3549,8 @@ const PET_JOIN_IDS = Object.keys(PET_JOIN_LINE).map((k) => PET_JOIN_LINE[k]);
 function storyPetJoin(petId) {
   const id = PET_JOIN_LINE[petId];
   if (!STORY || !id) return;
-  if (Story.cur && (Story.cur.kind === 'joke' || Story.cur.kind === 'bark')) Story.cut();   /* a joke or a bark gives way: the rescue is the moment */
+  /* 2026-11-04 audit: it used to cut a joke or bark short ("nobody talks over anyone"); now the rescue line goes first in
+     the queue and is said the moment the current line ends */
   Story.add([id], 'story', true);
 }
 function storyLevelClear() {
