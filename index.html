@@ -311,13 +311,17 @@ html.sideways .pad button.pow{font-size:12px}
    432:240 shape at full width, the top bar and the touch buttons are compact, and nothing is cut off at the
    sides. The pad's single grid row used to stretch to the leftover height (359 px on an iPhone 13) and squeeze
    the picture down to 144 px; here the rows hug their buttons and the picture gets the space instead. */
-html.uprightplay body{padding:max(6px,env(safe-area-inset-top,0px)) 8px max(6px,env(safe-area-inset-bottom,0px))}
+html.uprightplay body{padding:max(6px,env(safe-area-inset-top,0px)) 0 max(6px,env(safe-area-inset-bottom,0px))}   /* 2026-11-05: no side padding; the picture runs edge to edge (below), the bars keep their 8 px */
+html.uprightplay .hud,html.uprightplay .pad,html.uprightplay .mobilefoot,html.uprightplay .rotatehint{margin-left:8px;margin-right:8px}
 html.uprightplay .app{gap:8px}
 html.uprightplay .hud{padding:4px 8px;gap:4px 6px;font-size:13px}
 html.uprightplay .lvl{font-size:12.5px}
 html.uprightplay .hearts{font-size:14px}
 html.uprightplay .stat{font-size:12px;padding:1px 5px}
-html.uprightplay .stage{width:100%;max-width:none;flex:0 0 auto;margin:auto 0}
+/* 2026-11-05 (Shad, final QC): held upright, the picture runs EDGE TO EDGE (no side margins or side borders): on a wide
+   Android phone (a Pixel 7, 412 px across) the picture with 8 px margins was only a quarter of the screen (the devices-smoke
+   test's floor); edge to edge it is about 28%, and about 34% on an iPhone 13. Nothing is cropped; sideways layouts are untouched. */
+html.uprightplay .stage{width:100%;max-width:none;flex:0 0 auto;margin:auto 0;border-left:0;border-right:0;border-radius:0}
 /* 2026-11-03 audit: upright, the buttons sat right under the picture with ~40% of the screen empty below them. Now they sit
    at the bottom where the thumbs are, and are bigger. */
 html.uprightplay .pad{grid-auto-rows:min-content;align-content:end;gap:8px}
