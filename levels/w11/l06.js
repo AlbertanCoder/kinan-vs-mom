@@ -145,7 +145,7 @@
       [196, 'MOM', "I'm saving these up so I can groan at them later. Last street, honey. A five-tile gap ahead.", 3.8, 'walkoff'],
       [214, 'SHAD', "A 5 gap. Take a running start. The checkpoint is right behind you.", 3.8],
       [234, 'ANNIE', "That lone block over the street... it doesn't belong there. It's glowing.", 4],
-      [254, 'KINAN', "So many copies. Glitchy made them all because he was afraid to be alone. We have to find him.", 4.6]
+      [252, 'KINAN', "So many copies. Glitchy made them all because he was afraid to be alone. We have to find him.", 4.6, 'hold']   /* 2026-11-04 final QC: was c254, two columns before the goal, so the level cleared before it was said (never heard); now c252, and Kinan stands for it */
     ]
   });
 })();

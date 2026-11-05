@@ -38,7 +38,7 @@ const L = {
   title: 'THE ARENA',
   subtitle: 'game night at the big round arena',
   cardText: 'Game night! Run through the concourse, up the stands and across the arena floor!',
-  clearText: 'GAME ON, Kinan! Next stop: the Bessborough festival!',
+  clearText: 'GAME ON, Kinan! Next stop: the River Castle Hotel festival!',
   intro: 'Game night at the arena! Run RIGHT: through the concourse, up the stands, over the top and down to the floor!',
   helpAfter: 5,
   assets: { kinan: '../worlds/w12_assets/kinan.glb', glitchy: '../worlds/w12_assets/glitchy.glb', pets: '../worlds/w12_assets/pet_{id}.glb' },
@@ -198,7 +198,7 @@ const L = {
     { pos: W(UP1 + 1, TOP), r: 4, text: 'Annie: Chalo, Kinan! (Let us go!) Look, the scoreboard says KINAN! Jump up for the golden candle.' },
     { pos: W(GAP[0] - 2, TOP), r: 3, text: 'A gap in the walkway! Hop on the light rig lift when it comes down. Falling only sends you back a little way.' },
     { pos: W(WALK1 + 8, surf(WALK1 + 8)), r: 4, text: 'GRANDPA: In my day the scoreboard was a man with a chalkboard. ...Go on, kid, down you go!' },
-    { pos: W(374, T0), r: 5, text: 'Big Sis Chenoa: One more stop, little bro: the Bessborough festival! I painted the banners!' },
+    { pos: W(374, T0), r: 5, text: 'Big Sis Chenoa: One more stop, little bro: the River Castle Hotel festival! I painted the banners!' },
   ],
   goal: { pos: W(GOAL_S, T0), r: 2.6, yaw: 0, ring: 3, ringY: 3.6 },
 

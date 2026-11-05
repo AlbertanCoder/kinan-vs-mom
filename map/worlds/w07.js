@@ -114,7 +114,7 @@
     for(let yy=-R;yy<=R;yy++)for(let xx=-R;xx<=R;xx++){if(xx*xx+yy*yy>R*R)continue;
       const a=((Math.round(xx+yy*0.58)+700)%7),b=((Math.round(xx-yy*0.58)+700)%7),c=((yy+600)%6);
       let col=(xx+yy<-8)?'#f4f7fb':(xx+yy<14)?'#d6dde8':'#aeb8c8';if(a===0||b===0||c===0)col=(xx+yy<0)?'#b8c2d2':'#8a96a8';px(col,X+xx,cy+yy,1,1);}
-    px('#ffffff',X-13,cy-15,6,4);px('#ffffff',X-15,cy-10,3,3);K.P.label(X,Y-66,'SCIENCE WORLD');};
+    px('#ffffff',X-13,cy-15,6,4);px('#ffffff',X-15,cy-10,3,3);K.P.label(X,Y-66,'THE SCIENCE DOME');};
   K.P.w07_totems=function(X,Y){[[0,22],[7,28],[14,20]].forEach(([o,h])=>{const x=X+o;shadow(x+2,Y+1,4,1);px('#1b1220',x-1,Y-h-1,6,h+1);
       for(let k=0;k<h;k+=6){px(['#e8364b','#2a8a8a','#f6c445','#1b1220'][(k/6+o)%4],x,Y-h+k,4,5);px('#ffffff',x+1,Y-h+k+1,1,1);px('#ffffff',x+3,Y-h+k+1,1,1);}
       px('#1b1220',x-4,Y-h-1,12,3);px('#2a8a8a',x-3,Y-h,10,1);});K.P.label(X+9,Y+4,'TOTEM POLES');};
@@ -199,11 +199,11 @@
       {at:[205,576],name:'7-2  THE SEAWALL',st:'lock'},
       {at:[195,425],name:'7-3  STANLEY PARK FOREST',st:'lock'},
       {at:[240,334],name:'7-4  THE LIONS GATE BRIDGE',st:'lock'},
-      {at:[307,220],name:'7-5  CAPILANO SUSPENSION BRIDGE',st:'lock'},
+      {at:[307,220],name:'7-5  THE CANYON SUSPENSION BRIDGE',st:'lock'},
       {at:[450,104],name:'FORT  GROUSE MOUNTAIN TOP',st:'fort'},
       {at:[372,92],name:'SECRET  SEA-TO-SKY AND THE CHIEF',st:'secret'},
       {at:[518,626],name:'7-6  GRANVILLE ISLAND',st:'lock'},
-      {at:[890,634],name:'7-7  SCIENCE WORLD',st:'lock'},
+      {at:[890,634],name:'7-7  THE SCIENCE DOME',st:'lock'},
       {at:[780,490],name:'7-8  THE SKYTRAIN',st:'lock'},
       {at:[652,392],name:'CASTLE  THE BIG STORM AT CANADA PLACE  -  DRIZZLE',st:'boss'}],
     edges:[[0,'B',[],{road:1}],['B','BN',[[330,610]],{road:1}],['BN',1,[[300,578],[255,574]]],
@@ -224,9 +224,9 @@
       ['w07_sign',1078,758,'WELCOME TO','VANCOUVER'],['w07_sign',1078,428,'TO WORLD 8','TORONTO','#2a5bd7'],
       ...towers,
       ['w07_lbl',150,380,'STANLEY PARK'],['w07_lbl',108,470,'SEAWALL'],['w07_lbl',70,560,'ENGLISH BAY'],['w07_lbl',385,600,'FALSE CREEK'],['w07_lbl',950,296,'BURRARD INLET'],
-      ['w07_lbl',50,56,'HOWE SOUND'],['w07_lbl',256,6,'SHANNON FALLS'],['w07_lbl',388,56,'SEA TO SKY'],['w07_lbl',285,186,'CAPILANO SUSPENSION BRIDGE'],
+      ['w07_lbl',50,56,'HOWE SOUND'],['w07_lbl',256,6,'SHANNON FALLS'],['w07_lbl',388,56,'SEA TO SKY'],['w07_lbl',285,186,'CANYON SUSPENSION BRIDGE'],
       ['w07_lbl',430,240,'GROUSE MOUNTAIN'],['w07_lbl',555,300,'LONSDALE QUAY'],['w07_lbl',524,328,'SEABUS'],['w07_lbl',425,300,'SEAPLANES'],
-      ['w07_lbl',700,356,'HARBOUR CENTRE'],['w07_lbl',960,400,'PORT OF VANCOUVER'],['w07_lbl',560,564,'GRANVILLE ISLAND'],['w07_lbl',840,520,'SKYTRAIN'],['w07_lbl',1056,690,'TRANS-CANADA HWY'],
+      ['w07_lbl',700,356,'THE LOOKOUT TOWER'],['w07_lbl',960,400,'PORT OF VANCOUVER'],['w07_lbl',560,564,'GRANVILLE ISLAND'],['w07_lbl',840,520,'SKYTRAIN'],['w07_lbl',1056,690,'TRANS-CANADA HWY'],
       ...K.homes([...H([10,40,70,100,130,160,190],270,roofs),...H([600,630,660,690,720,750,780,810,840,870,900,930,960,990,1020,1050,1080,1110],270,roofs),
         ...H([340,370,400,430,500,530,560,640,670,700,730,760,790,820,850,880,910,940],704,roofs),
         ...H([170,200,230,260,290],680,roofs),...H([170,200,230,260,290],740,roofs),...H([170,200,230,260,290],800,roofs),

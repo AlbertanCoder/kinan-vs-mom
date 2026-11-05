@@ -174,7 +174,7 @@
       [172, 'MOM', "Your dad, everybody. Ahead, one switch lights three bridges. Keep going, honey.", 4, 'walkoff'],
       [226, 'ANNIE', "The glass... I can see another Kinan in it. A glitch copy. Be ready, Kinan.", 4.2],
       [229, 'KINAN', "That's... me?! A mirror copy. Glitchy's panic made it. We'll show it it's okay.", 4.4],
-      [258, 'CHENOA', "A high five with yourself. Little bro, that's the coolest thing I've ever seen.", 3.8]
+      [256, 'CHENOA', "A high five with yourself. Little bro, that's the coolest thing I've ever seen.", 3.8, 'hold']   /* 2026-11-04 final QC: was c258, the goal's own column, so the level cleared the instant it triggered (never heard); now just past the arena's right gate (c256), and Kinan stands for it */
     ]
   });
 })();

@@ -87,7 +87,7 @@
     G.fillStyle='#1b1220';G.beginPath();G.ellipse(X+40,Y-10,42,21,0,Math.PI,0);G.fill();G.fillStyle='#ececE6';G.beginPath();G.ellipse(X+40,Y-10,41,20,0,Math.PI,0);G.fill();
     for(let i=-4;i<=4;i++){const a=-Math.PI/2+i*0.33;G.strokeStyle='#1b1220';G.lineWidth=4;G.beginPath();G.moveTo(X+40,Y-11);G.lineTo(X+40+Math.cos(a)*37,Y-11+Math.sin(a)*18);G.stroke();G.strokeStyle='#7ec8ff';G.lineWidth=2;G.beginPath();G.moveTo(X+40,Y-11);G.lineTo(X+40+Math.cos(a)*37,Y-11+Math.sin(a)*18);G.stroke();}
     px('#44c55a',X+6,Y-14,8,4);px('#44c55a',X+66,Y-14,8,4);px('#1b1220',X+72,Y-6,4,6);px('#ffffff',X+73,Y-5,2,4);px('#ff8a3d',X+76,Y-4,1,1);
-    K.P.label(X+40,Y-40,'BIODOME');};
+    K.P.label(X+40,Y-40,'THE NATURE DOME');};
   K.P.w09_space=function(X,Y){const G=g();shadow(X+30,Y+2,34,4);box('#3a3f6a',X,Y-14,60,14);for(let i=0;i<6;i++)box('#7ec8ff',X+4+i*9,Y-11,5,5);
     G.fillStyle='#1b1220';G.beginPath();G.arc(X+30,Y-14,22,Math.PI,0);G.fill();G.fillStyle='#2a2f5a';G.beginPath();G.arc(X+30,Y-14,21,Math.PI,0);G.fill();
     [[18,-22],[26,-30],[38,-26],[44,-18],[32,-20],[22,-16]].forEach(([a,b])=>px('#ffffff',X+a,Y+b,1,1));
@@ -177,7 +177,7 @@
       {at:[528,590],name:'9-2  THE OLD PORT ZIP LINE',st:'lock'},
       {at:[470,500],name:'9-3  THE METRO',st:'lock'},
       {at:[360,186],name:'9-4  MOUNT ROYAL LOOKOUT',st:'lock'},
-      {at:[830,320],name:'9-5  THE BIODOME',st:'lock'},
+      {at:[830,320],name:'9-5  THE NATURE DOME',st:'lock'},
       {at:[885,262],name:'FORT  THE MONTREAL TOWER',st:'fort'},
       {at:[990,300],name:'9-6  THE SPACE CENTRE',st:'lock'},
       {at:[1062,300],name:'SECRET  THE UNDERGROUND CITY',st:'secret'},

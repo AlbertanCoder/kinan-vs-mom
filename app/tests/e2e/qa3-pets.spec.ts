@@ -285,3 +285,70 @@ test.describe('Fixes run 2: pets join the team', () => {
     expect(errors).toEqual([]);
   });
 });
+
+/* 2026-11-04 (Shad, final QC): "the cats and the dogs ... when Kinan is over a ledge they just seem to float in the air".
+   A following pet now stands on the floor under its OWN feet (index.html petFloorY), not at Kinan's height. */
+type PetXY = { id: string; x: number; y: number };
+type Win3 = Window & { __k11: Dev & { grantPets: () => string[]; petEquip: (c: string | null, d: string | null) => unknown; petInfo: () => { cats: PetXY[]; dogs: PetXY[] }; petFloor: (x: number, footY: number) => number; state: () => { px: number; py: number; onGround: boolean }; tile: (tx: number, ty: number) => number } };
+test.describe('pets stand on the floor (2026-11-04)', () => {
+  test("1-7 (Chenoa's art room): a cat and a dog following Kinan over the ledges stand on the floor under them, never in the air", async ({ page }) => {
+    test.setTimeout(120_000);
+    const errors = watchErrors(page);
+    await boot(page);
+    const r = await page.evaluate(() => {
+      const k = (window as unknown as Win3).__k11;
+      k.playLevel('1-7'); k.godMode(); k.clearFoes(); k.storyStop(); k.freeze(false);
+      k.grantPets(); k.petEquip('cat1', 'dog1');
+      k.playLevel('1-7'); k.godMode(); k.clearFoes(); k.storyStop(); k.freeze(false);
+      let samples = 0, floating = 0, worst = 0, ledgeShot: { px: number; py: number; cat: PetXY; dog: PetXY } | null = null;
+      const bad: string[] = [];   /* the first floating samples, for the error message */
+      const streak: Record<string, number> = {};   /* a pet hops DOWN to its floor over about 8 frames (0.35 a frame): only a pet that STAYS in the air (4 samples = 12 frames) is floating */
+      const H = { cat: 10, dog: 11 };
+      for (let f = 0; f < 6000 && !k.levelInfo().cleared; f += 3) {
+        k.auto(3, { run: true });
+        const info = k.petInfo();
+        for (const [kind, list] of [['cat', info.cats], ['dog', info.dogs]] as const) {
+          for (const p of list) {
+            const foot = p.y + H[kind];
+            const floor = k.petFloor(p.x, foot);   /* the surface under the pet's own column (its own foot height as the start) */
+            if (floor === foot) continue;            /* nothing to stand on within reach (a pit): it keeps the trail height, by design */
+            samples++;
+            const gap = floor - foot;                /* how far above the floor its feet are */
+            const sk = kind + p.id; streak[sk] = gap > 3 ? (streak[sk] || 0) + 1 : 0;
+            if (streak[sk] >= 4) { floating++; if (gap > worst) worst = gap; if (bad.length < 10) { const st2 = k.state(); bad.push(`f${f} ${kind} x${Math.round(p.x)} foot${Math.round(foot)} floor${floor} kinan x${st2.px} y${st2.py} ${st2.onGround ? 'ground' : 'air'}`); } }
+          }
+        }
+        /* a picture for Shad: Kinan standing on a raised ledge with the pets on the floor behind him */
+        const st = k.state();
+        if (!ledgeShot && st.onGround && info.cats[0] && Math.abs(info.cats[0].y - st.py) > 24) ledgeShot = { px: st.px, py: st.py, cat: info.cats[0], dog: info.dogs[0] };
+      }
+      return { samples, floating, worst, ledgeShot, bad, cleared: k.levelInfo().cleared };
+    });
+    expect(r.samples, 'pets were sampled over the level').toBeGreaterThan(100);   /* the dev bot crosses 1-7 in about 33 x 30 frames */
+    expect(r.floating / r.samples, `pets in the air over a floor: ${r.floating} of ${r.samples} samples (worst ${r.worst} px): ${r.bad.join(' | ')}`).toBeLessThan(0.02);
+    expect(errors).toEqual([]);
+  });
+  test('1-7 picture: Kinan on a ledge, the pets on the floor under them (audit/out/pets-ledge.png)', async ({ page }) => {
+    const errors = watchErrors(page);
+    await boot(page);
+    const r = await page.evaluate(() => {
+      const k = (window as unknown as Win3).__k11;
+      k.playLevel('1-7'); k.godMode(); k.clearFoes(); k.storyStop(); k.freeze(false);
+      k.grantPets(); k.petEquip('cat1', 'dog1');
+      k.playLevel('1-7'); k.godMode(); k.clearFoes(); k.storyStop(); k.freeze(false);
+      /* walk to the first raised ledge (a surface with floor at least 2 tiles lower just behind it) */
+      let shot = null as null | { px: number; py: number; cat: { x: number; y: number }; dog: { x: number; y: number } };
+      for (let f = 0; f < 4000 && !shot && !k.levelInfo().cleared; f += 2) {
+        k.auto(2, { run: true });
+        const st = k.state(), info = k.petInfo();
+        if (st.onGround && info.cats[0] && info.cats[0].y - st.py > 20) { k.step(20, { left: false, right: false }); const i2 = k.petInfo(); shot = { px: st.px, py: st.py, cat: i2.cats[0], dog: i2.dogs[0] }; }
+      }
+      k.freeze(true);
+      return shot;
+    });
+    await page.screenshot({ path: 'audit/out/pets-ledge.png' });
+    expect(r, 'Kinan reached a ledge with the pets lower than him').not.toBeNull();
+    expect(r!.cat.y, 'the cat is below Kinan (on the lower floor), not beside him in the air').toBeGreaterThan(r!.py + 16);
+    expect(errors).toEqual([]);
+  });
+});

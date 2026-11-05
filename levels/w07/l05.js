@@ -49,7 +49,7 @@
    ============================================================ */
 KinanLevels.register({
   id: '7-5', world: 7, slot: 5, kind: 'level',
-  name: 'CAPILANO SUSPENSION BRIDGE',
+  name: 'THE CANYON SUSPENSION BRIDGE',
   theme: 44,   /* the Suspension Bridge: the canyon, the river far below, the bridge cables, rain */
   cols: 297,
   /* THE SWAY (wired 2026-10-28): on the rope bridges the deck swings, nudging Kinan gently one way and then the
@@ -162,7 +162,7 @@ KinanLevels.register({
   goal: { col: 293, row: 7 },   /* the road to the gondola */
   /* story bubbles as Kinan passes a column: [col, who, what they say, seconds] (subtitles only) */
   talk: [
-    [2, 'MOM', 'The Capilano Suspension Bridge. Seventy metres up! I am holding the railing the WHOLE way.', 4.4],
+    [2, 'MOM', 'This suspension bridge is seventy metres up! I am holding the railing the WHOLE way.', 4.4],
     [27, 'DAD', 'It sags in the middle, bud. Run down, jump the hole, climb up the other side. The suspense is killing me!', 3.8],
     [54, 'CHENOA', 'Little bridges from tree to tree, way up high in the cedars!', 3.2],
     [102, 'KINAN', 'Some of the planks are missing. Wait... is that a rock ledge way down there?', 3.8],

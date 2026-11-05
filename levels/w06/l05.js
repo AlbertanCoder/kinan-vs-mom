@@ -130,9 +130,14 @@ KinanLevels.register({
   },
   /* animatronic baby dinos hop, robot carts roll, security cameras fly, a raccoon sneaked in; nothing waits at a lip */
   talk: [   /* Dad's jokes, the wheeze-laugh, Mom's reactions (tools/dad-lines.mjs) */
+    [2, 'CHENOA', "Shh, it's a museum. ...Why is that baby dinosaur HOPPING?", 3.8],
     [30, "DAD", "What do you call a fossil that won't clean its room? Lazy bones! Not saying it's you, bud. It's a little you.", 4.6],
     [30, "MOM", "Ha! Oh no, I laughed. Don't tell him I laughed.", 3, "laugh"],
-    [30, "DAD", "Too late, hon, I heard! That's going in the notebook. Under 'Rare Events.'", 3.4]
+    [30, "DAD", "Too late, hon, I heard! That's going in the notebook. Under 'Rare Events.'", 3.4],
+    [40, 'KINAN', "I can walk right under its ribs!", 2.4],
+    [104, 'PASSER-BY', "Why didn't the skeleton go to the party? It had no BODY to go with!", 4.5],
+    [145, 'SHAD', "That sea reptile's spine makes a pretty good bridge.", 3.5],
+    [228, 'KINAN', "I'm standing on a T-REX's HEAD.", 2.4]
   ],
   foes: [
     [14, 11, 'robot'],   /* S1 */

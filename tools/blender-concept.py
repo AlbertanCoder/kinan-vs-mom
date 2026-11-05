@@ -4,7 +4,7 @@
 import bpy, bmesh, math, random, os
 from mathutils import Vector
 
-OUTDIR = r"C:\Users\SHADHUNTER\Desktop\Kinan vs Mom backups\renders"
+OUTDIR = os.path.join(os.path.expanduser("~"), r"Desktop\Kinan vs Mom backups\renders")
 os.makedirs(OUTDIR, exist_ok=True)
 
 def clean():

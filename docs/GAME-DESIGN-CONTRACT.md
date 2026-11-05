@@ -1,7 +1,7 @@
 # GAME DESIGN CONTRACT — KINAN VS. WORLDS
 ### The single source of truth. Owner: Architect / Creative Director. Every role reads this before touching anything.
 **Status: ✅ APPROVED v1 by the Executive Producer — 2026-10-26. Sprint 0 DONE. Builder released to M1 (Feel core).**
-**Repo:** `C:\Users\SHADHUNTER\Desktop\Kinan vs. Mom` · branch `feature/worlds-6-10` · Live: https://albertancoder.github.io/kinan-vs-mom/ (NEVER deploy without the Producer's explicit OK)
+**Repo:** `%USERPROFILE%\Desktop\Kinan vs. Mom` · branch `feature/worlds-6-10` · Live: https://albertancoder.github.io/kinan-vs-mom/ (NEVER deploy without the Producer's explicit OK)
 
 ---
 

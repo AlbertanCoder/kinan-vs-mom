@@ -86,7 +86,7 @@ test.describe('World 12 sneak peek · the live 3D page', () => {
 
   test('developer mode (?devtools=1, localhost) still opens every World 12 level, the Bessborough festival included', async ({ page }) => {
     test.setTimeout(90_000);
-    for (const [id, title] of [['12-castle', 'THE BESSBOROUGH BIRTHDAY FESTIVAL'], ['12-1', "KINAN'S 3D HOUSE"], ['12-7', 'THE ART GALLERY']] as const) {
+    for (const [id, title] of [['12-castle', 'THE RIVER CASTLE HOTEL BIRTHDAY FESTIVAL'], ['12-1', "KINAN'S 3D HOUSE"], ['12-7', 'THE ART GALLERY']] as const) {
       await page.goto(level3d(`level=${id}&id=${id}&devtools=1`));
       await expect(page.locator('#titlecard h1'), `${id} opens in developer mode`).toHaveText(title, { timeout: 60_000 });
     }

@@ -191,7 +191,7 @@ KinanLevels.register({
       goal: { col: 77, row: 9 },   /* past the boss door: down the mountain to Granville Island */
       talk: [
         [2, 'DAD', 'The top of Grouse Mountain! The whole city down there. Look at me, bud. Peak Dad.', 3.6],
-        [41, 'KINAN', 'The snow up ahead is all shiny and slimy. Something BIG went this way...', 4]
+        [5, 'KINAN', 'The snow up ahead is all shiny and slimy. Something BIG went this way...', 4]   /* 2026-11-04 final QC: was c41, seven columns before the slug's gate, where the fight's start dropped it (never heard in the kid-paced run); now one conversation with Dad's line at c2 */
       ]
     }
   ]

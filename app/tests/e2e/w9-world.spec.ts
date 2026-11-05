@@ -204,8 +204,9 @@ test.describe('World 9 · the hunter drone and Annie\'s Firewall', () => {
     await boot(page);
     const talk = await page.evaluate(() => (window as unknown as { KinanLevels: { get: (id: string) => { talk: [number, string, string][]; theme: number } } }).KinanLevels.get('9-castle'));
     const who = new Set(talk.talk.map((t) => t[1]));
-    for (const w of ['KINAN', 'SHAD', 'ANNIE', 'MOM', 'DAD', 'CHENOA']) expect(who.has(w), w).toBe(true);
-    expect(talk.talk.some((t) => t[1] === 'SHAD' && t[2].includes("That's Annie! She thinks he's a virus..."))).toBe(true);
+    /* 2026-11-04 (Shad's answer 30): the walk-up keeps Kinan's opener and Dad's joke; Shad's "Annie's not mean" is in the boss intro */
+    for (const w of ['KINAN', 'DAD']) expect(who.has(w), w).toBe(true);
+    expect(talk.talk.length).toBe(2);
     expect(talk.theme).toBe(120);   /* its own conference-stage backdrop */
     expect(errors).toEqual([]);
   });

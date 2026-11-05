@@ -550,7 +550,7 @@ test.describe('World 7 · on the map', () => {
     expect(errors).toEqual([]);
   });
 
-  test('World 7 story bubbles: the castle approach says its lines (Shad on the radio, Kinan, Drizzle) as subtitles, without recordings', async ({ page }) => {
+  test('World 7 story bubbles: the castle approach says its lines (Shad on the radio, Kinan, Drizzle) with their recordings', async ({ page }) => {
     const errors = watchErrors(page);
     await boot(page);
     const r = await page.evaluate(() => {
@@ -565,12 +565,12 @@ test.describe('World 7 · on the map', () => {
       }
       return { seen: [...seen], log: k.storyInfo().log.filter((x) => /^talk_/.test(x.id)) };
     });
-    /* every one of the castle's nine bubbles comes up as Kinan passes its column (the bot runs faster than they can
-       all be said: the ones still waiting are dropped when the fight starts, as in every arena level) */
-    expect(r.seen.length).toBe(9);
+    /* the walk-up keeps the two lines a running kid hears (2026-11-04, Shad's answer 30): both come up as Kinan passes
+       their columns; Kinan's "Drizzle is SAD" is in the boss intro */
+    expect(r.seen.length).toBe(2);
     expect(r.log.length).toBeGreaterThan(0);
     expect(r.log[0].id).toBe('talk_7-castle_0');
-    for (const x of r.log) expect(x.src, 'subtitle only').toBeNull();
+    for (const x of r.log) expect(x.src, 'its cast-voice recording (2026-11-03: every line recorded)').toMatch(/^audio\/talk\/[0-9a-f]{8}\.mp3$/);
     expect(errors).toEqual([]);
   });
 });
@@ -587,7 +587,8 @@ test.describe('World 7 · the memory gift', () => {
       const at = talk.findIndex((t) => /foam block pickaxe/.test(t[2]));
       k.playLevel('7-6'); k.godMode(); k.clearFoes();
       const seen = new Set<string>();
-      for (let n = 0; n < 200 && !k.levelInfo().cleared; n++) {
+      /* 2026-11-04 final QC: the memory line is a 'hold' (Kinan stands still for it, about 7 s of frames), so the run needs more frames */
+      for (let n = 0; n < 320 && !k.levelInfo().cleared; n++) {
         k.auto(10, { run: true });
         const s = k.storyInfo();
         for (const id of [s.cur, ...s.queue]) if (id) seen.add(id);

@@ -54,7 +54,7 @@
    ============================================================ */
 KinanLevels.register({
   id: '5-7', world: 5, slot: 9, kind: 'level',
-  name: 'THE CALGARY TOWER',
+  name: 'THE CITY TOWER',
   theme: 38,              /* the Calgary Tower: a sunset sky, the tower and the downtown skyline, grey concrete */
   cols: 297,
   heights: [

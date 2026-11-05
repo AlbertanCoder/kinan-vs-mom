@@ -135,9 +135,9 @@ self.KINAN_STORY = {
   "w04_annie_pa01": ["ANNIE", "Wait, Shad, your console did all this? Oh, my goodness.", 5.83, "audio/lines/w04/w04_annie_pa01.mp3"],
   "w04_chenoa_09": ["CHENOA", "Did that glitch just say yee-haw? Everybody in the van!", 4.68, "audio/lines/w04/w04_chenoa_09.mp3"],
   "w04_glitchy_01": ["GLITCHY", "Yee... haw! Beep!", 2.88, "audio/lines/w04/w04_glitchy_01.mp3"],
-  "w04_grandmahunter_01": ["GRANDMA HUNTER", "Come here, my boy. Sit down and eat. You can chase that little thing after supper.", 6.1, "audio/lines/w04/w04_grandmahunter_01.mp3"],
-  "w04_grandmahunter_02": ["GRANDMA HUNTER", "Look at you, eleven already! Where did the time go?", 3.86, "audio/lines/w04/w04_grandmahunter_02.mp3"],
-  "w04_grandmahunter_03": ["GRANDMA HUNTER", "Take some for the road. And some for your brother. He forgets to eat.", 5.26, "audio/lines/w04/w04_grandmahunter_03.mp3"],
+  "w04_grandmaedm_01": ["GRANDMA (EDMONTON)", "Come here, my boy. Sit down and eat. You can chase that little thing after supper.", 6.1, "audio/lines/w04/w04_grandmaedm_01.mp3"],
+  "w04_grandmaedm_02": ["GRANDMA (EDMONTON)", "Look at you, eleven already! Where did the time go?", 3.86, "audio/lines/w04/w04_grandmaedm_02.mp3"],
+  "w04_grandmaedm_03": ["GRANDMA (EDMONTON)", "Take some for the road. And some for your brother. He forgets to eat.", 5.26, "audio/lines/w04/w04_grandmaedm_03.mp3"],
   "w04_kinan_01": ["KINAN", "Edmonton! I used to live here!", 3.79, "audio/lines/w04/w04_kinan_01.mp3"],
   "w04_kinan_02": ["KINAN", "Broken? Shad, it's the best present ever.", 4.61, "audio/lines/w04/w04_kinan_02.mp3"],
   "w04_kinan_03": ["KINAN", "There's the skyline! Hi, Edmonton!", 4.3, "audio/lines/w04/w04_kinan_03.mp3"],
@@ -456,9 +456,9 @@ self.KINAN_STORY = {
   "4-2": [
    "w04_kinan_13",
    "w04_shad_08",
-   "w04_grandmahunter_01",
-   "w04_grandmahunter_02",
-   "w04_grandmahunter_03"
+   "w04_grandmaedm_01",
+   "w04_grandmaedm_02",
+   "w04_grandmaedm_03"
   ],
   "5-7": [
    "w05_kinan_13",
@@ -681,9 +681,9 @@ self.KINAN_STORY_FILES = [
  "audio/lines/w04/w04_annie_pa01.mp3",
  "audio/lines/w04/w04_chenoa_09.mp3",
  "audio/lines/w04/w04_glitchy_01.mp3",
- "audio/lines/w04/w04_grandmahunter_01.mp3",
- "audio/lines/w04/w04_grandmahunter_02.mp3",
- "audio/lines/w04/w04_grandmahunter_03.mp3",
+ "audio/lines/w04/w04_grandmaedm_01.mp3",
+ "audio/lines/w04/w04_grandmaedm_02.mp3",
+ "audio/lines/w04/w04_grandmaedm_03.mp3",
  "audio/lines/w04/w04_kinan_01.mp3",
  "audio/lines/w04/w04_kinan_02.mp3",
  "audio/lines/w04/w04_kinan_03.mp3",

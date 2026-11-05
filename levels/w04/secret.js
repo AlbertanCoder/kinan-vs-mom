@@ -36,7 +36,7 @@
    ============================================================ */
 KinanLevels.register({
   id: '4-secret', world: 4, slot: 9, kind: 'secret',
-  name: 'THE MUTTART PYRAMIDS',
+  name: 'THE GLASS PYRAMIDS',
   theme: 63,                /* borrows the Fern Jungle: giant ferns, jungle green */
   cols: 162,
   heights: [

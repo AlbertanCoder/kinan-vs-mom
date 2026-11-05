@@ -59,7 +59,7 @@
     px(O,X-8,Y-363,17,14);px(C,X-7,Y-362,15,12);px('#2b2f45',X-7,Y-358,15,4);for(let i=-6;i<8;i+=3)px('#f6e7a6',X+i,Y-357,1,2);px(S,X+4,Y-362,4,12);
     px(O,X-4,Y-374,9,12);px('#9aa3b2',X-3,Y-373,7,11);
     px(O,X-2,Y-430,5,57);px('#cfd6e2',X-1,Y-430,3,57);for(let i=0;i<24;i++)px(i%8<4?'#e8364b':'#ffffff',X-1,Y-430+i,3,1);px(O,X,Y-440,1,10);px('#e8364b',X,Y-441,1,2);
-    K.P.label(X-52,Y-290,'CN TOWER');};
+    K.P.label(X-52,Y-290,'THE GIANT TOWER');};
   K.P.w08_dome=function(X,Y){const G=g();shadow(X,Y+2,40,6);
     box('#c9c4b8',X-36,Y-12,72,12);for(let i=-32;i<32;i+=6)px('#9a968c',X+i,Y-10,3,8);
     G.fillStyle='#1b1220';G.beginPath();G.ellipse(X,Y-12,37,23,0,Math.PI,0);G.fill();
@@ -111,7 +111,7 @@
     /* square tower with battlements */
     box(S,X+38,Y-50,20,50);px(D,X+54,Y-50,4,50);for(let i=0;i<4;i++)box(S,X+38+i*6,Y-55,4,5);for(let k=0;k<3;k++)box('#5a6fa0',X+44,Y-44+k*12,6,6);
     px('#1b1220',X+48,Y-70,1,15);px('#2a5bd7',X+49,Y-70,8,5);
-    K.P.w08_raccoon(X-4,Y-76,true);K.P.label(X-98,Y-10,'CASA LOMA');};
+    K.P.w08_raccoon(X-4,Y-76,true);K.P.label(X-98,Y-10,'THE HILLTOP CASTLE');};
   K.P.w08_kensington=function(X,Y){[['#ff6fae','#44c55a'],['#f6c445','#e8364b'],['#44c5b8','#7a2fd0'],['#b06cff','#f6c445']].forEach(([w,a],i)=>{const sx=X+i*24;shadow(sx+11,Y+1,12,2);box(w,sx,Y-22,22,22);px('#1b1220',sx-1,Y-26,24,5);px(a,sx,Y-25,22,3);
       for(let k=0;k<5;k++)px(k%2?a:'#ffffff',sx+k*4+1,Y-14,4,3);box('#cfeeff',sx+3,Y-21,6,5);box('#cfeeff',sx+13,Y-21,6,5);box('#8a5426',sx+8,Y-8,6,8);});
     [[4,'#e8364b'],[28,'#ff8a3d'],[52,'#44c55a'],[76,'#f6c445']].forEach(([o,c])=>{box('#a8692e',X+o,Y+2,14,5);for(let k=0;k<4;k++)px(c,X+o+1+k*3,Y+1,2,2);});
@@ -172,14 +172,14 @@
       {at:[172,134],name:'8-1  AIRPORT ARRIVALS',st:'open'},
       {at:[330,50],name:'8-2  THE SUBWAY RUSH',st:'lock'},
       {at:[705,330],name:'8-3  NATHAN PHILLIPS SQUARE',st:'lock'},
-      {at:[545,515],name:'8-4  THE CN TOWER GLASS FLOOR',st:'lock'},
+      {at:[545,515],name:'8-4  THE GIANT TOWER GLASS FLOOR',st:'lock'},
       {at:[618,515],name:'8-5  THE BRICK TOY STORE',st:'lock'},
       {at:[700,515],name:'FORT  THE AQUARIUM TUNNEL',st:'fort'},
       {at:[440,614],name:'8-6  FERRY TO THE ISLANDS',st:'lock'},
       {at:[374,642],name:'SECRET  THE ISLAND LIGHTHOUSE',st:'secret'},
       {at:[332,302],name:'8-7  KENSINGTON MARKET',st:'lock'},
       {at:[360,250],name:'8-8  RACCOON ROOFTOPS',st:'lock'},
-      {at:[450,152],name:'CASTLE  CASA LOMA  -  THE RACCOON KING',st:'boss'}],
+      {at:[450,152],name:'CASTLE  THE HILLTOP CASTLE  -  THE RACCOON KING',st:'boss'}],
     edges:[[0,1,[[230,110],[280,66]]],[1,'SP',[[826,50],[852,76]],{road:1}],['SP',2,[[826,316],[760,330]]],[2,'QS',[],{road:1}],['QS','SQ',[],{road:1}],['SQ','SB',[],{road:1}],
       ['SB',3,[],{road:1}],[3,4,[],{road:1}],[4,5,[],{road:1}],[5,'BY',[],{road:1}],['BY','FT',[],{road:1}],['FT','HD',[],{style:'glass'}],['HD',6,[]],
       [6,7,[[404,632]]],[6,'BRS',[[384,602],[310,600]]],['BRS','BD',[[290,560],[290,515],[290,360]],{road:1}],['BD',8,[]],

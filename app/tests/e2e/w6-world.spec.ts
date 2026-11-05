@@ -662,7 +662,7 @@ test.describe('World 6 · on the map', () => {
     expect(errors).toEqual([]);
   });
 
-  test('World 6 story bubbles: the castle approach says its lines (Shad on the radio, Kinan, Robo-Rex) as subtitles, without recordings', async ({ page }) => {
+  test('World 6 story bubbles: the castle approach says its lines (Shad on the radio, Kinan, Robo-Rex) with their recordings', async ({ page }) => {
     const errors = watchErrors(page);
     await boot(page);
     const r = await page.evaluate(() => {
@@ -680,7 +680,7 @@ test.describe('World 6 · on the map', () => {
     });
     expect(r.log.length).toBeGreaterThan(0);
     expect(r.log[0].id).toBe('talk_6-castle_0');
-    for (const x of r.log) expect(x.src, 'subtitle only').toBeNull();
+    for (const x of r.log) expect(x.src, 'its cast-voice recording (2026-11-03: every line recorded)').toMatch(/^audio\/talk\/[0-9a-f]{8}\.mp3$/);
     expect(errors).toEqual([]);
   });
 });

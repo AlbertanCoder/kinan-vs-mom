@@ -112,7 +112,7 @@ const SEEK = `(id, k, from, pre) => {
   fresh();
   const tx = sec.col * 16 + 8, ty = sec.row * 16 + 8;
   const still = { left: false, right: false, jump: false, fire: false };
-  K.place(from * 16 + 3, H[from] - 16); K.step(12, still);
+  K.place(from * 16 + 3, H[from] - 16); K.step(12, still); K.storyStop();   /* 2026-11-04: a 'hold' talk line near the start would keep Kinan standing; the route search is not about talk */
   const found = () => !!K.levelInfo().secretsFound[k];
   if (found()) return { found: true, tries: 0, from };
   const MOVES = [];
@@ -850,12 +850,12 @@ test.describe('World 11 · the twists', () => {
     const r = await page.evaluate(`(() => {
       const k = window.__k11, def = window.KinanLevels.get('11-secret');
       const draws = []; k.playLevel('11-secret'); const info = k.twistInfo();
-      const note = def.talk.filter((t) => t[0] === 118);
+      const note = def.talk.filter((t) => t[0] === 122);   /* 2026-11-04 final QC: beside the desk (c124-127), marked 'hold' so Kinan stands for it */
       return { kind: def.kind, foes: (def.foes || []).length, gaps: def.heights.filter((h) => h === null).length, flat: def.heights.every((h) => h === 192),
         twists: ['lasers', 'vents', 'firewalls', 'glass', 'portals', 'flip', 'studs', 'belts', 'wind', 'ice', 'slime', 'lowGrav'].filter((key) => key in def),
-        candles: def.candles.length, noteTexts: note.map((t) => t[2]), noteWho: note.map((t) => t[1]), noteMax: Math.max(...note.map((t) => t[2].length)),
+        candles: def.candles.length, noteTexts: note.map((t) => t[2]), noteWho: note.map((t) => t[1]), noteMax: Math.max(...note.map((t) => t[2].length)), noteHold: note.length > 0 && note.every((t) => t[4] === 'hold'),
         desk: def.skins.filter((s) => s[0] === 'desk').map((s) => s.slice(1)), look: k.levelInfo().look, secrets: (def.secrets || []).length, hasTwist: !!info };
-    })()`) as { kind: string; foes: number; gaps: number; flat: boolean; twists: string[]; candles: number; noteTexts: string[]; noteWho: string[]; noteMax: number; desk: number[][]; look: { theme: number; bg: string; place: string }; secrets: number; hasTwist: boolean };
+    })()`) as { kind: string; foes: number; gaps: number; flat: boolean; twists: string[]; candles: number; noteTexts: string[]; noteWho: string[]; noteMax: number; noteHold: boolean; desk: number[][]; look: { theme: number; bg: string; place: string }; secrets: number; hasTwist: boolean };
     console.log("11-secret Shad's Dev Room: " + JSON.stringify(r));
     const NOTE = "Hey bud, you found my secret room! This is where I built your game: every world, every boss, and every one of Dad's jokes (sorry). I made it for your 11th birthday because you're the best little brother there is. Thanks for playing, for laughing, and for never giving up, even on the hard levels. Keep kicking, keep building, keep being you. Happy birthday, Kinan. Love, Big Bro Shad.";
     expect(r.kind).toBe('secret');
@@ -868,6 +868,7 @@ test.describe('World 11 · the twists', () => {
     expect(r.noteTexts.length, 'a conversation of four (the rule is five at most)').toBe(4);
     expect(r.noteMax, 'each bubble fits the 140 letters').toBeLessThanOrEqual(140);
     expect(r.noteWho.every((w) => w === 'SHAD'), "in Shad's own name").toBe(true);
+    expect(r.noteHold, "every note bubble is a 'hold': Kinan stands at the desk until it is read (a tap skips it)").toBe(true);
     expect(r.desk, 'the desk the note lies on, with the note drawn on it').toEqual([[124, 10, 127, 11]]);
     expect(r.look.bg, "the dev room's look").toBe('devroom');
     expect(errors).toEqual([]);

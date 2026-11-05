@@ -311,13 +311,17 @@ html.sideways .pad button.pow{font-size:12px}
    432:240 shape at full width, the top bar and the touch buttons are compact, and nothing is cut off at the
    sides. The pad's single grid row used to stretch to the leftover height (359 px on an iPhone 13) and squeeze
    the picture down to 144 px; here the rows hug their buttons and the picture gets the space instead. */
-html.uprightplay body{padding:max(6px,env(safe-area-inset-top,0px)) 8px max(6px,env(safe-area-inset-bottom,0px))}
+html.uprightplay body{padding:max(6px,env(safe-area-inset-top,0px)) 0 max(6px,env(safe-area-inset-bottom,0px))}   /* 2026-11-05: no side padding; the picture runs edge to edge (below), the bars keep their 8 px */
+html.uprightplay .hud,html.uprightplay .pad,html.uprightplay .mobilefoot,html.uprightplay .rotatehint{margin-left:8px;margin-right:8px}
 html.uprightplay .app{gap:8px}
 html.uprightplay .hud{padding:4px 8px;gap:4px 6px;font-size:13px}
 html.uprightplay .lvl{font-size:12.5px}
 html.uprightplay .hearts{font-size:14px}
 html.uprightplay .stat{font-size:12px;padding:1px 5px}
-html.uprightplay .stage{width:100%;max-width:none;flex:0 0 auto;margin:auto 0}
+/* 2026-11-05 (Shad, final QC): held upright, the picture runs EDGE TO EDGE (no side margins or side borders): on a wide
+   Android phone (a Pixel 7, 412 px across) the picture with 8 px margins was only a quarter of the screen (the devices-smoke
+   test's floor); edge to edge it is about 28%, and about 34% on an iPhone 13. Nothing is cropped; sideways layouts are untouched. */
+html.uprightplay .stage{width:100%;max-width:none;flex:0 0 auto;margin:auto 0;border-left:0;border-right:0;border-radius:0}
 /* 2026-11-03 audit: upright, the buttons sat right under the picture with ~40% of the screen empty below them. Now they sit
    at the bottom where the thumbs are, and are bigger. */
 html.uprightplay .pad{grid-auto-rows:min-content;align-content:end;gap:8px}
@@ -1297,7 +1301,7 @@ const VO_DIR = 'audio/vo2/';
    an entry here (Grandpa, Grandma, Aiden and Milo were missing: his 5 story lines had no voice at all). */
 const VO_WHO = {
   KINAN: 'k', MOM: 'm', CHENOA: 'c', DAD: 'd', ROBIN: 'd', SHAD: 's', GLITCHY: 'mech', ANNIE: 'a', AMANDEEP: 'a',
-  GRANDPA: 'd', GRANDMA: 'm', 'GRANDMA HUNTER': 'm', AIDEN: 'k', MILO: 'b', REX: 'mech', FOREMAN: 'f',
+  GRANDPA: 'd', GRANDMA: 'm', AIDEN: 'k', MILO: 'b', REX: 'mech', FOREMAN: 'f',
   'SAFETY FOREMAN': 'f', LIFEGUARD: 'lg', CONDUCTOR: 'cd', BARKER: 'br', LUMBERJACK: 'lj', 'PROFESSOR STATIC': 'ps',
   DRIZZLE: 'dz', 'BIG KID': 'b', 'NOSY NEIGHBOUR': 'n', NEIGHBOUR: 'n', 'MEGA-MECH': 'mech',
   /* 2026-11-03 audit: speakers that had no entry (they fell back to "any English voice", often the wrong sex) */
@@ -1540,7 +1544,7 @@ const PAL = {
   q: '#6b6f7a', Q: '#c9c9cf', F: '#4f7a5a', a: '#9a9aa6', A: '#5e5e6a', n: '#a8692e', L: '#6b3f18', W: '#f0e2c8', Y: '#f3e6a6',
   S: '#c98d63', l: '#c6f03a',
   /* five colours the approved family designs (27 Oct) add: Mom's purple, Annie's skin, Robin's and Grandma Ol's
-     skin, Grandma Hunter's teal sweater, Grandma Ol's lilac */
+     skin, Grandma (Edmonton)'s teal sweater, Grandma Ol's lilac */
   v: '#5b46a8', K: '#b97f57', f: '#ecbd98', e: '#2f9a95', i: '#b49ad8'
 };
 /* Kinan, the approved "braid1" look (Shad, 27 Oct): long dark hair pulled back into ONE braid down his
@@ -1591,12 +1595,12 @@ const CHENOA_V1 = ['.....uuuuuu.....', '....uuuuuuuu....', '...uuuuuuuuuu...', '
 const ANNIE = ['...kkkkkkkkk....', '..kHHHHHHHHHHk..', '.kHHHHHHHHHHHHk.', '.kHHKKKKKKKHHHk.', 'kHHKkKKKkKKHHHk.', 'kHHKKKKKKKKHHHHk',
   'kHHKKmwwmKKHHHHk', 'kHHHKKKKKKHHHHk.', 'kHHknnHHnnkHHHk.', '.kHknnnHnnnkHk..', '.kKnnnnLnnnnKk..', '..knLLLLLLLnk...',
   '..knnnnLnnnnk...', '..knnnnLnnnnk...', '..kHHHH..HHHHk..'];
-/* Grandma Hunter (Mom's mom): grey hair, glasses, a teal cardigan, a plum skirt, and her walker with tennis balls */
-const GRANDMA_HUNTER = ['....kkkkkkkk....', '...kaaaaaaaak...', '..kaaaaaaaaaak..', '..kaSSSSSSSSak..', '..kpkpSSpkpSak..', '..kaSSSSSSSSak..',
+/* Grandma (Edmonton) (Mom's mom): grey hair, glasses, a teal cardigan, a plum skirt, and her walker with tennis balls */
+const GRANDMA_EDM = ['....kkkkkkkk....', '...kaaaaaaaak...', '..kaaaaaaaaaak..', '..kaSSSSSSSSak..', '..kpkpSSpkpSak..', '..kaSSSSSSSSak..',
   '..kaSSmwwmSSak..', '...kaSSSSSSaQk..', '..keeyRbyRbyeQk.', '.keeeewwwweeeQk.', '.keeeewwwweeeek.', 'kSeeeewwwweeeeSk',
   'QkppppppppppppkQ', 'Q.kpppppppppppkQ', 'Q.kpppp..ppppk.Q'];
 /* her walker continues below her: use these instead of LEGS */
-const GRANDMA_HUNTER_LEGS = { stand: ['Q...SSS..SSS...Q', 'Q...SSS..SSS...Q', 'l..kkkk..kkkk..l'], walk: ['Q..SSS....SSS..Q', 'Q.SSS......SSS.Q', 'lkkkk......kkkkl'] };
+const GRANDMA_EDM_LEGS = { stand: ['Q...SSS..SSS...Q', 'Q...SSS..SSS...Q', 'l..kkkk..kkkk..l'], walk: ['Q..SSS....SSS..Q', 'Q.SSS......SSS.Q', 'lkkkk......kkkkl'] };
 /* Robin's mom (Onion Lake): curly white hair, a lilac sweater, grey trousers */
 const GRANDMA_OL = ['...kwkwkwkwk....', '..kwwwwwwwwwwk..', '.kwwwwwwwwwwwwk.', '.kwwffffffffwwk.', '.kwykyffykyfwwk.', '..kwffffffffwk..',
   '..kwffPmmPffwk..', '...kwffffffwk...', '..kiiiiLLiiiik..', '.kiiiiLiiLiiiik.', '.kiiikAAkAAkiiik', 'kfiiikAAkAAkiifk',
@@ -1762,8 +1766,8 @@ SP.annieJump = bake(legs(ANNIE, LEGS.jump, 'k'));
 SP.glitchyStand = bake(legs(GLITCHY, LEGS.stand, 'j'));
 SP.glitchyWalk = bake(legs(GLITCHY, LEGS.walk, 'j'));
 /* the two grandmothers (World 10's Kitchen Legends) */
-SP.ghStand = bake(legs(GRANDMA_HUNTER, GRANDMA_HUNTER_LEGS.stand, 'S'));
-SP.ghWalk = bake(legs(GRANDMA_HUNTER, GRANDMA_HUNTER_LEGS.walk, 'S'));
+SP.ghStand = bake(legs(GRANDMA_EDM, GRANDMA_EDM_LEGS.stand, 'S'));
+SP.ghWalk = bake(legs(GRANDMA_EDM, GRANDMA_EDM_LEGS.walk, 'S'));
 SP.goStand = bake(legs(GRANDMA_OL, LEGS.stand, 'q'));
 SP.goWalk = bake(legs(GRANDMA_OL, LEGS.walk, 'q'));
 /* ---- the family pets: four cats, two dogs. Shad's ruling (story bible, 27 Oct): at most one
@@ -2878,13 +2882,13 @@ const TO_LOOKS = {
   100: { place: 'The Toronto Airport', bg: 'toskyline', windows: true, sky: ['#5aa8e8', '#d4ecf8'], far: '#6f7f96', mid: '#8a96a8', ground: '#5f6672', top: '#c9ced6', brick: '#2f5fb3', accent: '#f6c445' },
   101: { place: 'The Subway', bg: 'tosubway', open: [127, 169], sky: ['#14161c', '#2a2f38'], far: '#3a3f4a', mid: '#2a2e36', ground: '#4a4f57', top: '#9aa1ab', brick: '#c2414f', accent: '#f6c445' },
   102: { place: 'Nathan Phillips Square', bg: 'tosquare', sky: ['#7fb6e8', '#e6f2fb'], far: '#8a94a6', mid: '#a8b2c0', ground: '#7a7f88', top: '#e8eef4', brick: '#5a6a8a', accent: '#e8364b' },
-  103: { place: 'Up the CN Tower', bg: 'toskyline', high: true, sky: ['#3f8ee0', '#c4e4fa'], far: '#7a8aa0', mid: '#9aa6b6', ground: '#8a8f96', top: '#c9ced6', brick: '#6a6f78', accent: '#e8364b' },
+  103: { place: 'Up the Giant Tower', bg: 'toskyline', high: true, sky: ['#3f8ee0', '#c4e4fa'], far: '#7a8aa0', mid: '#9aa6b6', ground: '#8a8f96', top: '#c9ced6', brick: '#6a6f78', accent: '#e8364b' },
   104: { place: 'The Toronto Islands', bg: 'tolake', sky: ['#4fa8ff', '#d8f0ff'], far: '#6f8098', mid: '#3f8a4a', ground: '#7a6a52', top: '#5aa04a', brick: '#2f5fb3', accent: '#f6c445' },
   105: { place: 'The Aquarium Tunnel', bg: 'toaquarium', sky: ['#0a2a4a', '#1f6a9a'], far: '#123a5a', mid: '#1a4a6a', ground: '#3a4a5a', top: '#8fd0e8', brick: '#e8833a', accent: '#f6c445' },
   106: { place: 'Kensington Market', bg: 'kensington', sky: ['#3b2a6b', '#ff9a6a'], far: '#4a3a6a', mid: '#5a4a7a', ground: '#5a4a46', top: '#b9a99a', brick: '#a8452f', accent: '#f6c445' },
   107: { place: 'The Rooftops at Dusk', bg: 'toskyline', dusk: true, roofs: true, sky: ['#2a2a5a', '#ff8a5c'], far: '#3a3560', mid: '#4a4570', ground: '#4a4046', top: '#8a7f88', brick: '#a8452f', accent: '#f6c445' },
   108: { place: 'The Islands at Sunset', bg: 'tolake', dusk: true, sky: ['#4a3a7a', '#ffb070'], far: '#4a4060', mid: '#2f5a3a', ground: '#6a5a46', top: '#4a8a3a', brick: '#e8ecf2', accent: '#f6c445' },
-  109: { place: 'Casa Loma', bg: 'casaloma', sky: ['#2a2350', '#7a5a9a'], far: '#3a3456', mid: '#4a4466', ground: '#6a6470', top: '#a8a2b0', brick: '#8a6a4a', accent: '#f6c445' }
+  109: { place: 'The Hilltop Castle', bg: 'casaloma', sky: ['#2a2350', '#7a5a9a'], far: '#3a3456', mid: '#4a4466', ground: '#6a6470', top: '#a8a2b0', brick: '#8a6a4a', accent: '#f6c445' }
 };
 /* World 9's own looks (Montreal), numbered from 110 the same way (W9BG draws them). Worlds 1-8 never wear one. */
 const MTL_LOOKS = {
@@ -2892,7 +2896,7 @@ const MTL_LOOKS = {
   111: { place: 'The Old Port', bg: 'oldport', sky: ['#4f9ee8', '#d8eefa'], far: '#6f8098', mid: '#9a948a', ground: '#5f5a52', top: '#c9c2b4', brick: '#3f6f9a', accent: '#e8364b' },
   112: { place: 'The Metro', bg: 'metro', sky: ['#14161c', '#2a2630'], far: '#3a3640', mid: '#4a4450', ground: '#4a4652', top: '#d8d2c4', brick: '#e8833a', accent: '#3f8fd8' },
   113: { place: 'Mount Royal Lookout', bg: 'mountroyal', sky: ['#5aa0e0', '#f0e6d0'], far: '#7a8aa0', mid: '#4f7a3a', ground: '#5a4632', top: '#7aa84a', brick: '#a8452f', accent: '#f6a23c' },
-  114: { place: 'The Biodome', bg: 'biodome', sky: ['#1f4a3a', '#7ab89a'], far: '#2f5a44', mid: '#3f7a4a', ground: '#4a3a2a', top: '#5aa04a', brick: '#8a6a4a', accent: '#f6c445' },
+  114: { place: 'The Nature Dome', bg: 'biodome', sky: ['#1f4a3a', '#7ab89a'], far: '#2f5a44', mid: '#3f7a4a', ground: '#4a3a2a', top: '#5aa04a', brick: '#8a6a4a', accent: '#f6c445' },
   115: { place: 'The Montreal Tower', bg: 'olympic', sky: ['#5a9ae0', '#dceaf6'], far: '#9aa1ab', mid: '#c9ccd2', ground: '#7a7f88', top: '#d8dce2', brick: '#5a6a8a', accent: '#e8364b' },
   116: { place: 'The Space Centre', bg: 'spacectr', sky: ['#0a0f2a', '#2a2f5a'], far: '#2a3054', mid: '#3a4068', ground: '#4a4f6a', top: '#c9d2e8', brick: '#e8833a', accent: '#6fe0ff' },
   117: { place: 'The Startup Lofts', bg: 'lofts', sky: ['#a8c8e8', '#f4ecdc'], far: '#9a5a46', mid: '#b86a4e', ground: '#6a4a3a', top: '#c9a27a', brick: '#a8452f', accent: '#4fc06a' },
@@ -3057,11 +3061,24 @@ function buildLevel(def) {
       const clipS = self.KINAN_TALK_CLIPS ? self.KINAN_TALK_CLIPS[talkHash(t[1], t[2])] : null;
       const readS = t[3] || Math.max(2.4, Math.min(6, t[2].length / 15));
       if (STORY && STORY.lines) STORY.lines[id] = [t[1], t[2], clipS ? Math.max(readS, Math.round((clipS + 0.4) * 10) / 10) : readS, clipS ? 'audio/talk/' + talkHash(t[1], t[2]) + '.mp3' : null];
-      if (STORY) { STORY.fx = STORY.fx || {}; if (t[4]) STORY.fx[id] = t[4]; else delete STORY.fx[id]; }   /* 'wheeze' | 'laugh' | 'walkoff' (block "WHEEZE-LAUGH") */
+      const hold = t[4] === 'hold';   /* 2026-11-04 final QC: Kinan stands still for this line (Shad's note on the desk, 11-secret); see Story.holding */
+      if (STORY) { STORY.fx = STORY.fx || {}; if (t[4] && !hold) STORY.fx[id] = t[4]; else delete STORY.fx[id]; }   /* 'wheeze' | 'laugh' | 'walkoff' (block "WHEEZE-LAUGH") */
       talk.push({ x: (talkBase + t[0]) * T, id: id, done: false });
+      TALK_AT[id] = { x: (talkBase + t[0]) * T, lvl: def.id, group: def.id + ':' + (talkBase + t[0]), last: false, hold: hold };
     });
     talkBase += a.cols;
   });
+  /* conversations: bubbles within 3 columns of the one before (docs/LEVEL-AUTHORING.md: "bubbles that come together
+     (within 3 columns) are a conversation") share one group, so once the first is said the rest follow even when Kinan
+     has run on. 2026-11-04 final QC: the late-line rule grouped by the exact column only, and a running kid lost 3 of
+     the 4 opening lines of every World 11 level (c4, c6, c8, c10). */
+  const byX = talk.slice().sort((a, b) => a.x - b.x);
+  let gx = -1e9, gkey = '';
+  for (const t of byX) { if (t.x - gx > 3 * T) gkey = def.id + ':' + Math.round(t.x / T); gx = t.x; TALK_AT[t.id].group = gkey; }
+  /* the level's closing line(s) (the last column with talk) may finish on the map; see Story.stale */
+  for (const g in Story.started) if (g.indexOf(def.id + ':') === 0) delete Story.started[g];   /* a new visit: its conversations start fresh */
+  const lastX = talk.reduce((m, t) => Math.max(m, t.x), -1);
+  for (const t of talk) if (t.x === lastX) TALK_AT[t.id].last = true;
   return {
     i: 0, g, w, foes, candles, gifts, checkpoint, petSpot: null, petCrate, talk,
     arenaX: w + 4, arenaW: 28, len: cols, buildPads: [], ice: false, wind: false, up: 0,   /* no arena: the boss gate can never fire */
@@ -3417,6 +3434,7 @@ function worldMapScreen(o) {
    ============================================================ */
 const STORY = window.KINAN_STORY || null;
 const storyBox = document.getElementById('storyLine');
+const TALK_AT = {};   /* a level talk line's id -> its spot: { x, lvl, group, last } (the level builder fills it; Story.stale reads it) */
 const Story = {
   q: [], cur: null, timer: 0, poll: 0, log: [], mapWorld: 0, barkN: {},
   line(id) { return STORY && STORY.lines[id] ? STORY.lines[id] : null; },
@@ -3437,11 +3455,42 @@ const Story = {
     Story.add([list[(n - 1) % list.length]], 'bark');
   },
   blocked() { if (Cut.on) return true; const A = L && L.arena; return !!(A && running && !el.stage.hidden && (A.state === 'fight' || A.line || A.lineQ.length)); },   /* a cutscene talks first */
+  /* 2026-11-04 audit (Shad's answer 30): a level's talk line whose moment has passed is skipped, not said late: Kinan is
+     already 48+ columns past its spot, or the level is over (on the map, another level). A conversation that has started
+     (lines at the same column: a joke and its answer) always finishes, and the level's closing line may end on the map. */
+  started: {}, late: [],
+  /* 2026-11-04 final QC: a talk line marked 'hold' (Shad's birthday note on the desk in 11-secret) keeps Kinan standing
+     where he is from the moment he reaches it until it and its conversation are said (a tap still skips it): a kid who
+     runs would reach the exit first, and the note would be skipped as late. updatePlayer reads it. */
+  holdOn() {
+    if (!L || L.cleared || el.stage.hidden) return false;
+    const h = (x) => { const ta = x && TALK_AT[x.id]; return !!(ta && ta.hold && ta.lvl === L.levelId); };
+    return h(Story.cur) || Story.q.some(h);
+  },
+  holding() { return Story.holdOn() && Story.holdF <= Story.holdMax; },   /* a read: never counts */
+  /* one game frame of the hold (updatePlayer). Counted in frames too (a test that steps the game without real time
+     passing): once the frames for the whole conversation have gone by, Kinan is free, whatever the clock says */
+  holdTick() {
+    if (!Story.holdOn()) { Story.holdF = 0; Story.holdMax = 0; return false; }
+    if (!Story.holdF) { Story.holdMax = 90; for (const x of [Story.cur].concat(Story.q)) { const ta = x && TALK_AT[x.id]; if (ta && ta.hold) Story.holdMax += Math.round(Math.max(1.2, lineSecs(Story.line(x.id))) * 60) + 20; } }
+    return ++Story.holdF <= Story.holdMax;
+  },
+  holdF: 0, holdMax: 0,
+  stale(id) {
+    const ta = TALK_AT[id];
+    if (!ta || Story.started[ta.group]) return false;
+    const here = !!(L && L.levelId === ta.lvl && !L.cleared && !el.stage.hidden);
+    if (!here) return !ta.last;
+    return !!(P && P.x > ta.x + 48 * T);
+  },
   pump() {
     if (Story.cur || !Story.q.length) return;
     clearTimeout(Story.poll);
     if (Story.blocked()) { Story.poll = setTimeout(Story.pump, 250); return; }
+    while (Story.q.length && Story.stale(Story.q[0].id)) { Story.late.push(Story.q.shift().id); if (Story.late.length > 300) Story.late.shift(); }
+    if (!Story.q.length) return;
     const it = Story.q.shift(), d = Story.line(it.id), fx = (STORY.fx && STORY.fx[it.id]) || null;
+    if (TALK_AT[it.id]) Story.started[TALK_AT[it.id].group] = true;
     Story.cur = { id: it.id, kind: it.kind, d: d, fx: fx };
     Story.log.push({ id: it.id, kind: it.kind, src: d[3] || null, fx: fx, at: Date.now() });
     if (fx === 'wheeze') { Story.wheezes++; SFX.wheeze(); }   /* Dad can't get the joke out: the breathy hee-hee-hee */
@@ -3549,7 +3598,8 @@ const PET_JOIN_IDS = Object.keys(PET_JOIN_LINE).map((k) => PET_JOIN_LINE[k]);
 function storyPetJoin(petId) {
   const id = PET_JOIN_LINE[petId];
   if (!STORY || !id) return;
-  if (Story.cur && (Story.cur.kind === 'joke' || Story.cur.kind === 'bark')) Story.cut();   /* a joke or a bark gives way: the rescue is the moment */
+  /* 2026-11-04 audit: it used to cut a joke or bark short ("nobody talks over anyone"); now the rescue line goes first in
+     the queue and is said the moment the current line ends */
   Story.add([id], 'story', true);
 }
 function storyLevelClear() {
@@ -4716,6 +4766,7 @@ const ARENA_LINES = {
   t_rex_05: ['ROBO-REX', 'beep... boop... purrrr. (Its eyes go from red to green.)', 3.4, true],
   t_w6_shad_04: ["SHAD", "All three wires! You didn't fight it, Kinan. You fixed it.", 4, true],
   t_w6_kinan_04: ['KINAN', 'Robo-Rex is my friend now! Can I ride him?', 3, true],
+  t_w6_kinan_05: ['KINAN', "So he's not mean. He's just broken. Like my remote-control car when its wires came loose!", 4, true],   /* from the castle walk-up (2026-11-04) */
   /* World 7 — Vancouver. Text only, like World 6 (no recordings): every line is a subtitle */
   t_slug_01: ['THE GIANT BANANA SLUG', 'SLLLURRRP. (A banana slug as big as a car rears up. It looks GRUMPY.)', 3.4, true],
   t_w7_kinan_01: ['KINAN', "Whoa! That's the biggest banana slug in the whole world!", 3, true],
@@ -4754,6 +4805,7 @@ const ARENA_LINES = {
   t_octo_08: ['THE BIG OCTOPUS', '(It waves all eight arms goodbye.)', 3, true],
   t_king_01: ['THE RACCOON KING', 'HALT! Who dares to enter the shiny treasure room of the RACCOON KING?', 4, true],
   t_w8_kinan_03: ['KINAN', "That's not garbage, Your Majesty. That's my friend Glitchy!", 3.4, true],
+  t_w8_kinan_mem: ['KINAN', "His treasure pile... wait, that's my MOVING-DAY BOX! With my Pocket Critter dino card! I held it the whole drive to Saskatoon.", 6, true],   /* the age-8 memory, from the castle walk-up (2026-11-04) */
   t_w8_shad_01: ['SHAD', "Kinan, it's Shad on the radio. He collects shiny things! When he sits down to count his treasure, look for a shiny bottle cap.", 5.4, true],
   t_w8_shad_02: ['SHAD', 'Dodge the paws. When he sits down, grab the shiny bottle cap and offer it to him!', 4.2, true],
   t_king_02: ['THE RACCOON KING', 'MINE! MINE! (Big paws reach down from above. Watch the shadows!)', 3.4, true],
@@ -4778,7 +4830,7 @@ const ARENA_LINES = {
   t_w9_kinan_02: ['KINAN', 'Bye, drone! Tell Annie Glitchy is NOT a virus.', 3, true],
   t_fw_01: ['ANNIE', "Kinan?! Stand back, sweetie! That glitch has wrecked a city a day. My firewall keeps everyone safe.", 4.6, true],
   t_w9_kinan_03: ['KINAN', "Annie, wait! Glitchy is my FRIEND! He's scared in there!", 3.2, true],
-  t_w9_shad_01: ['SHAD', "Kinan, it's Shad on the radio. That's Annie! She thinks he's a virus... When the firewall rests, a LOGIC LOCK on the cube glows. Touch it to crack it!", 6, true],
+  t_w9_shad_01: ['SHAD', "Kinan, it's Shad on the radio. Annie's not mean, bud. She thinks he's a virus... When the firewall rests, a LOGIC LOCK on the cube glows. Touch it to crack it!", 6, true],
   t_w9_shad_02: ['SHAD', 'Dodge the drones. When a logic lock glows on the cube, touch it!', 3.6, true],
   t_fw_02: ['ANNIE', 'Deletion drones, sweep the stage! Kinan, keep clear of the shadows, okay?', 3.8, true],
   t_fw_03: ['ANNIE', 'The firewall walls are closing in! ...Wait. Kinan, why are you rerouting my circuits?!', 4.2, true],
@@ -5110,7 +5162,7 @@ const ARENA_KINDS = {
     hint: 'He isn\'t mean, his wires are scrambled! Jump the stomp shockwaves and stay out of reach of his tail. When he stops to cool down, a loose wire sparks on his back: land on it to <b>FIX</b> it!',
     smarter: ['One wire fixed! Now he ROARS (it pushes you back), shakes bones off the exhibits, kicks bones at you and FAKES a stomp. Three baby dino robots wake up. Shad built you two platforms!', 'Two wires fixed! He aims where you are GOING, and then he CHARGES, turns and charges BACK. Jump him twice, and fix the last wire while he is dizzy!'],
     friend: '🦖 <b>ROBO-REX IS FIXED!</b> His eyes turn green and he purrs. Hop on his back for a ride!',
-    lines: { intro: ['t_rex_01', 't_w6_kinan_02', 't_w6_shad_01', 't_w6_shad_02'], retry: ['t_rex_01', 't_w6_shad_02'], phase: [null, 't_w6_shad_03', 't_w6_kinan_03'],
+    lines: { intro: ['t_rex_01', 't_w6_kinan_02', 't_w6_shad_01', 't_w6_kinan_05', 't_w6_shad_02'], retry: ['t_rex_01', 't_w6_shad_02'], phase: [null, 't_w6_shad_03', 't_w6_kinan_03'],
       first: { wave: 't_rex_02', blow: 't_rex_03', sweep: 't_rex_04' }, defeat: ['t_rex_05', 't_w6_shad_04', 't_w6_kinan_04'] },
     phases: [
       { walk: 0.7, windup: 52, rest: 42, tired: 132, pattern: ['wave', 'sweep', 'wave'], n: 1, speed: 1.25 },
@@ -5197,7 +5249,7 @@ const ARENA_KINDS = {
     hint: "He isn't mean, he just LOVES shiny things! Step off the shadows (his paws grab from above) and dodge his junk. When he sits down to count his treasure, grab the glinting <b>BOTTLE CAP</b> and offer it to him!",
     smarter: ['One cap! Now he ROLLS green bins at you (jump them!), FAKES a grab, and two little raccoons sneak in to snatch candles.', 'Two caps! He grabs where you are GOING, three paws at a time, and the bins roll faster. One more cap for the trade!'],
     friend: '👑 <b>THE RACCOON KING IS YOUR FRIEND NOW!</b> Three shiny caps for Glitchy: a fair trade!',
-    lines: { intro: ['t_king_01', 't_w8_kinan_03', 't_w8_shad_01'], retry: ['t_king_01', 't_w8_shad_02'], phase: [null, 't_king_05', 't_w8_kinan_04'],
+    lines: { intro: ['t_king_01', 't_w8_kinan_03', 't_w8_kinan_mem', 't_w8_shad_01'], retry: ['t_king_01', 't_w8_shad_02'], phase: [null, 't_king_05', 't_w8_kinan_04'],
       first: { grab: 't_king_02', toss: 't_king_03', roll: 't_king_04', charge: 't_king_08' }, defeat: ['t_king_06', 't_w8_kinan_05', 't_king_07', 't_w8_shad_03'] },
     /* shorter tells and rests than Drizzle's and longer patterns; the rest windows are a little longer than Drizzle's
        because the trade takes two steps (fetch the cap, then offer it), and a cap he has picked up stays his */
@@ -5486,6 +5538,14 @@ function arenaGate(A, side, shut) {
 }
 /* a boss line: its subtitle shows at the bottom of the picture while the recording plays; lines queue */
 function arenaSay(A, id) { if (id && ARENA_LINES[id]) A.lineQ.push(id); }
+/* 2026-11-04 final QC: a phase's line still waiting its turn when the NEXT phase begins has had its moment (Robo-Rex:
+   "One wire fixed!" said after the screen says "Two wires fixed!"): it is dropped, and the new phase's line goes in.
+   The line being said finishes; the intro's story lines (Shad's answer 30 moved key lines there) are never dropped. */
+function arenaSayPhase(A, id) {
+  const old = (A.K.lines.phase || []).concat(A.K.lines.phaseMore || []).filter(Boolean);
+  A.lineQ = A.lineQ.filter((q) => old.indexOf(q) < 0);
+  arenaSay(A, id);
+}
 function arenaLines(A) {
   const box = el.bossLine;
   if (A.lineT > 0 && --A.lineT === 0) {
@@ -5497,9 +5557,10 @@ function arenaLines(A) {
   }
   if (A.line || !A.lineQ.length) return;
   /* 2026-11-03 audit: a story line still being said finishes first (Dad's 3-castle storm line lost its punchline to the
-     Foreman's opener): the fight's line waits for it, 8 s at most (a pet's joins-the-team line runs 7.7 s), then wins as before */
+     Foreman's opener): the fight's line waits for it, 14 s at most (a pet's joins-the-team line runs 7.7 s; Dad's 11-3
+     "droid commander" line 9 s, cut at 8 s by the old 8 s cap, 2026-11-04 final QC; the longest talk clip is 13 s), then wins as before */
   const va = VO.audio, storyTalking = Story.cur && va && !va.paused && !va.ended;
-  if (storyTalking && (A.storyWait = (A.storyWait || 0) + 1) < 480) return;
+  if (storyTalking && (A.storyWait = (A.storyWait || 0) + 1) < 840) return;
   A.storyWait = 0;
   const id = A.lineQ.shift(), d = ARENA_LINES[id];
   A.line = id; A.lineT = Math.round(lineSecs(d) * 60) + 20;
@@ -6291,7 +6352,7 @@ function arenaHit(b, A, lamp) {
   if (A.K.tall) arenaSize(A, A.K.w, A.K.h);   /* World 7: the slug lies back down */
   toastHold = 0;
   toast('🧠 <b>' + A.K.who + ' IS GETTING ' + (b.phase >= 3 ? 'SMARTEST' : 'SMARTER') + '!</b> ' + (A.K.smarter[b.phase - 2] || ''), 3400, true);
-  arenaSay(A, A.K.lines.phase[b.phase - 1]);
+  arenaSayPhase(A, A.K.lines.phase[b.phase - 1]);
   arenaLog(A, 'phase');
   arenaHud(A);
 }
@@ -6634,7 +6695,7 @@ function w10Smarter(A) {
   const b = A.boss;
   toastHold = 0;
   toast('🧠 <b>' + A.K.who + (A.K.she === 'THEY' ? ' ARE' : ' IS') + ' GETTING ' + (b.phase >= 3 ? 'SMARTEST' : 'SMARTER') + '!</b> ' + (A.K.smarter[b.phase - 2] || ''), 3800, true);
-  arenaSay(A, A.K.lines.phase[b.phase - 1]);
+  arenaSayPhase(A, A.K.lines.phase[b.phase - 1]);
   if (A.K.lines.phaseMore) arenaSay(A, A.K.lines.phaseMore[b.phase - 1]);
   const ph = A.phases[b.phase - 1];
   arenaLog(A, 'phase', { tell: w10Tell(A, ph.windup), speed: ph.speed, live: ph.live });
@@ -9233,6 +9294,7 @@ function updatePlayer() {
   tickCompanionTimers();
   const rush = P.rush > 0;
   let left = input.left || padIn.left, right = input.right || padIn.right;
+  if (Story.holdTick()) { left = right = false; input.jumpBuf = 0; }   /* 2026-11-04: Kinan stands still while a 'hold' line (Shad's note, a memory gift) is said; hurt() leaves him be */
   if (L.tw && L.tw.flipOn) { const sw = left; left = right; right = sw; }   /* World 11 (11-1): the controls flip for one short stretch, then settle for good */
   const twC = L.tw ? clamp(Math.floor((P.x + P.w / 2) / T), 0, L.w - 1) : 0;   /* World 7 twists: the column under Kinan */
   const ice = !!((L.ice || (L.tw && L.tw.ice && L.tw.ice[twC])) && P.onGround && boss === 'off');   /* the Mall Ice Rink: slow to get going, slow to stop (never in a boss arena: the lumberjack show has a sawdust floor) */
@@ -9439,6 +9501,7 @@ function updatePlayer() {
 
 function hurt(from) {
   if (P.inv > 0 || P.dead || P.rush > 0 || paused || L.noHurt) return;
+  if (Story.holding()) return;   /* 2026-11-04: standing still for a 'hold' line (Shad's note, a memory gift): nothing gets him while he reads */
   if (L.arena && L.arena.x && L.arena.state === 'fight') {   /* World 11: the move that got him (the Last Stand's family tip names it) */
     const bb = L.arena.boss;
     L.arena.x.lastMove = bb.state === 'pace' && overlap(P, bb) ? 'touch' : (bb.from || 'touch');
@@ -10021,6 +10084,17 @@ function openCheckpointLoadout() {
 /* ============================================================
    PETS · DAD · BIG BRO
    ============================================================ */
+/* 2026-11-04 (Shad, final QC: "the cats and the dogs ... just seem to float in the air" beside a ledge): a pet stands on
+   the floor under its OWN feet, not at Kinan's height. The floor is the first surface at the pet's column from one tile
+   above Kinan's trail foot level down to the bottom of the level (a low block it is inside is climbed out of first, 3
+   tiles at most); over a pit (nothing to stand on) it keeps the trail height, so a pet never drops into a hole. */
+function petFloorY(x, footY) {
+  const tx = Math.floor((x + 6) / T);
+  let ty = Math.floor(footY / T) - 1;
+  for (let up = 0; up < 3 && solid(tx, ty); up++) ty--;
+  for (; ty < ROWS; ty++) if (solid(tx, ty) && !solid(tx, ty - 1)) return ty * T;
+  return footY;
+}
 function updatePets() {
   trail.push({ x: P.x, y: P.y + P.h, face: P.face });
   if (trail.length > 60) trail.shift();
@@ -10029,7 +10103,7 @@ function updatePets() {
     const p = at(12 + i * 10);
     if (!p) return;
     c.x = lerp(c.x, p.x - (18 + i * 16) * p.face, 0.22);
-    c.y = p.y - 10 - (i % 2);
+    c.y = lerp(c.y, petFloorY(c.x, p.y) - 10 - (i % 2), 0.35);
     c.face = p.face;
     if (Math.random() < 0.006) part(c.x + 5, c.y + 8, { vx: 0, vy: -0.2, life: 16, size: 1, color: c.def.color, glow: true });
     if (c.id === 'cat2' && P.vaderCd <= 0) {
@@ -10063,7 +10137,7 @@ function updatePets() {
       const p = at(34 + i * 10);
       if (p) {
         d.x = lerp(d.x, p.x - (80 + i * 20) * p.face, 0.16);
-        d.y = p.y - 11;
+        d.y = lerp(d.y, petFloorY(d.x, p.y) - 11, 0.35);
         d.face = p.face;
       }
       if (d.t > 840) {
@@ -10092,7 +10166,7 @@ function updatePets() {
       const p = at(34 + i * 10);
       if (p) {
         d.x = lerp(d.x, p.x - (80 + i * 20) * p.face, 0.16);
-        d.y = p.y - 11;
+        d.y = lerp(d.y, petFloorY(d.x, p.y) - 11, 0.35);
         d.face = p.face;
       }
       return;
@@ -18298,10 +18372,10 @@ function drawAnnie(b, sx, sy) {
   if (b.state === 'windup') { ctx.fillStyle = '#ff6fae'; ctx.font = 'bold 11px monospace'; ctx.fillText('!', Math.round(cx), sy - 5); }
 }
 function drawGrandmothers(b, sx, sy) {
-  /* the two grandmothers share one health bar: Grandma Hunter (with her walker) and Robin's mom, side by side,
+  /* the two grandmothers share one health bar: Grandma (Edmonton) (with her walker) and Robin's mom, side by side,
      in their approved designs (27 Oct) */
   /* drawn x1.6 like the other bosses, so their 18-row sprites fill the same 29 px tall boss box the tall stand-ins
-     did; Robin's mom stands just behind Grandma Hunter */
+     did; Robin's mom stands just behind Grandma (Edmonton) */
   const walking = Math.abs(b.vx) > 0.2 && b.onGround, cx = sx + b.w / 2, step = walking && Math.floor(frame / 14) % 2;
   drawBig(step ? SP.goWalk : SP.goStand, cx + 7, sy + b.h, -1, 1.6);
   drawBig(step ? SP.ghWalk : SP.ghStand, cx - 7, sy + b.h, 1, 1.6);
@@ -27467,7 +27541,7 @@ window.__k11 = window.__k11DevOnly() ? {
     liveCats: pets.cats.length, liveDogs: pets.dogs.length,
     cats: pets.cats.map((c) => ({ id: c.id, x: Math.round(c.x), y: Math.round(c.y) })),
     cleanLandings: P ? P.cleanLandings : 0, zoomies: P ? P.zoomiesT : 0, zoomiesCooldown: P ? P.zoomiesCd : 0,
-    dogs: pets.dogs.map((d) => ({ id: d.id, cooldown: d.t, warning: d.warn || 0 })),
+    dogs: pets.dogs.map((d) => ({ id: d.id, cooldown: d.t, warning: d.warn || 0, x: Math.round(d.x), y: Math.round(d.y) })),
     stunnedFoes: foes.filter((f) => f.alive && f.stun > 0).map((f) => f.idx),
     vaderCooldown: P ? P.vaderCd : 0, tuxCooldown: P ? P.tuxCd : 0,
     hunterUsed: P ? !!P.hunterUsed : false, hunterT: P ? P.hunterT : 0,
@@ -27481,6 +27555,7 @@ window.__k11 = window.__k11DevOnly() ? {
     checkpoint: cpHit, boss: boss
   }),
   petLand: () => { noteCleanLanding(); return window.__k11.petInfo(); },
+  petFloor: (x, footY) => petFloorY(x, footY),   /* 2026-11-04: the floor a following pet stands on at x (its foot height to start from) */
   petAbilityTick: (n) => { for (let k = 0; k < n; k++) tickCompanionTimers(); return window.__k11.petInfo(); },
   petTickPets: (n) => { for (let k = 0; k < n; k++) updatePets(); return window.__k11.petInfo(); },
   petBark: (offscreen) => {
@@ -27561,8 +27636,8 @@ window.__k11 = window.__k11DevOnly() ? {
   /* V1 story lines: what is talking, what waits, what has been said; the subtitle on screen (level or map) */
   storyInfo: () => {
     const m = document.getElementById('storyLineMap');
-    return { cur: Story.cur ? Story.cur.id : null, kind: Story.cur ? Story.cur.kind : null, queue: Story.q.map((x) => x.id),
-      log: Story.log.map((x) => Object.assign({}, x)), heard: Object.keys(progress.storyHeard || {}), mapWorld: Story.mapWorld,
+    return { cur: Story.cur ? Story.cur.id : null, kind: Story.cur ? Story.cur.kind : null, queue: Story.q.map((x) => x.id), hold: Story.holding(),
+      log: Story.log.map((x) => Object.assign({}, x)), late: Story.late.slice(), heard: Object.keys(progress.storyHeard || {}), mapWorld: Story.mapWorld,
       levelSub: storyBox && !storyBox.hidden ? storyBox.textContent : '', mapSub: m && !m.hidden && m.isConnected ? m.textContent : '',
       voSrc: VO.audio ? VO.audio.src : null, loaded: !!STORY,
       fx: Story.cur ? Story.cur.fx || null : null, wheezes: Story.wheezes, skipped: Story.skipped,

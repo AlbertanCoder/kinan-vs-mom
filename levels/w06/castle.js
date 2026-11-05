@@ -83,14 +83,10 @@ KinanLevels.register({
             [68, 10], [69, 9], [70, 8], [71, 7], [72, 8], [73, 9], [74, 10], [77, 11],
             [108, 9], [110, 9], [111, 9], [113, 9], [114, 9]],   /* the way out: high enough to scoop up from Robo-Rex's back */
   /* story bubbles as Kinan passes a column: [col, who, what they say, seconds] (subtitles only) */
+  /* walk-up trimmed 2026-11-04 (Shad's answer 30): a running kid reaches the boss before more lines can be said; the key line is in the boss intro */
   talk: [
     [1, 'SHAD', "Kinan, it's Shad on the radio. Glitchy crawled inside the museum's robot T-Rex, and now it's stomping around!", 5],
-    [9, 'KINAN', "It's so dark in here. Are the dinosaur skeletons looking at me?", 3.4],
-    [24, 'ROBO-REX', 'GRRZZZT... RAWR? (A roar echoes from the far hall.)', 3],
-    [35, 'SHAD', "I'm reading his signal. Three wires came loose when Glitchy crawled in: red, yellow and blue.", 5],
-    [50, 'KINAN', "So he's not mean. He's just broken. Like my remote-control car when its wires came loose!", 4],
-    [64, 'SHAD', "Exactly! Don't fight him, fix him. When he stops to cool down, plug a wire back in.", 4.4],
-    [71, 'ROBO-REX', 'STOMP... STOMP... BZZT! (The whole floor shakes.)', 2.6]
+    [9, 'KINAN', "It's so dark in here. Are the dinosaur skeletons looking at me?", 3.4]
   ],
   arena: { col: 82, cols: 24, boss: 'robo-rex' },   /* 3 phases (the default), one wire each; its checkpoint flag stands at c78 */
   spawn: { col: 2, row: 11 },

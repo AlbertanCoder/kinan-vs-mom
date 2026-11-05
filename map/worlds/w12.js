@@ -73,7 +73,7 @@
       poly('#1b1220',[[tx-2,ty-h+1],[tx+w/2+a/2,ty-h-w*1.4+b/2-1],[tx+w+a+2,ty-h+b+1],[tx+w+2,ty-h+1]]);
       poly(cu,[[tx-1,ty-h],[tx+w/2+a/2,ty-h-w*1.4+b/2],[tx+w+1,ty-h]]);poly(sh(cu,0.7),[[tx+w+1,ty-h],[tx+w/2+a/2,ty-h-w*1.4+b/2],[tx+w+a+1,ty-h+b]]);};
     tw(X-44,Y-26,12,30);tw(X+32,Y-26,12,30);tw(X-9,Y-34,18,40);tw(X-26,Y-40,9,18);tw(X+17,Y-40,9,18);
-    box('#2b2f45',X-5,Y-13,10,13);G0.restore();K.P.label(X+6,Y+6,'THE BESSBOROUGH');};
+    box('#2b2f45',X-5,Y-13,10,13);G0.restore();K.P.label(X+6,Y+6,'THE RIVER CASTLE HOTEL');};
   K.P.w12_remai=function(X,Y){/* the Remai Modern: dark stacked boxes, each cantilevered, copper trim */
     [[0,0,52,11],[10,-11,50,10],[-6,-21,50,10],[6,-31,46,10]].forEach(([a,b,w,h])=>{const[ox,oy]=blk(X+a,Y+b,w,h,20,'#3d3d48',{top:'#62626e',side:'#2a2a33',noShadow:b<0});px('#e8b860',X+a,Y+b-h,w,1);px('#e8b860',X+a+w,Y+b-h,ox,0);for(let i=4;i<w-4;i+=7)px('#ffe6a0',X+a+i,Y+b-h+4,4,3);});
     K.P.label(X+28,Y+5,'THE ART GALLERY');};
@@ -167,7 +167,7 @@
       {at:[626,366],name:'12-7  THE ART GALLERY',st:'lock'},
       {at:[630,416],name:'SECRET  UNDER THE RIVER',st:'secret'},
       {at:[715,345],name:'12-8  THE ARENA',st:'lock'},
-      {at:[830,325],name:'CASTLE  THE BESSBOROUGH BIRTHDAY FESTIVAL',st:'boss'}],
+      {at:[830,325],name:'CASTLE  THE RIVER CASTLE HOTEL BIRTHDAY FESTIVAL',st:'boss'}],
     edges:[
       [0,1],
       [1,'c1',[[128,396]]],

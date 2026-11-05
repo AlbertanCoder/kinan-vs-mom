@@ -89,6 +89,11 @@ KinanLevels.register({
         [19, 11], [21, 11], [23, 11], [29, 9], [30, 9], [31, 9], [36, 11], [37, 9], [38, 8], [39, 8], [40, 9], [41, 11], [42, 11], [43, 11],
         [44, 11], [45, 11], [46, 9], [47, 8], [48, 8], [49, 9], [50, 11], [51, 11], [52, 11], [53, 11], [58, 10], [59, 10], [60, 9], [61, 9],
         [62, 9], [64, 9], [66, 9], [67, 9], [68, 7], [69, 6], [70, 6], [71, 7], [72, 9], [73, 9], [75, 9], [77, 9], [79, 9]
+      ],
+      /* World 6's talk (2026-11-03 audit: the fort had none) */
+      talk: [
+        [2, 'SHAD', "That's the old swinging bridge up ahead, bud. Coal miners walked across it to work every day.", 6],
+        [60, 'MOM', 'Magpies on the bridge! They grab anything shiny. Hold on to your candles, sweetie.', 5.4]
       ]
     },
     {
@@ -128,7 +133,11 @@ KinanLevels.register({
         [62, 10], [63, 10], [64, 9], [65, 9], [67, 9], [68, 7], [69, 6], [70, 6], [71, 6], [72, 7], [73, 9], [74, 9], [76, 9], [78, 9],
         [80, 9]
       ],
-      checkpoint: { col: 33, row: 11 }
+      checkpoint: { col: 33, row: 11 },
+      talk: [
+        [2, 'KINAN', "It's swinging! It's SWINGING!", 2.4],
+        [14, 'DAD', "Relax, bud. It's a suspension bridge. It's just... in suspense.", 4.2]
+      ]
     },
     {
       id: 'star-mine-bank', name: 'THE STAR MINE BANK', cols: 81,

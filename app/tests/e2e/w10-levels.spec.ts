@@ -169,7 +169,7 @@ const SEEK = `(id, k, from) => {
   const tx = sec.col * 16 + 8, ty = sec.row * 16 + 8;
   const still = { left: false, right: false, jump: false, fire: false };
   const fc = Array.isArray(from) ? from[0] : from, fy = Array.isArray(from) ? from[1] : H[from];   /* a column, or [column, feet y] to start on top of a pillar */
-  K.place(fc * 16 + 3, fy - 16); K.step(12, still);
+  K.place(fc * 16 + 3, fy - 16); K.step(12, still); K.storyStop();   /* 2026-11-04: a 'hold' talk line near the start would keep Kinan standing; the route search is not about talk */
   const found = () => !!K.levelInfo().secretsFound[k];
   if (found()) return { found: true, tries: 0, from };
   const MOVES = [];

@@ -52,7 +52,7 @@
    ============================================================ */
 KinanLevels.register({
   id: '8-castle', world: 8, slot: 11, kind: 'castle',
-  name: 'CASA LOMA',
+  name: 'THE HILLTOP CASTLE',
   theme: 109,               /* Casa Loma (World 8's own look): the castle's stone towers on its hill at evening, the green copper cone, warm windows, the King's flag */
   cols: 131,
   snatch: true,             /* World 8: raccoons grab a candle and run */
@@ -92,17 +92,10 @@ KinanLevels.register({
             [89, 11], [91, 11], [92, 11], [94, 11],
             [122, 11], [123, 11], [125, 11], [127, 11], [128, 11]],   /* the way out */
   /* story bubbles as Kinan passes a column: [col, who, what they say, seconds] (subtitles only) */
+  /* walk-up trimmed 2026-11-04 (Shad's answer 30): a running kid reaches the boss before more lines can be said; the key line is in the boss intro */
   talk: [
-    [1, 'SHAD', "Kinan, it's Shad on the radio. This is Casa Loma, a real castle right in Toronto! The raccoons took Glitchy in here.", 5],
-    [9, 'KINAN', 'A real castle, with towers and everything! Hang on, Glitchy. I am coming!', 3.6],
-    [14, 'MOM', 'The great hall! Look at that ceiling, sweetie. Up the grand staircase you go!', 3.8],
-    [27, 'THE RACCOON KING', 'Who goes there? This is the castle of the RACCOON KING! All the shiny things are MINE!', 4.4],
-    [33, 'KINAN', 'A secret passage behind the bookcase! This castle is SO cool.', 3.2],
-    [46, 'SHAD', "The Raccoon King collects shiny things. He thinks Glitchy is shiny garbage!", 4],
-    [53, 'DAD', 'Hop over that old bookcase, bud, and watch your head in this passage. This castle has great shelf-esteem.', 3.6],
-    [63, 'CHENOA', 'The towers! You can see all of Toronto from up there. Even the CN Tower!', 3.8],
-    [72, 'KINAN', "A big jump to the other tower. Don't look down... okay, I looked down.", 4],
-    [90, 'KINAN', "His treasure pile... wait, that's my MOVING-DAY BOX! With my Pocket Critter dino card! I held it the whole drive to Saskatoon.", 6]   /* the age-8 memory (story bible) */
+    [1, 'SHAD', "Kinan, it's Shad on the radio. This is the Hilltop Castle, a real castle right in Toronto! The raccoons took Glitchy in here.", 5],
+    [53, 'DAD', 'Hop over that old bookcase, bud, and watch your head in this passage. This castle has great shelf-esteem.', 3.6]
   ],
   arena: { col: 96, cols: 24, boss: 'raccoon-king', checkpoint: { col: 88, row: 11 } },   /* 3 phases (the default), one bottle cap each */
   spawn: { col: 2, row: 11 },

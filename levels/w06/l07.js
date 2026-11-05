@@ -152,5 +152,15 @@ KinanLevels.register({
   goldenCandle: { col: 145, row: 9 },
   checkpoint: { col: 106, row: 11 },
   spawn: { col: 2, row: 7 },
-  goal: { col: 318, row: 11 }   /* Dad's truck in the rim parking lot */
+  goal: { col: 318, row: 11 },   /* Dad's truck in the rim parking lot */
+  /* World 6's talk (2026-11-03 audit: the header's written beats, wired; strangers are PASSER-BY) */
+  talk: [
+    [2, 'DAD', "Horseshoe Canyon. Look at those stripes!", 2.7],
+    [11, 'KINAN', "Every stripe is a different time, right?", 2.7],
+    [11, 'MOM', "That's right, sweetie. The bottom ones are the oldest. Like your dad's jokes.", 5.1],
+    [106, 'PASSER-BY', "What do you get when a dinosaur sneezes? Out of the way!", 3.7],
+    [144, 'KINAN', "There's a cold wind coming out of that crack...", 3.1],
+    [253, 'KINAN', "Top of the horseshoe!", 2.4],
+    [310, 'SHAD', "Glitchy's heading back toward town. Toward the museum, I bet.", 4.1]
+  ]
 });

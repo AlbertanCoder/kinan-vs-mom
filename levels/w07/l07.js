@@ -47,7 +47,7 @@
    ============================================================ */
 KinanLevels.register({
   id: '7-7', world: 7, slot: 9, kind: 'level',
-  name: 'SCIENCE WORLD',
+  name: 'THE SCIENCE DOME',
   theme: 47,   /* the Science Dome: a dim blue hall under the dome, grey floors; springboards are magnet pads */
   cols: 324,
   /* CIRCUITS (wired 2026-10-28): a switch (a grey box with a lightning bolt, its lamp the colour that is on) flips the
@@ -185,7 +185,7 @@ KinanLevels.register({
   goal: { col: 320, row: 11 },   /* the doors out to the train station */
   /* story bubbles as Kinan passes a column: [col, who, what they say, seconds] (subtitles only) */
   talk: [
-    [2, 'CHENOA', "Science World! It's like a giant silver golf ball.", 3],
+    [2, 'CHENOA', "The Science Dome! It's like a giant silver golf ball.", 3],
     [6, 'KINAN', 'A magnet pad! Step on it and... WHOA, it throws you right up!', 3.4],
     [96, 'SHAD', 'A red door! See the switch with the lightning bolt? Jump and bump it from underneath.', 4],
     [104, 'DAD', 'I could spend all day at the vacuum exhibit. For work. It really sucks me in.', 3.6],

@@ -1,7 +1,7 @@
 # TE-1 Test Plan — Feel & Physics (movement, camera, terrain)
 
 **Owner:** Test Engineer 1 ("Feel & Physics") · **Partner:** TE-2 (Systems & Flow)
-**Repo:** `C:\Users\SHADHUNTER\Desktop\Kinan vs. Mom` · branch `feature/worlds-6-10`
+**Repo:** `%USERPROFILE%\Desktop\Kinan vs. Mom` · branch `feature/worlds-6-10`
 **Gate:** `cd app && npm run check` (tsc --noEmit → vitest unit → Playwright e2e, 4 browser projects)
 
 This document maps every feel / camera / terrain line from the controlling design sources to the

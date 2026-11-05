@@ -1,5 +1,6 @@
 import { execFileSync } from 'node:child_process';
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
+import { homedir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createContext, runInContext } from 'node:vm';
@@ -17,7 +18,7 @@ runInContext(readFileSync(join(ROOT, 'audio', 'dad-lines.js'), 'utf8'), ctx);   
 const S = ctx.KINAN_STORY as Story, FILES = ctx.KINAN_STORY_FILES as string[];
 const html = readFileSync(join(ROOT, 'index.html'), 'utf8');
 const ARENA = new Set([...(/const ARENA_LINES = \{([\s\S]*?)\n\};/.exec(html)![1]).matchAll(/^\s+([a-z0-9_]+):\s*\[/gm)].map((m) => m[1]));
-const SRC = 'C:/Users/SHADHUNTER/Desktop/Kinan vs Mom/Map Concept/voices/lines';
+const SRC = join(homedir(), 'Desktop', 'Kinan vs Mom', 'Map Concept', 'voices', 'lines');
 
 describe('the story line table', () => {
   it('is what tools/story-lines.mjs writes today (when the voice script is on this machine)', () => {
@@ -50,7 +51,7 @@ describe('the story line table', () => {
   });
   it('the subtitles are plain English with a speaker; Robin speaks as DAD', () => {
     for (const [id, l] of Object.entries(S.lines)) {
-      expect(l[0], id).toMatch(/^[A-Z ]+$/);
+      expect(l[0], id).toMatch(/^[A-Z ]+( \([A-Z ]+\))?$/);   /* 2026-11-03: GRANDMA (EDMONTON), named by her city (answer 9) */
       expect(l[1].length, id).toBeGreaterThan(2);
       expect(l[2], id).toBeGreaterThan(1);
       if (/_robin_\d/.test(id) || id.startsWith('jk_')) expect(l[0], id).toBe('DAD');

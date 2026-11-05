@@ -29,7 +29,7 @@
     box('#eef2f8',X-19,py-29,38,4);px('#b4bcc8',X-19,py-26,38,1);
     /* crown and torch */
     box('#d8dde6',X-11,py-35,22,5);box('#9aa3b2',X-4,py-42,8,7);px('#6f7889',X-4,py-38,8,1);
-    P.label(X-44,Y-84,'CALGARY TOWER');};
+    P.label(X-44,Y-84,'THE CITY TOWER');};
   A.w05_torch=function(t,X,Y){const h=7+Math.round(Math.sin(t/90)*2+Math.sin(t/37));px('#ff8a3d',X-3,Y-h,6,h);px('#f6c445',X-1,Y-h+3,3,h-3);px('#fff3c4',X,Y-3,1,2);};
 
   /* ---------------- THE BOW (curved glass, diagrid) + WONDERLAND head ---------------- */
@@ -152,7 +152,7 @@
       {at:[320,150],name:'5-5  THE PEACE BRIDGE',st:'lock'},
       {at:[850,200],name:"5-6  THE ZOO'S DINOSAUR PARK",st:'lock'},
       {at:[940,198],name:'SECRET  THE BOW RIVER FLOAT',st:'secret'},
-      {at:[590,340],name:'5-7  THE CALGARY TOWER',st:'lock'},
+      {at:[590,340],name:'5-7  THE CITY TOWER',st:'lock'},
       {at:[214,410],name:'5-8  THE SKI JUMP HILL',st:'lock'},
       {at:[566,606],name:'CASTLE  THE GRANDSTAND SHOW  -  BRONCO',st:'boss'}],
     edges:[

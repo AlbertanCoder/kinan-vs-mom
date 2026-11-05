@@ -83,17 +83,10 @@ KinanLevels.register({
             [89, 11], [91, 11], [92, 11], [94, 11],
             [122, 11], [123, 11], [125, 11], [127, 11], [128, 11]],   /* the way out */
   /* story bubbles as Kinan passes a column: [col, who, what they say, seconds] (subtitles only) */
+  /* walk-up trimmed 2026-11-04 (Shad's answer 30): a running kid reaches the boss before more lines can be said; the key line is in the boss intro */
   talk: [
     [1, 'KINAN', "The tech conference! Glitchy's signal goes straight through here, to the main stage.", 3.8],
-    [9, 'ANNIE', "(over the speakers) Attention, everyone: the main stage is closed. A rogue program is loose. Please stay safe!", 4.6],
-    [14, 'MOM', 'Up the keynote riser, sweetie. And say thank you if a robot hands you a sticker.', 3.8],
-    [27, 'SHAD', "Shad here, bud. Annie's firewall is just ahead. Stay calm... She's not mean, bud. She's trying to keep people safe.", 5.4],
-    [33, 'KINAN', 'The robot demo booths! A robot dog, a robot arm, a robot that makes pancakes...', 3.6],
-    [46, 'DAD', "Hop that road case, bud. Those robots are just showing off their byte-sized moves.", 3.6],
-    [53, 'ANNIE', "(over the speakers) Firewall at full power. Deletion drones on standby. Nobody go near that cube!", 4.2],
-    [63, 'CHENOA', "Backstage! Up the scaffold, Kinan. Annie built all of this herself? She's SO smart.", 3.8],
-    [72, 'KINAN', "A big jump between the catwalks. I just have to show Annie who Glitchy really is.", 4],
-    [90, 'SHAD', "The main stage is right through there. Talk to her, Kinan. Annie listens. She always does.", 4.2]
+    [46, 'DAD', "Hop that road case, bud. Those robots are just showing off their byte-sized moves.", 3.6]
   ],
   arena: { col: 96, cols: 24, boss: 'firewall', checkpoint: { col: 88, row: 11 } },   /* 3 phases (the default), one logic lock each */
   spawn: { col: 2, row: 11 },

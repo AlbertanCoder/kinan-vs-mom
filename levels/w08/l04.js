@@ -47,7 +47,7 @@
    ============================================================ */
 KinanLevels.register({
   id: '8-4', world: 8, slot: 4, kind: 'level',
-  name: 'THE CN TOWER GLASS FLOOR',
+  name: 'THE GIANT TOWER GLASS FLOOR',
   theme: 103,   /* Up the CN Tower: the lake and the city far below, the tower's concrete behind */
   cols: 270,
   snatch: true,   /* World 8: raccoons grab a candle and run */
@@ -144,7 +144,7 @@ KinanLevels.register({
   spawn: { col: 2, row: 11 },
   goal: { col: 268, row: 11 },   /* out the tower's doors, toward the toy store */
   talk: [
-    [2, 'DAD', 'The CN Tower! Five hundred and fifty-three metres. The raccoon went all the way UP. Talk about high-jinks!', 4.4],
+    [2, 'DAD', 'The Giant Tower! Five hundred and fifty-three metres. The raccoon went all the way UP. Talk about high-jinks!', 4.4],
     [30, 'KINAN', 'One thousand, seven hundred and seventy-six stairs. I am counting every one.', 3.8],
     [61, 'MOM', 'Hold on, sweetie! When you hear the wind coming, hold on tight!', 3.2],
     [94, 'CHENOA', 'The GLASS FLOOR! You can see the whole city under your feet. I am NOT looking down.', 4],

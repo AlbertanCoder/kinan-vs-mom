@@ -125,7 +125,7 @@ test.describe('World 12 finale', () => {
     const errors = watchErrors(page);
     await page.setViewportSize({ width: 640, height: 360 });
     await boot(page, `${LEVEL_URL}&q=low`);
-    expect(await page.evaluate(() => document.getElementById('titlecard')!.querySelector('h1')!.textContent)).toBe('THE BESSBOROUGH BIRTHDAY FESTIVAL');
+    expect(await page.evaluate(() => document.getElementById('titlecard')!.querySelector('h1')!.textContent)).toBe('THE RIVER CASTLE HOTEL BIRTHDAY FESTIVAL');
     const r = await page.evaluate(() => {
       const g = (window as unknown as Win).GAME!, i = g.info();
       return { enemies: i.enemiesAlive, candles: i.totalCandles, golden: i.totalGolden, side: g.sideInfo(), labels: Object.values(g.family.members).map((m) => m.label).sort(), locked: g.entities.goal!.locked, fuses: g.festival.fuses.length, belt: !!g.player!.model.getObjectByName('Kinan_belt') };
