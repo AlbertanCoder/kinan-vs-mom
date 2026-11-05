@@ -147,7 +147,7 @@
       [172, 'MOM', "Robin, save one joke for later. The next wall is the Guardian's. Be careful.", 3.8, 'walkoff'],
       [226, 'ANNIE', "That great wall of fire-pixels is the Core Guardian. I can read its code: it is afraid, not angry.", 4.6],
       [229, 'KINAN', "The Guardian... Glitchy's heart is right behind it. Let's find out what it wants.", 4.2],
-      [258, 'SHAD', "The core is up ahead. Glitchy's in there somewhere, bud. Whatever happens next... we're all with you.", 4.2]
+      [256, 'SHAD', "The core is up ahead. Glitchy's in there somewhere, bud. Whatever happens next... we're all with you.", 4.2, 'hold']   /* 2026-11-04 final QC: was c258, the goal's own column (never heard); now just past the Guardian's right gate (c256), and Kinan stands for it */
     ]
   });
 })();

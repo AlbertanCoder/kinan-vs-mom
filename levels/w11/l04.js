@@ -181,7 +181,7 @@
       [176, 'SHAD', "A 5 gap next, bud. Take a running start. The checkpoint's right behind you.", 4],
       [236, 'CHENOA', "Open ground ahead. I think I hear a big roar, little bro. The baby knows that voice!", 4.4],
       [240, 'KINAN', "Her field! The baby's peeping like crazy. Mama T-Rex, we're bringing your baby home.", 4.4],
-      [268, 'MOM', "Look at them together. Every mama just wants her little one safe.", 3.6]
+      [266, 'MOM', "Look at them together. Every mama just wants her little one safe.", 3.6, 'hold']   /* 2026-11-04 final QC: was c268, the goal's own column, so the level cleared the instant it triggered (never heard); now just past the arena's right gate (c266), and Kinan stands for it */
     ]
   });
 })();
