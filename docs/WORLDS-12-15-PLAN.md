@@ -6,21 +6,11 @@ answered (docs/SEASON-2-PLAN.md): after World 11 every world is its own country,
 Kinan follows; India (Annie's home) and Japan were in the original; Shad picked Mexico and France. If the original is
 found, it wins and this plan is changed to match.
 
-## The story so far, and the turn
-Worlds 1-11: Glitchy bursts out of Shad's present and runs across Canada; Kinan chases it world by world; in World 11
-(Inside the Console) Glitchy's Last Stand ends with Glitchy becoming Kinan's friend.
-**The turn (end of World 11, replaces the 2D-to-3D change):** the broken console sparks once more and opens a **world
-portal**. It pulls Glitchy in. Glitchy's voice comes from far away ("KINAN! IT'S HOT HERE... AND THERE ARE ELEPHANTS?!").
-**Annie** knows those sounds: India, her family's home. The family packs, and the map's last road ends at an **airport**.
-From then on: **the portal keeps hopping**. In each country Glitchy is stuck somewhere famous and the portal's glitch bends
-the place taller and deeper (Season 2's rule, docs/SEASON-2-PLAN.md). Kinan follows him country to country. At each castle
-Kinan frees Glitchy, the portal yanks him away again, a clue says where. **World 15 (France):** Kinan reaches the
-portal's core at the top of Paris, frees Glitchy for good and closes it. They fly home; a teaser points at the next 7
-worlds (16-22).
-**Who travels:** Kinan, Glitchy (when free), **Annie** (she joins in India and stays for the trip; Japan is her dream),
-**Shad** (Mexico is his), the **cat and dog** (always both). Sabumnim talks over video call and teaches each world's new move.
-**Travel on the map:** a **plane route**: the airport stop at the end of each world, the plane flies over the sea to the
-next country's map (like the bus and boat road trips).
+## The story
+The full story, World 1 to World 22, is **docs/STORY-BIBLE.md** (the end of World 11 now: home in 2D, the birthday
+party at the Bessborough, Shad's glowing globe, Glitchy pulled into its portal; the whole family flies after him; Annie
+grew up in India and dreams of Japan; Mexico is Shad's world; Mom and Dad's "city of love" gag in Paris; Chenoa in the art
+museum; Glitchy learns a word in every country; Sabumnim on video calls). This page is the levels.
 
 ## The rules every new world follows
 - 11 stops: 8 levels, a fort, a secret, a castle. **1-2 chases** per world. **Bosses: fair but real** (4 stomps, quicker
