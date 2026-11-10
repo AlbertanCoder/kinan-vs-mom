@@ -17,8 +17,8 @@ the place taller and deeper (Season 2's rule, docs/SEASON-2-PLAN.md). Kinan foll
 Kinan frees Glitchy, the portal yanks him away again, a clue says where. **World 15 (France):** Kinan reaches the
 portal's core at the top of Paris, frees Glitchy for good and closes it. They fly home; a teaser points at the next 7
 worlds (16-22).
-**Who travels:** Kinan, Glitchy (when free), **Annie** (she joins in India and stays for the trip), the **cat and dog**
-(always both). Sabumnim talks over video call and teaches each world's new move.
+**Who travels:** Kinan, Glitchy (when free), **Annie** (she joins in India and stays for the trip; Japan is her dream),
+**Shad** (Mexico is his), the **cat and dog** (always both). Sabumnim talks over video call and teaches each world's new move.
 **Travel on the map:** a **plane route**: the airport stop at the end of each world, the plane flies over the sea to the
 next country's map (like the bus and boat road trips).
 
@@ -47,7 +47,12 @@ Candles become **ladoos**. Backdrops: Diwali lights, kites over the rooftops. Ch
 11. CASTLE: THE GATEWAY — the **Monsoon Frog**, a giant frog in a flooding arena (rising water, lily pads); free Glitchy;
     the portal yanks him to Japan.
 
-## World 13 — JAPAN
+## World 13 — JAPAN (Annie's dream trip)
+**Annie absolutely loves Japan** (Shad, 2026-11-10) and has always wanted to see Tokyo: here she is beside herself, the
+happiest she is all game. She bounces off the plane, knows the places, greets people politely with the Japanese words she
+learned, can't wait to try the food (dango, ramen, onigiri), and points out everything she loves about the culture. Her
+lines in this world are her most excited ones; she cheers Kinan on in every level, and the castle's win is partly hers
+(she has the idea that calms the Big Tanuki). Warm and respectful: her joy is about the people, the places and the culture.
 Move: **ROPES AND MONKEY BARS** (swing on ropes over gaps, go hand over hand along bars). Tool: **grappling hook**.
 Candles become **dango**. Backdrops: cherry blossoms, lanterns, Tokyo neon. Chase: **the Mount Fuji avalanche**.
 1. 13-1 TOKYO NEON: Shibuya crossing, signs, rooftops; Sabumnim teaches ropes.
@@ -63,7 +68,11 @@ Candles become **dango**. Backdrops: cherry blossoms, lanterns, Tokyo neon. Chas
 11. CASTLE: THE TANUKI'S TEMPLE GROUNDS — the **Big Tanuki** (a raccoon-dog from the old stories, a shape-changer);
     free Glitchy; the portal yanks him over the Pacific to Mexico.
 
-## World 14 — MEXICO
+## World 14 — MEXICO (Shad's world)
+**Shad has always wanted to go to Mexico** (Shad, 2026-11-10) for the culture, the food and the history. In the game big
+brother Shad is the one most excited here: he's read up on the pyramids and the old cities, can't wait to try everything
+at the market (churros, tacos, elote, tamales), loves the music and the colours, and tells Kinan a bit of the history at
+the pyramid, the dig site and Chichen Itza. Warm and respectful, about the people, the food and the history.
 Move: **DASH KICK** (a taekwondo flying kick through the air: crosses gaps, breaks cracked walls). Tool: **shovel** (dig
 soft ground for buried candles and tunnels). Candles become **churros**. Backdrops: papel picado banners, Day of the
 Dead marigolds, alebrije colours. Chase: **rising lava** in the volcano.
@@ -80,6 +89,7 @@ Dead marigolds, alebrije colours. Chase: **rising lava** in the volcano.
 11. CASTLE: THE CRATER'S HEART — the **Lava Iguana**; free Glitchy; the portal yanks him over the Atlantic to France.
 
 ## World 15 — FRANCE (the Season 2 finale)
+(No romance angle: Shad, 2026-11-10.)
 Move: **GLIDE** (a jacket that opens like a kite: glide down from high places, steer, ride updrafts). Tool:
 **skateboard** (fast streets, ramps). Candles become **croissants** (and macarons for golden ones). Backdrops: Paris
 lights, lavender fields. Chase: **something big chasing** up the tower and through the sewers.
