@@ -11,6 +11,8 @@ L = lv('13-1', 1, 'TOKYO NEON', 320)
 a = L.act('THE BIG CROSSING')
 a.say(2, 'ANNIE', "TOKYO! We are REALLY in Tokyo! I have watched SO much anime set here. I know every street!")
 a.say(9, 'ANNIE', 'Konnichiwa! That means hello. Everyone, bow a little, like this. So polite!')
+a.say(15, 'KINAN', 'A man just gave me a free sticker! Arigato!')
+a.say(19, 'ANNIE', 'Kinan! The WHOLE thing! Arigato GOZAIMASU. That is the polite way. Say it all!', 3.4)
 a.run(14); a.shelves(); a.gap(3); a.run(10, fly=True); a.stairs(); a.run(10)
 a.say(a.c - 4, 'KINAN', 'A video call from Sabumnim! At night? It is morning in Canada!')
 a.say(a.c - 1, 'SABUMNIM', 'Kinan. Today: ropes. Jump and hold on. Push with the swing, and let go at the top.', 4.2)
@@ -93,7 +95,8 @@ a.say(14, 'ANNIE', 'And it was TRUE every time!')
 a.run(16); a.shelves(); a.rings(10); a.run(10, fly=True); a.tunnel(8); a.run(12)
 a = L.act('THE KITCHEN')
 a.say(3, 'DAD', 'These robots are so polite. One said "arigato" to ME. I think I am in love... with this cafe.')
-a.say(9, 'MOM', 'Robin!')
+a.say(9, 'ANNIE', 'Robin, it said arigato GOZAIMASU. The whole thing! Robots have manners.')
+a.say(14, 'MOM', 'Robin!')
 a.run(12, hidden=True); a.bars(11); a.run(8); a.highblock(); a.ropes(10); a.run(10); a.rings(11); a.run(10)
 a = L.act('THE SERVER ROOM')
 a.extra['dark'] = 'torch'
@@ -110,7 +113,8 @@ a = L.act('THE LANTERN GARDEN')
 a.say(3, 'ANNIE', 'In Japan, gardens are made to be calm. Everything has its place. Kirei... so pretty.')
 a.run(12, hidden=True); a.bars(10); a.pool(10, golden=True); a.rings(10); a.run(10); a.shelves(visible='heart'); a.run(10)
 a = L.act('THE TEA HOUSE')
-a.say(3, 'MOM', 'A cup of green tea after this. Mom needs a little calm too.')
+a.say(3, 'MOM', 'A cup of green tea after this. Mom needs a little calm too. Arigato!')
+a.say(8, 'ANNIE', 'GOZAIMASU, Mom! ...Okay, okay. I will stop. ...I will not stop.')
 a.run(12); a.ropes(11); a.run(8); a.pool(10); a.tunnel(8); a.run(12)
 L.write(OUT + 'l06.js', HD)
 
@@ -125,6 +129,8 @@ a.say(3, 'KINAN', 'The steam pushes me up like a spring! Whoosh!')
 a.run(10); a.spring(visible='heart'); a.pool(10); a.run(10, hidden=True); a.ropes(10); a.run(10); a.rings(10); a.run(10)
 a = L.act('THE MONKEY BATHS')
 a.say(3, 'DAD', 'Those monkeys look so relaxed. Can I join them? ...Mom says no.')
+a.say(9, 'DAD', 'Arigato... gozai... gozaimasu! Annie, did I do it?')
+a.say(14, 'ANNIE', 'Robin! Sugoi! I am SO proud of you!')
 a.run(12, foes=2); a.pool(12, golden=True); a.chimney(); a.run(8); a.bars(11); a.run(12)
 L.write(OUT + 'l07.js', HD)
 
@@ -163,9 +169,10 @@ a.run(6)
 shaft(a, 'glitch', 'samurai', floors=5, conns=['ladder', 'vine'], after=[
     ['ANNIE', 'He bowed! Kinan, bow back! Samurai bowed before AND after a match, to say thank you.', 3.6],
     ['KINAN', 'Thank you for the match, sir. ...Annie, you are the BEST tour guide ever.', 3.2],
-    ['GLITCHY', 'Kinan! Arigato! ARIGATO! Annie says it means thank you!', 3.2],
+    ['GLITCHY', 'Kinan! Arigato... GOZAIMASU! The WHOLE thing! Just like Annie said!', 3.2],
+    ['ANNIE', 'Glitchy said the whole thing! I am going to cry. Happy tears!', 3],
     ['KINAN', 'The globe again! The portal is pulling him out over the ocean!', 3.2],
-    ['ANNIE', 'Japan... you were even better than my dreams. Arigato!', 3],
+    ['ANNIE', 'Japan... you were even better than my dreams. Arigato gozaimasu!', 3.2],
     ['SHAD', 'Hot sun, cactus, pyramids... bud, that is MEXICO. My dream trip! Let\'s go!', 3.6]])
 L.write(OUT + 'castle.js', HD)
 print('w13 written')

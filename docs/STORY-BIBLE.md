@@ -49,7 +49,8 @@ from that country's language each time — funny and sweet).
   hanami, onsen), and she wears a rented kimono at the Thousand Gates. Move: ropes and monkey bars. Chase: the Mount Fuji
   avalanche. Castle: Himeji, the White Heron Castle: an old suit of SAMURAI ARMOUR the glitch woke up (a thing, not a
   person); calmed, it bows, and Annie tells Kinan to bow back, the way samurai thanked each other after a match. Glitchy:
-  "Arigato!" The portal pulls him over the Pacific.
+  "Arigato... GOZAIMASU!" (Annie's running joke all through Japan: say the WHOLE thing, it is the polite way).
+  The portal pulls him over the Pacific.
 - **World 14 — MEXICO, Shad's world.** Shad has always wanted to come: the food (churros, tacos, elote, tamales), the
   music and colours, the history (he tells Kinan about the pyramids and the old cities). Move: dash kick. Chase: rising
   lava in the volcano. Castle: the Lava Iguana. Glitchy: "¡Hola, amigos!" The portal pulls him over the Atlantic.

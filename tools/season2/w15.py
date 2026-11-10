@@ -151,7 +151,7 @@ a.say(2, 'GLITCHY', '(from the very top) Kinan! The big stone one is guarding th
 a.run(6)
 shaft(a, 'glitch', 'gargoyle', floors=5, conns=['vine', 'ladder'], after=[
     ['GLITCHY', 'The portal... it is closing! Kinan! I am FREE!', 3],
-    ['GLITCHY', 'Namaste. Arigato. Hola. And... merci. Merci, famille.', 3.8],
+    ['GLITCHY', 'Namaste. Arigato gozaimasu. Hola. And... merci. Merci, famille.', 3.8],
     ['KINAN', 'Glitchy... that was your best word EVER. Come on. Let\'s go home.', 3.4],
     ['DAD', 'Everybody to the airport! ...Mom, one last dance under the tower first?', 3.4],
     ['KINAN', 'COME ON, you guys! ...okay. ONE dance.', 3]])
