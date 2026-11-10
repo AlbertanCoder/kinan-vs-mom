@@ -54,6 +54,36 @@ one tested, played by Shad, then pushed live ("small updates often"). Shad decid
 7. Puzzles: switches and doors, water levels, friend teamwork, crates and ropes.
 8. New worlds (mountains, ocean, towers, caves), tall boss arenas, mini-games; a challenge stop on each old world's map.
 
+## The Builder gets all of it (Shad, 2026-11-10)
+Menu › More games › Builder gets a massive upgrade alongside the game: **everything Season 2 adds to the game also comes to
+the Builder** (tall and deep levels, ladders, pipes / chutes / doors, secret rooms, rides, wall jumps, climbing, water ...).
+The rule: **you can only build what Kinan has learned in the game.** A piece unlocks in the Builder once the player has
+met it or learned it in the story (no wall-jump walls before Sabumnim teaches the wall jump, no deep levels before the
+first deep level). The Builder must stay **super simple to use, with tutorials**, and also be **powerful enough to make
+any level or world** Shad or Kinan want. Shad's Builder answers:
+
+| Topic | Decision |
+|---|---|
+| Who it's for | **Kinan (11)**: big buttons, simple words, fun first |
+| Unlock rule | Pieces not learned yet show **locked, with a hint** ("Learn the wall jump in World 12 first") |
+| Teaching | A first-time **guided build** with a friend, a **30-second lesson per new piece**, **example levels** to open and pull apart, and the ❓ help on every tool |
+| Size | **Same as the real game** (as long, and as tall / deep, as story levels) |
+| Worlds | He can build **whole worlds with his own world map** (several levels, a castle at the end), played on the **Builder's own map**, separate from the story |
+| Sharing | A **share code / QR code** (like Move my save; no accounts, nothing online) |
+| Characters | **Bosses he has befriended** (in a boss arena), **friends and pets** that follow and help, **talking characters** with lines he types |
+| Placing big pieces | **Drag and connect**: place a pipe, drag a line to where it leads; drag a box to fill water |
+| Timing | **Right alongside the game**: each session that adds a piece to the game adds it to the Builder too |
+| Helpers | A **"Can I beat it?" robot check**, **friendly warnings** (no start flag, a pit with no way out), **auto-decorate** |
+| Drawing | **Pixel-art blocks**, **his own enemies / characters** (draw it, pick how it moves), **backgrounds** |
+| Controls | **Big and simple**: one finger to place, two to scroll and zoom, easy undo |
+| Rewards | **Small rewards**: a lesson or his first level earns a hat or candles for the Party Shop |
+| Music | **Any song he has heard in the story** so far |
+| Must not change | **His saved levels** all still open and play; **today's tools stay where they are** (new ones go around them) |
+
+## Releases and checking
+Ship in small pieces as each is ready. At the end, either another model or Claude goes through the entire game and checks
+everything once more.
+
 ## Progress
 - 2026-11-10: plan agreed. Jump to a level shipped (separate request).
 - 2026-11-10: **step 1 started — tall levels.** A level file can say `up: N` for N extra rows above (up to four screens
