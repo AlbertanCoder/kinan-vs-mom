@@ -752,6 +752,9 @@ html.sideways .hud .iconbtn.menubtn{width:auto;min-width:76px;font-size:13px}
 .jgrid .mitem.beat small{color:#7fe08a}
 .jgrid .mitem.open small{color:var(--gold)}
 .jtip{margin:0 0 8px;text-align:center;color:var(--dim)}
+/* Season 2: the test level's end card */
+.s2card{text-align:center;display:grid;gap:8px;justify-items:center}.s2big{font-size:28px;font-weight:700;margin:0;color:var(--gold)}
+.s2tab{border-collapse:collapse;font-size:14px}.s2tab td,.s2tab th{padding:3px 10px;border-bottom:1px solid var(--panel2)}
 #owHost .km-btn.km-jump{background:#2a7fd0;font-size:18px;min-width:84px;letter-spacing:.04em}
 @media (orientation:portrait) and (max-width:700px){#owHost .km-side{gap:8px}#owHost .km-btn.km-jump{min-width:0;padding:0 10px;font-size:16px}#owHost .km-play{min-width:96px}}
 @media (orientation:portrait) and (max-width:380px){#owHost .km-btn{min-width:58px}#owHost .km-btn.km-jump{min-width:0;padding:0 8px;font-size:14px}#owHost .km-play{min-width:84px}}
@@ -2865,7 +2868,8 @@ const FOE = {
      stomp only knocks one OFFLINE. Penguins waddle in the Biodome's cold zone. */
   scanner: { beh: 'flyer', kind: 'scanner', color: '#e8eef6', drone: true, scan: true },
   deleter: { beh: 'flyer', kind: 'deleter', color: '#f2d6d6', drone: true, chase: true },
-  penguin: { beh: 'walker', kind: 'penguin', color: '#1f2430', spd: 0.5 }
+  penguin: { beh: 'walker', kind: 'penguin', color: '#1f2430', spd: 0.5 },
+  fish: { beh: 'flyer', kind: 'flyingfish', color: '#4f9fe8', swim: true }   /* Season 2: a fish that swims back and forth underwater (any depth) */
 };
 /* ============================================================
    LEVEL BUILDER — seeded chunks, guaranteed set pieces
@@ -2995,7 +2999,7 @@ function buildLevel(def) {
   const gi = (x, y) => (y + up) * w + x;
   const foes = [], candles = [], gifts = {}, areas = [], seams = [], pipes = [], secretList = [], boards = new Set(), slabs = new Map(), pipeCells = new Set();
   let checkpoint = null, golden = null, goal = null, spawn = def.spawn || null, base = 0, lastH = 192, arenaAt = null, petCrate = null;
-  const s2 = { moves: !!def.moves, climbs: [], water: [], warps: [] };   /* Season 2 moves (block "SEASON 2 MOVES") */
+  const s2 = { moves: !!def.moves, climbs: [], water: [], warps: [], cps: [], dark: [], bosses: [], stats: { actT: [], deaths: [] } };   /* Season 2 moves (block "SEASON 2 MOVES") */
   const tw = { on: false, t: 0, movers: [], pairs: [], swAt: {}, onB: [], offB: [], sw: 0, swCd: 0, magnets: [], signCols: [], signs: null, skins: [], rush: !!def.rush, storm: def.storm == null ? null : def.storm,
     belts: [], fish: false, subway: !!def.subway };   /* World 8: conveyor belts, the aquarium's fish, silver subway cars */
   list.forEach((a, k) => {
@@ -3136,7 +3140,7 @@ function buildLevel(def) {
     tw: tw.on || tw.rush || tw.storm != null ? tw : null,   /* World 7 twists (null: the level plays exactly as before) */
     snatch: !!def.snatch,   /* World 8: raccoons grab a candle and run (stomp or kick one to get it back); off everywhere else */
     arena: arena,   /* B1: the boss arena (null in a level without one); its gates are its own — arenaX stays out of reach */
-    s2: s2.moves || s2.climbs.length || s2.water.length || s2.warps.length ? s2 : null   /* Season 2 moves (null: the level plays exactly as before) */
+    s2: s2.moves || s2.climbs.length || s2.water.length || s2.warps.length || s2.cps.length || s2.dark.length || s2.bosses.length ? s2 : null   /* Season 2 moves (null: the level plays exactly as before) */
   };
 }
 /* a secret's prize words ('heart+candles', 'hat', 'GOLDEN CANDLE') -> pickup kinds */
@@ -3215,7 +3219,7 @@ function levelReturn() {
   toastHold = 0;   /* the lap is over: menus may speak again */
   running = false; Music.stop();
   /* Season 2: a lab level (?lab=...) is a test: it saves nothing and goes back to the map as it was */
-  if (window.KinanLevels && KinanLevels.isLab && KinanLevels.isLab(L.levelId)) { worldMapScreen({ notice: 'PLAYGROUND DONE!' }); return; }
+  if (window.KinanLevels && KinanLevels.isLab && KinanLevels.isLab(L.levelId)) { if (L.s2) s2Card(); else worldMapScreen({ notice: 'PLAYGROUND DONE!' }); return; }   /* the end-of-level card (Season 2) */
   /* back to the SMW overworld map (Producer ruling 2026-10-27): the level counts as beaten there and the next stop opens */
   worldMapScreen(owLevelBeaten(L.levelId, got, L.secretExitTo || null));
 }
@@ -9239,7 +9243,7 @@ function makeFoe(f) {
     face: -1, baseY: 0, originX: 0, cool: 0
   };
   if (f.vx != null) o.vx = f.vx;
-  if (def.beh === 'flyer') { o.baseY = clamp(o.y, 26 - (L.up | 0) * T, 150); o.y = o.baseY; o.originX = o.x; o.vx = -0.75; }
+  if (def.beh === 'flyer') { o.baseY = def.swim ? o.y : clamp(o.y, 26 - (L.up | 0) * T, 150); o.y = o.baseY; o.originX = o.x; o.vx = def.swim ? -0.6 : -0.75; }
   if (def.beh === 'thrower') { o.vx = 0; o.h = 17; o.y -= 4; o.w = 13; }
   if (f.type === 'bully') { o.h = 17; o.w = 11; o.y -= 4; }
   if (def.beh === 'charger') o.face = -1;
@@ -9786,6 +9790,7 @@ function drawGlitchyHelper() {
 }
 function levelRespawn() {
   deaths++;
+  if (L.s2) s2Respawn();   /* Season 2: count the try for its act; a lost boss fight starts fresh */
   breakCombo();
   /* B1: a lost boss fight counts at the arena's door (one spot for the helper) and starts fresh on re-entry */
   if (L.arena && L.arena.state === 'fight') { L.deathX = L.arena.spotX; arenaReset(L.arena); }
@@ -9795,6 +9800,7 @@ function levelRespawn() {
   shots = []; dad = null; bro = null;
   P.x = spawn.x; P.y = spawn.y;   /* the checkpoint once he touched it, else the level's start */
   lastSafe = { x: P.x, y: P.y };
+  if (L.s2) { P.s2climb = null; P.s2ledge = null; P.s2swim = false; P.s2vy = null; P.s2warp = null; s2CamSnap(); }
   camX = clamp(Math.round(P.x - W * 0.42), 0, Math.min(L.w * T - W, (L.arenaX + L.arenaW + 1) * T - W));
   trail = []; updHud();
   toastHold = 0;
@@ -9910,7 +9916,9 @@ function giveItem(kind) {
   else if (kind === 'umbrella') { P.umbrella = true; SFX.power(); toast('☂️ <b>UMBRELLA!</b> Hold JUMP while you fall to float down slowly.', 2600); }
   else if (kind === 'candles') { addCandle(5); SFX.candle(); pop(P.x, P.y - 14, '+5', 40, null, true); }   /* a secret's bonus candles */
   else if (kind === 'gold') {   /* ER-6: the golden candle, the rare big prize — saved per level the moment it is found */
-    const id = L && L.authored ? L.levelId : null, fresh = !!id && !goldenHas(id);
+    const lab = !!(L && L.levelId && window.KinanLevels && KinanLevels.isLab && KinanLevels.isLab(L.levelId));   /* a test level never saves one */
+    if (lab && L.s2) L.s2.goldGot = true;
+    const id = L && L.authored && !lab ? L.levelId : null, fresh = !!id && !goldenHas(id);
     if (fresh) { progress.goldenCandles = progress.goldenCandles || {}; progress.goldenCandles[id] = 1; save(); }
     SFX.win(); flashScreen();
     toast('<i class="candle-ico gold"></i> <b>GOLDEN CANDLE!</b> ' + (fresh ? 'Saved: ' + goldenTotal() + ' found so far.' : 'You already found this one.'), 2600);
@@ -10844,6 +10852,7 @@ function s2Build(a, base, s2, set, gi, pipeCells) {
     if (kind === 'chute') { set(col, w.row, 5); pipeCells.add(gi(col, w.row)); }
     s2.warps.push(wp);
   }
+  s2BuildMore(a, base, s2);   /* the adventure pieces: act checkpoints, a dark mine, the bosses */
 }
 /* where Kinan stands on / in a warp: a pipe's 2-tile top, a chute's hatch, a doorway (2 tiles tall above its floor row) */
 function s2WarpUnder() {
@@ -11061,6 +11070,282 @@ function drawS2Front() {
     ctx.fillStyle = 'rgba(20,70,150,.25)'; ctx.fillRect(x0, r.y0 + 24, x1 - x0, Math.max(0, r.y1 - r.y0 - 24));
     for (let x = x0; x < x1; x += 4) { const k = Math.round(Math.sin((x + ox) / 7 + frame / 12) * 1.5); ctx.fillStyle = 'rgba(214,240,255,.85)'; ctx.fillRect(x, r.y0 + k, 4, 2); }
   }
+}
+
+/* ============================================================
+   SEASON 2 ADVENTURE PIECES (2026-11-10, the ?lab=adventure test level; docs/SEASON-2-PLAN.md "The adventure test level").
+   In a level file's area:
+     s2checkpoints [[col, row]] · dark: true (a dark mine: only a pool of light round Kinan)
+     s2boss { kind: 'mole', col0, col1, rowTop, holes: [[col, row]] }   the giant mole of the mine: he pops out of one hole at
+        a time (the mound shakes first), stomp him while he is up; smarter each hit (shorter tells, a rock from phase 2,
+        a fake shaking mound in phase 3); 3 hits and he is a friend and the right wall opens
+     s2boss { kind: 'tide', col0, col1, startCol, stopRow, summitRow, crab: [col0, col1], gateCol }   the glitch tide: it
+        rises behind Kinan up the sea cave once he walks in (it stings, it never drowns him); at the top KING CRAB: claws up
+        (the tell), a charge across, then TIRED (gold ▼): stomp him; bubbles from phase 2, a floor shockwave in phase 3;
+        3 hits and he is a friend, the tide drains and the gate to the goal opens
+   Same rules as every boss in the game: dumb first, smarter after each hit, every attack shown first, no game over (the
+   fight starts over from its checkpoint).
+   ============================================================ */
+function s2BuildMore(a, base, s2) {
+  for (const [c, r] of a.s2checkpoints || []) s2.cps.push({ x: (base + c) * T, y: r * T, tx: base + c, ty: r, hit: false });
+  if (a.dark) s2.dark.push([base * T, (base + a.cols) * T]);
+  const b = a.s2boss;
+  if (!b) return;
+  if (b.kind === 'mole') {
+    s2.bosses.push({ kind: 'mole', x0: (base + b.col0) * T, x1: (base + b.col1 + 1) * T, gateL: base + b.col0, gateR: base + b.col1, rTop: b.rowTop, rBot: 11,
+      holes: b.holes.map(([c, r]) => ({ x: (base + c) * T + T / 2, y: (r + 1) * T })), state: 'wait', hits: 0, t: 0, rocks: [], hole: null, fake: null });
+  } else if (b.kind === 'tide') {
+    s2.bosses.push({ kind: 'tide', x0: (base + b.col0) * T, x1: (base + b.col1 + 1) * T, startX: (base + b.startCol) * T, bottom: 12 * T, stopY: b.stopRow * T,
+      summitY: b.summitRow * T, cx0: (base + b.crab[0]) * T, cx1: (base + b.crab[1] + 1) * T, gateCol: base + b.gateCol, gateTop: b.summitRow - 7, lockGoal: true,
+      state: 'wait', tideY: 12 * T + 40, hits: 0, t: 0, crab: null, bubbles: [], waves: [] });
+  }
+}
+function s2Gate(col, r0, r1, shut) { const up = L.up | 0; for (let r = r0; r <= r1; r++) { const i = (r + up) * L.w + col; if (i >= 0 && i < L.g.length) L.g[i] = shut ? 5 : 0; } }
+const s2GoalLocked = () => !!(L.s2 && L.s2.bosses.some((b) => b.lockGoal && b.state !== 'friend'));
+function s2Say(who, text, secs) { toastHold = 0; toast('<b>' + escAttr(who) + ':</b> ' + escAttr(text), Math.round((secs || 2.4) * 1000)); }
+function s2Banner(text) { pop(P.x - 40, P.y - 30, text, 80, '#f6c445'); SFX.power(); }
+/* once a frame after Kinan moves: checkpoints, the act clock, the bosses */
+function s2After() {
+  const S = L.s2;
+  for (const c of S.cps) if (!c.hit && P.x >= c.x && Math.abs(P.y + P.h - c.y) < 4 * T) {
+    c.hit = true; cpHit = true; spawn = { x: c.x, y: c.y - P.h };
+    SFX.flag(); toast('<b>CHECKPOINT!</b> 🚩', 1300); sparks(c.x + 6, c.y - 10, 12, ['#44c55a', '#fff', '#f6c445']);
+  }
+  if (L.areas) { const k = L.areas.findIndex((a) => P.x >= a.from * T && P.x < a.to * T); if (k >= 0 && S.stats.actT[k] == null) S.stats.actT[k] = stageTime; }
+  for (const B of S.bosses) { if (B.kind === 'mole') s2MoleTick(B); else s2TideTick(B); }
+}
+function s2BoxHit(box) {   /* 1 = a stomp from above, -1 = bumped into it, 0 = no touch */
+  if (!overlap(P, box)) return 0;
+  return P.vy > 0 && (P.prevBottom || P.y + P.h) <= box.y + 7 ? 1 : -1;
+}
+/* ---- THE GIANT MOLE ---- */
+function s2MoleBox(B) { const h = B.hole; return { x: h.x - 11, y: h.y - 18, w: 22, h: 18 }; }
+function s2MoleTick(B) {
+  const ph = Math.min(2, B.hits), TELL = [62, 48, 38][ph], UP = [130, 100, 84][ph], REST = [56, 44, 34][ph];
+  for (const r of B.rocks) { r.x += r.vx; r.vy += 0.17; r.y += r.vy; r.t++; if (overlap(P, { x: r.x - 3, y: r.y - 3, w: 6, h: 6 })) { hurt({ x: r.x, y: r.y }); r.dead = 1; } else if (r.t > 8 && solid(Math.floor(r.x / T), Math.floor(r.y / T))) { r.dead = 1; sparks(r.x, r.y, 4, ['#8a6a4a', '#c9a27a']); } }
+  B.rocks = B.rocks.filter((r) => !r.dead && r.t < 240);
+  if (B.state === 'wait') {
+    if (P.x > B.x0 + 2 * T && P.x < B.x1 - 2 * T && !P.dead) {
+      B.state = 'hidden'; B.t = 90; s2Gate(B.gateL, B.rTop, B.rBot, true); s2Gate(B.gateR, B.rTop, B.rBot, true);   /* both walls shut for the fight */
+      Music.play('boss'); s2Say('MR. MOLE', 'WHO is stomping around in MY mine?!', 2.6);
+    }
+    return;
+  }
+  if (B.state === 'friend') { if (B.t > 0) B.t--; return; }
+  if (B.hitCd > 0) B.hitCd--;
+  if (--B.t > 0 && B.state !== 'up') return;
+  if (B.state === 'hidden' && B.t <= 0) {
+    const holes = B.holes.slice(), near = holes.slice().sort((a, b) => Math.hypot(a.x - P.x, a.y - P.y) - Math.hypot(b.x - P.x, b.y - P.y));
+    let pickH = ph === 0 ? pick(holes) : pick(near.slice(0, 3));   /* smarter: he comes up near Kinan */
+    if (B.hole && pickH === B.hole) pickH = holes[(holes.indexOf(pickH) + 1) % holes.length];
+    B.hole = pickH; B.fake = ph === 2 ? pick(holes.filter((h) => h !== pickH)) : null;
+    B.state = 'tell'; B.t = TELL;
+    AudioSys.noise(0.25, { filter: 'lowpass', freq: 400, vol: 0.08 });
+  } else if (B.state === 'tell' && B.t <= 0) {
+    B.state = 'up'; B.t = UP; B.threw = false; B.fake = null;
+    SFX.pop(); sparks(B.hole.x, B.hole.y - 4, 8, ['#8a6a4a', '#c9a27a', '#fff']);
+  } else if (B.state === 'up') {
+    B.t--;
+    if (ph >= 1 && !B.threw && B.t < UP - 34) {   /* phase 2+: a rock, lobbed at where Kinan stands (wound up while he is up) */
+      B.threw = true; const dx = P.x + P.w / 2 - B.hole.x, n = 46;
+      B.rocks.push({ x: B.hole.x, y: B.hole.y - 20, vx: dx / n, vy: -4.2 + (P.y - B.hole.y) / n * 0.5, t: 0 });
+      AudioSys.tone(320, 0.08, { vol: 0.08, slide: 160 });
+    }
+    const hit = s2BoxHit(s2MoleBox(B));
+    if (hit === 1 && !(B.hitCd > 0)) {
+      B.hits++; B.hitCd = 30; P.vy = -6.6; P.cuttable = false; SFX.stomp(); flashScreen();
+      pop(B.hole.x - 12, B.hole.y - 34, 'BONK!', 40, '#f6c445'); sparks(B.hole.x, B.hole.y - 20, 12, ['#f6c445', '#fff']);
+      if (B.hits >= 3) {
+        B.state = 'friend'; B.t = 180; s2Gate(B.gateR, B.rTop, B.rBot, false); s2Gate(B.gateL, B.rTop, B.rBot, false); Music.play('stage');
+        s2Say('MR. MOLE', 'Okay, okay! You win, kid. Friends? The way out is open!', 3.2); SFX.win();
+        for (let k = 0; k < 6; k++) part(B.hole.x + rand(-10, 10), B.hole.y - 24, { vx: rand(-0.4, 0.4), vy: -0.6, life: 50, size: 2, color: '#ff6fae', glow: true, g: 0 });
+        addCandle(10); pop(P.x, P.y - 20, '+10', 50, null, true);
+      } else { B.state = 'hidden'; B.t = 70; s2Banner(B.hits === 1 ? 'THE MOLE IS GETTING SMARTER!' : 'HE IS EVEN SMARTER NOW!'); }
+      return;
+    } else if (hit === -1) hurt({ x: B.hole.x, y: B.hole.y });
+    if (B.t <= 0) { B.state = 'hidden'; B.t = REST; }
+  }
+}
+/* ---- THE GLITCH TIDE AND KING CRAB ---- */
+function s2TideTick(B) {
+  if (L.s2.freeze) return;   /* developer tests: hold the tide while one climb is checked */
+  const inShaft = P.x + P.w > B.x0 && P.x < B.x1;
+  if (B.state === 'wait') {
+    if (P.x > B.startX && inShaft && !P.dead) {
+      B.state = 'rise'; B.tideY = B.bottom + 56; Music.play('boss');   /* about 3 s before it reaches the floor */
+      s2Say('GLITCHY', "Uh oh... that's my old GLITCH WATER! Don't let it touch you. CLIMB!", 3);
+    }
+    return;
+  }
+  if (B.state === 'rise' || B.state === 'crab') {
+    if (B.state === 'rise') {
+      const k = clamp((B.bottom - B.tideY) / Math.max(1, B.bottom - B.stopY), 0, 1);
+      B.tideY = Math.max(B.stopY, B.tideY - (0.46 + 0.22 * k));   /* about 20 s floor to summit: a steady climber stays ahead; a long stop and it catches up */
+      if (P.onGround && P.y + P.h <= B.summitY + 1 && inShaft) { B.state = 'crab'; B.t = 0; s2CrabStart(B); }
+    }
+    if (inShaft && P.y + P.h > B.tideY + 5 && !P.dead) {   /* it stings and pops him up; it never drowns him */
+      if (P.inv <= 0) { hurt({ x: P.x + P.w / 2, y: P.y + P.h }); sparks(P.x + 5, B.tideY, 10, ['#ff6fe0', '#b46bff', '#fff']); }
+      if (P.y + P.h > B.tideY + 5) P.vy = Math.min(P.vy, -6.2);
+    }
+  }
+  if (B.state === 'crab') s2CrabTick(B);
+  if (B.state === 'friend') B.tideY = Math.min(B.bottom + 40, B.tideY + 2.2);
+}
+function s2CrabStart(B) {
+  B.crab = { x: B.cx1 - 40, w: 30, h: 20, dir: -1, st: 'enter', t: 70, rise: 0 };
+  s2Gate(B.gateCol, B.gateTop, Math.round(B.summitY / T) - 1, true);
+  s2Say('KING CRAB', 'WHO climbed my cave?! Snip snap, little climber!', 2.6);
+  AudioSys.tone(110, 0.5, { type: 'sawtooth', vol: 0.08, slide: 70 });
+}
+function s2CrabBox(B) { const c = B.crab; return { x: c.x, y: B.summitY - c.h + (c.st === 'enter' ? Math.round(c.h * (c.t / 70)) : 0), w: c.w, h: c.h }; }
+function s2CrabTick(B) {
+  const c = B.crab, ph = Math.min(2, B.hits), TELL = [56, 44, 36][ph], SPD = [2.3, 2.9, 3.5][ph], TIRED = [104, 84, 66][ph];
+  const lo = B.cx0 + 2, hi = B.cx1 - c.w - 2;
+  for (const q of B.bubbles) { q.x += q.vx; q.vy += 0.08; q.y += q.vy; q.t++; if (overlap(P, { x: q.x - 4, y: q.y - 4, w: 8, h: 8 })) { hurt({ x: q.x, y: q.y }); q.dead = 1; } else if (q.y > B.summitY - 2 || q.t > 200) { q.dead = 1; part(q.x, q.y, { vx: 0, vy: -0.4, life: 14, size: 2, color: '#e6f7ff', g: 0 }); } }
+  B.bubbles = B.bubbles.filter((q) => !q.dead);
+  for (const w of B.waves) { w.x += w.vx; w.t++; if (Math.abs(P.x + P.w / 2 - w.x) < 7 && P.y + P.h > B.summitY - 9) hurt({ x: w.x, y: B.summitY }); }
+  B.waves = B.waves.filter((w) => w.t < 90 && w.x > B.cx0 && w.x < B.cx1);
+  c.t--;
+  const toK = Math.sign(P.x + P.w / 2 - (c.x + c.w / 2)) || 1;
+  if (c.st === 'enter') { if (c.t <= 0) { c.st = 'walk'; c.t = 70; } return; }
+  if (c.st === 'walk') {
+    c.dir = toK; c.x = clamp(c.x + c.dir * 0.6, lo, hi);
+    if (ph >= 1 && c.t === 30) {   /* phase 2+: three bubbles lobbed at him (claws glow first: c.t 30..44) */
+      for (let k = 0; k < 3; k++) B.bubbles.push({ x: c.x + c.w / 2, y: B.summitY - c.h, vx: toK * (1.1 + k * 0.7), vy: -3.2 - k * 0.3, t: 0 });
+      s2Sound('stroke');
+    }
+    if (c.t <= 0) { c.st = 'tell'; c.t = TELL; c.dir = toK; AudioSys.tone(660, 0.12, { vol: 0.07 }); }
+  } else if (c.st === 'tell') {
+    if (c.t <= 0) { c.st = 'charge'; AudioSys.noise(0.3, { filter: 'lowpass', freq: 600, vol: 0.08 }); }
+  } else if (c.st === 'charge') {
+    c.x += c.dir * SPD;
+    if (c.x <= lo || c.x >= hi) {
+      c.x = clamp(c.x, lo, hi); c.st = 'tired'; c.t = TIRED; SFX.stomp();
+      if (ph >= 2) { for (const d of [-1, 1]) B.waves.push({ x: c.x + c.w / 2, vx: d * 2.6, t: 0 }); }   /* phase 3: the slam's shockwave runs along the floor: jump it */
+    }
+  } else if (c.st === 'tired') {
+    if (c.t <= 0) { c.st = 'walk'; c.t = 80 - ph * 14; }
+  }
+  const hit = s2BoxHit(s2CrabBox(B));
+  if (B.hitCd > 0) B.hitCd--;
+  if (hit === 1 && c.st === 'tired' && !(B.hitCd > 0)) {
+    B.hits++; B.hitCd = 30; P.vy = -7; P.cuttable = false; SFX.stomp(); flashScreen();
+    pop(c.x, B.summitY - c.h - 18, 'BONK!', 40, '#f6c445');
+    if (B.hits >= 3) {
+      B.state = 'friend'; c.st = 'friend'; s2Gate(B.gateCol, B.gateTop, Math.round(B.summitY / T) - 1, false); Music.play('stage'); SFX.win();
+      s2Say('KING CRAB', 'Phew! I was only grumpy because of the glitch water. Thanks, friend! The way out is open.', 3.4);
+      addCandle(15); pop(P.x, P.y - 20, '+15', 50, null, true);
+    } else { c.st = 'walk'; c.t = 60; c.x = clamp(c.x - toK * 20, lo, hi); s2Banner(B.hits === 1 ? 'KING CRAB IS GETTING SMARTER!' : 'NOW HE IS REALLY SMART!'); }
+  } else if (hit === 1 && c.st !== 'tired') { P.vy = -5; hurt({ x: c.x + c.w / 2, y: B.summitY }); }
+  else if (hit === -1 && c.st !== 'tired') hurt({ x: c.x + c.w / 2, y: B.summitY });
+}
+/* a fall or a lost fight: back at the checkpoint, the fight starts fresh (the gates open again) */
+function s2Respawn() {
+  const S = L.s2, x = L.deathX != null ? L.deathX : P.x;
+  const k = L.areas ? Math.max(0, L.areas.findIndex((a) => x >= a.from * T && x < a.to * T)) : 0;
+  S.stats.deaths[k] = (S.stats.deaths[k] || 0) + 1;
+  for (const B of S.bosses) {
+    if (B.state === 'friend' || B.state === 'wait') continue;
+    if (B.kind === 'mole') { s2Gate(B.gateL, B.rTop, B.rBot, false); s2Gate(B.gateR, B.rTop, B.rBot, false); B.state = 'wait'; B.hits = 0; B.rocks = []; B.hole = null; }
+    else { if (B.crab) s2Gate(B.gateCol, B.gateTop, Math.round(B.summitY / T) - 1, false); B.state = 'wait'; B.hits = 0; B.crab = null; B.bubbles = []; B.waves = []; B.tideY = B.bottom + 40; }
+    Music.play('stage');
+  }
+}
+function s2CamSnap() { camY = clamp(Math.round(P.y + P.h / 2 - H * 0.55), camTopY(), 0); }
+/* the bosses, the tide, the flags and the dark (over everything in the level) */
+function drawS2Bosses() {
+  const S = L.s2, ox = Math.round(camX);
+  for (const c of S.cps) {   /* the act checkpoints: a little flag, green once touched */
+    const x = c.x - ox; if (x < -20 || x > W + 20) continue;
+    ctx.fillStyle = '#1b1220'; ctx.fillRect(x, c.y - 30, 2, 30);
+    ctx.fillStyle = c.hit ? '#44c55a' : '#e8364b'; ctx.fillRect(x + 2, c.y - 30, 10, 7);
+  }
+  for (const B of S.bosses) {
+    if (B.kind === 'mole') {
+      for (const h of B.holes) { const x = h.x - ox; ctx.fillStyle = '#5b3a1e'; ctx.fillRect(x - 9, h.y - 3, 18, 3); ctx.fillStyle = '#3a2412'; ctx.fillRect(x - 6, h.y - 2, 12, 2); }
+      const shake = (h) => { const x = h.x - ox + Math.round(Math.sin(frame) * 1.5); ctx.fillStyle = '#8a6a4a'; ctx.fillRect(x - 10, h.y - 7, 20, 6); ctx.fillStyle = '#c9a27a'; ctx.fillRect(x - 7, h.y - 9, 4, 3); ctx.fillRect(x + 3, h.y - 8, 3, 2);
+        if (frame % 20 < 12) { ctx.fillStyle = '#e8364b'; ctx.fillRect(x - 1, h.y - 26, 3, 9); ctx.fillRect(x - 1, h.y - 15, 3, 3); } };
+      if (B.state === 'tell') { shake(B.hole); if (B.fake) shake(B.fake); }
+      if ((B.state === 'up' || B.state === 'friend') && B.hole) {
+        const m = s2MoleBox(B), x = m.x - ox, y = m.y, pr = B.state === 'up' ? Math.min(1, (([130, 100, 84][Math.min(2, B.hits)]) - B.t) / 8) : 1, dy = Math.round((1 - pr) * 14);
+        ctx.save(); ctx.beginPath(); ctx.rect(x - 4, y - 14, 30, 32 - 0); ctx.clip();
+        ctx.fillStyle = '#1b1220'; ctx.fillRect(x - 1, y + dy - 1, 24, 20);
+        ctx.fillStyle = '#7a5236'; ctx.fillRect(x, y + dy, 22, 19);
+        ctx.fillStyle = '#9b6e4c'; ctx.fillRect(x + 4, y + dy + 8, 14, 10);
+        ctx.fillStyle = '#f6c445'; ctx.fillRect(x + 1, y + dy - 4, 20, 5); ctx.fillStyle = '#fff3b0'; ctx.fillRect(x + 9, y + dy - 6, 4, 3);   /* his hard hat and its lamp */
+        ctx.fillStyle = '#1b1220'; ctx.fillRect(x + 6, y + dy + 4, 2, 2); ctx.fillRect(x + 14, y + dy + 4, 2, 2);
+        ctx.fillStyle = '#ff9bb0'; ctx.fillRect(x + 9, y + dy + 6, 4, 3);
+        ctx.fillStyle = '#e8d8c0'; ctx.fillRect(x - 2, y + dy + 12, 4, 3); ctx.fillRect(x + 20, y + dy + 12, 4, 3);
+        if (B.state === 'friend') { ctx.fillStyle = '#ff6fae'; ctx.fillRect(x + 8, y + dy - 14, 2, 2); ctx.fillRect(x + 12, y + dy - 14, 2, 2); ctx.fillRect(x + 9, y + dy - 12, 4, 2); }
+        ctx.restore();
+      }
+      for (const r of B.rocks) { ctx.fillStyle = '#1b1220'; ctx.fillRect(r.x - ox - 4, r.y - 4, 8, 8); ctx.fillStyle = '#9a8a7a'; ctx.fillRect(r.x - ox - 3, r.y - 3, 6, 6); }
+      if (B.state !== 'wait' && B.state !== 'friend') s2Pips(B, 3);
+    } else {
+      if (B.state !== 'wait' && B.tideY < B.bottom + 30) {   /* the glitch tide: magenta water with glitchy squares */
+        const x0 = Math.max(0, B.x0 - ox), x1 = Math.min(W, B.x1 - ox), top = B.tideY;
+        if (x1 > x0) {
+          ctx.fillStyle = 'rgba(180,60,220,.45)'; ctx.fillRect(x0, top, x1 - x0, Math.max(0, B.bottom + 32 - top));
+          for (let x = x0; x < x1; x += 4) { const k = Math.round(Math.sin((x + ox) / 6 + frame / 7) * 2); ctx.fillStyle = 'rgba(255,170,250,.9)'; ctx.fillRect(x, top + k, 4, 2); }
+          for (let i = 0; i < 10; i++) { const gx = x0 + ((i * 53 + frame * (i % 3 + 1)) % Math.max(1, x1 - x0)), gy = top + 6 + ((i * 37 + frame) % 60); ctx.fillStyle = i % 2 ? '#6fe0ff' : '#ff6fe0'; ctx.fillRect(gx, gy, 3, 3); }
+        }
+      }
+      if (B.crab) {
+        const c = B.crab, bx = s2CrabBox(B), x = bx.x - ox, y = bx.y, tell = c.st === 'tell' || (c.st === 'walk' && B.hits >= 1 && c.t > 30 && c.t <= 44);
+        ctx.fillStyle = '#1b1220'; ctx.fillRect(x - 1, y + 5, c.w + 2, 13);
+        ctx.fillStyle = c.st === 'friend' ? '#ff8a6a' : '#e8452e'; ctx.fillRect(x, y + 6, c.w, 11);
+        ctx.fillStyle = '#ff9b6a'; ctx.fillRect(x + 4, y + 8, c.w - 8, 4);
+        for (const ex of [8, 20]) { ctx.fillStyle = '#1b1220'; ctx.fillRect(x + ex, y - 1, 3, 7); ctx.fillStyle = '#fff'; ctx.fillRect(x + ex, y - 2, 3, 3); ctx.fillStyle = '#1b1220'; ctx.fillRect(x + ex + (c.dir > 0 ? 1 : 0), y - 1, 2, 2); }
+        const up = tell ? -10 : 0;
+        for (const s of [-1, 1]) { const cx = s < 0 ? x - 7 : x + c.w + 1; ctx.fillStyle = '#1b1220'; ctx.fillRect(cx - 1, y + 4 + up, 8, 8); ctx.fillStyle = tell ? '#ffb02e' : '#e8452e'; ctx.fillRect(cx, y + 5 + up, 6, 6); }
+        for (let k = 0; k < 3; k++) { ctx.fillStyle = '#1b1220'; ctx.fillRect(x + 3 + k * 4, y + 17, 2, 3); ctx.fillRect(x + c.w - 5 - k * 4, y + 17, 2, 3); }
+        if (tell && frame % 16 < 10) { ctx.fillStyle = '#e8364b'; ctx.fillRect(x + c.w / 2 - 1, y - 22, 3, 9); ctx.fillRect(x + c.w / 2 - 1, y - 11, 3, 3); }
+        if (c.st === 'tired') {   /* dizzy stars and the gold ▼: stomp him now */
+          for (let k = 0; k < 3; k++) { const a = frame / 9 + k * 2.1; ctx.fillStyle = '#f6c445'; ctx.fillRect(x + c.w / 2 + Math.cos(a) * 12, y - 6 + Math.sin(a) * 3, 3, 3); }
+          const b = Math.round(Math.sin(frame / 5) * 2); ctx.fillStyle = '#f6c445'; ctx.fillRect(x + c.w / 2 - 5, y - 22 + b, 11, 3); ctx.fillRect(x + c.w / 2 - 3, y - 19 + b, 7, 2); ctx.fillRect(x + c.w / 2 - 1, y - 17 + b, 3, 2);
+        }
+        if (c.st === 'friend') { ctx.fillStyle = '#ff6fae'; ctx.fillRect(x + 12, y - 10, 2, 2); ctx.fillRect(x + 16, y - 10, 2, 2); ctx.fillRect(x + 13, y - 8, 4, 2); }
+        for (const q of B.bubbles) { ctx.fillStyle = 'rgba(230,247,255,.9)'; ctx.fillRect(q.x - ox - 3, q.y - 3, 7, 7); ctx.fillStyle = 'rgba(111,200,255,.9)'; ctx.fillRect(q.x - ox - 2, q.y - 2, 5, 5); }
+        for (const wv of B.waves) { ctx.fillStyle = '#ffd36a'; ctx.fillRect(wv.x - ox - 3, B.summitY - 8, 6, 8); ctx.fillStyle = '#fff'; ctx.fillRect(wv.x - ox - 1, B.summitY - 10, 2, 3); }
+        if (c.st !== 'friend') s2Pips(B, 3);
+      }
+    }
+  }
+  /* a dark mine: a pool of light round Kinan (his hard-hat lamp) */
+  for (const [x0, x1] of S.dark) {
+    const a = Math.max(0, x0 - ox), b = Math.min(W, x1 - ox);
+    if (b <= a) continue;
+    ctx.fillStyle = 'rgba(38,26,18,.55)'; ctx.fillRect(a, camY - 4, b - a, H + 8);   /* rock all round: underground, not outdoors */
+    const cx = P.x + P.w / 2 - ox, cy = P.y + P.h / 2, g = ctx.createRadialGradient(cx, cy, 34, cx, cy, 120);
+    g.addColorStop(0, 'rgba(6,6,18,0)'); g.addColorStop(1, 'rgba(6,6,18,.82)');
+    ctx.fillStyle = g; ctx.fillRect(a, camY - 4, b - a, H + 8);
+  }
+}
+function s2Pips(B, n) {   /* the boss's hits left, as pips above the action */
+  const x = W / 2 - n * 7 + Math.round(camX), y = camY + 30;
+  for (let k = 0; k < n; k++) { ctx.fillStyle = '#1b1220'; ctx.fillRect(x + k * 14 - Math.round(camX) - 1, y - 1, 12, 8); ctx.fillStyle = k < n - B.hits ? '#e8364b' : '#4a4f57'; ctx.fillRect(x + k * 14 - Math.round(camX), y, 10, 6); }
+}
+/* the end-of-level card (Shad: "so I can get feedback"): time, each act's time and deaths, hearts lost, falls, secrets */
+function s2CardHtml() {
+  const S = L.s2, st = S.stats, secs = (f) => { const s = Math.round(f / 60); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
+  const areas = L.areas || [{ name: L.levelName }], rows = areas.map((a, k) => {
+    const t0 = st.actT[k], t1 = k + 1 < areas.length ? st.actT[k + 1] : stageTime;
+    return '<tr><td>' + escAttr(a.name || ('Act ' + (k + 1))) + '</td><td>' + (t0 == null || t1 == null ? '-' : secs(t1 - t0)) + '</td><td>' + (st.deaths[k] || 0) + '</td></tr>';
+  }).join('');
+  const found = (L.secretsFound || []).filter(Boolean).length, total = (L.secretsFound || []).length;
+  return '<div class="s2card"><h2 class="title">YOU MADE IT! 🎉</h2><p class="tiny">' + escAttr(L.levelName) + ' · screenshot this and send it to Claude</p>' +
+    '<p class="s2big">⏱ ' + secs(stageTime) + '</p>' +
+    '<table class="s2tab"><tr><th>Act</th><th>Time</th><th>Tries lost</th></tr>' + rows + '</table>' +
+    '<p>❤ Hearts lost: <b>' + heartsLost + '</b> · 🕳 Falls: <b>' + (L.falls || 0) + '</b> · 🔍 Secrets: <b>' + found + ' / ' + total + '</b> · ' +
+    '<i class="candle-ico gold"></i> Golden candle: <b>' + (S.goldGot ? 'yes' : 'no') + '</b> · <i class="candle-ico"></i> Candles: <b>' + got + '</b></p>' +
+    '<div class="btnrow"><button class="btn go" type="button" id="s2Again">▶ Play again</button><button class="btn" type="button" id="s2Title">🏠 Title screen</button></div></div>';
+}
+function s2Card() {
+  const def = L.levelDef, html = s2CardHtml();
+  showScreen(html);
+  const again = $('#s2Again'), home = $('#s2Title');
+  if (again) again.onclick = () => { SFX.click(); playLevel(def); };
+  if (home) home.onclick = () => { SFX.click(); titleScreen(); };
 }
 
 /* ============================================================
@@ -12339,7 +12624,7 @@ function update() {
   if (P.dead) {
     if (P.dead === 1) {
       P.vy += 0.42; P.y += P.vy;
-      if (P.y > H + 40) { P.dead = 2; die(); }
+      if (P.y > (L.up ? camY : 0) + H + 40) { P.dead = 2; die(); }   /* a tall level: off the bottom of the picture */
     }
     updateFx();
     return;
@@ -12352,6 +12637,7 @@ function update() {
   updatePlayer();
   if (P.dead) { updateFx(); return; }
   stageTime++;
+  if (L.s2) s2After();   /* Season 2: act checkpoints, the mole, the glitch tide and King Crab */
   updateWorld();
   if (puzzle) return;
   updateFoes();
@@ -12376,7 +12662,7 @@ function update() {
   kickHintCheck();   /* taekwondo: "Tap KICK" / "Press X" near the first board, until one is broken */
   slamHintCheck();   /* the butt slam: "Tap ▼ in the air" / "Press ↓ in the air" near the first cracked board or crate, until one is smashed */
   /* M4b: the goal — a non-blocking LEVEL CLEAR, a short victory lap, then back to the map */
-  if (L.goal && boss === 'off') {
+  if (L.goal && boss === 'off' && !(L.s2 && s2GoalLocked())) {   /* Season 2: a boss that guards the goal must be a friend first */
     if (!L.cleared) { if (P.x + P.w / 2 >= L.goal.x) levelClear(); }
     /* B1: after a boss, the lap waits (up to 8 s more) while the befriended boss finishes the last line */
     else if (!L.returned && ++L.clearT >= LEVEL_CLEAR_FRAMES && !(L.arena && (L.arena.line || L.arena.lineQ.length) && L.clearT < LEVEL_CLEAR_FRAMES + 480)) { levelReturn(); return; }
@@ -15997,6 +16283,7 @@ function draw() {
   drawPets();
   drawPlayer();
   if (L.s2 && L.s2.water.length) drawS2Front();   /* Season 2: the water, over Kinan */
+  if (L.s2) drawS2Bosses();   /* Season 2: the mole, the glitch tide, King Crab, the act flags, the dark mine */
   if (boardBits.length) drawBoardBits();   /* taekwondo: a broken board's halves */
   if (slabBits.length || slamRings.length) drawSlamFx();   /* the butt slam: planks flying, the shockwave */
   drawShots();
@@ -27948,6 +28235,8 @@ window.__k11 = window.__k11DevOnly() ? {
   jumpToStage: (i) => { playStage(i); },
   teleport: (x) => { P.x = x; P.y = (GROUND - 1) * T; camX = Math.max(0, x - W * 0.42); },
   /* Season 2 (2026-11-10): where Kinan and the camera are (place(x, y) below puts him anywhere, tall levels too) */
+  s2Freeze: (on) => { if (L && L.s2) L.s2.freeze = !!on; return !!(L && L.s2 && L.s2.freeze); },
+  s2: () => (L && L.s2 ? { bosses: L.s2.bosses.map((b) => ({ kind: b.kind, state: b.state, hits: b.hits, hole: b.hole, tideY: b.tideY, summitY: b.summitY, crab: b.crab ? { x: b.crab.x, w: b.crab.w, h: b.crab.h, st: b.crab.st } : null })), cps: L.s2.cps.map((c) => c.hit), goldGot: !!L.s2.goldGot, stats: L.s2.stats, locked: s2GoalLocked(), cleared: !!L.cleared } : null),
   where: () => ({ x: P.x, y: P.y, w: P.w, h: P.h, vx: P.vx, vy: P.vy, onGround: P.onGround, hp: P.hp, camX: camX, camY: camY, up: L ? L.up | 0 : 0, levelId: L ? L.levelId || null : null, cols: L ? L.w : 0 }),
   morph: () => (morph ? morph.t : null),   /* the "world goes 3D" cutscene */
   morphDraw: (t) => { morph = { t: t, wait: null }; drawMorph(); morph = null; },

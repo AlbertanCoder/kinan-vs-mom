@@ -106,3 +106,18 @@ kick (thud) and the ledge (click, hup). The playground had no sound: fix. The wa
 the taekwondo dash kick, glide. **Tools**, found in the level that needs them and gone at its end: a flashlight for dark
 caves, a grappling hook, a shovel, a skateboard / scooter. **Climbing extras:** climbable rock walls / fences (up, down,
 sideways), shimmying along a ledge while hanging, holding run to climb faster.
+
+## The adventure test level (Shad, 2026-11-10)
+Shad wants one long, real test level (not on the map) that he and his girlfriend can play for feedback: everything new
+together, enemies and two bosses. If it works, all of it becomes the new era after World 11 (World 12 on, or 13-14 so the
+World 12 sneak peek stays). His answers: keep the **ledge hang in a few spots** (it saves near-miss jumps); **Mountains to
+the Sea** (forest vines, a cliff climb, an old mine with pipes and chutes, a waterfall, the ocean); **medium-hard but
+fair** (checkpoints often, no cheap deaths); **about 6-8 minutes in 4 acts**; the **mid boss** a giant **mole** in a tall
+mine arena (it pops up between three levels: climb and wall-jump to reach it); the **final boss** a **rising tide**: climb,
+wall-jump and swim up a sea cave as it chases you, then calm the creature at the top; **bosses follow the game's rules**
+(dumb then smarter, every attack shown first, calmed not beaten, no game over); **the game's foes plus a few new ones**
+(a fish, a bat); **light story** (Sabumnim, Glitchy, short boss lines); **candles, 3 secrets and a golden candle**; an
+**end-of-level card** (time, hearts lost, falls, secrets, deaths per act) to screenshot; its **own link** (?lab=adventure).
+- 2026-11-10: **the adventure test level is built:** `?lab=adventure`, MOUNTAINS TO THE SEA, four acts with a checkpoint
+  each, Mr. Mole and the glitch tide + King Crab, 3 secrets (the golden candle is one), the end card. A robot clears every
+  climb, both bosses and the goal (`lab-adventure.spec.ts`). Waiting on Shad's and his girlfriend's playtest.

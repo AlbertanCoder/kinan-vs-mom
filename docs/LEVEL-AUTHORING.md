@@ -72,6 +72,12 @@ down", start the level high up and finish low. The example is the test level `le
 - `moves: true` (on the level) — the wall jump (JUMP beside a wall in the air; holding toward it slides down slowly) and the
   ledge grab (falling past an edge he faces, he catches it and pulls up).
 
+**Season 2 adventure pieces (block "SEASON 2 ADVENTURE PIECES"):** `s2checkpoints: [[col, row]]` (more than one checkpoint;
+`row` is the floor he stands on), `dark: true` (a dark area lit only round Kinan), and one `s2boss` per area: `{ kind: 'mole',
+col0, col1, rowTop, holes: [[col, row]] }` (walls at col0 and col1 shut for the fight) or `{ kind: 'tide', col0, col1, startCol,
+stopRow, summitRow, crab: [col0, col1], gateCol }` (the glitch tide, then King Crab; it guards the level's goal). The foe `fish`
+swims back and forth at any depth. Example: `levels/lab/adventure.js` (`?lab=adventure`). A test level's goal shows an end card.
+
 **Test levels (`lab-<name>`):** a file in `levels/lab/` registering `id: 'lab-<name>'` (no `slot`, any `world`) is never on the
 map, never in the manifest and never cached offline; `?lab=<name>` plays it (on the live site too) and it saves nothing.
 
