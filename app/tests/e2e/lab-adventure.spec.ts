@@ -86,3 +86,24 @@ test('the adventure: climbs, Mr. Mole, the glitch tide and King Crab, the goal a
   expect(msg).toContain('14. Would you play a whole world like this? Yes!');
   expect(errors).toEqual([]);
 });
+
+test('stopping early: Menu › I\'m done asks why, then the card, the questions and a message that says where and why', async ({ page }) => {
+  const errors = watchErrors(page);
+  await page.goto(`${BASE}?devtools=1&lab=adventure`);
+  await page.waitForFunction(() => !!(window as unknown as Win).__k11 && (window as unknown as Win).__k11.state().running);
+  await page.evaluate(() => { const Kk = (window as unknown as Win).__k11, h = Kk.where().h; Kk.place((130 + 30) * 16, 12 * 16 - h); Kk.step(30, {}); });
+  await page.locator('#menuBtn').click();
+  await page.locator('#s2QuitBtn').click();
+  await page.locator('#s2QuitNo').click();   /* "No, keep playing" goes back */
+  await expect(page.locator('#menuMain')).toBeVisible();
+  await page.locator('#s2QuitBtn').click();
+  await page.locator('#s2QuitWhy button').first().click();   /* Too hard */
+  await expect(page.locator('.s2card')).toContainText('THANKS FOR PLAYING');
+  await page.locator('#s2Ask').click();
+  for (let q = 0; q < 14; q++) await page.locator('#s2Skip').click();
+  await page.locator('#s2Done').click();
+  const msg = await page.locator('#s2Out').inputValue();
+  expect(msg).toContain('Finished: NO - stopped in ACT 2: THE OLD MINE. Why: Too hard');
+  expect(msg).toMatch(/Act 2 \d+:\d\d/);
+  expect(errors).toEqual([]);
+});

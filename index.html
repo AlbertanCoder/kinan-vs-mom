@@ -939,6 +939,7 @@ html.nosubs #storyLine,html.nosubs #storyLineMap,html.nosubs #bossLine,html.nosu
         <button class="mitem" id="partyBtn" type="button">🎮 More games</button>
         <button class="mitem" id="titleBtnP" type="button">🏠 Title screen</button>
         <button class="mitem" id="restartBtn" type="button" hidden>🔄 Restart level</button>
+        <button class="mitem" id="s2QuitBtn" type="button" hidden title="Stop the test level here and send Shad your feedback">🏳️ I'm done: send feedback</button>
         <button class="mitem" id="resetKartBtn" type="button" hidden>↩ Reset kart</button>
       </div>
       <p class="tiny" id="pauseNote" hidden></p>
@@ -992,6 +993,13 @@ html.nosubs #storyLine,html.nosubs #storyLineMap,html.nosubs #bossLine,html.nosu
       <h2 class="mtitle" id="jumpTitle">Jump to a world</h2>
       <div id="jumpBody"></div>
       <div class="btnrow"><button class="btn go" id="jumpBack" type="button">◀ Back</button></div>
+    </div>
+    <!-- Season 2 test levels: stop early and still send the feedback (Shad, 2026-11-10) -->
+    <div class="mpage" id="menuQuit" hidden>
+      <h2 class="mtitle">Stop here?</h2>
+      <p class="tiny jtip">You can still answer the questions and send Shad your feedback. Why are you stopping?</p>
+      <div class="mgrid" id="s2QuitWhy"></div>
+      <div class="btnrow"><button class="btn go" id="s2QuitNo" type="button">◀ No, keep playing</button></div>
     </div>
     <div class="mpage" id="menuParty" hidden>
       <h2 class="mtitle">More games</h2>
@@ -8869,7 +8877,9 @@ function menuGo(page) {
   menuPage = page;
   $('#menuMain').hidden = page !== 'main'; $('#menuSettings').hidden = page !== 'settings'; $('#menuParty').hidden = page !== 'party';
   $('#menuMove').hidden = page !== 'move';   /* Settings › Move my save (block "MOVE MY SAVE") */
-  $('#menuJump').hidden = page !== 'jump';   /* Jump to a level (block "JUMP TO A LEVEL") */
+  $('#menuJump').hidden = page !== 'jump';
+  $('#menuQuit').hidden = page !== 'quit';   /* Season 2 test levels: stop early (block "THE FEEDBACK QUESTIONS") */
+  if (page === 'quit') s2QuitRefresh();   /* Jump to a level (block "JUMP TO A LEVEL") */
   if (page === 'jump') jumpRefresh();
   if (page === 'settings') settingsRefresh();
   if (page === 'party') partyRefresh();
@@ -8880,7 +8890,8 @@ function menuRefresh() {
   $('#restartBtn').hidden = !g || !!((smash && smash.online && smash.online.role === 'client') || (kart && kart.online && kart.online.role === 'client'));   /* a joined online player can't restart for the room */
   $('#resetKartBtn').hidden = !(g && kart);
   if (!g) $('#mapBtnP').textContent = '🗺️ World map';
-  $('#jumpBtnP').hidden = !jumpAllowed();   /* a level from the map, the map, the title: yes; a race, a fight, the builder, a cutscene: no */
+  $('#jumpBtnP').hidden = !jumpAllowed();
+  $('#s2QuitBtn').hidden = !s2CanQuit();   /* only in a Season 2 test level, while it is being played */   /* a level from the map, the map, the title: yes; a race, a fight, the builder, a cutscene: no */
   const br = beltRank();   /* taekwondo: the belt he has earned (block "BELTS") */
   $('#menuBelt').innerHTML = beltIconSvg(br) + '<span>' + escAttr(beltLabel(br)) + '</span>';
 }
@@ -8974,6 +8985,8 @@ function jumpTo(n, at) {
   worldMapScreen({ notice: 'JUMPED TO ' + (st.k === 'level' ? String(st.s.id) : 'WORLD ' + n + ' ' + jumpCode(st)).toUpperCase() });
 }
 $('#jumpBtnP').addEventListener('click', () => { SFX.click(); jumpWorld = 0; menuGo('jump'); });
+$('#s2QuitBtn').addEventListener('click', () => { SFX.click(); menuGo('quit'); });
+$('#s2QuitNo').addEventListener('click', () => { SFX.click(); menuGo('main'); });
 $('#jumpBody').addEventListener('click', (e) => {
   const b = e.target && e.target.closest ? e.target.closest('button[data-w]') : null;
   if (!b) return;
@@ -11353,19 +11366,22 @@ const S2_QUESTIONS = [
   ['Would you play a whole world like this?', ['Yes!', 'Maybe', 'No']]
 ];
 let s2Fb = null;
-function s2Snapshot() {
+function s2Snapshot(o) {
   const S = L.s2, st = S.stats, secs = (f) => { const v = Math.round(f / 60); return Math.floor(v / 60) + ':' + String(v % 60).padStart(2, '0'); };
   const areas = L.areas || [{ name: L.levelName }];
-  const acts = areas.map((a, k) => { const t0 = st.actT[k], t1 = k + 1 < areas.length ? st.actT[k + 1] : stageTime; return { name: a.name || 'Act ' + (k + 1), time: t0 == null || t1 == null ? '-' : secs(t1 - t0), lost: st.deaths[k] || 0 }; });
+  let last = -1; st.actT.forEach((t, k) => { if (t != null) last = Math.max(last, k); });   /* the act he is in (or ended in) runs to now */
+  const acts = areas.map((a, k) => { const t0 = st.actT[k], t1 = st.actT[k + 1] != null ? st.actT[k + 1] : k === last ? stageTime : null; return { name: a.name || 'Act ' + (k + 1), time: t0 == null || t1 == null ? '-' : secs(t1 - t0), lost: st.deaths[k] || 0 }; });
   const found = (L.secretsFound || []).filter(Boolean).length, total = (L.secretsFound || []).length;
   const ua = navigator.userAgent, kind = /iPad|Tablet/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1) ? 'tablet' : /iPhone|Android.*Mobile/.test(ua) ? 'phone' : /Android/.test(ua) ? 'tablet' : 'computer';
   const os = /iPhone|iPad|Macintosh/.test(ua) && navigator.maxTouchPoints > 1 ? 'iOS' : /Android/.test(ua) ? 'Android' : /Windows/.test(ua) ? 'Windows' : /Mac/.test(ua) ? 'Mac' : 'other';
-  return { level: L.levelName, id: L.levelId, def: L.levelDef, time: secs(stageTime), acts: acts, hearts: heartsLost, falls: L.falls || 0, secrets: found + ' / ' + total,
+  const at = L.areas ? L.areas.find((a) => P.x >= a.from * T && P.x < a.to * T) : null;
+  return { level: L.levelName, id: L.levelId, def: L.levelDef, time: secs(stageTime), acts: acts, quit: !!(o && o.quit), reason: o && o.reason || '', stoppedIn: at ? at.name : L.levelName, hearts: heartsLost, falls: L.falls || 0, secrets: found + ' / ' + total,
     golden: S.goldGot ? 'yes' : 'no', candles: got, device: kind + ', ' + os + ', ' + innerWidth + 'x' + innerHeight + (matchMedia('(pointer: coarse)').matches ? ', touch' : ', keyboard/mouse') };
 }
 function s2CardHtml(sn) {
   const rows = sn.acts.map((a) => '<tr><td>' + escAttr(a.name) + '</td><td>' + a.time + '</td><td>' + a.lost + '</td></tr>').join('');
-  return '<div class="s2card"><h2 class="title">YOU MADE IT! 🎉</h2><p class="tiny">' + escAttr(sn.level) + '</p>' +
+  return '<div class="s2card"><h2 class="title">' + (sn.quit ? 'THANKS FOR PLAYING! 💛' : 'YOU MADE IT! 🎉') + '</h2><p class="tiny">' + escAttr(sn.level) +
+    (sn.quit ? ' · stopped in ' + escAttr(sn.stoppedIn) + ' (' + escAttr(sn.reason) + ')' : '') + '</p>' +
     '<p class="s2big">⏱ ' + sn.time + '</p>' +
     '<div class="btnrow"><button class="btn go" type="button" id="s2Ask">📝 Answer ' + S2_QUESTIONS.length + ' questions for Shad</button></div>' +
     '<table class="s2tab"><tr><th>Act</th><th>Time</th><th>Tries lost</th></tr>' + rows + '</table>' +
@@ -11373,13 +11389,26 @@ function s2CardHtml(sn) {
     '<i class="candle-ico gold"></i> Golden candle: <b>' + sn.golden + '</b> · <i class="candle-ico"></i> Candles: <b>' + sn.candles + '</b></p>' +
     '<div class="btnrow"><button class="btn" type="button" id="s2Again">▶ Play again</button><button class="btn" type="button" id="s2Title">🏠 Title screen</button></div></div>';
 }
-function s2Card() {
-  const sn = s2Snapshot();
+function s2Card(o) {
+  const sn = s2Snapshot(o);
   s2Fb = { sn: sn, answers: [], q: 0, name: '', note: '' };
   showScreen(s2CardHtml(sn));
   $('#s2Ask').onclick = () => { SFX.click(); s2FbQuestion(); };
   $('#s2Again').onclick = () => { SFX.click(); playLevel(sn.def); };
   $('#s2Title').onclick = () => { SFX.click(); titleScreen(); };
+}
+const S2_QUIT_WHY = ['😤 Too hard', '🧭 Got stuck / lost', '🐞 Something broke', '⏰ Out of time', '😴 Not having fun', '💬 Another reason'];
+const s2CanQuit = () => !!(L && L.s2 && L.authored && running && window.KinanLevels && KinanLevels.isLab && KinanLevels.isLab(L.levelId) && !L.cleared && !el.stage.hidden);
+function s2QuitRefresh() {
+  const box = $('#s2QuitWhy');
+  box.innerHTML = S2_QUIT_WHY.map((w, i) => '<button class="mitem" type="button" data-i="' + i + '">' + escAttr(w) + '</button>').join('');
+  box.querySelectorAll('button').forEach((b) => { b.onclick = () => {
+    SFX.click();
+    if (!s2CanQuit()) { menuShow(false); return; }
+    const why = S2_QUIT_WHY[Number(b.dataset.i)].replace(/^\S+\s/, '');
+    setPaused(false); running = false; Music.stop();
+    s2Card({ quit: true, reason: why });
+  }; });
 }
 function s2FbQuestion() {
   const F = s2Fb, k = F.q, q = S2_QUESTIONS[k];
@@ -11407,6 +11436,7 @@ function s2FbText() {
   L2.push('Level: ' + sn.level + ' (' + sn.id + ')');
   L2.push('Player: ' + (F.name || '(no name)') + ' · ' + new Date().toISOString().slice(0, 16).replace('T', ' '));
   L2.push('Device: ' + sn.device);
+  L2.push(sn.quit ? 'Finished: NO - stopped in ' + sn.stoppedIn + '. Why: ' + sn.reason : 'Finished: yes');
   L2.push('Time ' + sn.time + ' | ' + sn.acts.map((a) => a.name.replace(/^ACT (\d+):.*/, 'Act $1') + ' ' + a.time + ' (' + a.lost + ' tries lost)').join(' | '));
   L2.push('Hearts lost ' + sn.hearts + ' · Falls ' + sn.falls + ' · Secrets ' + sn.secrets + ' · Golden candle ' + sn.golden + ' · Candles ' + sn.candles);
   S2_QUESTIONS.forEach((q, k) => L2.push((k + 1) + '. ' + q[0] + ' ' + (F.answers[k] == null ? '(skipped)' : q[1][F.answers[k]])));
