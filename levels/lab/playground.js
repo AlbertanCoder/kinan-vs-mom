@@ -70,7 +70,7 @@
         solid: [
           [22, 7, 26, 11],       /* 2. a ledge 5 rows up: too high to jump onto, so he grabs it */
           [27, 2, 31, 11],       /*    and a second one 5 rows above that */
-          [47, -12, 47, 9],      /* 4. the wall-jump shaft: its left wall (walk in under it, a 2-row gap); 3 tiles wide */
+          [47, -12, 47, 10],     /* 4. the wall-jump shaft: its left wall (walk in under it, a 1-row gap); 3 tiles wide */
           [51, -12, 51, 11],     /*    its right wall */
           [52, -12, 60, -12],    /*    the platform at the top (level with the wall's top) */
           [61, 4, 61, 11],       /* 5. the pool's left wall */

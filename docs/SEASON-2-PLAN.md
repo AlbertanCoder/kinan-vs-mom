@@ -127,3 +127,10 @@ wall-jump and swim up a sea cave as it chases you, then calm the creature at the
   of sliding lets go), the jump grace is 10 frames, the chimneys are 3 tiles wide, and during a level no touch outside the
   buttons scrolls or zooms the page. Measured with human-style bots (quick, late, very late, holding one direction): all
   but the very late and never-jumping ones now make both adventure chimneys.
+- 2026-11-10: **Shad's results (computer):** 6:52, never lost a try (7 hearts lost), "too easy", fun 3/5, favourite Act 4,
+  hardest the tide climb, ledges "annoying", pipes/doors "confusing", Act 3 took 3:42. **Adventure v2:** an extra heart
+  every 50 candles and never more than 3 (`heartEvery`, `maxHearts`); wider pits and more foes in Act 1, a pit and more
+  bats and carts in the mine, a 5-row-lower waterfall and more fish in Act 3, bats in the sea cave, a faster tide, a
+  quicker mole (a rock from phase 1) and King Crab (bubbles from phase 1); swimming a bit quicker; the ledge grab only
+  while you hold toward the edge (never mid wall-jump or in a fast fall), a shorter hang; KICK (or ↓) goes into a pipe,
+  chute or door at once, and a bubble ("PIPE · KICK = GO IN") shows as you come near; the chimneys' walk-in gaps are 1 row.

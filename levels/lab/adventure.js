@@ -22,7 +22,7 @@
 
   /* ---- ACT 1: THE CLIFFS (130 cols) ---- */
   var h1 = flat(130);
-  [44, 45, 46, 52, 53, 54].forEach(function (c) { h1[c] = null; });
+  [44, 45, 46, 47, 51, 52, 53, 54, 120, 121, 122].forEach(function (c) { h1[c] = null; });   /* v2 (Shad: too easy): wider pits, one more by the mine */
   var s1 = [], c1 = [];
   shelfRow(s1, 28, 38, -5);                          /* the treehouse */
   shelfRow(s1, 41, 43, -2); shelfRow(s1, 47, 49, 2); shelfRow(s1, 55, 57, 6);   /* stepping down */
@@ -33,13 +33,14 @@
 
   /* ---- ACT 2: THE OLD MINE (140 cols, dark) ---- */
   var h2 = flat(140), s2 = [], c2 = [];
+  [14, 15, 16].forEach(function (c) { h2[c] = null; });   /* v2: a pit in the dark (watch the lamp) */
   shelfRow(s2, 21, 23, 6);                           /* where the ladder comes up through the upper track */
   shelfRow(s2, 88, 94, 8); shelfRow(s2, 104, 110, 8); shelfRow(s2, 95, 103, 4);   /* the mole's arena: three levels */
   run(c2, 6, 9, 4, 2); run(c2, 26, 4, 10, 3); run(c2, 30, 10, 8, 3); run(c2, 38, -4, 8); run(c2, 73, 5, 5); run(c2, 116, 10, 6, 2);
 
   /* ---- ACT 3: THE WATERFALL AND THE SEA (150 cols) ---- */
   var h3 = flat(150), c3 = [];
-  col(c3, 25, -12, 8, 4); col(c3, 26, -10, 6, 4); run(c3, 32, -18, 10, 3); col(c3, 74, -12, -6, 3);
+  col(c3, 25, -8, 8, 4); col(c3, 26, -6, 6, 4); run(c3, 32, -13, 10, 3); col(c3, 74, -12, -6, 3);
   run(c3, 80, 2, 5, 2); run(c3, 98, -1, 4, 2); run(c3, 120, 4, 6, 2); run(c3, 132, -1, 4, 2); run(c3, 143, -5, 4, 2);
 
   /* ---- ACT 4: THE SEA CAVE (60 cols, the tall one) ---- */
@@ -55,6 +56,7 @@
     theme: 5,
     up: 45,
     moves: true,
+    heartEvery: 50, maxHearts: 3,   /* v2 (Shad: too easy): an extra heart every 50 candles, never more than 3 */
     spawn: { col: 2, row: 11 },
     areas: [
       {
@@ -66,14 +68,14 @@
                [114, 'GLITCHY', 'A mine! It is dark in there. Good thing your hard hat has a lamp!', 3.2]],
         solid: [
           [62, 7, 71, 11],      /* a ledge 5 rows up: grab it */
-          [71, -14, 71, 4],     /* the chimney's left wall (a gap at rows 5-6 lets him in from the ledge); 3 tiles to the cliff */
+          [71, -14, 71, 5],     /* the chimney's left wall (a 1-row gap at row 6 lets him in from the ledge); 3 tiles to the cliff */
           [75, -14, 104, 11]    /* the cliff */
         ],
         tiles: { shelf: s1, spring: [[50, 12], [90, -14]], gift: [[34, -9, 'heart'], [90, -26, 'candle'], [96, -18, 'popper']] },
         vines: [[30, -6, 11]],
         secrets: [{ kind: 'hidden', col: 90, row: -26, prize: 'heart+candles', glint240: true }],
         candles: c1,
-        foes: [[18, 11, 'squirrel'], [24, 7, 'crow'], [36, -6, 'sock'], [48, 6, 'goose'], [58, 11, 'squirrel'], [84, -18, 'seagull'], [98, -18, 'seagull'], [118, 11, 'raccoon']]
+        foes: [[14, 11, 'squirrel'], [20, 11, 'raccoon'], [24, 7, 'crow'], [36, -6, 'sock'], [48, 6, 'goose'], [58, 11, 'squirrel'], [66, 6, 'sock'], [80, -15, 'squirrel'], [84, -18, 'seagull'], [98, -18, 'seagull'], [100, -15, 'raccoon'], [116, 11, 'raccoon'], [126, 11, 'squirrel']]
       },
       {
         id: 'mine', name: 'ACT 2: THE OLD MINE', cols: 140, heights: h2, dark: true,
@@ -95,7 +97,7 @@
         ],
         secrets: [{ kind: 'visible', col: 44, row: -6, prize: 'heart' }],
         candles: c2,
-        foes: [[12, 6, 'umbrellabat'], [20, 11, 'gopher'], [33, 3, 'umbrellabat'], [40, 11, 'gopher'], [54, 11, 'cart'], [68, 11, 'gopher'], [80, 6, 'umbrellabat']],
+        foes: [[9, 6, 'umbrellabat'], [20, 11, 'gopher'], [28, 5, 'gopher'], [33, 3, 'umbrellabat'], [40, 11, 'gopher'], [46, 5, 'cart'], [54, 11, 'cart'], [68, 11, 'gopher'], [70, 6, 'umbrellabat'], [80, 6, 'umbrellabat']],
         s2boss: { kind: 'mole', col0: 86, col1: 112, rowTop: 2, holes: [[89, 11], [99, 11], [109, 11], [93, 7], [105, 7], [99, 3]] }
       },
       {
@@ -104,18 +106,18 @@
         talk: [[6, 'SABUMNIM', 'Water is calm. Be like water. Tap JUMP to swim, as long as you like.', 3.6],
                [66, 'GLITCHY', 'Now DIVE! There is something shiny down there...', 3]],
         solid: [
-          [22, -15, 23, 8],     /* the rock beside the waterfall (walk in under it) */
-          [28, -15, 71, 11],    /* the cliff the waterfall pours over */
+          [22, -10, 23, 8],     /* the rock beside the waterfall (walk in under it) */
+          [28, -10, 71, 11],    /* the cliff the waterfall pours over (v2: 5 rows lower, Act 3 ran long) */
           [92, 4, 96, 11],      /* a reef */
           [110, 5, 118, 6],     /* a rock overhang: the golden candle hides under it */
           [141, -3, 149, 11]    /* the shore */
         ],
-        tiles: { gift: [[50, -19, 'candle'], [128, 8, 'candle']] },
-        water: [[24, -16, 27, 11], [72, -3, 140, 11]],
+        tiles: { gift: [[50, -14, 'candle'], [128, 8, 'candle']] },
+        water: [[24, -11, 27, 11], [72, -3, 140, 11]],
         goldenCandle: { col: 114, row: 11 },
         secrets: [{ kind: 'hidden', col: 114, row: 11, prize: 'GOLDEN CANDLE' }],   /* under the rock overhang, on the sea floor */
         candles: c3,
-        foes: [[12, 11, 'goose'], [40, -16, 'puddlefrog'], [58, -20, 'seagull'], [84, 4, 'fish'], [104, 0, 'fish'], [124, 6, 'fish'], [134, 2, 'fish']]
+        foes: [[12, 11, 'goose'], [40, -11, 'puddlefrog'], [52, -11, 'raccoon'], [58, -15, 'seagull'], [80, 8, 'fish'], [88, 1, 'fish'], [100, 6, 'fish'], [108, 0, 'fish'], [118, 8, 'fish'], [124, 3, 'fish'], [134, 6, 'fish']]
       },
       {
         id: 'cave', name: 'ACT 4: THE SEA CAVE', cols: 60, heights: h4,
@@ -125,7 +127,7 @@
           [10, -43, 10, 8],     /* the cave's left wall (walk in at the bottom) */
           [41, -44, 41, 11],    /* its right wall */
           [10, -44, 41, -44],   /* its roof */
-          [28, -14, 28, -3], [32, -14, 32, -3],   /* the wall-jump chimney, 3 tiles wide (walk in under it from L2) */
+          [28, -14, 28, -2], [32, -14, 32, -2],   /* the wall-jump chimney, 3 tiles wide (walk in under it from L2: a 1-row gap) */
           [32, -14, 40, -14],   /* L4, beside the chimney's top */
           [12, -26, 24, -21]    /* a ledge to grab, and the spring's block */
         ],
@@ -133,7 +135,7 @@
         ladders: [[13, 5, 11], [38, -22, -15]],
         vines: [[24, -1, 11]],
         candles: c4,
-        foes: [],   /* the tide is the enemy here */
+        foes: [[18, 3, 'umbrellabat'], [34, -10, 'umbrellabat'], [22, -24, 'umbrellabat']],   /* v2: bats in the cave while the tide rises */
         s2boss: { kind: 'tide', col0: 11, col1: 40, startCol: 13, stopRow: -32, summitRow: -34, crab: [12, 36], gateCol: 37 },
         goal: { col: 39, row: -35 }
       }

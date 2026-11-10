@@ -6,7 +6,7 @@ import { expect, test, type ConsoleMessage, type Page } from '@playwright/test';
    cost nothing, and a test level saves nothing. */
 const BASE = `http://127.0.0.1:${process.env.KVM_PORT || 4174}/index.html`;
 type Where = { x: number; y: number; w: number; h: number; vx: number; vy: number; onGround: boolean; hp: number; camY: number; up: number; levelId: string | null };
-type Hold = { left?: boolean; right?: boolean; jump?: boolean; tapJump?: boolean };
+type Hold = { left?: boolean; right?: boolean; jump?: boolean; tapJump?: boolean; tapFire?: boolean };
 type K = { where: () => Where; place: (x: number, y: number) => unknown; step: (n: number, hold?: Hold) => unknown; state: () => { running: boolean } };
 type Win = Window & { __k11: K };
 
@@ -103,6 +103,7 @@ test('the new moves: ladder, ledge grabs, vine, wall jumps, swimming, pipes, doo
   await openLab(page);
   const r = await page.evaluate(() => {
     const Kk = (window as unknown as Win).__k11, B = 108, out: Record<string, unknown> = {};
+    (Kk as unknown as { godMode: () => void }).godMode();   /* a wandering sock bumping him resets the stand-still timer: moves only, no damage */
     const stand = (col: number, row: number) => { const h = Kk.where().h; Kk.place(col * 16 + 3, row * 16 - h); Kk.step(4, { left: false, right: false, jump: false }); };
     const feet = () => { const p = Kk.where(); return { col: Math.floor((p.x + p.w / 2) / 16), row: Math.round((p.y + p.h) / 16 * 100) / 100, g: p.onGround }; };
     const until = (n: number, hold: (f: number) => Hold, done: () => boolean) => { for (let f = 0; f < n; f++) { Kk.step(1, hold(f)); if (f > 8 && done()) return true; } return false; };
@@ -122,6 +123,7 @@ test('the new moves: ladder, ledge grabs, vine, wall jumps, swimming, pipes, doo
     out.sink = sink;
     out.swimOut = until(900, (f) => ({ right: true, jump: f % 14 < 4, tapJump: f % 14 === 0 }), () => feet().g && feet().col > B + 81);
     stand(B + 88, 10); Kk.step(80, {}); out.pipeUp = feet();
+    stand(B + 88, 10); Kk.step(1, { tapFire: true } as Hold); Kk.step(45, {}); out.kickIn = feet();   /* KICK goes in at once (Shad's playtest: standing still was confusing) */
     stand(B + 100, -22); Kk.step(80, {}); out.pipeDown = feet();
     stand(B + 112, 12); Kk.step(80, {}); out.door = feet();
     stand(B + 124, -11); Kk.step(80, {}); out.chute = feet();
@@ -136,6 +138,7 @@ test('the new moves: ladder, ledge grabs, vine, wall jumps, swimming, pipes, doo
   expect(r.sink as number).toBeLessThanOrEqual(1.31);      /* sinks slowly in the water */
   expect(r.swimOut).toBe(true);                            /* swims across and jumps out */
   expect(r.pipeUp).toMatchObject({ col: 108 + 92, row: -20, g: true });
+  expect(r.kickIn).toMatchObject({ col: 108 + 92, row: -20, g: true });
   expect(r.pipeDown).toMatchObject({ col: 108 + 108, row: 12, g: true });
   expect(r.door).toMatchObject({ col: 108 + 116, row: -11, g: true });
   expect(r.chute).toMatchObject({ col: 108 + 130, row: 12, g: true });
