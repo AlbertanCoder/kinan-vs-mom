@@ -155,6 +155,7 @@ KinanLevels.register({
     [150, 'MOM', 'Hot chocolate after this. And dry socks.', 2.6],
     [168, 'SHAD', 'The raccoon ran up onto City Hall! I can see the shiny parcel up there.', 3.8],
     [190, 'KINAN', 'More ice! Keep running, keep running, keep running...', 3],
+    [190, 'GRANDPA', "Grandpa on the video call! More ice? In Saskatchewan we don't build rinks. We wait for November and the whole province turns into one.", 8],
     [254, 'SHAD', 'It went toward the Giant Tower! How does a raccoon even get in there?', 3.6]
   ]
 });

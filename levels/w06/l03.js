@@ -146,13 +146,14 @@ KinanLevels.register({
   checkpoint: { col: 101, row: 9 },
   spawn: { col: 2, row: 11 },
   goal: { col: 293, row: 11 },   /* Dad's truck waits at the viewpoint */
-  /* World 6's talk (2026-11-03 audit: the header's written beats, wired; strangers are PASSER-BY) */
+  /* World 6's talk (2026-11-03 audit: the header's written beats, wired; the jokes are Robin's and Grandpa's, Shad 2026-11-09) */
   talk: [
     [2, 'SHAD', "Hoodoos! The rock on top is like an umbrella for the pillar.", 4],
     [12, 'KINAN', "So I'm jumping on their HATS?", 2.4],
-    [101, 'PASSER-BY', "What do you call a dinosaur that's sleeping? A dino-SNORE!", 3.9],
+    [101, 'DAD', "Know why hoodoos never panic, bud? They always keep a level head.", 4.3],
     [160, 'CHENOA', "Watch the lizard, it throws ropes!", 2.4],
     [200, 'KINAN', "The Big Three. Okay. Okay okay okay.", 2.4],
+    [200, 'DAD', "Level head, bud. Be the hoodoo.", 2.4],
     [284, 'KINAN', "Tallest hat in the badlands!", 2.4]
   ]
 });

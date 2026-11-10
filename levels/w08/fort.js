@@ -117,6 +117,7 @@ KinanLevels.register({
     [57, 'KINAN', 'A tunnel UNDER the water! There is a shark right over my head!', 3.2],
     [84, 'DAD', "Ride the moving walkway, bud. The sharks are behind the glass. They're just fin-ishing lunch.", 3.8],
     [141, 'MOM', 'Something big just moved in the big tank, sweetie. Something with a LOT of arms.', 4],
+    [141, 'DAD', "Eight arms? Finally, somebody who can carry in all the groceries in one trip.", 5.1],
     [172, 'SHAD', 'The raccoon ran right past the big tank. Wait. Is that an OCTOPUS?', 3.4]
   ]
 });

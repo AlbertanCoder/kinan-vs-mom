@@ -145,6 +145,7 @@ KinanLevels.register({
     { kind: 'skill', col: 220, row: 2, prize: 'hat' }   /* THE TOP RAIL */
   ],
   goldenCandle: { col: 85, row: 7 },
+  talk: [[30, 'DAD', "Bull riders hang on for eight seconds and win a belt buckle. I've hung onto a hydro vac hose for fifteen years. Where's MY buckle?", 8]],
   checkpoint: { col: 107, row: 11 },
   spawn: { col: 2, row: 11 },
   goal: { col: 266, row: 11 }   /* Dad's truck waits past the podium */

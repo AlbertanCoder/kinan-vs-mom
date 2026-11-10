@@ -118,9 +118,9 @@ KinanLevels.register({
   goal: { col: 226, row: 8 },   /* the far end of the observation deck, past where the boss goes */
   talk: [
     [2, 'KINAN', "The Big O! And Glitchy's hockey bag is going up that leaning tower!", 3.6],
-    [40, 'DAD', "The tallest leaning tower in the world, bud! The whole climb is tilted. I lean toward liking it.", 3.6],
+    [40, 'DAD', "The tallest leaning tower in the world, bud! Know where pepperonis go on holiday? The Leaning Tower of PIZZA.", 7.3],
     [63, 'CHENOA', "That's the tower's lift track. Just stand on it and it carries you up, little bro!", 3.8],
-    [90, 'PASSER-BY', 'Bonjour! The view from the top is magnifique!', 3],
+    [90, 'CHENOA', "The view from the top is magnifique, little bro! That's French for amazing.", 3.6],
     [103, 'MOM', 'Careful up there, sweetie. The gaps get bigger near the top.', 3.4],
     [162, 'SHAD', "Annie's drones are all over this tower. Something BIG is humming on the observation deck...", 4],
     [176, 'KINAN', "Whoa. One of Annie's big hunter drones! It's guarding Glitchy's bag!", 3.6]

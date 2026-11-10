@@ -155,6 +155,7 @@ KinanLevels.register({
   talk: [
     [2, 'DAD', "Over the mountains, down to the ocean, bud: Vancouver! It only rains there once a year. October to April.", 4.8],
     [21, 'KINAN', 'Why is it raining? It was sunny on the other side of the mountains!', 3.6],
+    [21, 'GRANDPA', "Grandpa on the video call! Rain in Vancouver? Kinan, out there you know it's summer when the rain gets warm.", 7.2],
     [33, 'MOM', 'Tunnel coming up! Keep your head down in there, sweetie.', 3.2],
     [100, 'SHAD', "Glitchy's tour bus went into the next tunnel. I can hear him giggling in there.", 4],
     [196, 'CHENOA', 'Look how far down the city is! All those glass towers!', 3.2],

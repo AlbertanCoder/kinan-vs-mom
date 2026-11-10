@@ -158,7 +158,7 @@ KinanLevels.register({
     [56, 'DAD', 'That car is covered in plants! A whole garden on wheels, bud. Talk about a car-rot.', 3.2],
     [30, "DAD", "What do you call cheese that isn't yours? Nacho cheese! Get it? Not-yo cheese? Because it's not yours?", 4.4],
     [30, "MOM", "This is my not-laughing face. See? Not laughing. Peaches. I am going to look at peaches.", 3.4, "walkoff"],
-    [30, "DAD", "...I'll be here all week, folks! Try the brie, it's un-brie-lievable!", 3.2],
+    [30, "DAD", "...I'll be here all week, folks! Look at that. Even the bananas split.", 3.2],
     [89, 'SHAD', 'That shop is way too tall to jump. Bounce off its awning!', 3.2],
     [141, 'MOM', 'Fresh peaches! Okay, okay. AFTER we get Glitchy back.', 3],
     [244, 'KINAN', 'The raccoon went up onto the roofs. It is heading downtown!', 3.2]

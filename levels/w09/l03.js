@@ -156,7 +156,8 @@ KinanLevels.register({
     [68, 'ANNIE', "So YOU'RE the Kinan I've been helping on the radio! Sorry, rogue code can wreck a city's computers. Chalo, drones! (Let's go!)", 6, 'hold']   /* c72 -> c68 + 'hold' (2026-11-04 final QC): one conversation with Kinan's line, and he stands for it. 2026-11-03 audit (answer 7): their first time in person */,
     [104, 'MOM', 'If a drone shines its light on you, it follows you for a bit. Keep moving, sweetie!', 3.8],
     [163, 'SHAD', "Annie's really good at this. But Glitchy's fast. Go, little bro!", 3.2],
-    [244, 'PASSER-BY', 'Bonjour! The way out? Follow the SORTIE signs!', 3],
+    [244, 'KINAN', "SORTIE... that's French for EXIT! Follow the signs!", 3],
+    [244, 'GRANDPA', "Grandpa on the video call! Learning French, Kinan? 'Chat' means cat. So in Montreal, a cat meowing at you is just having a chat.", 8],
     [256, 'KINAN', "There he is! Glitchy's heading up the mountain, to the lookout!", 3.2]
   ]
 });

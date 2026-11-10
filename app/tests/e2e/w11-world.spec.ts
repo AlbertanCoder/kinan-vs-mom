@@ -495,7 +495,7 @@ test.describe('World 11 · on the map, and the ending', () => {
     expect(text.end_kinan_03).toBe("KINAN: WHAT IS GOING ON HERE?! My hands are 3D! ...Okay, that's cool, BUT WHAT?!");
     expect(text.end_annie_01).toBe("ANNIE: My scanners can't even measure this. The whole world just got DEEPER!");
     expect(text.end_chenoa_01).toBe("CHENOA: Little bro, don't touch anything!");
-    expect(text.end_dad_01).toBe('DAD: One dimension at a time, guys.');
+    expect(text.end_dad_01).toBe("DAD: Easy, everybody. Saskatchewan's been flat my whole life. About time it got a little depth.");
     expect(text.end_glitchy_02).toBe('GLITCHY: Ooooh... beep!');
     expect(text.end_shad_02).toBe('SHAD: Happy birthday week, bud. Welcome to year eleven.');
     for (const who of ['Kinan', 'Mom', 'Dad', 'Big Sis Chenoa', 'Big Bro Shad', 'Annie', 'GRANDPA', 'the Grandmas',   /* GRANDPA as labelled (the World 11 review, 4477a7b) */ 'Sabumnim', 'Glitchy', 'Ginger', 'Chikastino', 'Vader', 'Hunter', 'Duchess', 'Tuxedo',

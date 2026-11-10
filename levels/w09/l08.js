@@ -156,7 +156,7 @@ KinanLevels.register({
     [33, 'DAD', 'See that glowing wall, bud? Wait for it to open, then go: it flickers before it shuts. A firewall? I brought the hose.', 4.8],
     [86, 'CHENOA', "A robot demo! Look, little bro, that one's doing the robot dance.", 3.4],
     [109, 'SHAD', "That's Annie's firewall corridor. The walls open one after another: run through all four in one go!", 4.4],
-    [139, 'PASSER-BY', 'Bonjour! Did you see a little glitchy guy with a hockey bag run by?', 3.4],
+    [139, 'KINAN', 'Excusez-moi! Did anybody see a little glitchy guy with a hockey bag run by?', 3.6],
     [190, 'ANNIE', 'Kinan, you again! That code could get into every computer in here. I have to stop it!', 4.2],
     [244, 'MOM', "Glitchy ran out the back door, sweetie! Annie's right behind him. Go, go, go!", 3.8],
     [257, 'ANNIE', "Hmm. That little glitch doesn't look dangerous... Shabash, Kinan! (Well done!) But I still have to catch it.", 4.8]

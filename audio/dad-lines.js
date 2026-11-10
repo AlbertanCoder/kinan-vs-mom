@@ -27,7 +27,16 @@
     w05_robin_05: "Badlands, here we come! Dinosaur country. Finally, something older than my jokes.",
     w06_robin_01: "Vancouver. Pack an umbrella, folks. I hear the forecast is un-brella-vable.",
     w07_robin_03: "Guess he wanted express delivery. That bug's got a real stamp of approval.",
-    w09_robin_01: "Look at that. First one out the door. That bug's got startup energy."
+    w09_robin_01: "Look at that. First one out the door. That bug's got startup energy.",
+    jk_w03_3: "Breakfast flying across the room? All these years at camp, and NOW they serve fast food.",
+    jk_w03_4: "My truck sucks up mud for a living, bud. Today the mud got even.",
+    jk_w03_6: "The crew calls my truck Darth Vac. It finds your lack of mud disturbing.",
+    jk_w03_7: "Pipes everywhere, bud. And no, you can't jump down them. That's a different plumber.",
+    jk_w04_2: "Snow already? Bud, Edmonton has four seasons: almost winter, winter, still winter, and road construction.",
+    jk_w04_6: "Look at those beams, just hanging in the air. Must be reading a book about anti-gravity. Can't put it down.",
+    jk_w04_7: "Careful on these stairs, bud. I don't trust stairs. They're always up to something.",
+    jk_w05_2: "Stampede pancake breakfast, bud: the only rodeo where the main event gets flipped.",
+    jk_w05_secret: "Tubing's my kind of sport, bud. No practice, no rules. You just go with the flow."
   };
   /* new lines, and Grandpa's 3-1 lines with new words (same id: the new clip goes to audio/rerecord/<id>.mp3) */
   var A = {
@@ -40,7 +49,12 @@
     gp_w04_pool: ['GRANDPA', 'Grandpa on the video call! Wave to Grandpa, Kinan! ...Not you, wave pool. Show-off.'],
     gp_w05_dino: ['GRANDPA', 'Grandpa on the video call! What do you call a dinosaur with a big vocabulary? A thesaurus.'],
     w05_robin_jo1: ['DAD', 'Oh yeah? What do you call a dinosaur that crashes the car? Tyrannosaurus WRECKS!'],
-    gp_w05_dino2: ['GRANDPA', 'Four out of ten. I wrote that one the day you put my truck through the fence.']
+    gp_w05_dino2: ['GRANDPA', 'Four out of ten. I wrote that one the day you put my truck through the fence.'],
+    gp_w03_banks: ['GRANDPA', "Grandpa on the video call! Know why the Athabasca River is so rich, Kinan? It's got two banks."],
+    gp_w04_stage: ['GRANDPA', "Grandpa on the video call! Why did the actor fall through the floor, Kinan? It was just a stage he was going through."],
+    gp_w05_herd: ['GRANDPA', "Grandpa on the video call! Kinan, the whole herd's behind you. How do I know? I herd them. Tell your dad that one's mine."],
+    gp_w05_wheel: ['GRANDPA', "Grandpa on the video call! I've got a Ferris wheel joke for you, Kinan. Don't worry. It'll come around."],
+    gp_w05_tower: ['GRANDPA', "Grandpa on the video call! I told a joke at the top of the City Tower once. Went right over everybody's head."]
   };
   var G = {
     intro: {
@@ -51,7 +65,7 @@
     },
     open: { '3-1': ['w03_robinsmom_01', 'w03_grandpa_01', 'w03_robin_04', 'w03_grandpa_03', 'w03_kinan_jo1'] },
     clear: { '3-1': ['w03_robinsmom_02', 'w03_grandpa_05', 'w03_robin_06', 'w03_grandpa_jo4'] },   /* Grandpa gets the last word */
-    joke: { '4-4': 'gp_w04_pool', '5-6': 'gp_w05_dino' }
+    joke: { '3-secret': 'gp_w03_banks', '4-4': 'gp_w04_pool', '4-8': 'gp_w04_stage', '5-3': 'gp_w05_herd', '5-6': 'gp_w05_dino', '5-7': 'gp_w05_tower', '5-fort': 'gp_w05_wheel' }
   };
   /* the recorded clips (2026-10-29, the cast voices; Grandpa en-US-ChristopherNeural -15% -14Hz): id -> seconds. A line with a
      clip plays audio/rerecord/<id>.mp3 and stays up for the clip plus 0.4 s (never under the reading pace).

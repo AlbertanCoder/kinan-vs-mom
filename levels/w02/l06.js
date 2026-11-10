@@ -76,7 +76,8 @@ KinanLevels.register({
   },
   /* nothing stands on the kickers (S4) or waits at a puddle's landing; the cart on the conveyor rolls toward you */
   talk: [   /* Dad's jokes, the wheeze-laugh, Mom's reactions (tools/dad-lines.mjs) */
-    [30, "DAD", "Driving back from camp, bud! Why is the cafeteria clock always slow? It goes back four seconds. The cook didn't laugh either.", 5.2]
+    [30, "DAD", "Driving back from camp, bud! Why is the cafeteria clock always slow? It goes back four seconds. The cook didn't laugh either.", 5.2],
+    [30, "KINAN", "Back for seconds. Like second helpings! ...Dad, the lunch lady laughed. That's a first.", 5.8]
   ],
   foes: [[11, 8, 'egg'],
          [36, 8, 'cupcake'],

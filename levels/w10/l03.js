@@ -178,7 +178,7 @@
     goal: { col: 266, row: 11 },   /* the end of the exit tunnel */
     talk: [
       [2, 'KINAN', "Tunnels in the rock, right behind the Horseshoe Falls! Glitchy just ducked inside, and the water is roaring!", 4.4],
-      [3, 'DAD', "A tunnel behind a waterfall, bud. What a water-way to travel! I'm still drying off from the spray.", 4],
+      [3, 'DAD', "Tunnels dug right behind a waterfall, bud! Finally, somebody's job site is wetter than mine.", 6.1],
       [4, 'MOM', "In places the falls pour right across the tunnel. It only slows you down. Wait for the drips, sweetie.", 4.2],
       [28, 'CHENOA', "Drip... drip... DRIP-DRIP-DRIP! That fast dripping means it's about to pour. Cross while it only drips, little bro!", 4.8],
       [38, 'DAD', "Why was the tunnel such a good diplomat? Because it was so... hee... so drip-lo... HA... drip-lomatic... I can't—", 4.8, 'wheeze'],
@@ -186,7 +186,8 @@
       [38, 'MOM', "Ha! Drip-lomatic! Oh, I love you two. Keep going, sweetie.", 3.2, 'laugh'],
       [46, 'CHENOA', "See that rock balcony over the gap? Jump up onto it and hold JUMP all the way. It's high!", 3.8],
       [51, 'CHENOA', "A wooden board on that rock! Stand next to it and press KICK. There are candles inside.", 3.8],
-      [60, 'GRANDPA', "Grandpa on the video call! Why don't waterfalls ever get lost? They always know which way is down! Tell your dad that one's mine.", 5.4],
+      [60, 'GRANDPA', "Grandpa on the video call! The Falls move back about a foot every year, Kinan. Just like your dad when it's time to do the dishes.", 8],
+      [60, 'DAD', "Hey! I heard that, Dad. ...I'm just going to back away now.", 3.9],
       [104, 'SHAD', "Three curtains in this tunnel, little bro. Only one pours at a time. Watch which one is dripping fast!", 4],
       [144, 'DAD', "What a lookout, bud! Don't look out, though. Look UP: something sparkles up there!", 3.8],
       [177, 'MOM', "The calms are shorter now, sweetie. And no curtains near a jump. Not a single splash on a gap.", 3.8],

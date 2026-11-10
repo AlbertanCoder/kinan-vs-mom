@@ -174,7 +174,7 @@
     goal: { col: 266, row: 11 },   /* the garden's far gate */
     talk: [
       [2, 'KINAN', "The Floral Clock! A giant clock made of flowers, and its hands really move! Glitchy slipped into the garden.", 4.4],
-      [3, 'DAD', "Why did the clock grow herbs, bud? It had thyme on its hands!", 3.2],
+      [3, 'GRANDPA', "Why did the clock grow herbs, Kinan? It had thyme on its hands!", 4.2],
       [4, 'MOM', "Careful with the clock hands, sweetie. They keep turning. Step on when one passes, and off on the other side.", 4.2],
       [12, 'CHENOA', "The little platform on the hand carries you across! Step on when it comes up to the edge, and off on the far side.", 4.4],
       [40, 'DAD', "This clock is never early, bud. It's a late bloomer!", 3],
@@ -186,7 +186,8 @@
       [100, 'SHAD', "Some clocks have two hands, little bro: a fast one and a slow one. See which one comes by the floor.", 4],
       [114, 'ANNIE', "A real working flower clock! Chalo! (Let's go!)", 3],
       [128, 'MOM', "The big hand swings right past that floating ledge, sweetie. Step off when they're level.", 3.8],
-      [172, 'DAD', "I'm a little worried about the calendar, bud. Its days are numbered.", 3.2],
+      [172, 'DAD', "What did the digital clock say to the grandfather clock? 'Look, Grandpa! No hands!'", 5.5],
+      [172, 'GRANDPA', "A grandfather clock joke, Robin? Then it's MINE. I'm the grandfather. Three out of ten: you rushed the hands.", 7.3],
       [172, 'MOM', "Ten jokes in one day. That's a new record, Robin. I am going to look at the flowers.", 3.4, 'walkoff'],
       [188, 'SHAD', "The hands are faster now, and the pits are wider. Take a running jump, or time the hand.", 3.8],
       [240, 'ANNIE', "Shabash, Kinan! (Well done!) You told time like a pro!", 3.2],

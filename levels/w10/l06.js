@@ -167,7 +167,7 @@
     goal: { col: 266, row: 11 },   /* the last cable car station */
     talk: [
       [2, 'KINAN', "The Whirlpool! The river turns round and round way down there. And Glitchy just hopped into a cable car!", 4.4],
-      [3, 'DAD', "Why did the whirlpool break up with the river? It just kept going in circles, bud. I'm not dizzy. I'm just spun out!", 4.6],
+      [3, 'GRANDPA', "A whirlpool, Kinan? That's a river going round and round, never getting to the end. Just like your dad telling a joke.", 7.9],
       [4, 'MOM', "The cable cars are open to the air, sweetie. Hold on tight. It's a long way down.", 3.6],
       [19, 'CHENOA', "Step into the cable car and it carries you across. Or take a running jump. Your choice, little bro!", 3.8],
       [30, 'DAD', "This cable car is over a hundred years old, bud. Like Grandpa's jokes, it's still hanging in there.", 4.2],

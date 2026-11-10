@@ -189,12 +189,12 @@
     goal: { col: 266, row: 11 },   /* the fun house's way out */
     talk: [
       [2, 'KINAN', "The Mirror Maze! Mirrors everywhere... and Glitchy's reflection is running along every one of them!", 4.2],
-      [3, 'DAD', "Oh no, bud, I'm seeing double. Two of me! That's twice the jokes!", 3.2],
+      [3, 'DAD', "A whole room full of me, bud! Finally, an audience that gets my jokes. ...They keep copying them, though.", 7],
       [4, 'MOM', "Careful, sweetie. In here, gold arrows are real. A pale blue arrow with a red cross is only a reflection.", 4.2],
       [14, 'CHENOA', "That mirror wall is three tiles tall. Jump up and over it, little bro!", 3.4],
       [24, 'CHENOA', "That path up there has candles, but the arrow over it is only a reflection. You can always step back down.", 4.4],
-      [45, 'DAD', "Why did the mirror get such great grades? Because it was always... hee... always reflecting on... HA... on its... I can't—", 4.8, 'wheeze'],
-      [45, 'SHAD', "...on its mistakes. Dad. Reflecting on its mistakes.", 3],
+      [45, 'DAD', "Why are mirrors such deep thinkers, bud? Because they're always... hee... always... HA... I can't—", 4.4, 'wheeze'],
+      [45, 'KINAN', "...reflecting. Mirrors are always reflecting, Dad. We get it.", 4.1],
       [45, 'MOM', "Ha! Reflecting! Oh, go on, sweetie, before I laugh again.", 3, 'laugh'],
       [54, 'SHAD', "That glass door opens for a while, flickers, and then shuts. Wait for it, then go. It never traps you.", 4],
       [62, 'CHENOA', "A wooden board on that mirror cabinet! Stand next to it and press KICK.", 3.4],
@@ -204,7 +204,8 @@
       [120, 'DAD', "...I'll be here all week! Seven years' bad luck, though.", 3.2],
       [166, 'DAD', "That mirror hanging over the path is twinkling, bud. It's twinkling twice! Jump up under it.", 3.8],
       [190, 'SHAD', "The hardest part, little bro. Three glass doors in a row, and wide pits. Take your time. The doors never trap you.", 4.8],
-      [240, 'KINAN', "We're almost through the maze! Glitchy's heading out toward the big party at the Falls...", 3.8]
+      [240, 'KINAN', "We're almost through the maze! Glitchy's heading out toward the big party at the Falls...", 3.8],
+      [240, 'DAD', "They asked me to leave the mirror maze, bud. I said, don't worry. I'll see myself out.", 5.7]
     ]
   });
 })();

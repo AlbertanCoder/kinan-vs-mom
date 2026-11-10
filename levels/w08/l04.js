@@ -144,8 +144,9 @@ KinanLevels.register({
   spawn: { col: 2, row: 11 },
   goal: { col: 268, row: 11 },   /* out the tower's doors, toward the toy store */
   talk: [
-    [2, 'DAD', 'The Giant Tower! Five hundred and fifty-three metres. The raccoon went all the way UP. Talk about high-jinks!', 4.4],
+    [2, 'DAD', "The Giant Tower! Five hundred and fifty-three metres. The raccoon went all the way UP. Best view of every garbage bin in the city.", 8],
     [30, 'KINAN', 'One thousand, seven hundred and seventy-six stairs. I am counting every one.', 3.8],
+    [30, 'DAD', "Count them for me, bud. I'm taking the elevator. I'd tell you an elevator joke, but it works on too many levels.", 7.5],
     [61, 'MOM', 'Hold on, sweetie! When you hear the wind coming, hold on tight!', 3.2],
     [94, 'CHENOA', 'The GLASS FLOOR! You can see the whole city under your feet. I am NOT looking down.', 4],
     [157, 'SHAD', 'The raccoon climbed out onto the outside ledge. Outside! On the edge! Of course it did.', 4],

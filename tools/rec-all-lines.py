@@ -38,7 +38,6 @@ V = {
     'BRICK-REX': ('en-US-ChristopherNeural', '-10%', '-35Hz', None),
     'MIRROR KINAN': ('en-US-AnaNeural', '+4%', '-18Hz', 'mirror'),
     'THE CORE GUARDIAN': ('en-US-ChristopherNeural', '-12%', '-30Hz', 'robot'),   # = the Firewall's pick
-    'PASSER-BY': ('en-US-EricNeural', '+0%', '+0Hz', None),                       # *
     "THE NEIGHBOUR'S WIFE": ('en-US-AriaNeural', '-8%', '-10Hz', None),             # *
     'THE BIG OCTOPUS': ('en-US-GuyNeural', '-18%', '-20Hz', 'echo'),               # *
     'THE GIANT BANANA SLUG': ('en-US-ChristopherNeural', '-25%', '-6Hz', None),    # *

@@ -122,7 +122,7 @@ KinanLevels.register({
   checkpoint: { col: 84, row: 11 },
   spawn: { col: 2, row: 5 },
   goal: { col: 184, row: 11 },   /* up through the crack into the canyon sunshine */
-  /* World 6's talk (2026-11-03 audit: the header's written beats, wired; strangers are PASSER-BY) */
+  /* World 6's talk (2026-11-03 audit: the header's written beats, wired; the jokes are Robin's and Grandpa's, Shad 2026-11-09) */
   talk: [
     [2, 'KINAN', "Whoa. The rocks are GLOWING.", 2.4],
     [31, 'KINAN', "Springboard! Into the ceiling!", 2.4],

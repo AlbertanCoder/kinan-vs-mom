@@ -149,8 +149,9 @@ KinanLevels.register({
   talk: [
     [2, 'KINAN', "The Old Port! There's the river. Glitchy's hockey bag went this way!", 3.4],
     [11, 'DAD', "A zip line! Jump at the edge and grab the cable, bud. It takes you right across. I'll... find a bridge.", 4.2],
+    [11, 'GRANDPA', "Grandpa on the video call! A zip line, Kinan? That's just gravity saying, 'I'll take it from here.'", 6.6],
     [29, 'MOM', "Press JUMP while you're hanging and you let go, sweetie. Only if you want to!", 3.6],
-    [54, 'PASSER-BY', 'Bonjour! Attention, it goes fast! (Careful!)', 3],
+    [54, 'MOM', "Attention, sweetie! That's French for careful. It goes fast!", 3.4],
     [109, 'CHENOA', 'Look at the clock tower out on the pier! Race you to the end, little bro!', 3.4],
     [165, 'SHAD', "Annie says her drones are heading into the Metro. She thinks the rogue code is hiding down there!", 4.4],
     [244, 'KINAN', "The Metro? Glitchy, wait for me! I'm coming!", 3]

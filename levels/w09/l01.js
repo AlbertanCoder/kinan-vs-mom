@@ -164,7 +164,6 @@ KinanLevels.register({
     [30, "DAD", "What do you call a bagel that can fly? A... hee hee... HAHA... I can't—", 3.6, "wheeze"],
     [30, "KINAN", "...a PLANE bagel. Plain? Plane? ...Oh no, I explained it. Mom, it's happening. I'm turning into him.", 4.4],
     [30, "MOM", "Ha! Oh, I love you two. Go, go, Glitchy is getting away!", 3, "laugh"],
-    [29, 'PASSER-BY', 'Bonjour! Bienvenue à Montréal! (Hello! Welcome to Montreal!)', 3.4],
     [66, 'CHENOA', "That house is too tall to jump. Use the balcony like a step, little bro!", 3.6],
     [150, 'SHAD', "Annie texted me. She's at the big tech conference here, and her scanners just spotted some ROGUE CODE downtown.", 5],
     [244, 'KINAN', "Rogue code? That's GLITCHY! I have to find him before Annie's drones do!", 3.6]

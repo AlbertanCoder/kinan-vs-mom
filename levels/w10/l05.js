@@ -161,7 +161,7 @@
     goal: { col: 266, row: 11 },   /* the conservatory's far door */
     talk: [
       [2, 'KINAN', "The Butterfly Conservatory! A giant glass dome full of butterflies. Glitchy just flew in through the door!", 4.4],
-      [3, 'DAD', "What's a butterfly's best subject? Moth-ematics! I love this place, bud. It's a real flutter-by.", 4],
+      [3, 'DAD', "Did you know butterflies taste with their feet, bud? So the one on my boot? Worst lunch of its life.", 6.7],
       [4, 'ANNIE', "Look at all of them, Kinan! And they're landing on everyone's hats. Chalo! (Let's go!)", 3.8],
       [18, 'CHENOA', "That giant leaf is a trampoline! Run onto it, then hold RIGHT and JUMP. You'll fly!", 3.8],
       [38, 'DAD', "Why did the butterfly skip the school dance? Because it was a moth-ball!", 3.4],
@@ -171,7 +171,7 @@
       [64, 'DAD', "Hey, bud, something is twinkling up there. It might be an orchid! Jump under it.", 3.6],
       [90, 'SHAD', "A swarm of butterflies is a moving platform. Land on the glowing line along its top, little bro.", 3.8],
       [100, 'MOM', "These leaves are very bouncy, sweetie. Hold RIGHT as you take off, and look where you're landing.", 3.8],
-      [118, 'DAD', "Why do butterflies make bad party guests? They're always flitting in and out!", 3.4],
+      [118, 'DAD', "Bad idea, bud: I yawned in here. Now I've got butterflies in my stomach.", 4.8],
       [118, 'MOM', "I did NOT just laugh. Nobody saw that. I am going to sit with the orchids.", 3.4, 'walkoff'],
       [185, 'MOM', "The ponds are wider now, sweetie. The swarms are faster, too. Take a running jump, or ride one.", 4],
       [201, 'KINAN', "That last leaf points at a swarm flying way up high! There's a canopy ledge on the other side...", 4],

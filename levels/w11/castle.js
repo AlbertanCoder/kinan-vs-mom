@@ -89,7 +89,7 @@ KinanLevels.register({
     [9, 'ANNIE', "Wait. I'm reading his code. There's one line, over and over: BROKEN. DELETE. BROKEN. DELETE.", 4.8],
     [14, 'MOM', "Oh, sweetie. He thinks he's broken? Nobody in this family gets thrown away.", 4],
     [27, 'SHAD', "Bud, I made him as a test sprite and never finished him. I'd never delete him... but he didn't know that.", 5],
-    [33, 'DAD', "Then let's go tell him in person. Mind the cables, bud. Low bridge.", 3.4],
+    [33, 'DAD', "Grandpa kept every bad joke I ever told, in a notebook. In this family, broken things get KEPT, bud. Mind the cables. Low bridge.", 8],
     [46, 'CHENOA', "Little bro, whatever's at the end of this, we're right behind you. All of us.", 4],
     [53, 'ANNIE', "His panic is pulling in every boss you ever met: every move, one at a time. You know them all, Kinan.", 4.8],
     [63, 'KINAN', "Up the CPU stacks. Hang on, Glitchy. I'm almost there.", 3.2],
