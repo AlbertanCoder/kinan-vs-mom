@@ -94,3 +94,15 @@ everything once more.
   Its second area, THE NEW MOVES: a ladder, two ledges to grab, a vine, a wall-jump shaft, a pool to swim in, a steel pipe up
   to a secret room and one back down, a door up to a rooftop and a chute back down. Same buttons as always. Only levels
   that list these pieces get them. Not done yet: their Builder versions, the friends poofing along, climbing art for Kinan.
+
+## Shad's playground feedback (2026-11-10) and his answers
+He played the playground. **Fix:** on a ladder or vine Kinan faces it (seen from **behind**, arms and legs moving), not
+sideways; the wall jump shows a **taekwondo kick-off** (foot on the wall, dust, a thud); the ledge grab stays but must
+**look good** (hands on the edge, body against the wall, legs dangling, a clear pull-up); the **butt slam is slower and
+floaty underwater** (bubbles; still breaks crates); **swim strokes** (arms and legs, bubbles; floats when idle);
+**sounds** for climbing (creaks, rustles), water (splash, blub, bubbles), pipes and doors (whoomp, creak, clunk), the wall
+kick (thud) and the ledge (click, hup). The playground had no sound: fix. The water and the secret doors look good.
+**Next, one at a time after the polish (in this order):** crawl through tunnels first, then rope swing / monkey bars,
+the taekwondo dash kick, glide. **Tools**, found in the level that needs them and gone at its end: a flashlight for dark
+caves, a grappling hook, a shovel, a skateboard / scooter. **Climbing extras:** climbable rock walls / fences (up, down,
+sideways), shimmying along a ledge while hanging, holding run to climb faster.

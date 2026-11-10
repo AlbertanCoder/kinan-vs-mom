@@ -1643,6 +1643,22 @@ const KINAN_LEGS = {
   jump: ['...jjjj..jjjj...', '..JRJ......JRJ..', '..ww........ww..'],
   fall: ['....jjjjjjjj....', '...JRJ....JRJ...', '..www......www..']
 };
+/* SEASON 2 POSES (2026-11-10, Shad: "you don't go up a ladder backwards ... his arms and legs should move"): on a ladder or a
+   vine we see his back (braid and all), one hand reaching up and the other knee coming up, swapping each step; hanging
+   from a ledge both hands grip above his head and his legs dangle; swimming, a stroke spreads his arms and kicks his legs.
+   16 x 18 like his stand pose; an outfit recolours the shirt and pants the same way (s2Poses) */
+const S2_POSES = {
+  climbA: ['ks..kkkkkkkk....', 'ks.khhhhhhhhk...', 'kskhhhhhhhhhhk..', 'kskhhhhhhhhhhk..', 'ksShhhhhhhhhhSk.', 'ksShhhhhhhhhhSk.', 'kskhhhhhhhhhhks.', 'kskkhhhhhhhhkksk', '.krrrrrhhrrrrrsk', '.krrrrrhhrrrrrsk', '.krrrrrhhrrrrrk.', '.krrrrrRRrrrrrk.', '.krrrrrrrrrrrrk.', '..kjjjjjjjjjjk..', '..kjjjj..jjjjk..', '..JRJ....jjj....', '..www....JRJ....', '.........www....'],
+  climbB: ['....kkkkkkkk..sk', '...khhhhhhhhk.sk', '..khhhhhhhhhhksk', '..khhhhhhhhhhksk', '.kShhhhhhhhhhSsk', '.kShhhhhhhhhhSsk', '.skhhhhhhhhhhksk', 'kskkhhhhhhhhkksk', 'ksrrrrrhhrrrrrk.', 'ksrrrrrhhrrrrrk.', '.krrrrrhhrrrrrk.', '.krrrrrRRrrrrrk.', '.krrrrrrrrrrrrk.', '..kjjjjjjjjjjk..', '..kjjjj..jjjjk..', '....jjj....JRJ..', '....JRJ....www..', '....www.........'],
+  hang: ['..kssk....kssk..', '..kssk....kssk..', '..kssskkkksssk..', '..kshhhhhhhhsk..', '..khhsssssshhk..', '..khsddssddshk..', '.kSssskssksssSk.', '.kSssssssssssSk.', '..ksssuuuusssk..', '..kkrrrrrrrrkk..', '.kSrrrryyrrrrSk.', '.kSrrrrwwrrrrSk.', '..krrrrwwrrrrk..', '..krrrmmmrrrrk..', '..kjjjjjjjjjjk..', '...kjjj..jjjk...', '...kJRJ..JRJk...', '....ww....ww....'],
+  swimA: ['....kkkkkkkk....', '...khhhhhhhhk...', '..khhsssssshhk..', '..khsddssddshk..', '.kSssskssksssSk.', '.kSssssssssssSk.', '.hksssussusssk..', 'sdhksssuusssk..s', 'skkrrrrrrrrrrkks', '.ksrrrryyrrrrsk.', '..krrrrwwrrrrk..', '..krrrrwwrrrrk..', '..krrrmmmrrrrk..', '..kjjjjjjjjjjk..', '.kjjjjk..kjjjjk.', 'JRJ..........JRJ', 'ww............ww', '................'],
+  swimB: ['....kkkkkkkk....', '...khhhhhhhhk...', '..khhsssssshhk..', '..khsddssddshk..', '.kSssskssksssSk.', '.kSssssssssssSk.', '.hksssussusssk..', '.dhksssuusssk...', '.hkrrrrrrrrrrk..', 'dkrrrrryyrrrrrk.', 'hkrrrrrwwrrrrrk.', 'ksrrrrrwwrrrrrsk', 'ksrrrrmmmrrrrrsk', '..kjjjjjjjjjjk..', '...kjjjjjjjjk...', '....JRJ..JRJ....', '....www..www....', '................']
+};
+function s2Poses(map, pant) {
+  const o = {};
+  for (const k in S2_POSES) o['s2_' + k] = bake(S2_POSES[k].map((r, i) => (i >= 8 && map ? r.replace(/./g, (ch) => (ch === 'j' ? pant : (map[ch] || ch))) : r)));
+  return o;
+}
 const CROCS = { stand: ['...VVVV..VVVV...', '..VVVVV..VVVVV..'], walk: ['..VVVV....VVVV..', '.VVVVV....VVVVV.'] };
 /* Shad: blue cap, sunglasses, a goatee and a grin, orange shirt under a lime hi-vis vest, a claw hammer in his hand,
    a yellow tape measure on his tool belt, work pants */
@@ -10841,6 +10857,23 @@ function s2WarpUnder() {
   }
   return null;
 }
+/* the new moves' sounds (Shad: climbing creaks and rustles, splashes and blubs, a pipe's whoomp, a door's creak, a hatch's
+   clunk, the wall kick's thud, the ledge's click and hup), made like the rest of SFX from tones and filtered noise */
+function s2Sound(k) {
+  const A = AudioSys;
+  if (k === 'creak') { A.tone(150 + Math.random() * 40, 0.07, { type: 'triangle', vol: 0.07, slide: 120 }); A.noise(0.04, { filter: 'bandpass', freq: 900, vol: 0.03 }); }
+  else if (k === 'rustle') A.noise(0.09, { filter: 'bandpass', freq: 2600 + Math.random() * 800, vol: 0.05 });
+  else if (k === 'splash') { A.noise(0.35, { filter: 'lowpass', freq: 1800, vol: 0.12 }); A.tone(420, 0.12, { type: 'sine', vol: 0.06, slide: 180 }); }
+  else if (k === 'stroke') { A.tone(260, 0.09, { type: 'sine', vol: 0.09, slide: 520 }); A.tone(390, 0.06, { type: 'sine', vol: 0.05, at: 0.05, slide: 700 }); }
+  else if (k === 'pipe' || k === 'chute') { A.tone(k === 'pipe' ? 220 : 160, 0.35, { type: 'triangle', vol: 0.12, slide: 70 }); A.noise(0.25, { filter: 'lowpass', freq: 700, vol: 0.07 }); if (k === 'chute') A.tone(120, 0.06, { vol: 0.1, at: 0.02 }); }
+  else if (k === 'door') { A.tone(300, 0.28, { type: 'sawtooth', vol: 0.04, slide: 180, vib: 14 }); A.tone(110, 0.08, { vol: 0.08, at: 0.26 }); }
+  else if (k === 'popOut') { A.tone(140, 0.12, { type: 'triangle', vol: 0.12, slide: 520 }); A.noise(0.1, { filter: 'bandpass', freq: 1400, vol: 0.05 }); }
+  else if (k === 'doorOut') A.tone(110, 0.08, { vol: 0.08 });
+  else if (k === 'kick') { A.tone(120, 0.08, { vol: 0.16, slide: 60 }); A.noise(0.06, { filter: 'lowpass', freq: 900, vol: 0.12 }); A.tone(440, 0.09, { vol: 0.07, slide: 820, at: 0.02 }); haptic(10); }
+  else if (k === 'grab') { A.tone(900, 0.03, { type: 'triangle', vol: 0.08 }); A.noise(0.03, { freq: 2400, vol: 0.05 }); }
+  else if (k === 'hup') A.tone(300, 0.1, { type: 'triangle', vol: 0.09, slide: 560 });
+  else if (k === 'bubble') A.tone(600 + Math.random() * 300, 0.05, { type: 'sine', vol: 0.04, slide: 1200 });
+}
 function s2InWater(x, y) { for (const r of L.s2.water) if (x >= r.x0 && x < r.x1 && y >= r.y0 && y < r.y1) return r; return null; }
 function s2ClimbAt(cx, cy) { for (const c of L.s2.climbs) if (cx >= c.x - 3 && cx <= c.x + T + 3 && cy >= c.top - 2 && cy < c.bot) return c; return null; }
 function s2WallSide() {
@@ -10861,7 +10894,7 @@ function s2WarpTick() {
     camY = clamp(Math.round(P.y + P.h / 2 - H * 0.55), camTopY(), 0);
     lastSafe = { x: P.x, y: P.y };
     sparks(P.x + 5, P.y + 6, 12, ['#9fe0ff', '#fff', '#f6c445']);
-    SFX.spring();
+    s2Sound(w.kind === 'door' ? 'doorOut' : 'popOut');
     return true;
   }
   if (s.t >= 40) { P.s2warp = null; P.inv = Math.max(P.inv, 30); P.onGround = true; }
@@ -10879,13 +10912,14 @@ function s2Tick(left, right, holdJump) {
     w.still = still ? w.still + 1 : 0;
     if (input.down || w.still >= S2_WARP_STILL) {
       w.still = 0; P.s2warp = { w: w, t: 0 }; P.x = (w.kind === 'pipe' ? w.col * T + T : w.col * T + T / 2) - P.w / 2;
-      SFX.click(); input.jumpBuf = 0; return;
+      s2Sound(w.kind); input.jumpBuf = 0; return;
     }
   } else for (const q of S.warps) q.still = 0;
   /* SWIMMING: a JUMP press is a stroke; he sinks slowly; no air limit */
   const wet = S.water.length ? s2InWater(cx, cy) : null;
   if (wet) {
-    if (!P.s2swim) { P.s2swim = true; P.s2climb = null; P.s2ledge = null; P.s2vy = Math.min(P.vy, 2.5) * 0.5; sparks(cx, wet.y0, 10, ['#9fe0ff', '#fff']); SFX.click(); }
+    if (!P.s2swim) { P.s2swim = true; P.s2climb = null; P.s2ledge = null; P.s2vy = Math.min(P.vy, 2.5) * 0.5; sparks(cx, wet.y0, 10, ['#9fe0ff', '#fff']); s2Sound('splash'); }
+    if (P.s2vy == null) P.s2vy = P.vy;
     let v = P.s2vy == null ? P.vy : P.s2vy;
     v = Math.min(1.3, v * 0.92 + 0.06);
     if (holdJump) v -= 0.05;
@@ -10893,13 +10927,14 @@ function s2Tick(left, right, holdJump) {
       input.jumpBuf = 0;
       v = P.y < wet.y0 + 6 ? -6.4 : -3.1;   /* at the surface a stroke jumps him out */
       part(cx, P.y + P.h, { vx: 0, vy: -0.6, life: 30, size: 2, color: '#e6f7ff', g: -0.02 });
-      SFX.jump();
+      P.s2stroke = 12; s2Sound(v < -5 ? 'splash' : 'stroke');
     }
     if (frame % 24 === 0) part(cx + P.face * 3, P.y + 2, { vx: 0, vy: -0.5, life: 40, size: 1, color: '#e6f7ff', g: -0.01 });
+    if (P.s2stroke > 0) P.s2stroke--;
     P.vy = v; P.s2vy = v; P.vx = clamp(P.vx, -2.2, 2.2); P.coyote = 0;
     return;
   }
-  if (P.s2swim) { P.s2swim = false; P.s2vy = null; }
+  if (P.s2swim) { P.s2swim = false; P.s2vy = null; if (P.vy < 0) { sparks(cx, P.y + P.h, 8, ['#9fe0ff', '#fff']); s2Sound('splash'); } }
   /* LADDERS AND VINES */
   const c = S.climbs.length ? s2ClimbAt(cx, cy) : null;
   if (P.s2climb && !c) {   /* climbed past the top: a little hop up onto the ledge */
@@ -10920,6 +10955,7 @@ function s2Tick(left, right, holdJump) {
     }
     P.vx = 0; P.x += ((C.x + (T - P.w) / 2) - P.x) * 0.35;
     P.vy = holdJump ? -S2_CLIMB_UP : input.down ? S2_CLIMB_DOWN : S2_CLIMB_SLIDE;
+    if (holdJump && Math.floor(P.anim * 2) !== P.s2step) { P.s2step = Math.floor(P.anim * 2); s2Sound(C.vine ? 'rustle' : 'creak'); }
     if (P.onGround && P.vy > 0) { P.s2climb = null; P.vy = 0; }
     P.coyote = 0; input.jumpBuf = 0; P.cuttable = false;
     P.anim += Math.abs(P.vy) * 0.06;
@@ -10931,12 +10967,13 @@ function s2Tick(left, right, holdJump) {
     const G = P.s2ledge;
     G.t++;
     P.vx = 0; P.vy = 0;
-    if ((G.d > 0 && left) || (G.d < 0 && right) || input.down) { P.s2ledge = null; P.s2grabCd = 16; return; }   /* let go */
-    if (G.t >= 10 || input.jumpBuf > 0) {
-      input.jumpBuf = 0; P.s2ledge = null; P.s2grabCd = 10;
-      P.y = G.top - P.h; P.x = G.d > 0 ? G.wx * T + 2 : (G.wx + 1) * T - P.w - 2; P.vy = 0; P.onGround = true;
-      dust(P.x + 5, P.y + P.h, 3); SFX.click();
-    } else P.y = G.top - 3;
+    if (!G.pull && ((G.d > 0 && left) || (G.d < 0 && right) || input.down)) { P.s2ledge = null; P.s2grabCd = 16; return; }   /* let go */
+    if (!G.pull && (G.t >= 12 || input.jumpBuf > 0)) { G.pull = 1; G.x0 = P.x; input.jumpBuf = 0; s2Sound('hup'); }
+    if (G.pull) {   /* the pull-up: 10 frames up and over the edge */
+      const k = Math.min(1, G.pull / 10), tx = G.d > 0 ? G.wx * T + 2 : (G.wx + 1) * T - P.w - 2;
+      P.y = G.top - P.h * k; P.x = G.x0 + (tx - G.x0) * k * k; P.anim += 0.12;
+      if (G.pull++ >= 10) { P.s2ledge = null; P.s2grabCd = 10; P.y = G.top - P.h; P.x = tx; P.onGround = true; dust(P.x + 5, P.y + P.h, 3); }
+    } else P.y = G.top + 1;   /* his hands on the edge, his body against the wall */
     return;
   }
   if (P.s2grabCd > 0) P.s2grabCd--;
@@ -10946,7 +10983,7 @@ function s2Tick(left, right, holdJump) {
     let hy = null;   /* the ledge's top: his hands (the top of his head) within 12 px of it, above or below (forgiving) */
     for (let ty = Math.floor((P.y - 12) / T); ty <= Math.floor((P.y + 12) / T); ty++) if (Math.abs(P.y - ty * T) <= 12 && solid(wx, ty) && !solid(wx, ty - 1) && !solid(wx, ty - 2)) { hy = ty; break; }
     if (hy != null && !solid(Math.floor(cx / T), hy - 1)) {
-      P.s2ledge = { wx: wx, top: hy * T, d: side, t: 0 }; P.vx = 0; P.vy = 0; P.y = hy * T - 3; P.face = side;
+      P.s2ledge = { wx: wx, top: hy * T, d: side, t: 0, pull: 0 }; P.vx = 0; P.vy = 0; P.y = hy * T + 1; P.face = side; s2Sound('grab');
       if (!S.ledgeSaid) { S.ledgeSaid = true; pop(P.x - 10, P.y - 16, 'GRAB!', 40, '#7be3a3'); }
       return;
     }
@@ -10961,7 +10998,7 @@ function s2Tick(left, right, holdJump) {
     const d = -P.s2wall;
     input.jumpBuf = 0; P.s2wallT = 0;
     P.vy = F.JUMP_V * 0.95; P.vx = d * 3.0; P.face = d; P.s2lock = 9; P.cuttable = true; P.jumpT = 0; P.stretch = F.STRETCH_F;
-    dust(d > 0 ? P.x : P.x + P.w, P.y + P.h / 2, 3); SFX.jump();
+    dust(d > 0 ? P.x : P.x + P.w, P.y + P.h / 2, 3); s2Sound('kick'); shakeIt(1);
     if (!S.wallSaid) { S.wallSaid = true; pop(P.x - 10, P.y - 16, 'WALL JUMP!', 50, '#f6c445'); }
   }
   if (P.s2lock > 0) { P.s2lock--; P.vx = Math.sign(P.vx || P.face) * Math.max(Math.abs(P.vx), 2.6); }
@@ -11065,6 +11102,11 @@ function slamTick() {
   }
   if (P.vy < 0) { P.slam = null; return; }   /* a stomp bounce or a spring sent him up: that is the end of it */
   P.vx = 0; P.vy = SLAM_V;
+  if (L.s2 && L.s2.water.length && s2InWater(P.x + P.w / 2, P.y + P.h / 2)) {   /* Season 2: underwater the slam sinks slowly, with bubbles (it still breaks crates) */
+    P.vy = 2.6; P.s2vy = null;
+    if (frame % 5 === 0) { part(P.x + P.w / 2 + rand(-4, 4), P.y, { vx: 0, vy: -0.7, life: 30, size: 2, color: '#e6f7ff', g: -0.02 }); if (frame % 15 === 0) s2Sound('bubble'); }
+    return;
+  }
   if (frame % 2 === 0) part(P.x + P.w / 2 + rand(-4, 4), P.y - 2, { vx: 0, vy: -0.6, life: 10, size: 1, color: 'rgba(255,255,255,.8)', g: 0 });   /* speed lines */
 }
 /* a brick the slam may smash (2026-10-31): one nothing is holding up, with ground close enough underneath that
@@ -13284,8 +13326,16 @@ function drawPlayer() {
   if (kpose) img = KS['kick_' + kpose];
   if (P.slam && KS.slam_tuck) img = KS.slam_tuck;   /* the butt slam: tucked for the spin and the drop, sitting for the landing */
   else if (P.slamLand > 0 && P.onGround && KS.slam_sit) img = KS.slam_sit;
+  /* Season 2 poses (block "SEASON 2 MOVES"): his back on a ladder or vine, hands up on a ledge, strokes in water, the kick off a wall */
+  let s2face = 0, s2dx = 0;
+  if (L.s2 && !P.slam && KS.s2_climbA) {
+    if (P.s2climb || (P.s2ledge && P.s2ledge.pull)) { img = Math.floor(P.anim * 2) % 2 ? KS.s2_climbA : KS.s2_climbB; s2face = 1; }
+    else if (P.s2ledge) { img = KS.s2_hang; s2face = 1; s2dx = P.s2ledge.d * 5; }
+    else if (P.s2swim && !P.onGround) img = P.s2stroke > 0 || Math.floor(frame / 40) % 2 ? KS.s2_swimA : KS.s2_swimB;
+    else if (P.s2lock > 4 && KS.kick_air) { img = KS.kick_air; s2face = -P.face; }   /* the taekwondo kick off the wall: his foot on it */
+  }
   const w = 16, h = 18;
-  const sx = Math.round(P.x + P.w / 2 - w / 2 - camX);
+  const sx = Math.round(P.x + P.w / 2 - w / 2 - camX) + s2dx;
   const sy = Math.round(P.y + P.h - h);
   window.__k11Draw = { sx: sx, sy: sy, camX: camX };
   if (P.onGround) {
@@ -13312,7 +13362,7 @@ function drawPlayer() {
   if (P.slam === 'spin') { ctx.translate(0, -9); ctx.rotate(P.face * (1 - P.slamT / SLAM_SPIN) * 6.2832); ctx.translate(0, 9); }   /* the butt slam: one full spin round his middle */
   ctx.scale(scaleX, scaleY);
   ctx.translate(-8, -18);
-  if (P.face < 0) { ctx.translate(16, 0); ctx.scale(-1, 1); }
+  if ((s2face || P.face) < 0) { ctx.translate(16, 0); ctx.scale(-1, 1); }
   ctx.drawImage(outlined(img), -1, -1);   /* a dark outline so he stands out from busy rooms */
   drawBeltOn(ctx, beltRank());   /* taekwondo: his belt, tied at the waist (the colour he has earned) */
   if (P.kickT > 0) drawKickSwoosh(ctx, KICK_F - P.kickT);
@@ -21005,10 +21055,10 @@ const OUTFIT_SP = {};
 function kinanSprites(outfit) {
   const id = outfit && SHOP_BY_ID['outfit:' + outfit] ? outfit : 'classic';
   if (OUTFIT_SP[id]) return OUTFIT_SP[id];
-  if (id === 'classic') return (OUTFIT_SP[id] = Object.assign({ kStand: SP.kStand, kWalk: SP.kWalk, kJump: SP.kJump, kFall: SP.kFall }, kickPoses(KINAN, 'j'), slamPoses(KINAN, 'j')));
+  if (id === 'classic') return (OUTFIT_SP[id] = Object.assign({ kStand: SP.kStand, kWalk: SP.kWalk, kJump: SP.kJump, kFall: SP.kFall }, kickPoses(KINAN, 'j'), slamPoses(KINAN, 'j'), s2Poses(null, 'j')));
   const it = SHOP_BY_ID['outfit:' + id], pant = it.pant || 'j';
   const body = KINAN.map((r, i) => (i >= 8 ? r.replace(/./g, (ch) => (ch === 'j' ? pant : (it.map[ch] || ch))) : r));
-  return (OUTFIT_SP[id] = Object.assign({ kStand: bake(legs(body, KINAN_LEGS.stand, pant)), kWalk: bake(legs(body, KINAN_LEGS.walk, pant)), kJump: bake(legs(body, KINAN_LEGS.jump, pant)), kFall: bake(legs(body, KINAN_LEGS.fall, pant)) }, kickPoses(body, pant), slamPoses(body, pant)));
+  return (OUTFIT_SP[id] = Object.assign({ kStand: bake(legs(body, KINAN_LEGS.stand, pant)), kWalk: bake(legs(body, KINAN_LEGS.walk, pant)), kJump: bake(legs(body, KINAN_LEGS.jump, pant)), kFall: bake(legs(body, KINAN_LEGS.fall, pant)) }, kickPoses(body, pant), slamPoses(body, pant), s2Poses(it.map, pant)));
 }
 const COSTUME_SP = {};
 function costumeSprites(who, look) {
@@ -27673,6 +27723,9 @@ function labPlay(name) {
   const K = window.KinanLevels, id = 'lab-' + name;
   if (!K) return;
   const go = () => { if (K.get(id)) playLevel(id); else toast('🚧 No test level called <b>' + escAttr(name) + '</b>', 3000); };
+  /* the link opens the level before any tap, and browsers keep sound off until one: the first tap or key wakes it */
+  const wake = () => { removeEventListener('pointerdown', wake, true); removeEventListener('keydown', wake, true); AudioSys.init(); applyAudioPrefs(); if (running && L && L.authored) { Music.name = null; Music.play('stage'); } };
+  addEventListener('pointerdown', wake, true); addEventListener('keydown', wake, true);
   if (K.get(id)) { go(); return; }
   const sc = document.createElement('script');
   sc.src = 'levels/lab/' + name + '.js';
