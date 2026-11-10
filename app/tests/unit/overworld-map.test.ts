@@ -10,7 +10,7 @@ import { describe, expect, it } from 'vitest';
    a Node vm with a stub of the engine's helpers (they only register data and drawing functions). */
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
-const WORLD_FILES = ['w01', 'w02', 'w03', 'w04', 'w05', 'w06', 'w06t', 'w07', 'w08', 'w09', 'w09t', 'w10', 'w11', 'w12'];
+const WORLD_FILES = ['w01', 'w02', 'w03', 'w04', 'w05', 'w06', 'w06t', 'w07', 'w08', 'w09', 'w09t', 'w10', 'w11', 'w12', 'w12i', 'w13', 'w14', 'w15'];   /* w12i-w15: Season 2's 2D maps (the ?season2=1 test) */
 
 type Stop = { at: [number, number]; name: string; st: string };
 type World = { n: number; travel?: boolean; stops: Stop[]; entryPath?: unknown; exitPath?: unknown; edges?: [unknown, unknown, ...unknown[]][] };
@@ -47,8 +47,8 @@ const worlds = loadWorlds();
 const levels = loadLevels();
 
 describe('the overworld map data (map/worlds)', () => {
-  it('has Worlds 1-12 plus the two road trips (6.5 and 9.5)', () => {
-    expect(worlds.map((w) => w.n)).toEqual([1, 2, 3, 4, 5, 6, 6.5, 7, 8, 9, 9.5, 10, 11, 12]);
+  it('has Worlds 1-12 plus the two road trips (6.5 and 9.5), and Season 2 (a 2D World 12, then 13-15)', () => {
+    expect(worlds.map((w) => w.n)).toEqual([1, 2, 3, 4, 5, 6, 6.5, 7, 8, 9, 9.5, 10, 11, 12, 12, 13, 14, 15]);
     expect(worlds.filter((w) => w.travel).map((w) => w.n)).toEqual([6.5, 9.5]);
   });
 
@@ -66,7 +66,8 @@ describe('the overworld map data (map/worlds)', () => {
   it('every level file sits on the stop of its world and slot, with the same kind and number', () => {
     expect(levels.length).toBeGreaterThan(0);
     for (const d of levels) {
-      const w = worlds.find((v) => v.n === d.world && !v.travel);
+      /* World 12 has two maps: the 3D sneak peek (w12.js) and Season 2's 2D India (w12i.js, flat): the level files belong to the 2D one */
+      const w = worlds.find((v) => v.n === d.world && !v.travel && (d.world !== 12 || v.flat));
       expect(w, d.id).toBeTruthy();
       const s = w!.stops[d.slot - 1];
       expect(s, `${d.id}: no stop ${d.slot} on World ${d.world}'s map`).toBeTruthy();

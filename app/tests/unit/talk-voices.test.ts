@@ -13,7 +13,7 @@ type Def = { id: string; talk?: Talk[]; areas?: { talk?: Talk[] }[] };
 
 function levelTalk(): { id: string; who: string; text: string }[] {
   const out: { id: string; who: string; text: string }[] = [];
-  for (const w of readdirSync(join(ROOT, 'levels')).filter((d) => /^w\d\d$/.test(d))) {
+  for (const w of readdirSync(join(ROOT, 'levels')).filter((d) => /^w(0\d|1[01])$/.test(d))) {   /* Season 2 (Worlds 12-15) is not recorded yet */
     for (const f of readdirSync(join(ROOT, 'levels', w)).filter((x) => x.endsWith('.js'))) {
       const defs: Def[] = []; const reg = { add: (d: Def) => defs.push(d), register: (d: Def) => defs.push(d) };
       const c: Record<string, unknown> = { KinanLevels: reg, self: { KinanLevels: reg }, window: { KinanLevels: reg } }; createContext(c);
