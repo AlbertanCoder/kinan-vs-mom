@@ -108,8 +108,8 @@ test('the new moves: ladder, ledge grabs, vine, wall jumps, swimming, pipes, doo
     const feet = () => { const p = Kk.where(); return { col: Math.floor((p.x + p.w / 2) / 16), row: Math.round((p.y + p.h) / 16 * 100) / 100, g: p.onGround }; };
     const until = (n: number, hold: (f: number) => Hold, done: () => boolean) => { for (let f = 0; f < n; f++) { Kk.step(1, hold(f)); if (f > 8 && done()) return true; } return false; };
     stand(B + 9, 12); until(200, (f) => ({ jump: true, tapJump: f === 0 }), () => feet().g && feet().row <= 3); Kk.step(4, { jump: false }); out.ladder = feet();
-    stand(B + 17, 12); until(120, (f) => ({ right: true, jump: f < 30, tapJump: f === 6 }), () => feet().g && feet().row <= 7); Kk.step(4, { right: false, jump: false }); out.ledge1 = feet();
-    stand(B + 23, 7); until(120, (f) => ({ right: true, jump: f < 30, tapJump: f === 6 }), () => feet().g && feet().row <= 2); Kk.step(4, { right: false, jump: false }); out.ledge2 = feet();
+    stand(B + 19, 12); until(120, (f) => ({ right: true, jump: f < 30, tapJump: f === 6 }), () => feet().g && feet().row <= 8); Kk.step(4, { right: false, jump: false }); out.ledge1 = feet();
+    stand(B + 23, 8); until(120, (f) => ({ right: true, jump: f < 30, tapJump: f === 6 }), () => feet().g && feet().row <= 4); Kk.step(4, { right: false, jump: false }); out.ledge2 = feet();
     stand(B + 35, 12); until(300, (f) => ({ jump: true, tapJump: f === 0 }), () => feet().g && feet().row <= -7); Kk.step(4, { jump: false }); out.vine = feet();
     stand(B + 48, 12); let dir = 1, bounces = 0; Kk.step(1, { right: true, tapJump: true, jump: true });
     out.shaftTop = until(900, () => {
@@ -130,8 +130,8 @@ test('the new moves: ladder, ledge grabs, vine, wall jumps, swimming, pipes, doo
     return out;
   });
   expect(r.ladder).toMatchObject({ row: 3, g: true });     /* up the ladder, through the shelf, standing on it */
-  expect(r.ledge1).toMatchObject({ row: 7, g: true });     /* a ledge 5 rows up: grabbed and climbed */
-  expect(r.ledge2).toMatchObject({ row: 2, g: true });
+  expect(r.ledge1).toMatchObject({ row: 8, g: true });     /* a block 4 rows up: one good jump (the ledge hang is off) */
+  expect(r.ledge2).toMatchObject({ row: 4, g: true });
   expect(r.vine).toMatchObject({ row: -7, g: true });
   expect(r.shaftTop).toBe(true);                           /* wall jumps all the way up the shaft */
   expect(r.bounces as number).toBeGreaterThanOrEqual(3);

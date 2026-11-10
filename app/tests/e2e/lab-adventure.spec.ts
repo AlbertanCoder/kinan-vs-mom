@@ -65,7 +65,7 @@ test('the adventure: climbs, Mr. Mole, the glitch tide and King Crab, the goal a
   expect(r.chimney).toBe(true);
   expect(r.moleWallHeld).toBe(true);
   expect(r.mole).toBe('friend');
-  expect(r.moleHits).toBe(3);
+  expect(r.moleHits).toBe(4);   /* 4 stomps since Shad's "too easy" */
   expect(r.moleOut).toBe(true);
   expect(r.gold).toBe(true);
   expect(r.goldSaved).toBe(false);

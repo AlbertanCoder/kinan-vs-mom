@@ -144,3 +144,22 @@ wall-jump and swim up a sea cave as it chases you, then calm the creature at the
   Honest checks now: a human-style robot (no teleports, no invulnerability, a quarter- or half-second reaction) calms him
   in 7-14 s without a hit, and King Crab in 11-12 s losing one heart. (Earlier robot checks placed Kinan over the boss:
   that hid the problem. Boss checks from now on use human-style inputs.)
+
+## Worlds 12-15 (Shad, 2026-11-10, after the adventure v2 playtest)
+Four new worlds for now (the original plan went to 22; it is in Shad's desktop files, which he will upload: follow it).
+All **2D** (no 3D World 12: the 3D Saskatoon levels come off the map; a new 2D World 12 replaces it). **11 levels per
+world**, built **one world at a time** (test link first, Shad and his girlfriend play it, fix, then onto the map). Story:
+**Glitchy's escape bent the worlds** and Kinan follows Glitchy across the world (places: from Shad's files). Travel by the
+**road trip map**. **Chases** (lava, flood/tide, avalanche, something chasing): **1-2 per world**. The **ledge hang is
+removed** for now. **Bosses: fair but real fights** (always clear, never cheap, 4 hits, quicker as they get smarter; a
+try or two lost is normal). **Pets follow Kinan's exact path** (the same ladders, water, gaps; never through walls) and
+**swim and climb**. **Foes in water swim.** New move per world: **12 crawl, 13 ropes / monkey bars, 14 dash kick,
+15 glide**, with a level tool each (flashlight, grappling hook, shovel, skateboard).
+The mine stays **dark** (the lit arena was wrong).
+- 2026-11-10: **Shad's second run fixes:** the mine (arena too) is dark again; Mr. Mole and King Crab take **4 stomps** and
+  get quicker each time; from his second phase Mr. Mole's dive shakes **ceiling rocks** loose (dust and a red ! first);
+  **pets walk Kinan's exact path** in Season 2 levels (up the same ladders, through the same water, never through a wall;
+  they bob and bubble in water, wiggle on ladders, poof out of pipes after him); **foes swim** in water (paddle, bob,
+  stroke up) instead of sinking; a **prize slammed out of a gift lands on wooden ledges** (it fell through them); the
+  **ledge hang is off** (S2_LEDGE), and the walls built for it are 4 rows (one good jump). Human-style robot checks:
+  Mr. Mole 8-17 s for a quick player, a slow one loses a try to the rocks; King Crab 13 s, 2 hearts lost.

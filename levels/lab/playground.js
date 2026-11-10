@@ -34,7 +34,7 @@
   for (var i = 0; i < c2; i++) h2.push(192);
   var cand = function (c, r, n) { for (var k = 0; k < (n || 1); k++) m.push([c + k, r]); };
   cand(10, 2, 5);        /* 1. the ladder's platform */
-  cand(23, 6, 3); cand(27, 1, 3);   /* 2. the ledges */
+  cand(23, 7, 3); cand(27, 3, 3);   /* 2. the high blocks */
   cand(36, -8, 6);       /* 3. the vine's platform */
   for (var r2 = 6; r2 >= -10; r2 -= 4) cand(48, r2, 2);   /* 4. up the wall-jump shaft */
   cand(54, -14, 5);   /* on the platform at the top */
@@ -45,7 +45,7 @@
     id: 'lab-playground', world: 0, name: 'SEASON 2 PLAYGROUND',
     theme: 5,
     up: 30,
-    moves: true,         /* the wall jump and the ledge grab */
+    moves: true,         /* the wall jump (the ledge grab is off for now) */
     spawn: { col: 2, row: 11 },
     areas: [
       {
@@ -68,8 +68,8 @@
       {
         id: 'moves', name: 'THE NEW MOVES', cols: c2, heights: h2,
         solid: [
-          [22, 7, 26, 11],       /* 2. a ledge 5 rows up: too high to jump onto, so he grabs it */
-          [27, 2, 31, 11],       /*    and a second one 5 rows above that */
+          [22, 8, 26, 11],       /* 2. a block 4 rows up: one good jump (the ledge hang is off, Shad 2026-11-10) */
+          [27, 4, 31, 11],       /*    and a second one 4 rows above that */
           [47, -12, 47, 10],     /* 4. the wall-jump shaft: its left wall (walk in under it, a 1-row gap); 3 tiles wide */
           [51, -12, 51, 11],     /*    its right wall */
           [52, -12, 60, -12],    /*    the platform at the top (level with the wall's top) */

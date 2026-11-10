@@ -4,13 +4,13 @@
    (https://albertancoder.github.io/kinan-vs-mom/?lab=adventure). It saves nothing; at the end a card shows the time,
    each act's time and lost tries, hearts lost, falls and secrets, to screenshot and send back.
    About 6-8 minutes, medium-hard but fair, four acts with a checkpoint at each:
-     1 THE CLIFFS     a vine up a tree, jumps over pits, a ledge to grab, a wall-jump chimney up the cliff, a spring to a
+     1 THE CLIFFS     a vine up a tree, jumps over pits, a high block, a wall-jump chimney up the cliff, a spring to a
                       hidden gift up high (secret 1), then a long drop
      2 THE OLD MINE   dark (his hard-hat lamp lights the way), a ladder to the upper track, a steel pipe to a hidden room
-                      (secret 2), a chute down, a ledge, then MR. MOLE in a three-level arena (boss 1)
+                      (secret 2), a chute down, a high block, then MR. MOLE in a three-level arena (boss 1)
      3 THE WATERFALL  swim UP the waterfall, cliff top, dive into the ocean: fish, a reef, the golden candle under a rock,
        AND THE SEA    a gift on the sea floor (secret 3), swim out onto the shore
-     4 THE SEA CAVE   the GLITCH TIDE rises behind him: a ladder, a vine, a wall-jump chimney, a ladder, a ledge, a spring,
+     4 THE SEA CAVE   the GLITCH TIDE rises behind him: a ladder, a vine, a wall-jump chimney, a ladder, a high block, a spring,
                       up to the summit and KING CRAB (boss 2); calm him and the way to the goal opens
    Rows: -45 (top) .. 14; the usual ground is row 12 (Kinan stands in row 11).
    ============================================================ */
@@ -28,7 +28,7 @@
   shelfRow(s1, 41, 43, -2); shelfRow(s1, 47, 49, 2); shelfRow(s1, 55, 57, 6);   /* stepping down */
   shelfRow(s1, 86, 94, -22);                         /* the hidden ledge up high (a spring lifts him 9 rows) */
   run(c1, 8, 10, 4, 2); run(c1, 31, -7, 6); run(c1, 42, -4, 2); run(c1, 48, 0, 2); run(c1, 52, 8, 3);
-  run(c1, 63, 5, 5); col(c1, 72, -12, 2, 5); col(c1, 73, -10, 4, 5); run(c1, 78, -16, 8, 3); run(c1, 88, -24, 5);
+  run(c1, 63, 6, 5); col(c1, 72, -12, 2, 5); col(c1, 73, -10, 4, 5); run(c1, 78, -16, 8, 3); run(c1, 88, -24, 5);
   col(c1, 107, -10, 8, 3); run(c1, 112, 10, 6, 2);
 
   /* ---- ACT 2: THE OLD MINE (140 cols, dark) ---- */
@@ -36,7 +36,7 @@
   [14, 15, 16].forEach(function (c) { h2[c] = null; });   /* v2: a pit in the dark (watch the lamp) */
   shelfRow(s2, 21, 23, 6);                           /* where the ladder comes up through the upper track */
   shelfRow(s2, 88, 94, 8); shelfRow(s2, 104, 110, 8); shelfRow(s2, 95, 103, 4);   /* the mole's arena: three levels */
-  run(c2, 6, 9, 4, 2); run(c2, 26, 4, 10, 3); run(c2, 30, 10, 8, 3); run(c2, 38, -4, 8); run(c2, 73, 5, 5); run(c2, 116, 10, 6, 2);
+  run(c2, 6, 9, 4, 2); run(c2, 26, 4, 10, 3); run(c2, 30, 10, 8, 3); run(c2, 38, -4, 8); run(c2, 73, 6, 5); run(c2, 116, 10, 6, 2);
 
   /* ---- ACT 3: THE WATERFALL AND THE SEA (150 cols) ---- */
   var h3 = flat(150), c3 = [];
@@ -47,9 +47,9 @@
   var h4 = flat(60), s4 = [], c4 = [];
   shelfRow(s4, 11, 21, 6);                           /* L1, the ladder comes up through it */
   shelfRow(s4, 25, 38, 0);                           /* L2, beside the vine */
-  shelfRow(s4, 28, 39, -21);                         /* L5, the ladder comes up through it */
+  shelfRow(s4, 28, 39, -22);                         /* L5, the ladder comes up through it (4 rows below the spring's block) */
   shelfRow(s4, 11, 40, -34);                         /* the summit (one-way: a fall into the tide pops him back up through it) */
-  run(c4, 14, 4, 5, 2); col(c4, 29, -12, -4, 4); col(c4, 30, -10, -2, 4); run(c4, 33, -16, 4, 2); run(c4, 30, -23, 4, 2); run(c4, 19, -28, 4, 2);
+  run(c4, 14, 4, 5, 2); col(c4, 29, -12, -4, 4); col(c4, 30, -10, -2, 4); run(c4, 33, -16, 4, 2); run(c4, 30, -24, 4, 2); run(c4, 19, -28, 4, 2);
 
   KinanLevels.register({
     id: 'lab-adventure', world: 0, name: 'MOUNTAINS TO THE SEA',
@@ -67,8 +67,8 @@
                [69, 'SABUMNIM', 'Between two walls, kick off one, then the other. Up, up, up!', 3.4],
                [114, 'GLITCHY', 'A mine! It is dark in there. Good thing your hard hat has a lamp!', 3.2]],
         solid: [
-          [62, 7, 71, 11],      /* a ledge 5 rows up: grab it */
-          [71, -14, 71, 5],     /* the chimney's left wall (a 1-row gap at row 6 lets him in from the ledge); 3 tiles to the cliff */
+          [62, 8, 71, 11],      /* a block 4 rows up: one good jump (the ledge hang is off, Shad 2026-11-10) */
+          [71, -14, 71, 6],     /* the chimney's left wall (a 1-row gap at row 7 lets him in from the block); 3 tiles to the cliff */
           [75, -14, 104, 11]    /* the cliff */
         ],
         tiles: { shelf: s1, spring: [[50, 12], [90, -14]], gift: [[34, -9, 'heart'], [90, -26, 'candle'], [96, -18, 'popper']] },
@@ -86,7 +86,7 @@
           [24, 6, 62, 6],       /* the upper track */
           [61, 2, 61, 5],       /* the end of the upper track: take the chute */
           [36, -9, 52, -9], [36, -2, 52, -2], [36, -8, 36, -3], [52, -8, 52, -3],   /* the hidden room above the roof */
-          [72, 7, 78, 11]       /* a ledge to grab */
+          [72, 8, 78, 11]       /* a block 4 rows up: one good jump */
         ],
         tiles: { shelf: s2, gift: [[30, 2, 'candle'], [44, -6, 'heart'], [99, 0, 'heart']] },
         ladders: [[22, 5, 11], [88, 7, 11], [110, 7, 11]],   /* v3: the arena's ladders at the ledges' outer ends, away from every hole */
@@ -129,10 +129,10 @@
           [10, -44, 41, -44],   /* its roof */
           [28, -14, 28, -2], [32, -14, 32, -2],   /* the wall-jump chimney, 3 tiles wide (walk in under it from L2: a 1-row gap) */
           [32, -14, 40, -14],   /* L4, beside the chimney's top */
-          [12, -26, 24, -21]    /* a ledge to grab, and the spring's block */
+          [12, -26, 24, -23]    /* the spring's block, one good jump up from L5 */
         ],
         tiles: { shelf: s4, spring: [[13, -26]] },
-        ladders: [[13, 5, 11], [38, -22, -15]],
+        ladders: [[13, 5, 11], [38, -23, -15]],
         vines: [[24, -1, 11]],
         candles: c4,
         foes: [[18, 3, 'umbrellabat'], [34, -10, 'umbrellabat'], [22, -24, 'umbrellabat']],   /* v2: bats in the cave while the tide rises */

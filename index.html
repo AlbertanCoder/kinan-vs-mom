@@ -10047,7 +10047,7 @@ function updateWorld() {
     if (it.rise > 0) { it.y -= 0.9; it.rise--; }
     if (it.drop > 0) {   /* a slam's prize falls and lands on the first solid tile under it (2026-10-31) */
       const col = Math.floor((it.x + it.w / 2) / T), ny = it.y + it.drop, row = Math.floor((ny + it.h) / T);
-      if (row >= ROWS || solid(col, row)) { it.y = Math.min(row, ROWS) * T - it.h; it.drop = 0; } else it.y = ny;
+      if (row >= ROWS || solid(col, row) || tileAt(col, row) === 7 || isSlope(tileAt(col, row))) { it.y = Math.min(row, ROWS) * T - it.h; it.drop = 0; } else it.y = ny;   /* (Shad 2026-11-10: a heart slammed out over a wooden ledge fell through it: shelves stop it now) */
     }
     if (!it.got && overlap(P, it)) {
       it.got = true; giveItem(it.kind);
@@ -10350,6 +10350,29 @@ function updatePets() {
       }
       return;
     }
+  });
+  if (L.s2) s2PetsFollow();   /* Season 2: the pets walk Kinan's exact path instead (their powers above are unchanged) */
+}
+/* Season 2 (Shad 2026-11-10: "the pets are kind of just floating and jumping through walls ... they should be able to swim
+   and climb, and abide by the physics Kinan has"): in a Season 2 level each pet walks Kinan's own path a little behind
+   him: the points he passed (where he stood, climbed, swam), so a pet goes up the same ladder, through the same water,
+   over the same gaps and never through a wall. Through a pipe or a door they pop out after him with a sparkle. */
+function s2PetsFollow() {
+  const S = L.s2, tr = S.path || (S.path = []), last = tr[tr.length - 1];
+  const here = { x: P.x + P.w / 2, y: P.y + P.h, face: P.face, swim: !!P.s2swim, climb: !!P.s2climb, warp: !!P.s2warp };
+  if (P.s2warp) { if (S.path.length) S.path.length = 0; return; }   /* he's inside the pipe: they wait, then pop out after him */
+  if (!last || Math.hypot(here.x - last.x, here.y - last.y) >= 2) { tr.push(here); if (tr.length > 400) tr.shift(); }
+  const all = pets.cats.map((c) => [c, 10]).concat(pets.dogs.map((d) => [d, 11]));
+  all.forEach(([pet, hgt], k) => {
+    const want = 22 * (k + 1);   /* how far back along his path this pet walks */
+    let dist = 0, j = tr.length - 1, pt = tr[j];
+    while (j > 0 && dist < want) { dist += Math.hypot(tr[j].x - tr[j - 1].x, tr[j].y - tr[j - 1].y); j--; pt = tr[j]; }
+    if (!pt) return;
+    const tx = pt.x - 6, ty = pt.y - hgt;
+    if (Math.hypot(tx - pet.x, ty - pet.y) > 60) { pet.x = tx; pet.y = ty; sparks(tx + 6, ty + 4, 6, ['#fff', '#9fe0ff']); }   /* out of a pipe or door: a poof */
+    else { pet.x = tx; pet.y = ty; }   /* exactly on his path (smoothing cut corners into walls) */
+    pet.face = pt.face; pet.s2swim = pt.swim; pet.s2climb = pt.climb;
+    if (pt.swim && frame % 30 === k * 7 % 30) part(pet.x + 6, pet.y, { vx: 0, vy: -0.45, life: 30, size: 1, color: '#e6f7ff', g: -0.01 });
   });
 }
 
@@ -10872,6 +10895,7 @@ function drawKickSwoosh(c, age) {
    slides down it slowly); falling past a ledge he catches it and pulls himself up; standing still for half a second on a
    pipe or chute, or in a doorway, takes him through (↓ on a keyboard goes at once).
    ============================================================ */
+const S2_LEDGE = false;   /* Shad 2026-11-10: the ledge hang felt awkward: off for now (the code stays, true brings it back) */
 const S2_CLIMB_UP = 1.9, S2_CLIMB_SLIDE = 0.55, S2_CLIMB_DOWN = 2.4, S2_WARP_STILL = 24;
 function s2Build(a, base, s2, set, gi, pipeCells) {
   for (const [key, vine] of [['ladders', false], ['vines', true]]) {
@@ -11021,7 +11045,7 @@ function s2Tick(left, right, holdJump) {
   }
   if (P.s2grabCd > 0) P.s2grabCd--;
   const side = s2WallSide();
-  if (!P.onGround && side && P.vy >= 0 && P.vy < 6 && !P.s2grabCd && !P.s2kick && ((side > 0 && right && !left) || (side < 0 && left && !right))) {   /* Shad: "annoying" when it grabbed by itself; now only while you hold toward the edge */
+  if (S2_LEDGE && !P.onGround && side && P.vy >= 0 && P.vy < 6 && !P.s2grabCd && !P.s2kick && ((side > 0 && right && !left) || (side < 0 && left && !right))) {   /* Shad: "annoying" when it grabbed by itself; now only while you hold toward the edge */
     const wx = side > 0 ? Math.floor((P.x + P.w + 1) / T) : Math.floor((P.x - 2) / T);
     let hy = null;   /* the ledge's top: his hands (the top of his head) within 12 px of it, above or below (forgiving) */
     for (let ty = Math.floor((P.y - 12) / T); ty <= Math.floor((P.y + 12) / T); ty++) if (Math.abs(P.y - ty * T) <= 12 && solid(wx, ty) && !solid(wx, ty - 1) && !solid(wx, ty - 2)) { hy = ty; break; }
@@ -11185,7 +11209,15 @@ function s2BoxHit(box) {   /* 1 = a stomp from above, -1 = bumped into it, 0 = n
 /* ---- THE GIANT MOLE ---- */
 function s2MoleBox(B) { const h = B.hole; return { x: h.x - 14, y: h.y - 18, w: 28, h: 18 }; }   /* his head and hard hat, a generous stomp target */
 function s2MoleTick(B) {
-  const ph = Math.min(2, B.hits), TELL = [56, 46, 40][ph], UP = [150, 120, 100][ph], REST = [44, 36, 28][ph];
+  const ph = Math.min(3, B.hits), TELL = [50, 42, 36, 32][ph], UP = [118, 96, 80, 68][ph], REST = [40, 32, 26, 22][ph];   /* 4 stomps, quicker each time (Shad: "too easy") */
+  for (const d of B.drops || []) {
+    d.t++;
+    if (!d.fall) { if (d.t >= 44) d.fall = true; else if (d.t % 6 === 0) part(d.x + rand(-3, 3), d.y + 2, { vx: 0, vy: 0.8, life: 22, size: 1, color: '#c9a27a', g: 0.05 }); continue; }
+    d.vy = Math.min(7, d.vy + 0.35); d.y += d.vy;
+    if (overlap(P, { x: d.x - 5, y: d.y - 5, w: 10, h: 10 })) { hurt({ x: d.x, y: d.y }); d.dead = 1; }
+    else if (solid(Math.floor(d.x / T), Math.floor((d.y + 5) / T))) { d.dead = 1; sparks(d.x, d.y, 6, ['#8a6a4a', '#c9a27a']); SFX.stomp(); }
+  }
+  if (B.drops) B.drops = B.drops.filter((d) => !d.dead && d.t < 400);
   for (const r of B.rocks) { r.x += r.vx; r.vy += 0.17; r.y += r.vy; r.t++; if (overlap(P, { x: r.x - 3, y: r.y - 3, w: 6, h: 6 })) { hurt({ x: r.x, y: r.y }); r.dead = 1; } else if (r.t > 8 && solid(Math.floor(r.x / T), Math.floor(r.y / T))) { r.dead = 1; sparks(r.x, r.y, 4, ['#8a6a4a', '#c9a27a']); } }
   B.rocks = B.rocks.filter((r) => !r.dead && r.t < 240);
   if (B.state === 'wait') {
@@ -11212,7 +11244,8 @@ function s2MoleTick(B) {
     mine.sort((a, b) => Math.abs(a.x - cxK) - Math.abs(b.x - cxK));
     let pickH = mine[0];   /* the nearest hole on his floor that is not under him (smarter = he stays up less long, rocks, a fake) */
     if (mine.length > 1 && B.hole === pickH && ph === 0) pickH = mine[1];
-    B.hole = pickH; B.fake = ph === 2 ? (mine.find((h) => h !== pickH) || null) : null;
+    if (ph >= 3 && mine.length > 1 && Math.random() < 0.5) pickH = mine[1];   /* his last phase: sometimes the second-nearest hole */
+    B.hole = pickH; B.fake = ph >= 2 ? (mine.find((h) => h !== pickH) || null) : null;
     B.state = 'tell'; B.t = TELL;
     AudioSys.noise(0.25, { filter: 'lowpass', freq: 400, vol: 0.08 });
   } else if (B.state === 'tell' && B.t <= 0) {
@@ -11228,15 +11261,20 @@ function s2MoleTick(B) {
     if (hit === 1 && !(B.hitCd > 0)) {
       B.hits++; B.hitCd = 30; P.vy = -6.6; P.cuttable = false; SFX.stomp(); flashScreen();
       pop(B.hole.x - 12, B.hole.y - 34, 'BONK!', 40, '#f6c445'); sparks(B.hole.x, B.hole.y - 20, 12, ['#f6c445', '#fff']);
-      if (B.hits >= 3) {
+      if (B.hits >= 4) {
         B.state = 'friend'; B.t = 180; s2Gate(B.gateR, B.rTop, B.rBot, false); s2Gate(B.gateL, B.rTop, B.rBot, false); Music.play('stage');
         s2Say('MR. MOLE', 'Okay, okay! You win, kid. Friends? The way out is open!', 3.2); SFX.win();
         for (let k = 0; k < 6; k++) part(B.hole.x + rand(-10, 10), B.hole.y - 24, { vx: rand(-0.4, 0.4), vy: -0.6, life: 50, size: 2, color: '#ff6fae', glow: true, g: 0 });
         addCandle(10); pop(P.x, P.y - 20, '+10', 50, null, true);
-      } else { B.state = 'hidden'; B.t = 70; s2Banner(B.hits === 1 ? 'THE MOLE IS GETTING SMARTER!' : 'HE IS EVEN SMARTER NOW!'); }
+      } else { B.state = 'hidden'; B.t = 60; s2Banner(['', 'THE MOLE IS GETTING SMARTER!', 'HE IS EVEN SMARTER NOW!', 'ONE MORE STOMP!'][B.hits]); }
       return;
     } else if (hit === -1 && !B.bumpSaid && P.onGround) {   /* touching him from the side does nothing (no push, no hurt): only a stomp from above counts */
       B.bumpSaid = true; s2Say('GLITCHY', 'Jump ON his head, Kinan! Land on top of him!', 2.6);
+    }
+    if (B.t <= 0 && ph >= 1) {   /* phase 2+: his dive shakes rocks loose from the ceiling: marked first (dust and a red !), then they fall */
+      const n = ph >= 3 ? 3 : 2, span = B.x1 - B.x0 - 4 * T;
+      for (let k = 0; k < n; k++) { const x = B.x0 + 2 * T + ((k + 0.5) / n) * span + rand(-20, 20); B.drops = B.drops || []; B.drops.push({ x: x, y: (B.rTop + 1) * T, t: 0, vy: 0, fall: false }); }
+      AudioSys.noise(0.4, { filter: 'lowpass', freq: 300, vol: 0.09 }); shakeIt(1.5);
     }
     if (B.t <= 0) { B.state = 'hidden'; B.t = REST; B.misses = (B.misses || 0) + 1; if (B.misses === 3 && !B.hits) s2Say('SABUMNIM', 'He comes up on YOUR floor. Run to him and jump on his hard hat!', 3.4); }
   }
@@ -11274,7 +11312,7 @@ function s2CrabStart(B) {
 }
 function s2CrabBox(B) { const c = B.crab; return { x: c.x, y: B.summitY - c.h + (c.st === 'enter' ? Math.round(c.h * (c.t / 70)) : 0), w: c.w, h: c.h }; }
 function s2CrabTick(B) {
-  const c = B.crab, ph = Math.min(2, B.hits), TELL = [48, 40, 36][ph], SPD = [2.6, 3.2, 3.8][ph], TIRED = [90, 72, 58][ph];
+  const c = B.crab, ph = Math.min(3, B.hits), TELL = [46, 40, 36, 34][ph], SPD = [2.7, 3.2, 3.7, 4.1][ph], TIRED = [84, 70, 58, 50][ph];   /* 4 stomps (Shad: "too easy") */
   const lo = B.cx0 + 2, hi = B.cx1 - c.w - 2;
   for (const q of B.bubbles) { q.x += q.vx; q.vy += 0.08; q.y += q.vy; q.t++; if (overlap(P, { x: q.x - 4, y: q.y - 4, w: 8, h: 8 })) { hurt({ x: q.x, y: q.y }); q.dead = 1; } else if (q.y > B.summitY - 2 || q.t > 200) { q.dead = 1; part(q.x, q.y, { vx: 0, vy: -0.4, life: 14, size: 2, color: '#e6f7ff', g: 0 }); } }
   B.bubbles = B.bubbles.filter((q) => !q.dead);
@@ -11296,7 +11334,7 @@ function s2CrabTick(B) {
     c.x += c.dir * SPD;
     if (c.x <= lo || c.x >= hi) {
       c.x = clamp(c.x, lo, hi); c.st = 'tired'; c.t = TIRED; SFX.stomp();
-      if (ph >= 2) { for (const d of [-1, 1]) B.waves.push({ x: c.x + c.w / 2, vx: d * 2.6, t: 0 }); }   /* phase 3: the slam's shockwave runs along the floor: jump it */
+      if (ph >= 2) { for (const d of [-1, 1]) B.waves.push({ x: c.x + c.w / 2, vx: d * (ph >= 3 ? 3.0 : 2.6), t: 0 }); }   /* phase 3+: the slam's shockwave runs along the floor: jump it */
     }
   } else if (c.st === 'tired') {
     if (c.t <= 0) { c.st = 'walk'; c.t = 80 - ph * 14; }
@@ -11306,11 +11344,11 @@ function s2CrabTick(B) {
   if (hit === 1 && c.st === 'tired' && !(B.hitCd > 0)) {
     B.hits++; B.hitCd = 30; P.vy = -7; P.cuttable = false; SFX.stomp(); flashScreen();
     pop(c.x, B.summitY - c.h - 18, 'BONK!', 40, '#f6c445');
-    if (B.hits >= 3) {
+    if (B.hits >= 4) {
       B.state = 'friend'; c.st = 'friend'; s2Gate(B.gateCol, B.gateTop, Math.round(B.summitY / T) - 1, false); Music.play('stage'); SFX.win();
       s2Say('KING CRAB', 'Phew! I was only grumpy because of the glitch water. Thanks, friend! The way out is open.', 3.4);
       addCandle(15); pop(P.x, P.y - 20, '+15', 50, null, true);
-    } else { c.st = 'walk'; c.t = 60; c.x = clamp(c.x - toK * 20, lo, hi); s2Banner(B.hits === 1 ? 'KING CRAB IS GETTING SMARTER!' : 'NOW HE IS REALLY SMART!'); }
+    } else { c.st = 'walk'; c.t = 54; c.x = clamp(c.x - toK * 20, lo, hi); s2Banner(['', 'KING CRAB IS GETTING SMARTER!', 'NOW HE IS REALLY SMART!', 'ONE MORE STOMP!'][B.hits]); }
   } else if (hit === 1 && c.st !== 'tired') { P.vy = -5; hurt({ x: c.x + c.w / 2, y: B.summitY }); }
   else if (hit === -1 && c.st !== 'tired') hurt({ x: c.x + c.w / 2, y: B.summitY });
 }
@@ -11321,7 +11359,7 @@ function s2Respawn() {
   S.stats.deaths[k] = (S.stats.deaths[k] || 0) + 1;
   for (const B of S.bosses) {
     if (B.state === 'friend' || B.state === 'wait') continue;
-    if (B.kind === 'mole') { s2Gate(B.gateL, B.rTop, B.rBot, false); s2Gate(B.gateR, B.rTop, B.rBot, false); B.state = 'wait'; B.hits = 0; B.rocks = []; B.hole = null; }
+    if (B.kind === 'mole') { s2Gate(B.gateL, B.rTop, B.rBot, false); s2Gate(B.gateR, B.rTop, B.rBot, false); B.state = 'wait'; B.hits = 0; B.rocks = []; B.drops = []; B.hole = null; }
     else { if (B.crab) s2Gate(B.gateCol, B.gateTop, Math.round(B.summitY / T) - 1, false); B.state = 'wait'; B.hits = 0; B.crab = null; B.bubbles = []; B.waves = []; B.tideY = B.bottom + 40; }
     Music.play('stage');
   }
@@ -11342,7 +11380,7 @@ function drawS2Bosses() {
         if (frame % 20 < 12) { ctx.fillStyle = '#e8364b'; ctx.fillRect(x - 1, h.y - 26, 3, 9); ctx.fillRect(x - 1, h.y - 15, 3, 3); } };
       if (B.state === 'tell') { shake(B.hole); if (B.fake) shake(B.fake); }
       if ((B.state === 'up' || B.state === 'friend') && B.hole) {
-        const m = s2MoleBox(B), x = m.x - ox, y = m.y, pr = B.state === 'up' ? Math.min(1, (([150, 120, 100][Math.min(2, B.hits)]) - B.t) / 8) : 1, dy = Math.round((1 - pr) * 14);
+        const m = s2MoleBox(B), x = m.x - ox, y = m.y, pr = B.state === 'up' ? Math.min(1, (([118, 96, 80, 68][Math.min(3, B.hits)]) - B.t) / 8) : 1, dy = Math.round((1 - pr) * 14);
         ctx.save(); ctx.beginPath(); ctx.rect(x - 4, y - 14, 30, 32 - 0); ctx.clip();
         ctx.fillStyle = '#1b1220'; ctx.fillRect(x - 1, y + dy - 1, 24, 20);
         ctx.fillStyle = '#7a5236'; ctx.fillRect(x, y + dy, 22, 19);
@@ -11360,7 +11398,12 @@ function drawS2Bosses() {
         }
       }
       for (const r of B.rocks) { ctx.fillStyle = '#1b1220'; ctx.fillRect(r.x - ox - 4, r.y - 4, 8, 8); ctx.fillStyle = '#9a8a7a'; ctx.fillRect(r.x - ox - 3, r.y - 3, 6, 6); }
-      if (B.state !== 'wait' && B.state !== 'friend') s2Pips(B, 3);
+      for (const d of B.drops || []) {   /* a ceiling rock: hanging (with a red ! while it shakes), then falling */
+        const x = Math.round(d.x - ox) + (d.fall ? 0 : Math.round(Math.sin(frame) * 1)), y = Math.round(d.y);
+        ctx.fillStyle = '#1b1220'; ctx.fillRect(x - 6, y - 6, 12, 12); ctx.fillStyle = '#9a8a7a'; ctx.fillRect(x - 5, y - 5, 10, 10); ctx.fillStyle = '#c4b4a2'; ctx.fillRect(x - 4, y - 5, 4, 3);
+        if (!d.fall && frame % 16 < 10) { ctx.fillStyle = '#e8364b'; ctx.fillRect(x - 1, y + 10, 3, 9); ctx.fillRect(x - 1, y + 21, 3, 3); }
+      }
+      if (B.state !== 'wait' && B.state !== 'friend') s2Pips(B, 4);
     } else {
       if (B.state !== 'wait' && B.tideY < B.bottom + 30) {   /* the glitch tide: magenta water with glitchy squares */
         const x0 = Math.max(0, B.x0 - ox), x1 = Math.min(W, B.x1 - ox), top = B.tideY;
@@ -11387,12 +11430,12 @@ function drawS2Bosses() {
         if (c.st === 'friend') { ctx.fillStyle = '#ff6fae'; ctx.fillRect(x + 12, y - 10, 2, 2); ctx.fillRect(x + 16, y - 10, 2, 2); ctx.fillRect(x + 13, y - 8, 4, 2); }
         for (const q of B.bubbles) { ctx.fillStyle = 'rgba(230,247,255,.9)'; ctx.fillRect(q.x - ox - 3, q.y - 3, 7, 7); ctx.fillStyle = 'rgba(111,200,255,.9)'; ctx.fillRect(q.x - ox - 2, q.y - 2, 5, 5); }
         for (const wv of B.waves) { ctx.fillStyle = '#ffd36a'; ctx.fillRect(wv.x - ox - 3, B.summitY - 8, 6, 8); ctx.fillStyle = '#fff'; ctx.fillRect(wv.x - ox - 1, B.summitY - 10, 2, 3); }
-        if (c.st !== 'friend') s2Pips(B, 3);
+        if (c.st !== 'friend') s2Pips(B, 4);
       }
     }
   }
   /* a dark mine: a pool of light round Kinan (his hard-hat lamp) */
-  const lit = S.bosses.filter((B) => B.kind === 'mole').map((B) => [B.x0 - T, B.x1 + T]);   /* the mole's arena has lanterns: no dark there */
+  const lit = [];   /* (the mine stays dark, the mole's arena too: Shad 2026-11-10) */
   const segs = [];
   for (const [x0, x1] of S.dark) { let parts = [[x0, x1]]; for (const [l0, l1] of lit) parts = parts.flatMap(([a0, a1]) => (l1 <= a0 || l0 >= a1 ? [[a0, a1]] : [[a0, Math.max(a0, l0)], [Math.min(a1, l1), a1]].filter(([q0, q1]) => q1 > q0))); segs.push(...parts); }
   for (const [x0, x1] of segs) {
@@ -11836,7 +11879,13 @@ function updateFoes() {
       }
       if (f.baseVx == null) f.baseVx = f.vx;
       const spd = f.vx;
-      f.vy = Math.min(6.5, (f.vy || 0) + 0.3);
+      const wetF = L.s2 && L.s2.water.length && s2InWater(f.x + f.w / 2, f.y + f.h / 2);
+      if (wetF) {   /* Season 2 (Shad: "the frog falls straight down ... it should swim up and down"): in water a foe paddles: it sinks slowly and strokes up now and then (a hopper on its hop beat) */
+        f.vy = clamp((f.vy || 0) * 0.88 + 0.04, -2.6, 1.1);
+        if ((beh === 'hopper' ? f.t % 95 === 0 : f.t % 70 === 0)) f.vy = beh === 'hopper' ? -2.6 : -1.8;
+        if (f.t % 40 === 0) part(f.x + f.w / 2, f.y, { vx: 0, vy: -0.4, life: 30, size: 1, color: '#e6f7ff', g: -0.01 });
+        f.swim = true;
+      } else { f.swim = false; f.vy = Math.min(6.5, (f.vy || 0) + 0.3); }
       const hit = moveX(f);
       if (hit) f.vx = -spd; else f.vx = spd;
       moveY(f);
@@ -13850,7 +13899,7 @@ function drawPlayer() {
 }
 function drawPets() {
   pets.cats.forEach((c) => {
-    const sx = Math.round(c.x - camX), sy = Math.round(c.y);
+    const sx = Math.round(c.x - camX) + (c.s2climb ? (Math.floor(frame / 6) % 2 ? 1 : -1) : 0), sy = Math.round(c.y) + (c.s2swim ? Math.round(Math.sin(frame / 8) * 1.5) : 0);
     ctx.fillStyle = 'rgba(0,0,0,.22)';
     ctx.beginPath(); ctx.ellipse(sx + 6, sy + 9, 5, 1.6, 0, 0, 6.284); ctx.fill();
     ctx.globalAlpha = 0.95;
@@ -13858,7 +13907,7 @@ function drawPets() {
     ctx.globalAlpha = 1;
   });
   pets.dogs.forEach((d) => {
-    const sx = Math.round(d.x - camX), sy = Math.round(d.y);
+    const sx = Math.round(d.x - camX) + (d.s2climb ? (Math.floor(frame / 6) % 2 ? 1 : -1) : 0), sy = Math.round(d.y) + (d.s2swim ? Math.round(Math.sin(frame / 8) * 1.5) : 0);
     ctx.fillStyle = 'rgba(0,0,0,.22)';
     ctx.beginPath(); ctx.ellipse(sx + 7, sy + 10, 6, 1.8, 0, 0, 6.284); ctx.fill();
     drawSprite(PET_SPRITES[d.id], sx - 1, sy - 1, d.face || 1);
@@ -28412,6 +28461,9 @@ window.__k11 = window.__k11DevOnly() ? {
   jumpToStage: (i) => { playStage(i); },
   teleport: (x) => { P.x = x; P.y = (GROUND - 1) * T; camX = Math.max(0, x - W * 0.42); },
   /* Season 2 (2026-11-10): where Kinan and the camera are (place(x, y) below puts him anywhere, tall levels too) */
+  solidAt: (x, y) => solid(Math.floor(x / T), Math.floor(y / T)),   /* tests: is this point inside a solid tile? */
+  foes: () => foes.map((f) => ({ type: f.type, x: f.x, y: f.y, alive: f.alive, swim: !!f.swim })),   /* Season 2 tests: where the foes are */
+  itemsAt: () => items.map((it) => ({ kind: it.kind, x: it.x, y: it.y, drop: it.drop || 0, got: !!it.got })),   /* Season 2 tests: the prizes out of gift blocks */
   s2Freeze: (on) => { if (L && L.s2) L.s2.freeze = !!on; return !!(L && L.s2 && L.s2.freeze); },
   s2: () => (L && L.s2 ? { bosses: L.s2.bosses.map((b) => ({ kind: b.kind, state: b.state, hits: b.hits, hole: b.hole, tideY: b.tideY, summitY: b.summitY, crab: b.crab ? { x: b.crab.x, w: b.crab.w, h: b.crab.h, st: b.crab.st } : null })), cps: L.s2.cps.map((c) => c.hit), goldGot: !!L.s2.goldGot, warps: L.s2.warps.map((w) => w.still), me: { slam: P.slam || null, warp: !!P.s2warp, climb: !!P.s2climb, ledge: !!P.s2ledge, swim: !!P.s2swim, kick: !!P.s2kick, inv: P.inv }, stats: L.s2.stats, locked: s2GoalLocked(), cleared: !!L.cleared } : null),
   where: () => ({ x: P.x, y: P.y, w: P.w, h: P.h, vx: P.vx, vy: P.vy, onGround: P.onGround, hp: P.hp, camX: camX, camY: camY, up: L ? L.up | 0 : 0, levelId: L ? L.levelId || null : null, cols: L ? L.w : 0 }),
