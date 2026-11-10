@@ -109,6 +109,15 @@
       (a.solid || []).forEach(function (r) {
         if (!Array.isArray(r) || r.length !== 4 || !r.every(isInt) || r[0] > r[2] || r[1] > r[3] || !inside([r[0], r[1]]) || !inside([r[2], r[3]])) out.push(tag + 'solid ' + JSON.stringify(r) + ' must be [col0, row0, col1, row1] inside the area');
       });
+      /* Season 2 pieces (docs/LEVEL-AUTHORING.md §3): ladders / vines [col, topRow, bottomRow], water [c0, r0, c1, r1],
+         warps { col, row, kind: pipe | chute | door, to: { col, row } } */
+      ['ladders', 'vines'].forEach(function (key) {
+        (a[key] || []).forEach(function (l) { if (!Array.isArray(l) || l.length !== 3 || !l.every(isInt) || !inside([l[0], l[1]]) || !inside([l[0], l[2]])) out.push(tag + key + ' ' + JSON.stringify(l) + ' must be [col, topRow, bottomRow] inside the area'); });
+      });
+      (a.water || []).forEach(function (r) { if (!Array.isArray(r) || r.length !== 4 || !r.every(isInt) || r[0] > r[2] || r[1] > r[3] || !inside([r[0], r[1]]) || !inside([r[2], r[3]])) out.push(tag + 'water ' + JSON.stringify(r) + ' must be [col0, row0, col1, row1] inside the area'); });
+      (a.warps || []).forEach(function (wp) {
+        if (!wp || ['pipe', 'chute', 'door'].indexOf(wp.kind) < 0 || !inside([wp.col, wp.row]) || !wp.to || !inside([wp.to.col, wp.to.row])) out.push(tag + 'warp ' + JSON.stringify(wp) + ' needs kind (pipe|chute|door), col, row and to: { col, row } inside the area');
+      });
       if (a.deck != null && !(Array.isArray(a.deck) && a.deck.length === 2 && a.deck.every(isInt) && a.deck[0] <= a.deck[1])) out.push(tag + 'deck must be [firstCol, lastCol]');
       if (a.fakeWall != null && !(Array.isArray(a.fakeWall) && a.fakeWall.length === 2 && a.fakeWall.every(isInt))) out.push(tag + 'fakeWall must be [firstCol, lastCol]');
       (a.secrets || []).forEach(function (s) {

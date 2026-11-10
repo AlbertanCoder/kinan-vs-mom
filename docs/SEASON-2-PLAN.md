@@ -90,3 +90,7 @@ everything once more.
   tall); the camera follows up and down and catches up on long falls. Test level: `?lab=playground` (the tower of shelves,
   the rooftop, a three-screen drop, three springs to the sky ledge). Still to do in step 1: doors / pipes / chutes into
   other areas. Tests: `lab-playground.spec.ts`.
+- 2026-11-10: **all the new moves in the playground** (Shad: "have all the things we talked about in one test lab level").
+  Its second area, THE NEW MOVES: a ladder, two ledges to grab, a vine, a wall-jump shaft, a pool to swim in, a steel pipe up
+  to a secret room and one back down, a door up to a rooftop and a chute back down. Same buttons as always. Only levels
+  that list these pieces get them. Not done yet: their Builder versions, the friends poofing along, climbing art for Kinan.

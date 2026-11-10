@@ -2979,6 +2979,7 @@ function buildLevel(def) {
   const gi = (x, y) => (y + up) * w + x;
   const foes = [], candles = [], gifts = {}, areas = [], seams = [], pipes = [], secretList = [], boards = new Set(), slabs = new Map(), pipeCells = new Set();
   let checkpoint = null, golden = null, goal = null, spawn = def.spawn || null, base = 0, lastH = 192, arenaAt = null, petCrate = null;
+  const s2 = { moves: !!def.moves, climbs: [], water: [], warps: [] };   /* Season 2 moves (block "SEASON 2 MOVES") */
   const tw = { on: false, t: 0, movers: [], pairs: [], swAt: {}, onB: [], offB: [], sw: 0, swCd: 0, magnets: [], signCols: [], signs: null, skins: [], rush: !!def.rush, storm: def.storm == null ? null : def.storm,
     belts: [], fish: false, subway: !!def.subway };   /* World 8: conveyor belts, the aquarium's fish, silver subway cars */
   list.forEach((a, k) => {
@@ -3032,7 +3033,8 @@ function buildLevel(def) {
         if (yy >= -up && !g[at]) { set(base + px, yy, 5); pipeCells.add(at); }
       }
     }
-    twistsOf(def, a, base, tw, w, set);   /* World 7: the level's own trick (wind, slime, moss, waves, sway, planks, pulleys, circuits, signs ...) */
+    twistsOf(def, a, base, tw, w, set);
+    s2Build(a, base, s2, set, gi, pipeCells);   /* Season 2: ladders, vines, water, pipes, chutes, doors */   /* World 7: the level's own trick (wind, slime, moss, waves, sway, planks, pulleys, circuits, signs ...) */
     for (const s of a.secrets || []) secretList.push(Object.assign({}, s, { col: base + s.col }));
     if (a.goldenCandle) golden = { col: base + a.goldenCandle.col, row: a.goldenCandle.row };
     if (a.pet && !petCrate) petCrate = { id: a.pet.id, tx: base + a.pet.col, ty: a.pet.row };   /* QA fix: the pet rescued in this level (LEVEL-AUTHORING §4.4) */
@@ -3117,7 +3119,8 @@ function buildLevel(def) {
     pipeCells: pipeCells,   /* the steel risers' cells (a solid 5 drawn by drawAreaProps, never broken) */
     tw: tw.on || tw.rush || tw.storm != null ? tw : null,   /* World 7 twists (null: the level plays exactly as before) */
     snatch: !!def.snatch,   /* World 8: raccoons grab a candle and run (stomp or kick one to get it back); off everywhere else */
-    arena: arena   /* B1: the boss arena (null in a level without one); its gates are its own — arenaX stays out of reach */
+    arena: arena,   /* B1: the boss arena (null in a level without one); its gates are its own — arenaX stays out of reach */
+    s2: s2.moves || s2.climbs.length || s2.water.length || s2.warps.length ? s2 : null   /* Season 2 moves (null: the level plays exactly as before) */
   };
 }
 /* a secret's prize words ('heart+candles', 'hat', 'GOLDEN CANDLE') -> pickup kinds */
@@ -9409,6 +9412,7 @@ function wantRun() {
 }
 function updatePlayer() {
   tickCompanionTimers();
+  if (L.s2 && P.s2warp && s2WarpTick()) return;   /* Season 2: going through a pipe, chute or door */
   const rush = P.rush > 0;
   let left = input.left || padIn.left, right = input.right || padIn.right;
   if (Story.holdTick()) { left = right = false; input.jumpBuf = 0; }   /* 2026-11-04: Kinan stands still while a 'hold' line (Shad's note, a memory gift) is said; hurt() leaves him be */
@@ -9501,6 +9505,7 @@ function updatePlayer() {
   if (P.vy >= 0) { P.springy = false; P.cuttable = false; }
   if (L.tw && L.tw.zips) zipTick();   /* World 9: hanging from a zip line, the cable decides where he goes this frame */
   slamTick();   /* the butt slam (block "BUTT SLAM"): a DOWN press in the air; while it lasts it holds P.vx / P.vy (the feel numbers above are untouched) */
+  if (L.s2 && !P.slam) s2Tick(left, right, holdJump);   /* Season 2: climbing, swimming, wall jumps, ledges, warps set vx / vy here */
 
   const hitWall = moveX(P);
   if (hitWall && L.hiddenGifts && L.hiddenGifts.size) {   /* walked into a hidden gift block: it pops too */
@@ -10800,6 +10805,227 @@ function drawKickSwoosh(c, age) {
   for (const [x, y] of [[23, 11], [24, 12], [24, 13], [24, 14], [24, 15], [23, 16]]) c.fillRect(x, y, 1, 1);
   c.globalAlpha = a0;
 }
+/* ============================================================
+   SEASON 2 MOVES (2026-11-10, docs/SEASON-2-PLAN.md). Only in a level that asks for them, so Worlds 1-11 play
+   exactly as before. buildLevel fills L.s2 from the level file (LEVEL-AUTHORING §3, "Season 2 pieces"):
+     ladders / vines [[col, topRow, bottomRow]] · water [[c0, r0, c1, r1]] · warps [{ col, row, kind, to: {col, row} }]
+     moves: true → the wall jump and the ledge grab
+   The same buttons as always (Shad's pick): JUMP held on a ladder climbs, let go and he slides down slowly, ◀ ▶ steps off;
+   JUMP in water is a swim stroke (no air limit); JUMP beside a wall in the air bounces off it (holding toward the wall
+   slides down it slowly); falling past a ledge he catches it and pulls himself up; standing still for half a second on a
+   pipe or chute, or in a doorway, takes him through (↓ on a keyboard goes at once).
+   ============================================================ */
+const S2_CLIMB_UP = 1.9, S2_CLIMB_SLIDE = 0.55, S2_CLIMB_DOWN = 2.4, S2_WARP_STILL = 30;
+function s2Build(a, base, s2, set, gi, pipeCells) {
+  for (const [key, vine] of [['ladders', false], ['vines', true]]) {
+    for (const [c, r0, r1] of a[key] || []) s2.climbs.push({ x: (base + c) * T, top: Math.min(r0, r1) * T, bot: (Math.max(r0, r1) + 1) * T, vine: vine });
+  }
+  for (const [c0, r0, c1, r1] of a.water || []) s2.water.push({ x0: (base + c0) * T, y0: r0 * T, x1: (base + c1 + 1) * T, y1: (r1 + 1) * T });
+  for (const w of a.warps || []) {
+    const kind = w.kind === 'door' || w.kind === 'chute' ? w.kind : 'pipe', col = base + w.col, len = Math.max(1, w.len || 2);
+    const wp = { kind: kind, col: col, row: w.row, len: len, to: w.to ? { col: base + w.to.col, row: w.to.row } : null, said: false, still: 0 };
+    if (kind === 'pipe') for (let yy = w.row; yy < w.row + len; yy++) for (const xx of [col, col + 1]) { set(xx, yy, 5); pipeCells.add(gi(xx, yy)); }
+    if (kind === 'chute') { set(col, w.row, 5); pipeCells.add(gi(col, w.row)); }
+    s2.warps.push(wp);
+  }
+}
+/* where Kinan stands on / in a warp: a pipe's 2-tile top, a chute's hatch, a doorway (2 tiles tall above its floor row) */
+function s2WarpUnder() {
+  if (!P.onGround) return null;
+  const cx = P.x + P.w / 2, feet = Math.round(P.y + P.h);
+  for (const w of L.s2.warps) {
+    if (!w.to) continue;
+    if (w.kind === 'pipe' && feet === w.row * T && cx >= w.col * T + 4 && cx <= (w.col + 2) * T - 4) return w;
+    if (w.kind === 'chute' && feet === w.row * T && cx >= w.col * T + 2 && cx <= (w.col + 1) * T - 2) return w;
+    if (w.kind === 'door' && feet === w.row * T && cx >= w.col * T + 2 && cx <= (w.col + 1) * T - 2) return w;
+  }
+  return null;
+}
+function s2InWater(x, y) { for (const r of L.s2.water) if (x >= r.x0 && x < r.x1 && y >= r.y0 && y < r.y1) return r; return null; }
+function s2ClimbAt(cx, cy) { for (const c of L.s2.climbs) if (cx >= c.x - 3 && cx <= c.x + T + 3 && cy >= c.top - 2 && cy < c.bot) return c; return null; }
+function s2WallSide() {
+  const top = Math.floor((P.y + 2) / T), bot = Math.floor((P.y + P.h - 3) / T);
+  const r = Math.floor((P.x + P.w + 1) / T), l = Math.floor((P.x - 2) / T);
+  for (let ty = top; ty <= bot; ty++) { if (solid(r, ty)) return 1; if (solid(l, ty)) return -1; }
+  return 0;
+}
+/* the warp in progress: in (24 frames: he sinks into a pipe or chute, or fades into a doorway), across, out (16) */
+function s2WarpTick() {
+  const s = P.s2warp, w = s.w;
+  s.t++;
+  P.vx = 0; P.vy = 0;
+  if (s.t <= 24) { if (w.kind !== 'door') P.y += 1; return true; }
+  if (s.t === 25) {
+    P.x = w.to.col * T + (T - P.w) / 2; P.y = w.to.row * T - P.h - (w.kind === 'door' ? 0 : 0);
+    camX = clamp(Math.round(P.x - W * 0.42), 0, Math.min(L.w * T - W, (L.arenaX + L.arenaW + 1) * T - W));
+    camY = clamp(Math.round(P.y + P.h / 2 - H * 0.55), camTopY(), 0);
+    lastSafe = { x: P.x, y: P.y };
+    sparks(P.x + 5, P.y + 6, 12, ['#9fe0ff', '#fff', '#f6c445']);
+    SFX.spring();
+    return true;
+  }
+  if (s.t >= 40) { P.s2warp = null; P.inv = Math.max(P.inv, 30); P.onGround = true; }
+  return true;
+}
+/* called from updatePlayer after gravity, before Kinan moves: the climbing, swimming, wall and ledge moves set vx / vy */
+function s2Tick(left, right, holdJump) {
+  const S = L.s2, F = feel(), cx = P.x + P.w / 2, cy = P.y + P.h / 2;
+  if (P.dead) { P.s2climb = null; P.s2ledge = null; return; }
+  /* WARPS: stand still on one (or ↓) */
+  const w = S.warps.length ? s2WarpUnder() : null;
+  if (w) {
+    if (!w.said) { w.said = true; pop(P.x - 14, P.y - 18, w.kind === 'door' ? 'STAND STILL TO GO IN' : 'STAND STILL TO GO DOWN', 70, '#9fe0ff'); }
+    const still = !left && !right && !holdJump && Math.abs(P.vx) < 0.3;
+    w.still = still ? w.still + 1 : 0;
+    if (input.down || w.still >= S2_WARP_STILL) {
+      w.still = 0; P.s2warp = { w: w, t: 0 }; P.x = (w.kind === 'pipe' ? w.col * T + T : w.col * T + T / 2) - P.w / 2;
+      SFX.click(); input.jumpBuf = 0; return;
+    }
+  } else for (const q of S.warps) q.still = 0;
+  /* SWIMMING: a JUMP press is a stroke; he sinks slowly; no air limit */
+  const wet = S.water.length ? s2InWater(cx, cy) : null;
+  if (wet) {
+    if (!P.s2swim) { P.s2swim = true; P.s2climb = null; P.s2ledge = null; P.s2vy = Math.min(P.vy, 2.5) * 0.5; sparks(cx, wet.y0, 10, ['#9fe0ff', '#fff']); SFX.click(); }
+    let v = P.s2vy == null ? P.vy : P.s2vy;
+    v = Math.min(1.3, v * 0.92 + 0.06);
+    if (holdJump) v -= 0.05;
+    if (input.jumpBuf > 0) {
+      input.jumpBuf = 0;
+      v = P.y < wet.y0 + 6 ? -6.4 : -3.1;   /* at the surface a stroke jumps him out */
+      part(cx, P.y + P.h, { vx: 0, vy: -0.6, life: 30, size: 2, color: '#e6f7ff', g: -0.02 });
+      SFX.jump();
+    }
+    if (frame % 24 === 0) part(cx + P.face * 3, P.y + 2, { vx: 0, vy: -0.5, life: 40, size: 1, color: '#e6f7ff', g: -0.01 });
+    P.vy = v; P.s2vy = v; P.vx = clamp(P.vx, -2.2, 2.2); P.coyote = 0;
+    return;
+  }
+  if (P.s2swim) { P.s2swim = false; P.s2vy = null; }
+  /* LADDERS AND VINES */
+  const c = S.climbs.length ? s2ClimbAt(cx, cy) : null;
+  if (P.s2climb && !c) {   /* climbed past the top: a little hop up onto the ledge */
+    P.s2climb = null; P.s2climbCd = 24;   /* (not caught again on the way down onto the ledge) */
+    if (holdJump && P.vy <= 0) { P.vy = -4.6; P.cuttable = false; }
+  }
+  if (!P.s2climb && c && !(P.s2climbCd > 0) && (input.down && P.onGround ? cy < c.bot - T : (input.jumpBuf > 0 || (holdJump && !P.onGround)))) {
+    if (input.down && P.onGround) P.y += 3;   /* climbing down through a shelf: start below its top so it never catches him */
+    P.s2climb = c; input.jumpBuf = 0; P.s2ledge = null;
+  }
+  if (P.s2climbCd > 0) P.s2climbCd--;
+  if (P.s2climb) {
+    const C = P.s2climb;
+    if (left || right) {   /* step off sideways (with JUMP: jump off) */
+      P.s2climb = null; P.s2climbCd = 12; P.vx = (right ? 1 : -1) * 1.6;
+      P.vy = input.jumpBuf > 0 || holdJump ? F.JUMP_V * 0.8 : 0;
+      input.jumpBuf = 0; return;
+    }
+    P.vx = 0; P.x += ((C.x + (T - P.w) / 2) - P.x) * 0.35;
+    P.vy = holdJump ? -S2_CLIMB_UP : input.down ? S2_CLIMB_DOWN : S2_CLIMB_SLIDE;
+    if (P.onGround && P.vy > 0) { P.s2climb = null; P.vy = 0; }
+    P.coyote = 0; input.jumpBuf = 0; P.cuttable = false;
+    P.anim += Math.abs(P.vy) * 0.06;
+    return;
+  }
+  if (!S.moves) return;
+  /* LEDGE GRAB: falling past a ledge he faces, he catches it and pulls himself up */
+  if (P.s2ledge) {
+    const G = P.s2ledge;
+    G.t++;
+    P.vx = 0; P.vy = 0;
+    if ((G.d > 0 && left) || (G.d < 0 && right) || input.down) { P.s2ledge = null; P.s2grabCd = 16; return; }   /* let go */
+    if (G.t >= 10 || input.jumpBuf > 0) {
+      input.jumpBuf = 0; P.s2ledge = null; P.s2grabCd = 10;
+      P.y = G.top - P.h; P.x = G.d > 0 ? G.wx * T + 2 : (G.wx + 1) * T - P.w - 2; P.vy = 0; P.onGround = true;
+      dust(P.x + 5, P.y + P.h, 3); SFX.click();
+    } else P.y = G.top - 3;
+    return;
+  }
+  if (P.s2grabCd > 0) P.s2grabCd--;
+  const side = s2WallSide();
+  if (!P.onGround && side && P.vy >= 0 && !P.s2grabCd && ((side > 0 && right) || (side < 0 && left) || Math.sign(P.vx) === side)) {
+    const wx = side > 0 ? Math.floor((P.x + P.w + 1) / T) : Math.floor((P.x - 2) / T);
+    let hy = null;   /* the ledge's top: his hands (the top of his head) within 12 px of it, above or below (forgiving) */
+    for (let ty = Math.floor((P.y - 12) / T); ty <= Math.floor((P.y + 12) / T); ty++) if (Math.abs(P.y - ty * T) <= 12 && solid(wx, ty) && !solid(wx, ty - 1) && !solid(wx, ty - 2)) { hy = ty; break; }
+    if (hy != null && !solid(Math.floor(cx / T), hy - 1)) {
+      P.s2ledge = { wx: wx, top: hy * T, d: side, t: 0 }; P.vx = 0; P.vy = 0; P.y = hy * T - 3; P.face = side;
+      if (!S.ledgeSaid) { S.ledgeSaid = true; pop(P.x - 10, P.y - 16, 'GRAB!', 40, '#7be3a3'); }
+      return;
+    }
+  }
+  /* WALL SLIDE + WALL JUMP (very forgiving: any wall he touches in the air, a short grace after leaving it) */
+  if (!P.onGround && side) { P.s2wall = side; P.s2wallT = 7; } else if (P.s2wallT > 0) P.s2wallT--;
+  if (!P.onGround && side && P.vy > 1.2 && ((side > 0 && right) || (side < 0 && left))) {
+    P.vy = 1.2;
+    if (frame % 6 === 0) part(side > 0 ? P.x + P.w : P.x, P.y + 4, { vx: -side * 0.3, vy: -0.2, life: 14, size: 1, color: 'rgba(244,241,232,.7)' });
+  }
+  if (input.jumpBuf > 0 && !P.onGround && P.coyote <= 0 && P.s2wallT > 0) {
+    const d = -P.s2wall;
+    input.jumpBuf = 0; P.s2wallT = 0;
+    P.vy = F.JUMP_V * 0.95; P.vx = d * 3.0; P.face = d; P.s2lock = 9; P.cuttable = true; P.jumpT = 0; P.stretch = F.STRETCH_F;
+    dust(d > 0 ? P.x : P.x + P.w, P.y + P.h / 2, 3); SFX.jump();
+    if (!S.wallSaid) { S.wallSaid = true; pop(P.x - 10, P.y - 16, 'WALL JUMP!', 50, '#f6c445'); }
+  }
+  if (P.s2lock > 0) { P.s2lock--; P.vx = Math.sign(P.vx || P.face) * Math.max(Math.abs(P.vx), 2.6); }
+}
+/* behind Kinan: ladders, vines, pipes, chutes and doors */
+function drawS2Back() {
+  const S = L.s2, ox = Math.round(camX), y0 = camY - T, y1 = camY + H + T;
+  for (const c of S.climbs) {
+    const x = c.x - ox;
+    if (x < -T || x > W + T || c.bot < y0 || c.top > y1) continue;
+    if (c.vine) {
+      for (let y = c.top; y < c.bot; y += 4) {
+        const k = Math.sin((y + c.x) / 9) * 2;
+        ctx.fillStyle = '#2f7d3a'; ctx.fillRect(x + 7 + k, y, 3, 4);
+        if ((y / 4) % 3 === 0) { ctx.fillStyle = '#5cc46a'; ctx.fillRect(x + (k > 0 ? 10 : 3) + k, y + 1, 4, 3); }
+      }
+    } else {
+      ctx.fillStyle = '#5b3a1e'; ctx.fillRect(x + 2, c.top, 2, c.bot - c.top); ctx.fillRect(x + 12, c.top, 2, c.bot - c.top);
+      ctx.fillStyle = '#a8743f'; for (let y = c.top + 2; y < c.bot; y += 5) ctx.fillRect(x + 3, y, 10, 2);
+    }
+  }
+  const under = P && !P.dead ? s2WarpUnder() : null;
+  for (const w of S.warps) {
+    const x = w.col * T - ox, y = w.row * T;
+    if (x < -2 * T || x > W + 2 * T || y < y0 - 2 * T || y > y1 + 2 * T) continue;
+    if (w.kind === 'pipe') {   /* a steel drain pipe with a hazard band (not a green game pipe) */
+      const len = (w.len || 2) * T;
+      ctx.fillStyle = '#1b1220'; ctx.fillRect(x - 1, y - 1, 2 * T + 2, len + 1);
+      ctx.fillStyle = '#8d97a8'; ctx.fillRect(x + 2, y + 5, 2 * T - 4, len - 5);
+      ctx.fillStyle = '#b9c2d0'; ctx.fillRect(x, y, 2 * T, 6);
+      ctx.fillStyle = '#20232f'; ctx.fillRect(x + 4, y + 1, 2 * T - 8, 3);
+      for (let k = 0; k < 6; k++) { ctx.fillStyle = k % 2 ? '#1b1220' : '#f6c445'; ctx.fillRect(x + 2 + k * 5, y + 10, 5, 3); }
+      ctx.fillStyle = 'rgba(255,255,255,.25)'; ctx.fillRect(x + 5, y + 14, 2, len - 16);
+    } else if (w.kind === 'chute') {   /* a wooden hatch in the floor */
+      ctx.fillStyle = '#5b3a1e'; ctx.fillRect(x, y, T, T);
+      ctx.fillStyle = '#a8743f'; ctx.fillRect(x + 1, y + 1, T - 2, 4); ctx.fillRect(x + 1, y + 6, T - 2, 4); ctx.fillRect(x + 1, y + 11, T - 2, 4);
+      ctx.fillStyle = '#f6c445'; ctx.fillRect(x + 6, y + 6, 4, 4);
+    } else {   /* a door, two tiles tall, standing on its floor row */
+      const dy = y - 2 * T;
+      ctx.fillStyle = '#1b1220'; ctx.fillRect(x - 1, dy - 1, T + 2, 2 * T + 1);
+      ctx.fillStyle = '#7a4a24'; ctx.fillRect(x + 1, dy + 1, T - 2, 2 * T - 1);
+      ctx.fillStyle = '#9b6234'; ctx.fillRect(x + 3, dy + 4, T - 6, 10); ctx.fillRect(x + 3, dy + 17, T - 6, 11);
+      ctx.fillStyle = '#f6c445'; ctx.fillRect(x + 11, dy + 16, 2, 2);
+    }
+    if (under === w || (w.to && Math.abs(P.x + P.w / 2 - (w.col * T + (w.kind === 'pipe' ? T : T / 2))) < 20 && Math.abs(P.y + P.h - w.row * T) < 4)) {
+      const b = Math.round(Math.sin(frame / 6) * 2), ax = x + (w.kind === 'pipe' ? T : T / 2) - 3, ay = (w.kind === 'door' ? y - 2 * T - 12 : y - 26) + b;
+      ctx.fillStyle = '#1b1220'; ctx.fillRect(ax - 1, ay - 1, 8, 7);
+      ctx.fillStyle = '#9fe0ff'; ctx.fillRect(ax, ay, 6, 2); ctx.fillRect(ax + 1, ay + 2, 4, 2); ctx.fillRect(ax + 2, ay + 4, 2, 1);
+      if (under === w && w.still > 0) { ctx.fillStyle = '#f6c445'; ctx.fillRect(ax - 4, ay + 8, Math.round(14 * w.still / S2_WARP_STILL), 2); }
+    }
+  }
+}
+/* over Kinan: the water (see-through, a wavy bright surface) */
+function drawS2Front() {
+  const S = L.s2, ox = Math.round(camX);
+  for (const r of S.water) {
+    const x0 = Math.max(0, r.x0 - ox), x1 = Math.min(W, r.x1 - ox);
+    if (x1 <= x0 || r.y1 < camY || r.y0 > camY + H) continue;
+    ctx.fillStyle = 'rgba(46,130,214,.42)'; ctx.fillRect(x0, r.y0, x1 - x0, r.y1 - r.y0);
+    ctx.fillStyle = 'rgba(20,70,150,.25)'; ctx.fillRect(x0, r.y0 + 24, x1 - x0, Math.max(0, r.y1 - r.y0 - 24));
+    for (let x = x0; x < x1; x += 4) { const k = Math.round(Math.sin((x + ox) / 7 + frame / 12) * 1.5); ctx.fillStyle = 'rgba(214,240,255,.85)'; ctx.fillRect(x, r.y0 + k, 4, 2); }
+  }
+}
+
 /* ============================================================
    BUTT SLAM (Shad, 2026-10-29: "if there's boxes or things you can break underneath you, how would you break
    them unless you do a butt slam"). In the air in a level, DOWN (↓ or S, a gamepad's down, or the touch ▼ that
@@ -15706,6 +15932,7 @@ function draw() {
   if (L.look3d) drawFlat3D(th);
   drawProps(th);
   if (L.authored) drawAreaProps();   /* M4b: the gate arches + hose pipes of an authored level */
+  if (L.s2) drawS2Back();   /* Season 2: ladders, vines, pipes, chutes, doors */
   if (L.tw) drawTwists();   /* World 7: moss, slime, handrails, planks, pulleys, boats, circuit blocks, magnets, signs */
   if (L.authored) drawGlitchyHelper();
   drawBuildPads();
@@ -15719,6 +15946,7 @@ function draw() {
   drawHelpers();
   drawPets();
   drawPlayer();
+  if (L.s2 && L.s2.water.length) drawS2Front();   /* Season 2: the water, over Kinan */
   if (boardBits.length) drawBoardBits();   /* taekwondo: a broken board's halves */
   if (slabBits.length || slamRings.length) drawSlamFx();   /* the butt slam: planks flying, the shockwave */
   drawShots();

@@ -62,6 +62,16 @@ may go as high as `32 - 16 * up`. Falling a long way never hurts; only falling o
 down", start the level high up and finish low. The example is the test level `levels/lab/playground.js`
 (`?lab=playground`). Not tried in a tall level yet: World 7's twists and boss arenas.
 
+**Season 2 pieces (2026-11-10, block "SEASON 2 MOVES" in `index.html`):** only a level that uses them gets them; the rest play as before.
+- `ladders: [[col, topRow, bottomRow]]`, `vines: [...]` — JUMP held climbs, let go slides down slowly, ◀ ▶ steps off; climbing past
+  the top hops him up (a ladder through a **shelf** comes out on top of it).
+- `water: [[c0, r0, c1, r1]]` — swim: JUMP is a stroke, no air limit, a stroke at the surface jumps out.
+- `warps: [{ col, row, kind, to: { col, row } }]` — `row` is the floor row (his feet stand on its top): `pipe` is a 2-wide steel pipe
+  whose top is `row` (`len` rows tall, default 2), `chute` a hatch in the floor at (col, row), `door` a door standing on row.
+  Standing still on it for half a second (or ↓) takes him to `to` (he lands standing on that row). Two-way: add one back.
+- `moves: true` (on the level) — the wall jump (JUMP beside a wall in the air; holding toward it slides down slowly) and the
+  ledge grab (falling past an edge he faces, he catches it and pulls up).
+
 **Test levels (`lab-<name>`):** a file in `levels/lab/` registering `id: 'lab-<name>'` (no `slot`, any `world`) is never on the
 map, never in the manifest and never cached offline; `?lab=<name>` plays it (on the live site too) and it saves nothing.
 
