@@ -29186,7 +29186,7 @@ window.__k11 = window.__k11DevOnly() ? {
   s2Freeze: (on) => { if (L && L.s2) L.s2.freeze = !!on; return !!(L && L.s2 && L.s2.freeze); },
   s2: () => (L && L.s2 ? { bosses: L.s2.bosses.map((b) => ({ kind: b.kind, state: b.state, hits: b.hits, hole: b.hole, tideY: b.tideY, summitY: b.summitY, crab: b.crab ? { x: b.crab.x, w: b.crab.w, h: b.crab.h, st: b.crab.st } : null })), cps: L.s2.cps.map((c) => c.hit), goldGot: !!L.s2.goldGot, warps: L.s2.warps.map((w) => w.still), me: { slam: P.slam || null, warp: !!P.s2warp, climb: !!P.s2climb, ledge: !!P.s2ledge, swim: !!P.s2swim, kick: !!P.s2kick, inv: P.inv }, stats: L.s2.stats, locked: s2GoalLocked(), cleared: !!L.cleared } : null),
   s2info: () => ({ crawl: !!P.s2crawl, rope: P.s2rope ? { th: P.s2rope.th, om: P.s2rope.om, ring: P.s2rope.ring } : null, bar: !!P.s2bar, glide: !!P.s2glide, skate: !!P.s2skate, sk: P.s2sk || 0, dash: P.s2dash || 0,
-    climb: !!P.s2climb, swim: !!P.s2swim, falls: L ? L.falls || 0 : 0, hazards: L && L.s2 ? L.s2.hazards.map((Z) => [Z.x0, Z.x1]) : [],
+    treat: L && L.s2 ? L.s2.treat : null, climb: !!P.s2climb, swim: !!P.s2swim, falls: L ? L.falls || 0 : 0, hazards: L && L.s2 ? L.s2.hazards.map((Z) => [Z.x0, Z.x1]) : [],
     bosses: L && L.s2 ? L.s2.bosses.map((B) => ({ kind: B.kind, look: B.look, state: B.state, hits: B.hits, wallX: B.wallX, tideY: B.tideY, summitY: B.summitY,
       crab: B.crab ? { x: B.crab.x, w: B.crab.w, st: B.crab.st } : null, hole: B.hole ? { x: B.hole.x, y: B.hole.y } : null })) : [] }),
   solidAt: (x, y) => !!solid(x, y), tileAt: (x, y) => tileAt(x, y),
