@@ -1154,7 +1154,12 @@ function feel() { return (L && L.newWorld) ? FEEL : LEGACY_FEEL; }
    link himself; nothing in the game points to it. Its save starts with Worlds 1-8 done (guestSeed), its first PLAY
    plays the World 9 opening (cutGuestIntro), and after the 9-castle the map offers the whole game from World 1 */
 const GUEST = (() => { try { const q = new URLSearchParams(location.search); return q.get('guest') === 'annie' && q.get('world') === '9' ? 'annie' : null; } catch (e) { return null; } })();
-const SAVE_KEY = GUEST ? 'kinan-remaster-annie-v1' : 'kinan-remaster-v1';
+/* SEASON 2 TEST (2026-11-10, docs/STORY-BIBLE.md, docs/WORLDS-12-15-PLAN.md): ?season2=1 turns on Worlds 12-15 for this tab
+   (?season2=0 turns it off): the 2D India, Japan, Mexico and France maps in place of the 3D Saskatoon sneak peek, the new
+   end of World 11 (home, the birthday party, Shad's globe), planes between the countries. It plays on its OWN save (Worlds
+   1-11 already beaten, standing at World 12), so the real game and its save never change until Shad says so. */
+const S2 = (() => { try { const q = new URLSearchParams(location.search); if (q.get('season2') === '1') sessionStorage.setItem('kv-s2', '1'); else if (q.get('season2') === '0') sessionStorage.removeItem('kv-s2'); return sessionStorage.getItem('kv-s2') === '1'; } catch (e) { return false; } })();
+const SAVE_KEY = GUEST ? 'kinan-remaster-annie-v1' : S2 ? 'kinan-season2-test-v1' : 'kinan-remaster-v1';
 const SAVE_BACKUP_KEY = SAVE_KEY + '-backup';
 
 /* Last-known-good saves: accept older sparse v1 records, but reject broken
@@ -3254,6 +3259,8 @@ function levelReturn() {
    levels in 3d/, which save their clear and come back here.
    ============================================================ */
 const OW_FILES = ['map/engine.js', 'map/worlds/w01.js', 'map/worlds/w02.js', 'map/worlds/w03.js', 'map/worlds/w04.js', 'map/worlds/w05.js', 'map/worlds/w06.js', 'map/worlds/w06t.js', 'map/worlds/w07.js', 'map/worlds/w08.js', 'map/worlds/w09.js', 'map/worlds/w09t.js', 'map/worlds/w10.js', 'map/worlds/w11.js', 'map/worlds/w12.js'];
+if (S2) OW_FILES.splice(OW_FILES.indexOf('map/worlds/w12.js'), 1, 'map/worlds/w12i.js', 'map/worlds/w13.js', 'map/worlds/w14.js', 'map/worlds/w15.js');   /* Season 2 test: the new 2D worlds */
+const S2_FLY = { 11: 'INDIA', 12: 'JAPAN', 13: 'MEXICO', 14: 'FRANCE' };   /* Season 2: each world's airport flies the family to the next country */
 const OW_3D_FILES = ['map/worlds/w12_models.js', 'map/worlds/w12_3d.js'];
 /* World 12 stop id → 3D level file (3d/levels/<file>.js). The castle stop is THE BESSBOROUGH BIRTHDAY FESTIVAL and the finale (rough draft 2026-10-30). */
 const OW_3D_LEVELS = { '12-1': '12-1', '12-2': '12-2', '12-3': '12-3', '12-4': '12-4', '12-5': '12-5', '12-fort': '12-fort', '12-6': '12-6', '12-7': '12-7', '12-secret': '12-secret', '12-8': '12-8', '12-castle': '12-castle' };
@@ -3277,9 +3284,10 @@ const OW_RELEASED = 11;
    The memory gallery, the finale and THE END stay hidden until World 12 is released for real (owReleased 12). */
 const W12_PREVIEW = ['12-4', '12-5', '12-fort', '12-6'];
 let owReleased = OW_RELEASED;
-try { if (window.__k11DevOnly && window.__k11DevOnly()) { const v = Number(sessionStorage.getItem('kv-ow-release')); if (v >= 1 && v <= 12) owReleased = v; } } catch (e) { /* no session storage: the build's number */ }
+try { if (window.__k11DevOnly && window.__k11DevOnly()) { const v = Number(sessionStorage.getItem('kv-ow-release')); if (v >= 1 && v <= 15) owReleased = v; } } catch (e) { /* no session storage: the build's number */ }
+if (S2) owReleased = 15;   /* the Season 2 test: all four new worlds are open */
 /* the sneak peek is on while World 11 is released and World 12 is not (a test's owRelease(12) opens all of World 12 instead) */
-const owPeek12 = () => owReleased >= 11 && owReleased < 12;
+const owPeek12 = () => !S2 && owReleased >= 11 && owReleased < 12;
 function owScripts(list) {
   return Promise.all(list.map((src) => new Promise((resolve, reject) => {
     const s = document.createElement('script');
@@ -3313,7 +3321,8 @@ function owAnnotate(W) {
   let reach = true;   /* everything before this stop is beaten or not built yet */
   W.slice().sort((a, b) => a.n - b.n).forEach((w) => {
     if (w.travel) { w.done = true; return; }
-    w.peek = w.n === 12 && owPeek12();   /* the sneak peek: World 12 opens after the 11-castle with only W12_PREVIEW built */
+    w.peek = w.n === 12 && owPeek12();
+    w.fly = S2 ? S2_FLY[w.n] || null : null;   /* Season 2: the plane on to the next country */   /* the sneak peek: World 12 opens after the 11-castle with only W12_PREVIEW built */
     w.soon = w.n > owReleased && !w.peek;   /* not in this build: shown behind its "coming soon" sign, never walked into */
     if (w.soon) reach = false;
     let regular = 0;
@@ -3321,9 +3330,10 @@ function owAnnotate(W) {
       const kind = owKind(s);
       if (kind === 'travel' || kind === 'shop') { s.id = null; s.built = false; s.state = reach ? 'open' : 'locked'; return; }
       const own = kind === 'level' ? w.n + '-' + (++regular) : kind === 'boss' ? w.n + '-castle' : w.n + '-' + kind;
-      const def = w.n === 12 ? null : owDef(w.n, i + 1);
+      const threeD = w.n === 12 && !S2;   /* World 12 is the 3D sneak peek, except in the Season 2 test */
+      const def = threeD ? null : owDef(w.n, i + 1);
       s.id = def ? def.id : own;
-      s.built = w.n === 12 ? !!OW_3D_LEVELS[s.id] && (!w.peek || W12_PREVIEW.indexOf(s.id) >= 0) : !!def;   /* the sneak peek builds only its four stops; the rest are "coming soon" */
+      s.built = threeD ? !!OW_3D_LEVELS[s.id] && (!w.peek || W12_PREVIEW.indexOf(s.id) >= 0) : !!def;   /* the sneak peek builds only its four stops; the rest are "coming soon" */
       const done = !!beaten[s.id];
       if (kind === 'secret') {   /* a side trip: only a secret exit opens it, and it never blocks the trail */
         s.state = !reach ? 'locked' : done ? 'beaten' : (!s.built || secrets.indexOf(s.id) >= 0) ? 'open' : 'locked';
@@ -3410,7 +3420,7 @@ function owMoved(n, at) {
 function owPlay(n, i, s) {
   progress.wmap = { w: n, at: i };
   save();
-  if (n === 12) {   /* World 12: the 3D levels are their own page (3d/level-12-1.html); they come back here */
+  if (n === 12 && !S2) {   /* World 12: the 3D levels are their own page (3d/level-12-1.html); they come back here */
     const file = OW_3D_LEVELS[s.id];
     if (!file) return;
     if (owPeek12() && W12_PREVIEW.indexOf(s.id) < 0) return;   /* the sneak peek: a "coming soon" stop never launches its level, whatever called this */
@@ -3470,6 +3480,7 @@ function worldMapScreen(o) {
     if (o.ready) o.ready();
     /* a castle won for the first time: Glitchy escapes into the next world (block "CUTSCENES"); the notice waits for it */
     if (o.ending && cutEnding({ notice: o.notice })) { /* World 11: the ending plays over the map; its notice waits for it */ }
+    else if (S2 && progress.s2EndingDue && !o.replay && !Cut.on) { progress.s2EndingDue = false; save(); cutEnding({}); }   /* Season 2 test: the new end of World 11 first */
     else if (o.escape && !cutEscape(o.escape, o.notice) && o.notice && window.KINAN.notice) window.KINAN.notice(o.notice);
     else if (due && !cutBelt(due.rank, due.catchup, o.beltNotice) && o.beltNotice && window.KINAN.notice) window.KINAN.notice(o.beltNotice);
     if (GUEST) guestOfferRefresh();   /* Annie's link, after the 9-castle: the whole game from World 1 */
@@ -4275,6 +4286,34 @@ const END_BEATS = END_BEATS_FIT([
   { name: 'tbc', min: 9000, lines: [] },   /* 4600 until the sneak peek card (END_PEEK) needed time to be read */
   { name: 'credits', min: 24000, lines: [] }
 ]);
+/* SEASON 2: THE NEW END OF WORLD 11 (docs/STORY-BIBLE.md; Shad: 2D only, no 3D unfold). Home in Saskatoon, the birthday
+   party at the Bessborough, Shad's last present (a glowing globe), Glitchy touches it and the portal pulls him away; Annie
+   knows the sounds: India. Subtitles only for now (recordings later). Plays in the Season 2 test (S2). */
+const S2_END_LINES = {
+  s2e_kinan_01: ['KINAN', "We're HOME! ...Wait. Is it still my birthday week?", 3.4],
+  s2e_mom_01: ['MOM', "It is, sweetie. And there's a party waiting for you.", 3.2],
+  s2e_dad_01: ['DAD', "Happy birthday, bud! I'd tell a joke, but the cake IS the punchline.", 3.8],
+  s2e_chenoa_01: ['CHENOA', 'Make a wish, little bro!', 2.4],
+  s2e_glitchy_01: ['GLITCHY', 'Hap... py... birth... DAY!', 3],
+  s2e_shad_01: ['SHAD', 'One more present, bud. And this time... wait till I say so.', 3.8],
+  s2e_kinan_02: ["KINAN", "I'm waiting! I'm waiting! ...Glitchy? Glitchy, NO!", 3.4],
+  s2e_glitchy_02: ['GLITCHY', 'Ooooh... shiny... BEEP?!', 2.6],
+  s2e_kinan_03: ['KINAN', 'GLITCHY!!!', 2],
+  s2e_annie_01: ['ANNIE', "Those sounds... that music... I know that place. That's home. That's INDIA!", 4.2],
+  s2e_shad_02: ['SHAD', "Pack your bags, everybody. We're going to get him.", 3.2]
+};
+if (STORY && STORY.lines) for (const id of Object.keys(S2_END_LINES)) STORY.lines[id] = S2_END_LINES[id].concat([null]);
+const S2_END_BEATS = END_BEATS_FIT([
+  { name: 'friend', min: 9000, lines: [[600, 'end_glitchy_01'], [4200, 'end_kinan_01'], [7800, 'end_mom_01']] },
+  { name: 'name', min: 7600, lines: [[3000, 'end_shad_01']] },
+  { name: 's2home', min: 9000, lines: [[1200, 's2e_kinan_01'], [5200, 's2e_mom_01']] },
+  { name: 's2party', min: 12000, lines: [[1000, 's2e_dad_01'], [5400, 's2e_chenoa_01'], [8400, 's2e_glitchy_01']] },
+  { name: 's2globe', min: 14000, lines: [[800, 's2e_shad_01'], [5200, 's2e_kinan_02'], [8800, 's2e_glitchy_02'], [11800, 's2e_kinan_03']] },
+  { name: 's2india', min: 10000, lines: [[1000, 's2e_annie_01'], [6000, 's2e_shad_02']] },
+  { name: 'tbc', min: 9000, lines: [] },
+  { name: 'credits', min: 24000, lines: [] }
+]);
+const S2_END_CARD = ['SEASON 2: AROUND THE WORLD', 'World 12: India', 'then Japan, Mexico and France'];
 /* THE WORLD 12 SNEAK PEEK card (Shad, 2026-10-30), shown under TO BE CONTINUED while the sneak peek is on (owPeek12): the hint that
    four levels of 3D Saskatoon are open now and a lot more is coming. Three short lines; as one sentence it reads
    "WORLD 12 SNEAK PEEK: Four levels of 3D Saskatoon are open now. Much more is coming!" (__k11.ending().peek) */
@@ -4293,7 +4332,7 @@ function cutEnding(o) {
   Cut.on = true; Cut.mode = 'ending'; Cut.phase = 'ending'; Cut.q = []; Cut.qCur = null; Cut.finishing = false; Cut.replay = !!o.replay; Cut.back = o.back || null;
   Cut.notice = o.notice || null; Cut.startedAt = performance.now(); Cut.log = [];
   cutBox.hidden = false; cutBox.classList.remove('onmap'); cutSub.hidden = true;
-  Cut.ending = { beat: -1, t: 0, beats: END_BEATS.map((b) => Object.assign({}, b, { dur: Math.max(b.min, b.lines.length ? b.lines[b.lines.length - 1][0] + cutMs(b.lines[b.lines.length - 1][1]) + 900 : 0) })), lines: [], said: 0, skips: 0, replay: !!o.replay, done: false };
+  Cut.ending = { beat: -1, t: 0, beats: (S2 ? S2_END_BEATS : END_BEATS).map((b) => Object.assign({}, b, { dur: Math.max(b.min, b.lines.length ? b.lines[b.lines.length - 1][0] + cutMs(b.lines[b.lines.length - 1][1]) + 900 : 0) })), lines: [], said: 0, skips: 0, replay: !!o.replay, done: false };
   Cut.beats = Cut.ending.beats; Cut.total = Cut.beats.reduce((s, b) => s + b.dur, 0); Cut.t = 0; Cut.last = 0;
   Music.play('final'); SFX.win(); applyGameName();
   endingNext();
@@ -4478,6 +4517,8 @@ function endingPaint() {
       c.restore();
     }
     if (part2 && t > 15000) endBanner(c, 'HAPPY 11TH BIRTHDAY, KINAN!', null, Math.min(1, (t - 15000) / 600));
+  } else if (name === 's2home' || name === 's2party' || name === 's2globe' || name === 's2india') {
+    s2EndPaint(c, name, t, b.dur, team);
   } else if (name === 'teaser') {   /* WORLD 12: a flight over Saskatoon in 3D */
     const cam = { yaw: 0.35 - 0.3 * k, pitch: 0.42, dist: 300, f: 300, cx: 216, cy: 150, ly: 0, px: -20, pz: 120 + 340 * k };
     const sky = c.createLinearGradient(0, 0, 0, 240); sky.addColorStop(0, '#3f8ee0'); sky.addColorStop(1, '#ffe6b0'); c.fillStyle = sky; c.fillRect(0, 0, 432, 240);
@@ -4494,7 +4535,11 @@ function endingPaint() {
     c.fillStyle = '#05061c'; c.fillRect(0, 0, 432, 240);
     const s = 'TO BE CONTINUED...', n = Math.min(s.length, Math.floor(t / 140));
     c.textAlign = 'center'; c.font = "700 26px 'Pixelify Sans', monospace"; c.fillStyle = '#f4f1e8'; c.fillText(s.slice(0, n), 216, 124); c.textAlign = 'left';
-    if (owPeek12() && t > END_PEEK_AT) {   /* the sneak peek (2026-10-30): once TO BE CONTINUED has typed out, the card that says four World 12 levels are open and more is coming */
+    if (S2 && t > END_PEEK_AT) {   /* Season 2: where the story goes next */
+      c.save(); c.globalAlpha = Math.min(1, (t - END_PEEK_AT) / 700); c.textAlign = 'center'; c.font = "700 11px 'Pixelify Sans', monospace";
+      S2_END_CARD.forEach((txt, i) => { const y = 160 + i * 15; c.fillStyle = '#1b1220'; c.fillText(txt, 217, y + 1); c.fillStyle = i === 0 ? '#f6c445' : i === 1 ? '#f4f1e8' : '#7be3a3'; c.fillText(txt, 216, y); });
+      c.restore();
+    } else if (owPeek12() && t > END_PEEK_AT) {   /* the sneak peek (2026-10-30): once TO BE CONTINUED has typed out, the card that says four World 12 levels are open and more is coming */
       E.peek = true;
       c.save(); c.globalAlpha = Math.min(1, (t - END_PEEK_AT) / 700); c.textAlign = 'center'; c.font = "700 11px 'Pixelify Sans', monospace";
       END_PEEK.forEach((txt, i) => { const y = 160 + i * 15; c.fillStyle = '#1b1220'; c.fillText(txt, 217, y + 1); c.fillStyle = i === 0 ? '#f6c445' : i === 1 ? '#f4f1e8' : '#7be3a3'; c.fillText(txt, 216, y); });
@@ -4528,6 +4573,68 @@ const cutHead = bake(KINAN.slice(0, 9)), cutSleepHead = bake(KINAN.slice(0, 4).c
 let cutRoomBg = null;
 const cutEase = (v) => (v <= 0 ? 0 : v >= 1 ? 1 : v * v * (3 - 2 * v));
 const cutMix = (a, b, v) => a + (b - a) * v;
+/* Season 2's new end of World 11, painted flat (2D) on the cutscene canvas */
+function s2EndPaint(c, name, t, dur, team) {
+  const ground = (top, col) => { cutRect(c, col, 0, top, 432, 240 - top); cutRect(c, 'rgba(255,255,255,.15)', 0, top, 432, 2); };
+  const stars = (n) => { for (let i = 0; i < n; i++) cutRect(c, (frame + i * 13) % 80 < 6 ? '#ffffff' : '#cfd8ff', (i * 61 + 7) % 432, (i * 37 + 3) % 110, i % 7 === 0 ? 2 : 1, i % 7 === 0 ? 2 : 1); };
+  const fam = (y, hopFrom) => team.forEach(([who, img], i) => { const x = [70, 118, 166, 246, 306, 360][i], hop = hopFrom != null && t > hopFrom ? Math.round(Math.abs(Math.sin(t / 170 + i)) * 4) : 0; c.drawImage(img, Math.round(x - img.width), Math.round(y - img.height * 2 - hop), img.width * 2, img.height * 2); });
+  if (name === 's2home') {   /* dusk at home: the yard, the house, everyone lands with a bump */
+    const g = c.createLinearGradient(0, 0, 0, 200); g.addColorStop(0, '#2a2a6a'); g.addColorStop(0.6, '#ff8a5c'); g.addColorStop(1, '#ffd6a0'); c.fillStyle = g; c.fillRect(0, 0, 432, 240);
+    stars(20);
+    cutRect(c, '#1b1220', 120, 96, 200, 108); cutRect(c, '#e6d6b8', 124, 100, 192, 104); cutRect(c, '#1b1220', 108, 80, 224, 20); cutRect(c, '#8a3a2e', 112, 82, 216, 16);
+    [[140, 120], [196, 120], [252, 120]].forEach(([x, y]) => { cutRect(c, '#1b1220', x - 1, y - 1, 26, 22); cutRect(c, '#ffe9a8', x, y, 24, 20); });
+    cutRect(c, '#5a3a1e', 208, 156, 24, 48);
+    ground(200, '#4f8a3a');
+    const land = Math.min(1, t / 900), dropY = Math.round((1 - land) * -120);
+    c.save(); c.translate(0, dropY); fam(220, 3000); c.restore();
+    drawGlitchyCreature(c, 214, 150 + Math.round(Math.sin(t / 260) * 4), 1.8, { calm: true, t: Math.floor(t / 16) });
+    if (t < 400) { c.fillStyle = 'rgba(255,255,255,' + (1 - t / 400).toFixed(2) + ')'; c.fillRect(0, 0, 432, 240); }
+    if (t > 900 && t < 1500) for (let i = 0; i < 12; i++) cutRect(c, '#d8c8a0', 40 + i * 30 + Math.sin(i) * 8, 214 - ((t - 900) / 30) % 14, 3, 3);
+  } else if (name === 's2party') {   /* the birthday party at the Bessborough: the castle hotel lit up by the river, balloons, the cake */
+    const g = c.createLinearGradient(0, 0, 0, 200); g.addColorStop(0, '#0e1240'); g.addColorStop(1, '#3a2a6a'); c.fillStyle = g; c.fillRect(0, 0, 432, 240);
+    stars(40);
+    for (let i = 0; i < 6; i++) { const fx = 60 + i * 64, fy = 30 + (i % 3) * 12, r = ((t / 6 + i * 40) % 90); if (r < 60) for (let a = 0; a < 10; a++) cutRect(c, ['#ff6fae', '#f6c445', '#7be3a3', '#6fc8ff'][i % 4], fx + Math.cos(a * 0.63) * r * 0.5, fy + Math.sin(a * 0.63) * r * 0.5, 2, 2); }
+    /* the Bessborough: a chateau with green copper roofs and lit windows */
+    cutRect(c, '#1b1220', 118, 70, 196, 132); cutRect(c, '#d8c8a8', 122, 74, 188, 128);
+    [[122, 56, 36], [194, 40, 44], [274, 56, 36]].forEach(([x, y, w]) => { c.fillStyle = '#1b1220'; c.beginPath(); c.moveTo(x - 2, 76); c.lineTo(x + w / 2, y - 2); c.lineTo(x + w + 2, 76); c.fill(); c.fillStyle = '#4fa08a'; c.beginPath(); c.moveTo(x, 76); c.lineTo(x + w / 2, y); c.lineTo(x + w, 76); c.fill(); });
+    for (let r = 0; r < 4; r++) for (let q = 0; q < 9; q++) cutRect(c, (q + r + Math.floor(t / 400)) % 5 ? '#ffe9a8' : '#c9a85a', 132 + q * 20, 86 + r * 26, 8, 12);
+    cutRect(c, '#2a5a8a', 0, 196, 432, 8); ground(204, '#3f7a3a');
+    for (let i = 0; i < 9; i++) { const bx = 24 + i * 48, by = 120 - ((t / 40 + i * 30) % 60); c.strokeStyle = '#f4f1e8'; c.beginPath(); c.moveTo(bx, by + 10); c.lineTo(bx, by + 30); c.stroke(); c.fillStyle = ['#e8364b', '#f6c445', '#2a5bd7', '#ff6fae'][i % 4]; c.beginPath(); c.ellipse(bx, by, 6, 8, 0, 0, 6.284); c.fill(); }
+    cutRect(c, '#1b1220', 192, 186, 48, 18); cutRect(c, '#ffd6e6', 194, 188, 44, 14); cutRect(c, '#ff6fae', 194, 188, 44, 3);
+    for (let i = 0; i < 11; i++) { cutRect(c, '#f4f1e8', 196 + i * 4, 180, 1, 7); if (Math.floor(t / 120 + i) % 3) cutRect(c, '#f6c445', 196 + i * 4, 177, 1, 3); }
+    fam(232, 600);
+    drawGlitchyCreature(c, 216, 150 + Math.round(Math.sin(t / 220) * 5), 1.8, { calm: true, wave: true, t: Math.floor(t / 16) });
+    if (t > 1200) endBanner(c, 'HAPPY 11TH BIRTHDAY, KINAN!', 'The party at the Bessborough', Math.min(1, (t - 1200) / 500));
+  } else if (name === 's2globe') {   /* Shad's last present: a glowing globe. Glitchy can't resist: the portal opens and pulls him in */
+    c.fillStyle = '#1a1440'; c.fillRect(0, 0, 432, 240); stars(30); ground(200, '#3a2a50');
+    const touch = 9000, pull = touch + 600, gx = 270, gy = 150;
+    const kinan = team[3][1], shad = team[5][1];
+    c.drawImage(kinan, 150 - kinan.width, 200 - kinan.height * 2, kinan.width * 2, kinan.height * 2);
+    c.drawImage(shad, 300 - shad.width, 200 - shad.height * 2, shad.width * 2, shad.height * 2);
+    const glow = 0.5 + Math.sin(t / 200) * 0.2, pr = t > touch ? Math.min(60, (t - touch) / 40) : 0;
+    const gr = c.createRadialGradient(gx, gy, 2, gx, gy, 30 + pr); gr.addColorStop(0, 'rgba(126,232,255,' + glow + ')'); gr.addColorStop(1, 'rgba(126,232,255,0)'); c.fillStyle = gr; c.fillRect(gx - 100, gy - 100, 200, 200);
+    c.fillStyle = '#1b1220'; c.beginPath(); c.arc(gx, gy, 13, 0, 6.284); c.fill(); c.fillStyle = '#2a7fd0'; c.beginPath(); c.arc(gx, gy, 12, 0, 6.284); c.fill();
+    c.fillStyle = '#4fbf6a'; [[-6, -4, 6, 5], [2, -8, 5, 4], [0, 2, 7, 5], [-8, 4, 4, 3]].forEach(([u, v, w, h]) => { const sx = ((u + t / 60) % 24) - 12; c.fillRect(Math.round(gx + sx), gy + v, w, h); });
+    cutRect(c, '#8a5426', gx - 8, gy + 13, 16, 4);
+    if (t > touch) { for (let i = 0; i < 24; i++) { const a = t / 120 + i * 0.26, r = pr * (0.3 + (i % 6) / 8); cutRect(c, i % 2 ? '#ff3df0' : '#00ffd0', gx + Math.cos(a) * r, gy + Math.sin(a) * r, 3, 3); } }
+    let gxx = 210 + Math.min(1, t / 8000) * (gx - 214), gyy = 120 + Math.sin(t / 300) * 6, sc = 1.6;
+    if (t > pull) { const k = Math.min(1, (t - pull) / 1400); gxx += (gx - gxx) * k; gyy += (gy - gyy) * k; sc = 1.6 * (1 - k) + 0.05; }
+    if (sc > 0.08) drawGlitchyCreature(c, gxx, gyy, sc, { calm: t < touch, t: Math.floor(t / 16) });
+    if (t > pull + 1400 && t < pull + 1900) { c.fillStyle = 'rgba(255,255,255,' + (1 - (t - pull - 1400) / 500).toFixed(2) + ')'; c.fillRect(0, 0, 432, 240); }
+  } else {   /* s2india: the globe turns to India; Annie knows those sounds */
+    c.fillStyle = '#0b0d20'; c.fillRect(0, 0, 432, 240); stars(60);
+    const cx = 216, cy = 120, R = 70, spin = Math.min(1, t / 3000);
+    c.fillStyle = '#1b1220'; c.beginPath(); c.arc(cx, cy, R + 2, 0, 6.284); c.fill(); c.fillStyle = '#2a6ab0'; c.beginPath(); c.arc(cx, cy, R, 0, 6.284); c.fill();
+    c.save(); c.beginPath(); c.arc(cx, cy, R, 0, 6.284); c.clip();
+    const off = (1 - spin) * 160;
+    c.fillStyle = '#5aa04a'; [[-60, -40, 50, 34], [-10, -30, 70, 40], [30, 10, 30, 40], [-48, 18, 26, 30], [60, -10, 40, 30]].forEach(([u, v, w, h]) => c.fillRect(Math.round(cx + u - off), cy + v, w, h));
+    c.fillStyle = '#7ac85a'; c.beginPath(); c.moveTo(cx + 10 - off, cy - 6); c.lineTo(cx + 34 - off, cy - 6); c.lineTo(cx + 22 - off, cy + 26); c.fill();   /* India */
+    c.restore();
+    if (spin >= 1) { const p = 3 + Math.sin(t / 150) * 2; c.fillStyle = '#e8364b'; c.beginPath(); c.arc(cx + 22, cy + 4, p, 0, 6.284); c.fill(); c.font = "700 11px 'Pixelify Sans', monospace"; c.textAlign = 'center'; c.fillStyle = '#f6c445'; c.fillText('INDIA', cx + 22, cy - 8); c.textAlign = 'left'; }
+    const annie = team[0][1]; c.drawImage(annie, 70 - annie.width, 220 - annie.height * 2, annie.width * 2, annie.height * 2);
+    for (let i = 0; i < 6; i++) { const nx = 320 + i * 14, ny = 60 + Math.sin(t / 300 + i) * 10 - ((t / 20 + i * 15) % 40); c.fillStyle = 'rgba(246,196,69,' + (0.4 + (i % 3) * 0.2) + ')'; c.font = "700 12px 'Pixelify Sans', monospace"; c.fillText('♪', nx, ny + 60); }
+  }
+}
 function cutRect(c, col, X, Y, w, h) { c.fillStyle = col; c.fillRect(Math.round(X), Math.round(Y), Math.round(w), Math.round(h)); }
 function cutSpr(c, img, cx, bottom, face, s) {
   const w = img.width * s, h = img.height * s, X = Math.round(cx - w / 2), Y = Math.round(bottom - h);
@@ -8039,6 +8146,22 @@ function loadProgress() {
   return out;
 }
 let progress = loadProgress();
+/* Season 2 test: its save starts with Worlds 1-11 beaten, Kinan standing at World 12, and the new end of World 11 plays
+   first on the map (s2EndingDue) */
+if (S2 && window.KinanLevels) KinanLevels.whenReady(() => {
+  if (progress.s2seed) return;
+  const lb = progress.levelsBeaten = progress.levelsBeaten || {}, un = progress.unlockedLevels = progress.unlockedLevels || [];
+  KinanLevels.list().forEach((id) => { const d = KinanLevels.get(id); if (d && d.world >= 1 && d.world <= 11) { lb[id] = 1; if (/-secret$/.test(id) && un.indexOf(id) < 0) un.push(id); } });
+  progress.wmap = { w: 12, at: 0 }; progress.introSeen = true; progress.endingSeen = true; progress.s2EndingDue = true;
+  progress.escapes = {}; for (let k = 1; k <= 10; k++) progress.escapes[k] = 1;
+  progress.glitchyTeam = true; progress.worldsName = true; progress.beltSeen = 99; progress.s2seed = true;
+  save();
+});
+if (S2) {   /* a small badge so nobody mistakes the test for the real game */
+  const b = document.createElement('div'); b.id = 's2badge'; b.textContent = 'SEASON 2 TEST';
+  b.style.cssText = 'position:fixed;left:6px;bottom:4px;z-index:200;font:700 10px Pixelify Sans,monospace;color:#1b1220;background:#f6c445;padding:2px 6px;border-radius:4px;opacity:.85;pointer-events:none';
+  document.addEventListener('DOMContentLoaded', () => document.body.appendChild(b)); if (document.body) document.body.appendChild(b);
+}
 let saveWarnAt = 0;
 /* Backup the previous valid current record and verify it BEFORE replacing current.
    A failed backup aborts the commit; a failed current write leaves that backup intact. */

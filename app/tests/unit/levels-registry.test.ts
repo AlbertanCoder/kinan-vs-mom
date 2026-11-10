@@ -117,7 +117,7 @@ describe('the registry refuses what would break the engine (problems)', () => {
   it('a clean level has no problems', () => { expect(problems(base())).toEqual([]); });
   it('ids follow the world-slot pattern and match the world', () => {
     expect(problems({ ...base(), id: '1-9' }).join()).toMatch(/id "1-9"/);
-    expect(problems({ ...base(), id: '12-1', world: 12 }).join()).toMatch(/worlds 1-11/);
+    expect(problems({ ...base(), id: '16-1', world: 16 }).join()).toMatch(/worlds 1-15/);   /* Season 2 adds worlds 12-15 */
     expect(problems({ ...base(), id: '2-3' }).join()).toMatch(/world must be 2/);
   });
   it('heights: only flat, 2:1 or 1:1 steps, on the tile grid, never a zigzag', () => {

@@ -13,7 +13,7 @@
   'use strict';
   var ROWS = 15, T = 16, SCREEN = 27;
   var MIN_COLS = SCREEN, MAX_COLS = 1200;
-  var ID_RE = /^([1-9]|1[01])-([1-8]|fort|secret|castle)$/;
+  var ID_RE = /^([1-9]|1[0-5])-([1-8]|fort|secret|castle)$/;   /* worlds 1-15 (Season 2: 12 India, 13 Japan, 14 Mexico, 15 France) */
   /* Season 2 (2026-11-10): test levels that are never on the map (levels/lab/, not in the manifest; ?lab=<name> plays one) */
   var LAB_RE = /^lab-[a-z0-9-]{1,30}$/;
   var MAX_UP = 45;   /* Season 2: a tall level has up to 45 extra rows above the usual 15 (four screens tall) */
@@ -61,7 +61,7 @@
     if (!def || typeof def !== 'object') return ['the level must be an object'];
     var lab = LAB_RE.test(def.id || '');
     var m = ID_RE.exec(def.id || '');
-    if (!m && !lab) out.push('id "' + def.id + '" must look like 1-5, 1-fort, 1-secret or 1-castle (worlds 1-11), or lab-<name> for a test level');
+    if (!m && !lab) out.push('id "' + def.id + '" must look like 1-5, 1-fort, 1-secret or 1-castle (worlds 1-15), or lab-<name> for a test level');
     else if (m && def.world !== Number(m[1])) out.push('world must be ' + m[1] + ' to match id ' + def.id);
     if (m && def.kind != null && def.kind !== kindOf(def.id)) out.push('kind must be "' + kindOf(def.id) + '" for id ' + def.id);
     if (!lab && (!isInt(def.slot) || def.slot < 1 || def.slot > 11)) out.push('slot (its stop on the world map trail) must be 1-11');

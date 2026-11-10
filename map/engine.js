@@ -167,7 +167,7 @@ const P={
   harbourCentre(X,Y){shadow(X+8,Y+2,12,3);box('#c9c4b8',X,Y-74,16,74);for(let i=4;i<70;i+=6)px('#a8a296',X+2,Y-74+i,12,2);G.fillStyle='#1b1220';G.beginPath();G.ellipse(X+8,Y-78,14,5,0,0,Math.PI*2);G.fill();G.fillStyle='#dfe5ee';G.beginPath();G.ellipse(X+8,Y-78,13,4,0,0,Math.PI*2);G.fill();px('#f6c445',X-3,Y-79,22,1);px('#1b1220',X+8,Y-92,1,10);},
   bcPlace(X,Y){shadow(X,Y+3,40,6);G.fillStyle='#1b1220';G.beginPath();G.ellipse(X,Y-10,38,15,0,0,Math.PI*2);G.fill();G.fillStyle='#ffffff';G.beginPath();G.ellipse(X,Y-10,37,14,0,0,Math.PI*2);G.fill();for(let i=-30;i<=30;i+=10){px('#1b1220',X+i,Y-34,2,24);G.strokeStyle='#9aa3b2';G.beginPath();G.moveTo(X+i+1,Y-34);G.lineTo(X,Y-12);G.stroke();}P.label(X,Y+6,'THE STADIUM');},
   scienceDome(X,Y){shadow(X,Y+2,18,4);px('#1b1220',X-15,Y-6,30,7);box('#9aa3b2',X-14,Y-6,28,6);G.fillStyle='#1b1220';G.beginPath();G.arc(X,Y-18,15,0,Math.PI*2);G.fill();G.fillStyle='#e8eef6';G.beginPath();G.arc(X,Y-18,14,0,Math.PI*2);G.fill();for(let i=-12;i<=12;i+=4)for(let j=-12;j<=12;j+=4)if(i*i+j*j<150&&((i+j)/4)%2===0)px('#9aa3b2',X+i,Y-18+j,2,2);px('#ffffff',X-7,Y-28,4,3);P.label(X,Y+4,'THE SCIENCE DOME');},
-  market(X,Y){shadow(X+30,Y+2,34,4);box('#c2414f',X,Y-16,60,16);px('#1b1220',X-2,Y-22,64,7);px('#e8636f',X-1,Y-21,62,5);for(let i=0;i<5;i++)box('#f6c445',X+4+i*12,Y-10,8,10);P.label(X+30,Y+4,'GRANVILLE ISLAND');},
+  market(X,Y,lb){shadow(X+30,Y+2,34,4);box('#c2414f',X,Y-16,60,16);px('#1b1220',X-2,Y-22,64,7);px('#e8636f',X-1,Y-21,62,5);for(let i=0;i<5;i++)box('#f6c445',X+4+i*12,Y-10,8,10);if(lb!=='')P.label(X+30,Y+4,lb||'GRANVILLE ISLAND');},
   steamClock(X,Y){box('#6b4a2a',X-3,Y-20,6,20);box('#f4f1e8',X-2,Y-18,4,4);px('#1b1220',X,Y-17,1,2);px('#6b4a2a',X-4,Y-23,8,3);},
   capilano(X,Y){px('#3b2618',X-4,Y-8,72,16);px('#1b1220',X-4,Y-8,72,1);G.strokeStyle='#a8692e';G.lineWidth=1;G.beginPath();G.moveTo(X,Y-6);G.quadraticCurveTo(X+32,Y+8,X+64,Y-6);G.stroke();G.beginPath();G.moveTo(X,Y-2);G.quadraticCurveTo(X+32,Y+12,X+64,Y-2);G.stroke();},
   boatshed(X,Y){box('#eee8d6',X,Y-10,30,10);px('#2f62b0',X,Y-14,30,4);},
@@ -397,12 +397,14 @@ function k3opts(w12,stop){return {at:stop||0,
     if(s.built===false)return {banner:'COMING SOON!',sub:w12.peek?'This one is not in the sneak peek. Much more is coming!':'This level is still being built. Walk on past it!',ok:false};
     return {banner:"LET'S GO!  "+s.name.split('  -  ')[0],ok:true,go:()=>{if(opts.onPlay)opts.onPlay(12,k,s);}};},
   stops:()=>w12.stops.map(s=>({kind:s.kind,state:s.state,built:s.built!==false}))};}
+/* World 12 is the 3D Saskatoon map, except in the Season 2 test (a world marked flat: the new 2D India) */
+const is3D=(w)=>!!w&&w.n===12&&!w.flat;
 function goWorld(i,stop){wi=i;ensure(cur());const w=cur();at=stop==='last'?w.stops.length-1:Math.max(0,Math.min(w.stops.length-1,stop||0));walk=null;cross=null;snapCam();fade=1;
   const k3=window.KINAN3D;
-  if(w.n===12){
+  if(is3D(w)){
     if(!k3){busy=true;need3D().then(()=>{busy=false;if(mounted&&cur()===w)goWorld(i,stop);}).catch(e=>{busy=false;console.warn('[map] the 3D world could not load',e);hint('THE 3D WORLD COULD NOT LOAD');});return;}
     cv.classList.remove('three');cv.style.visibility='hidden';k3.mount(scr,w,k3opts(w,at));}
-  else{if(k3&&k3.active)k3.unmount();cv.style.visibility='';cv.classList.toggle('three',w.n===12);}
+  else{if(k3&&k3.active)k3.unmount();cv.style.visibility='';cv.classList.toggle('three',is3D(w));}
   arrived();}
 /* a world the game has not released yet (the game marks it soon in opts.annotate): the next real world after this one
    stays behind a "COMING SOON" sign at this world's way out, Glitchy waving beside it (Shad, 2026-10-28) */
@@ -441,6 +443,8 @@ function go(dir){if(!mounted||busy)return;if(window.KINAN3D&&KINAN3D.active){KIN
     if(!worldDone(w)){hint('BEAT THE CASTLE TO OPEN THE WAY ON');return;}
     const g=gateAhead();if(g&&!g.peek){banner={t:0,txt:'WORLD '+g.n+' COMING SOON!',sub:g.n===12?'Saskatoon in 3D! Its levels are on the way.':'Glitchy is waiting there. Its levels are on the way!',ok:false,soon:true,dur:2600};return;}   /* World 12: Glitchy is on the team by then */
     if(canCross(1)){startCross(1);return;}
+    /* Season 2 (docs/STORY-BIBLE.md): a world the game marks fly ('INDIA', 'JAPAN' ...) ends at its airport: the plane takes the family to the next country */
+    if(w.fly&&W[wi+1]){banner={t:0,txt:'✈ FLYING TO '+w.fly+'!',sub:'The portal pulled Glitchy there. Hang on, Glitchy!',ok:true,dur:2600,then:()=>goWorld(wi+1,0)};return;}
     if(w.n===10){banner={t:0,txt:'WAIT... DID THE WORLD JUST GLITCH?',ok:true,glitch:true,then:()=>goWorld(wi+1,0)};return;}
     if(w.n===11){const j=idxOf(12);if(j<0)return;busy=true;
       need3D().then(()=>{busy=false;if(!mounted||cur()!==w)return;const w12=W[j];ensure(w12);
@@ -486,13 +490,13 @@ function flyLegs(kind,hi,at){const w=W[hi];ensure(w);const legs=[];
     return legs;}
   /* escape: off the edge, over the seam (and through a road trip), into the next real world */
   let i=hi;
-  for(let g=0;g<3;g++){const B=W[i+1];if(!B||B.n===12)return null;ensure(B);
+  for(let g=0;g<3;g++){const B=W[i+1];if(!B||is3D(B))return null;ensure(B);
     if(canCross(1,i)){legs.push(crossLeg(i));i++;
       if(B.travel){const tr=flyStops(B,0,B.stops.length-1);legs.push(legOf(i,tr.pts,tr.marks,{road:true}));continue;}break;}
     /* no road over this seam (World 10 glitches into 11): run off the edge, then a quick cut */
     const A=W[i],p0=A.stops[A.stops.length-1].at,out=A.outGeo&&A.outGeo.length>1?A.outGeo:[p0,[A.WW+40,p0[1]]];
     legs.push(legOf(i,out,null,{ev:g===0?'start':null,cut:true}));i++;break;}
-  const B=W[i];if(!B||B.travel||B.n===12)return null;
+  const B=W[i];if(!B||B.travel||is3D(B))return null;
   const reg=[];B.stops.forEach((s,k)=>{if(kindOf(s)!=='secret'&&kindOf(s)!=='travel')reg.push(k);});
   const k3=reg[Math.min(3,reg.length-2)]||0,tr=flyStops(B,0,k3);legs.push(legOf(i,tr.pts,tr.marks,{ev:'seam'}));
   const cas=B.stops[B.stops.length-1].at,p=B.stops[k3].at;legs.push(legOf(i,[p,cas],null,{fade:true}));
@@ -667,7 +671,7 @@ function frame(t){raf=0;if(!mounted)return;if(!cv.isConnected){unmount();return;
   try{draw(t);}catch(e){console.error('[map]',e);unmount();throw e;}
   if(mounted)raf=requestAnimationFrame(frame);}
 function draw(t){const dt0=t-(last||t),dt=Math.min(50,dt0);last=t;let w=cur();
-  if(window.KINAN3D&&KINAN3D.active&&w.n===12)return;   /* the 3D map draws itself */
+  if(window.KINAN3D&&KINAN3D.active&&is3D(w))return;   /* the 3D map draws itself */
   x.setTransform(SC,0,0,SC,0,0);x.imageSmoothingEnabled=false;
   if(fly){drawFly(t,dt0);return;}   /* a cutscene: Glitchy runs and the camera follows him */
   if(cross){cross.d+=dt*(cross.ride?0.16:0.09)*speed;if(cross.d>=cross.len){const o=W[cross.other],cd=cross.dir;camX-=cross.off[0];camY-=cross.off[1];wi=cross.other;at=cd>0?0:o.stops.length-1;cross=null;w=cur();if(o.travel)go(cd);else arrived();}}
