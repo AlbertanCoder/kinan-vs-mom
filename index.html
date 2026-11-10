@@ -754,7 +754,13 @@ html.sideways .hud .iconbtn.menubtn{width:auto;min-width:76px;font-size:13px}
 .jtip{margin:0 0 8px;text-align:center;color:var(--dim)}
 /* Season 2: the test level's end card */
 .s2card{text-align:center;display:grid;gap:8px;justify-items:center}.s2big{font-size:28px;font-weight:700;margin:0;color:var(--gold)}
-.s2tab{border-collapse:collapse;font-size:14px}.s2tab td,.s2tab th{padding:3px 10px;border-bottom:1px solid var(--panel2)}
+.s2tab{border-collapse:collapse;font-size:14px}
+.s2q{max-width:560px;margin:0 auto}.s2qt{font-size:24px;margin:4px 0 8px}.s2opts{display:grid;gap:8px;width:min(100%,420px)}.s2opts .btn{width:100%;min-height:48px}
+.s2lab{display:grid;gap:4px;width:min(100%,420px);text-align:left;font-size:14px}.s2in{font:15px var(--body);color:var(--text);background:#11132b;border:2px solid var(--panel2);border-radius:8px;padding:8px}
+.s2out{width:min(100%,520px);min-height:150px;word-break:normal;white-space:pre-wrap}
+@media (max-height:520px){.s2card{gap:4px}.s2card .title{font-size:20px;margin:0}.s2big{font-size:20px}.s2tab{font-size:11px}.s2tab td,.s2tab th{padding:1px 8px}.s2card p{margin:2px 0;font-size:12px}
+  .s2opts{grid-template-columns:1fr 1fr;width:min(100%,640px);gap:6px}.s2opts .btn{min-height:38px;font-size:13px;padding:4px 8px}.s2qt{font-size:18px;margin:0 0 4px}
+  .s2in{padding:5px;font-size:14px}.s2in[rows]{height:64px}.s2out{min-height:84px;height:96px;font-size:11px}.s2card .btnrow{margin:0}}.s2tab td,.s2tab th{padding:3px 10px;border-bottom:1px solid var(--panel2)}
 #owHost .km-btn.km-jump{background:#2a7fd0;font-size:18px;min-width:84px;letter-spacing:.04em}
 @media (orientation:portrait) and (max-width:700px){#owHost .km-side{gap:8px}#owHost .km-btn.km-jump{min-width:0;padding:0 10px;font-size:16px}#owHost .km-play{min-width:96px}}
 @media (orientation:portrait) and (max-width:380px){#owHost .km-btn{min-width:58px}#owHost .km-btn.km-jump{min-width:0;padding:0 8px;font-size:14px}#owHost .km-play{min-width:84px}}
@@ -11326,26 +11332,102 @@ function s2Pips(B, n) {   /* the boss's hits left, as pips above the action */
   for (let k = 0; k < n; k++) { ctx.fillStyle = '#1b1220'; ctx.fillRect(x + k * 14 - Math.round(camX) - 1, y - 1, 12, 8); ctx.fillStyle = k < n - B.hits ? '#e8364b' : '#4a4f57'; ctx.fillRect(x + k * 14 - Math.round(camX), y, 10, 6); }
 }
 /* the end-of-level card (Shad: "so I can get feedback"): time, each act's time and deaths, hearts lost, falls, secrets */
-function s2CardHtml() {
-  const S = L.s2, st = S.stats, secs = (f) => { const s = Math.round(f / 60); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
-  const areas = L.areas || [{ name: L.levelName }], rows = areas.map((a, k) => {
-    const t0 = st.actT[k], t1 = k + 1 < areas.length ? st.actT[k + 1] : stageTime;
-    return '<tr><td>' + escAttr(a.name || ('Act ' + (k + 1))) + '</td><td>' + (t0 == null || t1 == null ? '-' : secs(t1 - t0)) + '</td><td>' + (st.deaths[k] || 0) + '</td></tr>';
-  }).join('');
+/* THE FEEDBACK QUESTIONS (Shad, 2026-11-10: "I want the report card to be able to be sent to me"): after the card, quick
+   multiple-choice questions one at a time, a name and a comment, then one plain-text message with the card's numbers and
+   every answer. "Send to Shad" opens the phone's share menu (Messages, WhatsApp, email ...), or copies it on a computer;
+   pasted into Claude, it reads as it is. */
+const S2_QUESTIONS = [
+  ['How fun was it?', ['5 - Loved it', '4 - Fun', '3 - Okay', '2 - Meh', '1 - Not fun']],
+  ['How hard was it?', ['Too easy', 'Just right', 'A bit hard', 'Too hard']],
+  ['Favourite act?', ['Act 1: the cliffs', 'Act 2: the mine', 'Act 3: the waterfall and sea', 'Act 4: the sea cave']],
+  ['Hardest part?', ['The cliff chimney (wall jumps)', 'The mine', 'Mr. Mole', 'The waterfall / the sea', 'The tide climb', 'King Crab']],
+  ['Climbing ladders and vines felt...', ['Great', 'Okay', 'Clunky', 'Did not really use it']],
+  ['Wall jumping (bouncing up between walls) felt...', ['Great', 'Okay', 'Hard to do', 'Never figured it out']],
+  ['Grabbing ledges was...', ['Helpful', 'Did not notice it', 'Annoying']],
+  ['Swimming felt...', ['Great', 'Okay', 'Too floaty', 'Too slow']],
+  ['Pipes, the chute and doors (stand still to go in) were...', ['Easy', 'Confusing', 'Did not find them']],
+  ['Mr. Mole (the mine boss) was...', ['Fun', 'Too easy', 'Too hard', 'Confusing']],
+  ['The glitch tide and King Crab were...', ['Fun', 'Too easy', 'Too hard', 'Confusing']],
+  ['Did you ever not know where to go?', ['Never', 'Once or twice', 'Often']],
+  ['How did the game run?', ['Smooth', 'A little laggy', 'Very laggy', 'It glitched / broke']],
+  ['Would you play a whole world like this?', ['Yes!', 'Maybe', 'No']]
+];
+let s2Fb = null;
+function s2Snapshot() {
+  const S = L.s2, st = S.stats, secs = (f) => { const v = Math.round(f / 60); return Math.floor(v / 60) + ':' + String(v % 60).padStart(2, '0'); };
+  const areas = L.areas || [{ name: L.levelName }];
+  const acts = areas.map((a, k) => { const t0 = st.actT[k], t1 = k + 1 < areas.length ? st.actT[k + 1] : stageTime; return { name: a.name || 'Act ' + (k + 1), time: t0 == null || t1 == null ? '-' : secs(t1 - t0), lost: st.deaths[k] || 0 }; });
   const found = (L.secretsFound || []).filter(Boolean).length, total = (L.secretsFound || []).length;
-  return '<div class="s2card"><h2 class="title">YOU MADE IT! 🎉</h2><p class="tiny">' + escAttr(L.levelName) + ' · screenshot this and send it to Claude</p>' +
-    '<p class="s2big">⏱ ' + secs(stageTime) + '</p>' +
+  const ua = navigator.userAgent, kind = /iPad|Tablet/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1) ? 'tablet' : /iPhone|Android.*Mobile/.test(ua) ? 'phone' : /Android/.test(ua) ? 'tablet' : 'computer';
+  const os = /iPhone|iPad|Macintosh/.test(ua) && navigator.maxTouchPoints > 1 ? 'iOS' : /Android/.test(ua) ? 'Android' : /Windows/.test(ua) ? 'Windows' : /Mac/.test(ua) ? 'Mac' : 'other';
+  return { level: L.levelName, id: L.levelId, def: L.levelDef, time: secs(stageTime), acts: acts, hearts: heartsLost, falls: L.falls || 0, secrets: found + ' / ' + total,
+    golden: S.goldGot ? 'yes' : 'no', candles: got, device: kind + ', ' + os + ', ' + innerWidth + 'x' + innerHeight + (matchMedia('(pointer: coarse)').matches ? ', touch' : ', keyboard/mouse') };
+}
+function s2CardHtml(sn) {
+  const rows = sn.acts.map((a) => '<tr><td>' + escAttr(a.name) + '</td><td>' + a.time + '</td><td>' + a.lost + '</td></tr>').join('');
+  return '<div class="s2card"><h2 class="title">YOU MADE IT! 🎉</h2><p class="tiny">' + escAttr(sn.level) + '</p>' +
+    '<p class="s2big">⏱ ' + sn.time + '</p>' +
+    '<div class="btnrow"><button class="btn go" type="button" id="s2Ask">📝 Answer ' + S2_QUESTIONS.length + ' questions for Shad</button></div>' +
     '<table class="s2tab"><tr><th>Act</th><th>Time</th><th>Tries lost</th></tr>' + rows + '</table>' +
-    '<p>❤ Hearts lost: <b>' + heartsLost + '</b> · 🕳 Falls: <b>' + (L.falls || 0) + '</b> · 🔍 Secrets: <b>' + found + ' / ' + total + '</b> · ' +
-    '<i class="candle-ico gold"></i> Golden candle: <b>' + (S.goldGot ? 'yes' : 'no') + '</b> · <i class="candle-ico"></i> Candles: <b>' + got + '</b></p>' +
-    '<div class="btnrow"><button class="btn go" type="button" id="s2Again">▶ Play again</button><button class="btn" type="button" id="s2Title">🏠 Title screen</button></div></div>';
+    '<p>❤ Hearts lost: <b>' + sn.hearts + '</b> · 🕳 Falls: <b>' + sn.falls + '</b> · 🔍 Secrets: <b>' + sn.secrets + '</b> · ' +
+    '<i class="candle-ico gold"></i> Golden candle: <b>' + sn.golden + '</b> · <i class="candle-ico"></i> Candles: <b>' + sn.candles + '</b></p>' +
+    '<div class="btnrow"><button class="btn" type="button" id="s2Again">▶ Play again</button><button class="btn" type="button" id="s2Title">🏠 Title screen</button></div></div>';
 }
 function s2Card() {
-  const def = L.levelDef, html = s2CardHtml();
-  showScreen(html);
-  const again = $('#s2Again'), home = $('#s2Title');
-  if (again) again.onclick = () => { SFX.click(); playLevel(def); };
-  if (home) home.onclick = () => { SFX.click(); titleScreen(); };
+  const sn = s2Snapshot();
+  s2Fb = { sn: sn, answers: [], q: 0, name: '', note: '' };
+  showScreen(s2CardHtml(sn));
+  $('#s2Ask').onclick = () => { SFX.click(); s2FbQuestion(); };
+  $('#s2Again').onclick = () => { SFX.click(); playLevel(sn.def); };
+  $('#s2Title').onclick = () => { SFX.click(); titleScreen(); };
+}
+function s2FbQuestion() {
+  const F = s2Fb, k = F.q, q = S2_QUESTIONS[k];
+  if (!q) { s2FbLast(); return; }
+  showScreen('<div class="s2card s2q"><p class="tiny">Question ' + (k + 1) + ' of ' + S2_QUESTIONS.length + '</p><h2 class="title s2qt">' + escAttr(q[0]) + '</h2>' +
+    '<div class="s2opts">' + q[1].map((o, i) => '<button class="btn' + (F.answers[k] === i ? ' go' : '') + '" type="button" data-i="' + i + '">' + escAttr(o) + '</button>').join('') + '</div>' +
+    '<div class="btnrow">' + (k > 0 ? '<button class="btn ghost" type="button" id="s2Back">◀ Back</button>' : '') + '<button class="btn ghost" type="button" id="s2Skip">Skip ▶</button></div></div>');
+  el.screen.querySelectorAll('.s2opts button').forEach((b) => { b.onclick = () => { SFX.click(); F.answers[k] = Number(b.dataset.i); F.q++; s2FbQuestion(); }; });
+  const back = $('#s2Back'); if (back) back.onclick = () => { SFX.click(); F.q--; s2FbQuestion(); };
+  $('#s2Skip').onclick = () => { SFX.click(); F.q++; s2FbQuestion(); };
+}
+function s2FbLast() {
+  const F = s2Fb;
+  showScreen('<div class="s2card s2q"><h2 class="title s2qt">Almost done!</h2>' +
+    '<label class="s2lab">Your name<input id="s2Name" class="s2in" maxlength="40" autocomplete="off" value="' + escAttr(F.name) + '"></label>' +
+    '<label class="s2lab">Anything else? (what was fun, what was annoying, ideas)<textarea id="s2Note" class="s2in" rows="4" maxlength="1500">' + escAttr(F.note) + '</textarea></label>' +
+    '<div class="btnrow"><button class="btn ghost" type="button" id="s2Back">◀ Back</button><button class="btn go" type="button" id="s2Done">Done ▶</button></div></div>');
+  const keep = () => { F.name = $('#s2Name').value.trim(); F.note = $('#s2Note').value.trim(); };
+  $('#s2Back').onclick = () => { keep(); SFX.click(); F.q = S2_QUESTIONS.length - 1; s2FbQuestion(); };
+  $('#s2Done').onclick = () => { keep(); SFX.click(); s2FbSend(); };
+}
+function s2FbText() {
+  const F = s2Fb, sn = F.sn, L2 = [];
+  L2.push('KINAN TEST RESULTS (v1)');
+  L2.push('Level: ' + sn.level + ' (' + sn.id + ')');
+  L2.push('Player: ' + (F.name || '(no name)') + ' · ' + new Date().toISOString().slice(0, 16).replace('T', ' '));
+  L2.push('Device: ' + sn.device);
+  L2.push('Time ' + sn.time + ' | ' + sn.acts.map((a) => a.name.replace(/^ACT (\d+):.*/, 'Act $1') + ' ' + a.time + ' (' + a.lost + ' tries lost)').join(' | '));
+  L2.push('Hearts lost ' + sn.hearts + ' · Falls ' + sn.falls + ' · Secrets ' + sn.secrets + ' · Golden candle ' + sn.golden + ' · Candles ' + sn.candles);
+  S2_QUESTIONS.forEach((q, k) => L2.push((k + 1) + '. ' + q[0] + ' ' + (F.answers[k] == null ? '(skipped)' : q[1][F.answers[k]])));
+  L2.push('Comments: ' + (F.note || '(none)'));
+  return L2.join('\n');
+}
+function s2FbSend() {
+  const text = s2FbText(), canShare = !!navigator.share;
+  showScreen('<div class="s2card s2q"><h2 class="title s2qt">Thank you! 💛</h2><p>Send this to Shad (he pastes it to Claude):</p>' +
+    '<div class="btnrow">' + (canShare ? '<button class="btn go" type="button" id="s2Share">📤 Send to Shad</button>' : '') + '<button class="btn' + (canShare ? '' : ' go') + '" type="button" id="s2Copy">📋 Copy</button></div>' +
+    '<textarea id="s2Out" class="movecode s2out" readonly rows="9">' + escAttr(text) + '</textarea>' +
+    '<div class="btnrow"><button class="btn ghost" type="button" id="s2Again">▶ Play again</button><button class="btn ghost" type="button" id="s2Title">🏠 Title screen</button></div></div>');
+  const copy = () => {
+    const done = () => toast('📋 <b>Copied!</b> Paste it in a message to Shad.', 2200);
+    try { navigator.clipboard.writeText(text).then(done, () => { const t = $('#s2Out'); t.select(); document.execCommand('copy'); done(); }); }
+    catch (e) { const t = $('#s2Out'); t.select(); try { document.execCommand('copy'); done(); } catch (e2) { toast('Select the text and copy it.', 2200); } }
+  };
+  const sh = $('#s2Share'); if (sh) sh.onclick = () => { SFX.click(); navigator.share({ title: 'Kinan test results', text: text }).catch(() => {}); };
+  $('#s2Copy').onclick = () => { SFX.click(); copy(); };
+  $('#s2Again').onclick = () => { SFX.click(); playLevel(s2Fb.sn.def); };
+  $('#s2Title').onclick = () => { SFX.click(); titleScreen(); };
 }
 
 /* ============================================================

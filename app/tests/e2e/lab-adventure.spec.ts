@@ -75,5 +75,14 @@ test('the adventure: climbs, Mr. Mole, the glitch tide and King Crab, the goal a
   expect(r.cleared).toBe(true);
   await expect(page.locator('.s2card')).toContainText('YOU MADE IT', { timeout: 15_000 });
   await expect(page.locator('.s2card')).toContainText('ACT 4: THE SEA CAVE');
+  /* the feedback questions, one at a time, then one message to send Shad with the card's numbers and every answer */
+  await page.locator('#s2Ask').click();
+  for (let q = 0; q < 14; q++) await page.locator('.s2opts button').first().click();
+  await page.locator('#s2Name').fill('Tester');
+  await page.locator('#s2Done').click();
+  const msg = await page.locator('#s2Out').inputValue();
+  expect(msg).toContain('KINAN TEST RESULTS');
+  expect(msg).toContain('Player: Tester');
+  expect(msg).toContain('14. Would you play a whole world like this? Yes!');
   expect(errors).toEqual([]);
 });
