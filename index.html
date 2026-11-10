@@ -9324,6 +9324,10 @@ function startStage(i, silent, custom) {
     if (def.kind === 'cat') pets.cats.push({ id: id, def: def, x: P.x + 16 + idx * 14, y: P.y + 7, face: 1 });
     else pets.dogs.push({ id: id, def: def, x: P.x + 66 + idx * 18, y: P.y + 6, t: ri(0, 120), warn: 0, dash: null, face: 1 });
   });
+  if (custom && custom.s2) {   /* Season 2 (Shad 2026-11-10: "he has a cat and a dog, two at a time"): no cat or dog picked on the Pets screen, Vader and Chikastino come along (not Ginger: her higher jump would change the level) */
+    if (!pets.cats.length) pets.cats.push({ id: 'cat2', def: petDef('cat2'), x: P.x - 18, y: P.y + 7, face: 1 });
+    if (!pets.dogs.length) pets.dogs.push({ id: 'dog1', def: petDef('dog1'), x: P.x - 40, y: P.y + 6, t: ri(0, 120), warn: 0, dash: null, face: 1 });
+  }
   P.max = 3;
   P.hp = P.max;
   P.airJumps = 0;   /* 2D plays like 2D Mario: one jump (Ginger makes it higher instead of a double jump) */
