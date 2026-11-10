@@ -1,15 +1,15 @@
 import sys; sys.path.insert(0, __import__('os').path.dirname(__import__('os').path.abspath(__file__)))
 from lvgen import *
 OUT = __import__('os').path.join(__import__('os').path.dirname(__import__('os').path.abspath(__file__)), '..', '..', 'levels') + '/w13/'
-W = {'n': 13, 'treat': 'dango', 'walk': ['kitsune', 'robot', 'snowball', 'kitsune'], 'fly': ['lantern', 'crane', 'lantern'], 'fish': 'koi'}
-HD = "WORLD 13 - JAPAN, Annie's dream (docs/STORY-BIBLE.md, docs/WORLDS-12-15-PLAN.md). Move: ROPES AND MONKEY BARS. Tool: the grappling hook. Candles are dango."
+W = {'n': 13, 'treat': 'sushi', 'walk': ['kitsune', 'robot', 'snowball', 'kitsune'], 'fly': ['lantern', 'crane', 'lantern'], 'fish': 'koi'}
+HD = "WORLD 13 - JAPAN, Annie's dream (docs/STORY-BIBLE.md, docs/WORLDS-12-15-PLAN.md). Move: ROPES AND MONKEY BARS. Tool: the grappling hook. Candles are sushi. Annie is the biggest Japan fan ever (anime, history, food, kimono)."
 
 def lv(lid, slot, name, theme, **kw): return Level(W, lid, slot, name, theme, flags={'crawl': True}, **kw)
 
 # ---- 13-1 TOKYO NEON ----
 L = lv('13-1', 1, 'TOKYO NEON', 320)
 a = L.act('THE BIG CROSSING')
-a.say(2, 'ANNIE', "TOKYO! We are really in Tokyo! I have dreamed about this my WHOLE life!")
+a.say(2, 'ANNIE', "TOKYO! We are REALLY in Tokyo! I have watched SO much anime set here. I know every street!")
 a.say(9, 'ANNIE', 'Konnichiwa! That means hello. Everyone, bow a little, like this. So polite!')
 a.run(14); a.shelves(); a.gap(3); a.run(10, fly=True); a.stairs(); a.run(10)
 a.say(a.c - 4, 'KINAN', 'A video call from Sabumnim! At night? It is morning in Canada!')
@@ -17,9 +17,11 @@ a.say(a.c - 1, 'SABUMNIM', 'Kinan. Today: ropes. Jump and hold on. Push with the
 a.ropes(10); a.run(12)
 a = L.act('THE NEON ROOFTOPS')
 a.say(3, 'CHENOA', 'Little bro, these signs are like a painting that glows. I could stay here all night.')
+a.say(9, 'ANNIE', 'This is EXACTLY like the opening of my favourite anime! Kinan, do a cool pose! ...Perfect.')
 a.run(12, hidden=True); a.tower('ladder', visible='heart'); a.ropes(10); a.run(10); a.gap(3); a.run(10); a.ropes(11); a.run(10)
 a = L.act('THE NIGHT MARKET')
-a.say(3, 'ANNIE', 'Ramen! Onigiri! Dango! Itadakimasu! ...that is what you say before you eat.')
+a.say(3, 'ANNIE', 'Sushi! Ramen! Onigiri! Itadakimasu! ...that is what you say before you eat.')
+a.say(16, 'ANNIE', 'Fun fact: sushi started hundreds of years ago, as a way to keep fish fresh with rice. History is DELICIOUS.')
 a.say(10, 'DAD', 'I would tell you a ramen joke, but it is too long. It just keeps NOODLING.')
 a.run(12, foes=2); a.tunnel(8); a.gap(3); a.run(10); a.pool(9, golden=True); a.ropes(10); a.run(12)
 L.write(OUT + 'l01.js', HD)
@@ -28,6 +30,7 @@ L.write(OUT + 'l01.js', HD)
 L = lv('13-2', 2, 'THE BULLET TRAIN', 321)
 a = L.act('THE STATION')
 a.say(2, 'SHAD', 'The bullet train, bud! Over 300 kilometres an hour. Glitchy is riding on the ROOF!')
+a.say(9, 'ANNIE', 'The Shinkansen! The first one ran in 1964. I have a poster of this exact train on my wall!')
 a.run(14); a.gap(3); a.run(10, fly=True); a.highblock(); a.ropes(10); a.run(12)
 a = L.act('ON THE TRAIN ROOF')
 a.say(3, 'MOM', 'Kinan! Stay close and hold on tight!')
@@ -42,7 +45,7 @@ L.write(OUT + 'l02.js', HD)
 # ---- 13-3 KYOTO BAMBOO FOREST ----
 L = lv('13-3', 3, 'KYOTO BAMBOO FOREST', 322)
 a = L.act('THE BAMBOO PATH')
-a.say(2, 'ANNIE', 'The bamboo forest in Kyoto. Listen... it whispers when the wind blows.')
+a.say(2, 'ANNIE', 'Kyoto was the capital of Japan for over a thousand years. And this bamboo forest... listen. It whispers.')
 a.run(12); a.tower('vine'); a.ropes(10); a.run(10, fly=True); a.bars(10); a.run(12)
 a = L.act("ANNIE'S GADGET")
 a.say(3, 'ANNIE', 'Kinan, I built you something! A grappling hook. Jump near a gold ring and it hooks on!')
@@ -56,11 +59,14 @@ L.write(OUT + 'l03.js', HD)
 # ---- 13-4 THE THOUSAND GATES ----
 L = lv('13-4', 4, 'THE THOUSAND GATES', 323)
 a = L.act('THE RED GATES')
-a.say(2, 'MOM', 'So many red gates, all the way up the mountain. It is so peaceful here.')
-a.say(9, 'ANNIE', 'This is a shrine, so we are quiet and respectful. We just walk the path.')
+a.say(2, 'ANNIE', 'I rented a KIMONO for today! Look, it has little cranes on it. Kirei, right? That means pretty!')
+a.say(7, 'KINAN', 'Annie, you look like you walked out of a painting.')
+a.say(12, 'MOM', 'So many red gates, all the way up the mountain. It is so peaceful here.')
+a.say(17, 'ANNIE', 'This is a shrine, so we are quiet and respectful. We just walk the path.')
 a.run(14); a.stairs(); a.gap(3); a.run(10, fly=True); a.bars(11); a.run(12)
 a = L.act('THE FOX PATH')
 a.say(3, 'KINAN', 'Foxes! They are everywhere on this mountain.')
+a.say(8, 'ANNIE', 'Kitsune! In the old stories, foxes are messengers. I have read every manga about them. Every. Single. One.')
 a.run(12, foes=2); a.rings(10); a.run(10, hidden=True); a.chimney(); a.run(8); a.ropes(10); a.run(10)
 a = L.act('THE MOUNTAIN TOP')
 a.say(3, 'ANNIE', 'Glitchy is at the castle in Osaka! A monkey from the hot springs found him first.')
@@ -70,7 +76,8 @@ L.write(OUT + 'l04.js', HD)
 # ---- 13-fort OSAKA CASTLE ----
 L = lv('13-fort', 5, 'OSAKA CASTLE', 324)
 a = L.act('THE CASTLE PARK')
-a.say(2, 'SHAD', 'Osaka Castle, bud. Look at those roofs! Built more than 400 years ago.')
+a.say(2, 'ANNIE', 'Osaka Castle! Toyotomi Hideyoshi started building it in 1583. Yes, I memorised that. For FUN.')
+a.say(9, 'SHAD', 'Annie, you are a walking history book.')
 a.run(12); a.ropes(10); a.run(10, fly=True); a.stairs(); a.bars(10); a.run(12)
 a = L.act('THE SNOWY COURTYARD')
 a.say(2, 'GLITCHY', '(from a snow pile) Beep! Kinan! Snowballs! Many snowballs!')
@@ -80,7 +87,7 @@ L.write(OUT + 'fort.js', HD)
 # ---- 13-5 THE ROBOT CAFE ----
 L = lv('13-5', 6, 'THE ROBOT CAFE', 325)
 a = L.act('THE FRONT COUNTER')
-a.say(2, 'ANNIE', 'A ROBOT CAFE! Robots bring the food! This is the best day of my life!')
+a.say(2, 'ANNIE', 'A ROBOT SUSHI CAFE! The sushi rides around on a little train! This is the best day of my life!')
 a.say(9, 'KINAN', 'Annie, you said that yesterday. And the day before.')
 a.say(14, 'ANNIE', 'And it was TRUE every time!')
 a.run(16); a.shelves(); a.rings(10); a.run(10, fly=True); a.tunnel(8); a.run(12)
@@ -111,6 +118,7 @@ L.write(OUT + 'l06.js', HD)
 L = lv('13-7', 8, 'THE HOT SPRINGS VALLEY', 327)
 a = L.act('THE SNOWY PATH')
 a.say(2, 'SHAD', 'Snow and hot springs, bud. The monkeys here take hot baths in the winter!')
+a.say(9, 'ANNIE', 'Hot springs are called onsen. After, you wear a cosy yukata. I packed TWO. Just in case.')
 a.run(12); a.spring(); a.gap(3); a.run(10, fly=True); a.bars(10); a.run(12)
 a = L.act('THE STEAM VENTS')
 a.say(3, 'KINAN', 'The steam pushes me up like a spring! Whoosh!')
@@ -125,6 +133,7 @@ L = lv('13-secret', 9, 'CHERRY BLOSSOM NIGHT', 328)
 a = L.act('UNDER THE BLOSSOMS')
 a.say(2, 'ANNIE', 'Cherry blossoms at night, with lanterns... I am going to cry. Happy tears!')
 a.say(10, 'CHENOA', 'I am painting this. Every single petal.')
+a.say(17, 'ANNIE', 'Families picnic under the blossoms every spring. It is called hanami. Best. Tradition. Ever.')
 a.run(12); a.ropes(10); a.run(10); a.shelves(); a.bars(10); a.run(10); a.rings(10); a.pool(10); a.run(16)
 L.write(OUT + 'secret.js', HD)
 
@@ -143,17 +152,20 @@ a.cps = [[2, GROUND]]
 L.write(OUT + 'l08.js', HD)
 
 # ---- 13-castle THE TANUKI'S TEMPLE GROUNDS ----
-L = lv('13-castle', 11, "THE TANUKI'S TEMPLE GROUNDS", 330, up=40)
-a = L.act('THE LANTERN STEPS')
-a.say(2, 'CHENOA', 'Little bro, the statues here have funny round tummies. They are tanuki!')
+L = lv('13-castle', 11, 'HIMEJI CASTLE  -  THE SAMURAI ARMOUR', 330, up=40)
+a = L.act('THE WHITE HERON CASTLE')
+a.say(2, 'ANNIE', 'Himeji Castle! They call it the White Heron Castle, because it looks like a bird about to fly!')
+a.say(10, 'CHENOA', 'Little bro, Annie has not stopped talking for six days straight. I love it.')
 a.run(12); a.ropes(10); a.run(10, fly=True); a.bars(10); a.run(10); a.rings(10); a.run(10)
-a = L.act("THE TANUKI'S TOWER")
-a.say(2, 'GLITCHY', '(from the top) Kinan! A tanuki keeps turning into things! Help!')
+a = L.act('THE KEEP')
+a.say(2, 'GLITCHY', '(from the top) Kinan! An old suit of samurai armour WOKE UP! It is guarding me!')
 a.run(6)
-shaft(a, 'glitch', 'tanuki', floors=5, conns=['ladder', 'vine'], after=[
-    ['ANNIE', 'I knew it! Tanuki love a song and a sweet dango. Sugoi, Mr. Tanuki!', 3.4],
+shaft(a, 'glitch', 'samurai', floors=5, conns=['ladder', 'vine'], after=[
+    ['ANNIE', 'He bowed! Kinan, bow back! Samurai bowed before AND after a match, to say thank you.', 3.6],
+    ['KINAN', 'Thank you for the match, sir. ...Annie, you are the BEST tour guide ever.', 3.2],
     ['GLITCHY', 'Kinan! Arigato! ARIGATO! Annie says it means thank you!', 3.2],
     ['KINAN', 'The globe again! The portal is pulling him out over the ocean!', 3.2],
+    ['ANNIE', 'Japan... you were even better than my dreams. Arigato!', 3],
     ['SHAD', 'Hot sun, cactus, pyramids... bud, that is MEXICO. My dream trip! Let\'s go!', 3.6]])
 L.write(OUT + 'castle.js', HD)
 print('w13 written')

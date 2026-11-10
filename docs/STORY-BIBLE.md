@@ -11,7 +11,8 @@ this is changed to match. Every new line of story must agree with this page.
 - **Big Sis Chenoa** — the artist (her art room, 1-7); calls Kinan "little bro".
 - **Big Bro Shad** — the builder (hard hat, hammer); his present started everything; his console holds the realms.
 - **Annie** — the tech whiz with scanners, drones and firewalls. **She grew up in India** and moved to Canada; she lives in
-  **Montreal**, where she met the family (World 9). Speaks Punjabi ("Chalo!", "Hai Rabba!"). **Japan is her dream.**
+  **Montreal**, where she met the family (World 9). Speaks Punjabi ("Chalo!", "Hai Rabba!"). **Japan is her dream:** she is
+  the biggest Japan fan ever (anime, manga, history, food, kimono), a walking history book there (Amandeep's wish).
 - **Glitchy** — the purple one-eyed glitch from Shad's present; Kinan's friend from the end of World 11.
 - **Sabumnim** — Kinan's calm taekwondo instructor; teaches by video call; gives the belts.
 - The pets (always a cat and a dog along), the grandmas, Grandpa, and the friends made on the way.
@@ -44,8 +45,11 @@ from that country's language each time — funny and sweet).
   village in Punjab, the food), proud and happy. Move: crawl. Chase: the Mumbai monsoon flood. Castle: the Monsoon Frog.
   Glitchy's word: "Namaste!" The portal pulls him east.
 - **World 13 — JAPAN, Annie's dream.** Annie is beside herself — the happiest she is all game: polite Japanese words she
-  learned, the food, the culture, Tokyo at night. Move: ropes and monkey bars. Chase: the Mount Fuji avalanche. Castle:
-  the Big Tanuki (Annie has the idea that calms him). Glitchy: "Arigato!" The portal pulls him over the Pacific.
+  learned, sushi (the candles are sushi here), anime, the history (the Shinkansen of 1964, Osaka Castle of 1583, kitsune,
+  hanami, onsen), and she wears a rented kimono at the Thousand Gates. Move: ropes and monkey bars. Chase: the Mount Fuji
+  avalanche. Castle: Himeji, the White Heron Castle: an old suit of SAMURAI ARMOUR the glitch woke up (a thing, not a
+  person); calmed, it bows, and Annie tells Kinan to bow back, the way samurai thanked each other after a match. Glitchy:
+  "Arigato!" The portal pulls him over the Pacific.
 - **World 14 — MEXICO, Shad's world.** Shad has always wanted to come: the food (churros, tacos, elote, tamales), the
   music and colours, the history (he tells Kinan about the pyramids and the old cities). Move: dash kick. Chase: rising
   lava in the volcano. Castle: the Lava Iguana. Glitchy: "¡Hola, amigos!" The portal pulls him over the Atlantic.

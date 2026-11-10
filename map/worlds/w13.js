@@ -36,7 +36,7 @@
       {at:[700, 320],name:"13-7  THE HOT SPRINGS VALLEY",st:"lock"},
       {at:[660, 460],name:"SECRET  CHERRY BLOSSOM NIGHT",st:"secret"},
       {at:[840, 220],name:"13-8  MOUNT FUJI",st:"lock"},
-      {at:[920, 330],name:"CASTLE  THE TANUKI'S TEMPLE GROUNDS",st:"boss"}],
+      {at:[920, 330],name:"CASTLE  HIMEJI CASTLE  -  THE SAMURAI ARMOUR",st:"boss"}],
     props:[
       ["w13_neon", 20, 190],
       ["w13_neon", 120, 180],

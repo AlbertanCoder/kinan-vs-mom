@@ -185,3 +185,6 @@ The mine stays **dark** (the lit arena was wrong).
     "Merci... famille.").
   - Not done yet: Season 2's talk lines are not recorded (subtitles only), no new music (the usual tracks play), and the
     2D World 12 replaces the 3D sneak peek only in the test (the live map is unchanged until Shad says go).
+- 2026-11-10: **Annie's Japan, Amandeep's wishes:** Annie is the biggest Japan fan ever (anime, manga, history facts in
+  every level), the candles in Japan are **sushi**, Annie wears a **kimono** at the Thousand Gates, the robot cafe is a
+  robot sushi cafe, and the castle is **Himeji** with the **Samurai Armour** (replacing the Big Tanuki).

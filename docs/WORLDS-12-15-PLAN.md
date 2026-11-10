@@ -45,9 +45,9 @@ Candles become **ladoos**. Backdrops: Diwali lights, kites over the rooftops. Ch
 happiest she is all game. She bounces off the plane, knows the places, greets people politely with the Japanese words she
 learned, can't wait to try the food (dango, ramen, onigiri), and points out everything she loves about the culture. Her
 lines in this world are her most excited ones; she cheers Kinan on in every level, and the castle's win is partly hers
-(she has the idea that calms the Big Tanuki). Warm and respectful: her joy is about the people, the places and the culture.
+(she knows the samurai custom that calms the Samurai Armour: bow after the match). Warm and respectful: her joy is about the people, the places and the culture.
 Move: **ROPES AND MONKEY BARS** (swing on ropes over gaps, go hand over hand along bars). Tool: **grappling hook**.
-Candles become **dango**. Backdrops: cherry blossoms, lanterns, Tokyo neon. Chase: **the Mount Fuji avalanche**.
+Candles become **sushi** (Amandeep's wish; she also asked for a kimono, so Annie wears one at the Thousand Gates). Backdrops: cherry blossoms, lanterns, Tokyo neon. Chase: **the Mount Fuji avalanche**.
 1. 13-1 TOKYO NEON: Shibuya crossing, signs, rooftops; Sabumnim teaches ropes.
 2. 13-2 THE BULLET TRAIN: run along the train roofs (ropes between cars).
 3. 13-3 KYOTO BAMBOO FOREST: bamboo ropes and monkey bars, a tall green climb.
@@ -58,8 +58,8 @@ Candles become **dango**. Backdrops: cherry blossoms, lanterns, Tokyo neon. Chas
 8. 13-7 THE HOT SPRINGS VALLEY: steam vents lift Kinan, snow, monkeys.
 9. SECRET: CHERRY BLOSSOM NIGHT (bonus).
 10. 13-8 MOUNT FUJI: the **avalanche chase** down and across the mountain.
-11. CASTLE: THE TANUKI'S TEMPLE GROUNDS — the **Big Tanuki** (a raccoon-dog from the old stories, a shape-changer);
-    free Glitchy; the portal yanks him over the Pacific to Mexico.
+11. CASTLE: HIMEJI CASTLE — the **Samurai Armour** (an old suit of armour the glitch woke up; calmed, it bows and Kinan
+    bows back, Annie's idea); free Glitchy; the portal yanks him over the Pacific to Mexico.
 
 ## World 14 — MEXICO (Shad's world)
 **Shad has always wanted to go to Mexico** (Shad, 2026-11-10) for the culture, the food and the history. In the game big
