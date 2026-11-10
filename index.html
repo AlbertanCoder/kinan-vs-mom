@@ -29179,6 +29179,7 @@ window.__k11 = window.__k11DevOnly() ? {
     bosses: L && L.s2 ? L.s2.bosses.map((B) => ({ kind: B.kind, look: B.look, state: B.state, hits: B.hits, wallX: B.wallX, tideY: B.tideY, summitY: B.summitY,
       crab: B.crab ? { x: B.crab.x, w: B.crab.w, st: B.crab.st } : null, hole: B.hole ? { x: B.hole.x, y: B.hole.y } : null })) : [] }),
   solidAt: (x, y) => !!solid(x, y), tileAt: (x, y) => tileAt(x, y),
+  beatLevel: (id) => owLevelBeaten(id, 0),   /* dev: count a level as beaten (map tests) */
   s2BossHits: (n) => { for (const B of L.s2 ? L.s2.bosses : []) if (B.state !== 'friend' && B.state !== 'wait') B.hits = n; return true; },   /* dev: skip ahead in a fight */   /* Worlds 12-15 moves (dev) */
   where: () => ({ x: P.x, y: P.y, w: P.w, h: P.h, vx: P.vx, vy: P.vy, onGround: P.onGround, hp: P.hp, camX: camX, camY: camY, up: L ? L.up | 0 : 0, levelId: L ? L.levelId || null : null, cols: L ? L.w : 0 }),
   morph: () => (morph ? morph.t : null),   /* the "world goes 3D" cutscene */
