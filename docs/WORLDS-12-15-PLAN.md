@@ -1,4 +1,7 @@
-# WORLDS 12-15 — AROUND THE WORLD (draft for Shad, 2026-11-10)
+# WORLDS 12-15 — AROUND THE WORLD (built for Shad's test, 2026-11-10: ?season2=1)
+
+**Status:** all 44 levels are built and in the Season 2 test (docs/SEASON-2-PLAN.md, last entry). The levels come from
+`tools/season2/` (one script per world), so a change here is made there and the world is regenerated.
 
 The original 22-world storyline (Worlds 1-11 across Canada, then a different country every world) lives in Shad's own
 files and was not found in the repo or his Google Drive. Until it turns up, this plan follows what Shad remembers and

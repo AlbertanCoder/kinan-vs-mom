@@ -163,3 +163,25 @@ The mine stays **dark** (the lit arena was wrong).
   stroke up) instead of sinking; a **prize slammed out of a gift lands on wooden ledges** (it fell through them); the
   **ledge hang is off** (S2_LEDGE), and the walls built for it are 4 rows (one good jump). Human-style robot checks:
   Mr. Mole 8-17 s for a quick player, a slow one loses a try to the rocks; King Crab 13 s, 2 hearts lost.
+- 2026-11-10: **Worlds 12-15 built (the Season 2 test).** Shad's original 22-world files were not in the shortcut he
+  uploaded (a .lnk only points to his computer), so the story follows docs/STORY-BIBLE.md. Test link:
+  **?season2=1** (its own save; the live game and Kinan's save are untouched). It starts with the new end of World 11
+  (home in 2D, the party at the Bessborough, Shad's globe, Glitchy pulled into the portal, Annie: "That's India"), then
+  World 12 India, 13 Japan, 14 Mexico, 15 France on 2D maps; each world's airport flies the family to the next, and after
+  15-castle the Season 2 finale plays (home for good; new countries glow on the globe: Worlds 16-22). 44 levels, made by
+  `tools/season2/` (lvgen.py + w12.py ... w15.py; `python3 tools/season2/w12.py` rewrites levels/w12). Every level passes
+  the registry lint, and a play-through robot with real inputs beats all 44 (human-style boss bots for the forts and
+  castles). Ground is solid rows over a floor, so a gap is a **hazard trench** (the portal's purple glitch, lava, flood or
+  sea), never a pit: a touch is a fall (a heart, back to safe ground). `?lab=moves2` tries every new move.
+  - **12 India** (Annie's home): the crawl, Annie's flashlight in the stepwell, ladoos, the Market Monkey (Amber Fort),
+    the Mumbai flood climb, the Monsoon Frog (Glitchy: "Namaste!").
+  - **13 Japan** (Annie's dream): ropes and monkey bars, Annie's grappling hook (gold rings), dango, the Snow Monkey (Osaka
+    Castle), the Mount Fuji avalanche (a chase from the left), the Big Tanuki (Annie's song and dango calm him; "Arigato!").
+  - **14 Mexico** (Shad's world): the dash kick (KICK in the air; it breaks boards), Shad's shovel (slam to dig into
+    soft ground), churros, the Giant Axolotl (Jungle Temple), the rising lava, the Lava Iguana ("Hola, amigos!").
+  - **15 France** (the finale): the glide (hold JUMP while falling; updrafts lift), the skateboard streets, croissants,
+    Mom and Dad's "city of love" (Kinan: "Come ON, you guys, STOP!"), Chenoa's museum (the secret level), the Pigeon
+    King, the Mont-Saint-Michel tide, the gargoyle up the Eiffel Tower, the Portal Core (every move; the Stone Gargoyle;
+    "Merci... famille.").
+  - Not done yet: Season 2's talk lines are not recorded (subtitles only), no new music (the usual tracks play), and the
+    2D World 12 replaces the 3D sneak peek only in the test (the live map is unchanged until Shad says go).

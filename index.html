@@ -3480,6 +3480,7 @@ function owLevelBeaten(id, candlesGot, secretTo) {
   const res = { notice: escAttr(id).toUpperCase() + ' CLEAR!' };
   /* a castle won (any time but World 11's, which turns 3D): Glitchy's escape plays once per world (block "CUTSCENES") */
   const cw = /^(\d+)-castle$/.exec(String(id)), cn = cw ? Number(cw[1]) : 0;
+  if (S2 && cn === 15 && !progress.s2FinalSeen) { progress.s2FinalSeen = true; res.ending = 's2final'; save(); }   /* Season 2 test: the finale after France */
   if (cn >= 1 && cn <= 10 && !(progress.escapes || {})[cn]) res.escape = cn;
   if (cn === 11) {   /* World 11: Glitchy is on the team, the game is "Kinan vs. Worlds" from now on, and the ending plays (block "THE ENDING") */
     progress.glitchyTeam = true; progress.worldsName = true;
@@ -3585,7 +3586,7 @@ function worldMapScreen(o) {
     Story.render();   /* a line still talking from the level keeps its subtitle, now under the map */
     if (o.ready) o.ready();
     /* a castle won for the first time: Glitchy escapes into the next world (block "CUTSCENES"); the notice waits for it */
-    if (o.ending && cutEnding({ notice: o.notice })) { /* World 11: the ending plays over the map; its notice waits for it */ }
+    if (o.ending && cutEnding({ notice: o.notice, s2final: o.ending === 's2final' })) { /* World 11: the ending plays over the map; its notice waits for it */ }
     else if (S2 && progress.s2EndingDue && !o.replay && !Cut.on) { progress.s2EndingDue = false; save(); cutEnding({}); }   /* Season 2 test: the new end of World 11 first */
     else if (o.escape && !cutEscape(o.escape, o.notice) && o.notice && window.KINAN.notice) window.KINAN.notice(o.notice);
     else if (due && !cutBelt(due.rank, due.catchup, o.beltNotice) && o.beltNotice && window.KINAN.notice) window.KINAN.notice(o.beltNotice);
@@ -4420,6 +4421,23 @@ const S2_END_BEATS = END_BEATS_FIT([
   { name: 'credits', min: 24000, lines: [] }
 ]);
 const S2_END_CARD = ['SEASON 2: AROUND THE WORLD', 'World 12: India', 'then Japan, Mexico and France'];
+/* the Season 2 finale (after 15-castle): home with Glitchy for good; then, on the shelf, the globe lights up new countries */
+const S2_FINAL_LINES = {
+  s2f_kinan_01: ['KINAN', 'Home. For REAL this time. ...Right, Glitchy?', 3],
+  s2f_glitchy_01: ['GLITCHY', 'Namaste. Arigato. Hola. Merci... FAMILLE. Home!', 4],
+  s2f_mom_01: ['MOM', 'Everybody inside. Pyjamas, and nobody touches that globe.', 3.4],
+  s2f_shad_01: ['SHAD', 'Bud... did the globe just... glow?', 2.8],
+  s2f_annie_01: ['ANNIE', 'Not one light. LOTS of lights. All over the world!', 3.2],
+  s2f_kinan_02: ['KINAN', 'Here we go AGAIN!', 2.2]
+};
+if (STORY && STORY.lines) for (const id of Object.keys(S2_FINAL_LINES)) STORY.lines[id] = S2_FINAL_LINES[id].concat([null]);
+const S2_FINAL_BEATS = END_BEATS_FIT([
+  { name: 's2fin', min: 12000, lines: [[1000, 's2f_kinan_01'], [4600, 's2f_glitchy_01'], [9200, 's2f_mom_01']] },
+  { name: 's2glow', min: 13000, lines: [[3800, 's2f_shad_01'], [7200, 's2f_annie_01'], [10800, 's2f_kinan_02']] },
+  { name: 'tbc', min: 9000, lines: [] },
+  { name: 'credits', min: 24000, lines: [] }
+]);
+const S2_FINAL_CARD = ['SEASON 2 COMPLETE!', 'India, Japan, Mexico and France', 'New countries are glowing... Worlds 16-22 are coming!'];
 /* THE WORLD 12 SNEAK PEEK card (Shad, 2026-10-30), shown under TO BE CONTINUED while the sneak peek is on (owPeek12): the hint that
    four levels of 3D Saskatoon are open now and a lot more is coming. Three short lines; as one sentence it reads
    "WORLD 12 SNEAK PEEK: Four levels of 3D Saskatoon are open now. Much more is coming!" (__k11.ending().peek) */
@@ -4438,7 +4456,7 @@ function cutEnding(o) {
   Cut.on = true; Cut.mode = 'ending'; Cut.phase = 'ending'; Cut.q = []; Cut.qCur = null; Cut.finishing = false; Cut.replay = !!o.replay; Cut.back = o.back || null;
   Cut.notice = o.notice || null; Cut.startedAt = performance.now(); Cut.log = [];
   cutBox.hidden = false; cutBox.classList.remove('onmap'); cutSub.hidden = true;
-  Cut.ending = { beat: -1, t: 0, beats: (S2 ? S2_END_BEATS : END_BEATS).map((b) => Object.assign({}, b, { dur: Math.max(b.min, b.lines.length ? b.lines[b.lines.length - 1][0] + cutMs(b.lines[b.lines.length - 1][1]) + 900 : 0) })), lines: [], said: 0, skips: 0, replay: !!o.replay, done: false };
+  Cut.ending = { final: !!o.s2final, beat: -1, t: 0, beats: (o.s2final ? S2_FINAL_BEATS : S2 ? S2_END_BEATS : END_BEATS).map((b) => Object.assign({}, b, { dur: Math.max(b.min, b.lines.length ? b.lines[b.lines.length - 1][0] + cutMs(b.lines[b.lines.length - 1][1]) + 900 : 0) })), lines: [], said: 0, skips: 0, replay: !!o.replay, done: false };
   Cut.beats = Cut.ending.beats; Cut.total = Cut.beats.reduce((s, b) => s + b.dur, 0); Cut.t = 0; Cut.last = 0;
   Music.play('final'); SFX.win(); applyGameName();
   endingNext();
@@ -4623,7 +4641,7 @@ function endingPaint() {
       c.restore();
     }
     if (part2 && t > 15000) endBanner(c, 'HAPPY 11TH BIRTHDAY, KINAN!', null, Math.min(1, (t - 15000) / 600));
-  } else if (name === 's2home' || name === 's2party' || name === 's2globe' || name === 's2india') {
+  } else if (name === 's2home' || name === 's2party' || name === 's2globe' || name === 's2india' || name === 's2fin' || name === 's2glow') {
     s2EndPaint(c, name, t, b.dur, team);
   } else if (name === 'teaser') {   /* WORLD 12: a flight over Saskatoon in 3D */
     const cam = { yaw: 0.35 - 0.3 * k, pitch: 0.42, dist: 300, f: 300, cx: 216, cy: 150, ly: 0, px: -20, pz: 120 + 340 * k };
@@ -4643,7 +4661,7 @@ function endingPaint() {
     c.textAlign = 'center'; c.font = "700 26px 'Pixelify Sans', monospace"; c.fillStyle = '#f4f1e8'; c.fillText(s.slice(0, n), 216, 124); c.textAlign = 'left';
     if (S2 && t > END_PEEK_AT) {   /* Season 2: where the story goes next */
       c.save(); c.globalAlpha = Math.min(1, (t - END_PEEK_AT) / 700); c.textAlign = 'center'; c.font = "700 11px 'Pixelify Sans', monospace";
-      S2_END_CARD.forEach((txt, i) => { const y = 160 + i * 15; c.fillStyle = '#1b1220'; c.fillText(txt, 217, y + 1); c.fillStyle = i === 0 ? '#f6c445' : i === 1 ? '#f4f1e8' : '#7be3a3'; c.fillText(txt, 216, y); });
+      (E.final ? S2_FINAL_CARD : S2_END_CARD).forEach((txt, i) => { const y = 160 + i * 15; c.fillStyle = '#1b1220'; c.fillText(txt, 217, y + 1); c.fillStyle = i === 0 ? '#f6c445' : i === 1 ? '#f4f1e8' : '#7be3a3'; c.fillText(txt, 216, y); });
       c.restore();
     } else if (owPeek12() && t > END_PEEK_AT) {   /* the sneak peek (2026-10-30): once TO BE CONTINUED has typed out, the card that says four World 12 levels are open and more is coming */
       E.peek = true;
@@ -4684,7 +4702,7 @@ function s2EndPaint(c, name, t, dur, team) {
   const ground = (top, col) => { cutRect(c, col, 0, top, 432, 240 - top); cutRect(c, 'rgba(255,255,255,.15)', 0, top, 432, 2); };
   const stars = (n) => { for (let i = 0; i < n; i++) cutRect(c, (frame + i * 13) % 80 < 6 ? '#ffffff' : '#cfd8ff', (i * 61 + 7) % 432, (i * 37 + 3) % 110, i % 7 === 0 ? 2 : 1, i % 7 === 0 ? 2 : 1); };
   const fam = (y, hopFrom) => team.forEach(([who, img], i) => { const x = [70, 118, 166, 246, 306, 360][i], hop = hopFrom != null && t > hopFrom ? Math.round(Math.abs(Math.sin(t / 170 + i)) * 4) : 0; c.drawImage(img, Math.round(x - img.width), Math.round(y - img.height * 2 - hop), img.width * 2, img.height * 2); });
-  if (name === 's2home') {   /* dusk at home: the yard, the house, everyone lands with a bump */
+  if (name === 's2home' || name === 's2fin') {   /* dusk at home: the yard, the house, everyone lands with a bump */
     const g = c.createLinearGradient(0, 0, 0, 200); g.addColorStop(0, '#2a2a6a'); g.addColorStop(0.6, '#ff8a5c'); g.addColorStop(1, '#ffd6a0'); c.fillStyle = g; c.fillRect(0, 0, 432, 240);
     stars(20);
     cutRect(c, '#1b1220', 120, 96, 200, 108); cutRect(c, '#e6d6b8', 124, 100, 192, 104); cutRect(c, '#1b1220', 108, 80, 224, 20); cutRect(c, '#8a3a2e', 112, 82, 216, 16);
@@ -4727,6 +4745,18 @@ function s2EndPaint(c, name, t, dur, team) {
     if (t > pull) { const k = Math.min(1, (t - pull) / 1400); gxx += (gx - gxx) * k; gyy += (gy - gyy) * k; sc = 1.6 * (1 - k) + 0.05; }
     if (sc > 0.08) drawGlitchyCreature(c, gxx, gyy, sc, { calm: t < touch, t: Math.floor(t / 16) });
     if (t > pull + 1400 && t < pull + 1900) { c.fillStyle = 'rgba(255,255,255,' + (1 - (t - pull - 1400) / 500).toFixed(2) + ')'; c.fillRect(0, 0, 432, 240); }
+  } else if (name === 's2glow') {   /* the finale: the globe quiet on the shelf... then one by one, new countries light up */
+    c.fillStyle = '#141632'; c.fillRect(0, 0, 432, 240); stars(30);
+    cutRect(c, '#6a4a2a', 120, 176, 192, 8); cutRect(c, '#4a3220', 128, 184, 8, 56); cutRect(c, '#4a3220', 296, 184, 8, 56);
+    const cx = 216, cy = 118, R = 54;
+    c.fillStyle = '#1b1220'; c.beginPath(); c.arc(cx, cy, R + 2, 0, 6.284); c.fill(); c.fillStyle = '#2a6ab0'; c.beginPath(); c.arc(cx, cy, R, 0, 6.284); c.fill();
+    c.save(); c.beginPath(); c.arc(cx, cy, R, 0, 6.284); c.clip(); c.fillStyle = '#5aa04a';
+    [[-44, -30, 36, 26], [-8, -24, 50, 30], [22, 6, 22, 30], [-36, 12, 20, 24], [40, -8, 30, 24]].forEach(([u, v, w, h]) => c.fillRect(cx + u, cy + v, w, h));
+    c.restore(); cutRect(c, '#c9a240', cx - 18, cy + R, 36, 6); cutRect(c, '#8a6a2a', cx - 4, cy + R + 6, 8, 2);
+    const pins = [[-30, -18], [8, -14], [30, 14], [-24, 22], [46, 0], [-4, 6], [18, -30]];
+    pins.forEach(([u, v], i) => { const on = t > 2600 + i * 900; if (!on) return; const p = 2 + Math.sin(t / 140 + i) * 1.5; c.fillStyle = 'rgba(246,196,69,.35)'; c.beginPath(); c.arc(cx + u, cy + v, p + 5, 0, 6.284); c.fill(); c.fillStyle = ['#f6c445', '#ff6fae', '#7be3a3', '#6fc8ff'][i % 4]; c.beginPath(); c.arc(cx + u, cy + v, p, 0, 6.284); c.fill(); });
+    if (t > 2600) { c.fillStyle = 'rgba(246,196,69,' + (0.08 + 0.05 * Math.sin(t / 200)) + ')'; c.beginPath(); c.arc(cx, cy, R + 18, 0, 6.284); c.fill(); }
+    const gl = team.find((m) => m[0] === 'GLITCHY'); if (gl) { const im = gl[1]; c.drawImage(im, 330, 150 + Math.round(Math.sin(t / 250) * 4), im.width * 2, im.height * 2); }
   } else {   /* s2india: the globe turns to India; Annie knows those sounds */
     c.fillStyle = '#0b0d20'; c.fillRect(0, 0, 432, 240); stars(60);
     const cx = 216, cy = 120, R = 70, spin = Math.min(1, t / 3000);
