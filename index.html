@@ -743,6 +743,19 @@ html.sideways .hud .iconbtn.menubtn{width:auto;min-width:76px;font-size:13px}
 .menu .mcredits{margin:10px 0 2px;color:var(--dim);line-height:1.4}.menu .mcredits a{color:var(--gold)}
 .menu .btnrow{margin-top:10px;justify-content:center}
 .mhint{margin:10px 0 0;text-align:center;color:var(--dim)}
+/* JUMP TO A LEVEL (2026-11-10): the worlds Kinan has reached, then that world's levels */
+.jgrid .mitem{flex-direction:column;gap:2px;min-height:62px}
+.jgrid .mitem b{font-size:16px;color:var(--gold)}
+.jgrid .mitem span{font-weight:600;font-size:13px}
+.jgrid .mitem small{font-weight:600;font-size:12px;color:var(--dim)}
+.jgrid .mitem.here{border-color:var(--gold)}
+.jgrid .mitem.beat small{color:#7fe08a}
+.jgrid .mitem.open small{color:var(--gold)}
+.jtip{margin:0 0 8px;text-align:center;color:var(--dim)}
+#owHost .km-btn.km-jump{background:#2a7fd0;font-size:18px;min-width:84px;letter-spacing:.04em}
+@media (orientation:portrait) and (max-width:700px){#owHost .km-side{gap:8px}#owHost .km-btn.km-jump{min-width:0;padding:0 10px;font-size:16px}#owHost .km-play{min-width:96px}}
+@media (orientation:portrait) and (max-width:380px){#owHost .km-btn{min-width:58px}#owHost .km-btn.km-jump{min-width:0;padding:0 8px;font-size:14px}#owHost .km-play{min-width:84px}}
+@media (orientation:landscape) and (max-height:560px){#owHost .km-btn.km-jump{min-width:64px;padding:0;font-size:15px}}
 @media (hover:none){.mhint{display:none}}
 @media (max-width:560px){.mgrid{grid-template-columns:repeat(2,minmax(0,1fr))}.msplit{grid-template-columns:1fr}}
 @media (max-height:500px){.menubox{padding:10px 12px 8px}.mtitle{font-size:22px;margin-bottom:8px}.mitem{min-height:44px;font-size:14px;padding:4px 8px}.mcol{gap:5px}.mcol .mitem{min-height:36px}.menu .arow{min-height:26px}.menu .btnrow{margin-top:6px}.menu .mcredits{margin-top:6px}}
@@ -906,6 +919,7 @@ html.nosubs #storyLine,html.nosubs #storyLineMap,html.nosubs #bossLine,html.nosu
       <div class="mgrid">
         <button class="mitem go" id="resumeBtn" type="button">▶ Resume</button>
         <button class="mitem" id="mapBtnP" type="button">🗺️ World map</button>
+        <button class="mitem" id="jumpBtnP" type="button" title="Go straight to any world or level you have reached">🧭 Jump to a level</button>
         <button class="mitem" id="petsBtnP" type="button">🐾 Pets</button>
         <button class="mitem" id="shopBtn" type="button">🛍️ Shop</button>
         <button class="mitem" id="settingsBtn" type="button">⚙️ Settings</button>
@@ -963,6 +977,12 @@ html.nosubs #storyLine,html.nosubs #storyLineMap,html.nosubs #bossLine,html.nosu
         <div class="btnrow" id="moveConfirm" hidden><button class="btn" id="moveYes" type="button">Yes, replace it</button><button class="btn go" id="moveNo" type="button">No, keep this device's save</button></div>
       </div>
       <div class="btnrow"><button class="btn go" id="moveBack" type="button">◀ Back</button></div>
+    </div>
+    <!-- JUMP TO A LEVEL (2026-11-10, Shad): pick a world, then a level; Kinan lands on that stop of the map -->
+    <div class="mpage" id="menuJump" hidden>
+      <h2 class="mtitle" id="jumpTitle">Jump to a world</h2>
+      <div id="jumpBody"></div>
+      <div class="btnrow"><button class="btn go" id="jumpBack" type="button">◀ Back</button></div>
     </div>
     <div class="mpage" id="menuParty" hidden>
       <h2 class="mtitle">More games</h2>
@@ -3391,6 +3411,15 @@ function worldMapScreen(o) {
       candles: () => progress.wallet || 0, celebrate: o.celebrate, notice: o.escape || o.ending ? null : o.notice,
       belt: () => { const r = beltRank(), b = beltOf(r); return { label: beltLabel(r).toUpperCase().replace(' · ', '  '), color: b.color, dark: b.dark, tip: b.tip || null, stripes: b.stripes }; }   /* taekwondo: the belt in the top bar */
     });
+    /* JUMP TO A LEVEL (2026-11-10): JUMP beside PLAY opens Menu › Jump to a level */
+    const jr = host.querySelector('.km-r');
+    if (jr && !o.replay) {
+      const jb = document.createElement('button');
+      jb.type = 'button'; jb.className = 'km-btn km-jump'; jb.id = 'owJump'; jb.textContent = 'JUMP';
+      jb.setAttribute('aria-label', 'Jump to a world or level you have reached');
+      jb.addEventListener('click', () => { SFX.click(); jumpWorld = 0; menuShow(true, 'jump'); });
+      jr.insertBefore(jb, jr.firstChild);
+    }
     if (!o.replay) { Story.mapWorld = 0; storyArrive(spot.w); }   /* V1: the world intro the first time Kinan stands in a world */
     Story.render();   /* a line still talking from the level keeps its subtitle, now under the map */
     if (o.ready) o.ready();
@@ -8804,6 +8833,8 @@ function menuGo(page) {
   menuPage = page;
   $('#menuMain').hidden = page !== 'main'; $('#menuSettings').hidden = page !== 'settings'; $('#menuParty').hidden = page !== 'party';
   $('#menuMove').hidden = page !== 'move';   /* Settings › Move my save (block "MOVE MY SAVE") */
+  $('#menuJump').hidden = page !== 'jump';   /* Jump to a level (block "JUMP TO A LEVEL") */
+  if (page === 'jump') jumpRefresh();
   if (page === 'settings') settingsRefresh();
   if (page === 'party') partyRefresh();
 }
@@ -8813,6 +8844,7 @@ function menuRefresh() {
   $('#restartBtn').hidden = !g || !!((smash && smash.online && smash.online.role === 'client') || (kart && kart.online && kart.online.role === 'client'));   /* a joined online player can't restart for the room */
   $('#resetKartBtn').hidden = !(g && kart);
   if (!g) $('#mapBtnP').textContent = '🗺️ World map';
+  $('#jumpBtnP').hidden = !jumpAllowed();   /* a level from the map, the map, the title: yes; a race, a fight, the builder, a cutscene: no */
   const br = beltRank();   /* taekwondo: the belt he has earned (block "BELTS") */
   $('#menuBelt').innerHTML = beltIconSvg(br) + '<span>' + escAttr(beltLabel(br)) + '</span>';
 }
@@ -8840,6 +8872,80 @@ function settingsRefresh() {
   kb.hidden = !k; $('#kofiCredit').hidden = !k;
   if (kofiUrl) { kb.href = kofiUrl; kl.href = kofiUrl; kl.textContent = kofiUrl.replace(/^https?:\/\//, ''); }
 }
+/* ============================================================
+   JUMP TO A LEVEL (2026-11-10, Shad: "say I beat the entire game and want to play it all over again ... there's no way
+   to quickly jump to World 1 without clicking every single level"). Menu › 🧭 Jump to a level, or JUMP beside the map's
+   PLAY, lists the worlds Kinan has reached; tap one, then any of its levels he has beaten or that is open, and he
+   lands on that stop of the map (the saved spot moves there). Locked and "coming soon" stops are not offered, so it
+   never skips ahead. From a level of the map it leaves that level, like Menu › World map does.
+   ============================================================ */
+let jumpWorld = 0;   /* 0: the world list; n: World n's levels */
+const jumpAllowed = () => !(typeof Cut !== 'undefined' && Cut.on) && (!inGame() || !!(L && L.authored));
+/* the worlds with a stop Kinan can stand on (beaten or open, built), each with those stops, from the save */
+function jumpWorlds() {
+  const W = window.KINAN.W.slice().sort((a, b) => a.n - b.n);
+  owAnnotate(W);
+  return W.filter((w) => !w.travel && !w.soon).map((w) => {
+    const all = [];
+    w.stops.forEach((s, i) => { const k = owKind(s); if (k !== 'travel' && k !== 'shop' && s.built !== false) all.push({ s, i, k }); });
+    return { w, all, stops: all.filter((o) => o.s.state !== 'locked') };
+  }).filter((o) => o.stops.length);
+}
+function jumpCode(o) { return o.k === 'boss' ? 'CASTLE' : o.k === 'fort' ? 'FORT' : o.k === 'secret' ? 'SECRET' : String(o.s.id || ''); }
+function jumpName(o) {
+  const n = String(o.s.name || '').split('  -  ')[0].replace(/^(\d+-\d+|FORT|CASTLE|SECRET)\s+/, '').trim();
+  return o.k === 'level' && o.s.id === '1-1' && /^kinan vs/i.test(n) ? 'HOME' : n;   /* 1-1's stop is named after the game */
+}
+function jumpWorldName(w) { return String(w.hud || '').replace(/^WORLD \d+\s*-\s*/, ''); }
+function jumpRefresh() {
+  const box = $('#jumpBody');
+  if (!window.KINAN || !window.KINAN.W || !(window.KinanLevels && window.KinanLevels.ready)) box.innerHTML = '<p class="tiny jtip">Loading the map…</p>';
+  const levelsReady = new Promise((resolve) => { if (window.KinanLevels) window.KinanLevels.whenReady(resolve); else resolve(); });
+  Promise.all([owNeedEngine(), levelsReady]).then(() => { if (menuIsOpen() && menuPage === 'jump') jumpDraw(); })
+    .catch(() => { box.innerHTML = '<p class="tiny jtip">The map could not load. Check the connection and try again.</p>'; });
+}
+function jumpDraw() {
+  const box = $('#jumpBody'), list = jumpWorlds(), here = progress.wmap || {};
+  const pick = jumpWorld ? list.find((o) => o.w.n === jumpWorld) : null;
+  if (!pick) {
+    jumpWorld = 0;
+    $('#jumpTitle').textContent = 'Jump to a world';
+    box.innerHTML = '<p class="tiny jtip">Pick a world, then a level. You can go to any level you have beaten or opened.</p>' +
+      '<div class="mgrid jgrid">' + list.map((o) => {
+        const beat = o.all.filter((q) => q.s.state === 'beaten').length;
+        return '<button class="mitem' + (o.w.n === here.w ? ' here' : '') + (beat === o.all.length ? ' beat' : '') + '" type="button" data-w="' + o.w.n + '">' +
+          '<b>World ' + o.w.n + '</b><span>' + escAttr(jumpWorldName(o.w)) + '</span><small>' + (beat === o.all.length ? '✓ all ' + beat + ' beaten' : beat + ' of ' + o.all.length + ' beaten') + (o.w.n === here.w ? ' · 📍 here' : '') + '</small></button>';
+      }).join('') + '</div>';
+  } else {
+    $('#jumpTitle').textContent = 'World ' + pick.w.n + ' · ' + jumpWorldName(pick.w);
+    box.innerHTML = '<div class="mgrid jgrid">' + pick.stops.map((o) => {
+      const beat = o.s.state === 'beaten', isHere = here.w === pick.w.n && here.at === o.i;
+      return '<button class="mitem ' + (beat ? 'beat' : 'open') + (isHere ? ' here' : '') + '" type="button" data-w="' + pick.w.n + '" data-at="' + o.i + '">' +
+        '<b>' + escAttr(jumpCode(o)) + '</b><span>' + escAttr(jumpName(o)) + '</span><small>' + (beat ? '✓ beaten' : '★ next up') + (isHere ? ' · 📍 here' : '') + '</small></button>';
+    }).join('') + '</div>';
+  }
+  if (keyboardSeen) { const f = box.querySelector('.here') || box.querySelector('button'); if (f) f.focus({ preventScroll: true }); }
+}
+/* Kinan goes to World n, stop at: the saved spot moves there and the map opens on it (a level from the map is left first) */
+function jumpTo(n, at) {
+  if (!jumpAllowed()) return;
+  const o = jumpWorlds().find((q) => q.w.n === n), st = o && o.stops.find((q) => q.i === at);
+  if (!st) return;   /* locked or gone: never skips ahead */
+  progress.wmap = { w: n, at: at };
+  save();
+  jumpWorld = 0;
+  if (inGame()) { setPaused(false); running = false; Music.stop(); }
+  worldMapScreen({ notice: 'JUMPED TO ' + (st.k === 'level' ? String(st.s.id) : 'WORLD ' + n + ' ' + jumpCode(st)).toUpperCase() });
+}
+$('#jumpBtnP').addEventListener('click', () => { SFX.click(); jumpWorld = 0; menuGo('jump'); });
+$('#jumpBody').addEventListener('click', (e) => {
+  const b = e.target && e.target.closest ? e.target.closest('button[data-w]') : null;
+  if (!b) return;
+  SFX.click();
+  if (b.dataset.at == null) { jumpWorld = Number(b.dataset.w); jumpDraw(); return; }
+  jumpTo(Number(b.dataset.w), Number(b.dataset.at));
+});
+$('#jumpBack').addEventListener('click', () => { SFX.click(); if (jumpWorld) { jumpWorld = 0; jumpDraw(); } else menuGo('main'); });
 /* More games: Family Brawl, Family Kart, Builder, and the classic stages for a save that has some */
 function partyRefresh() {
   const rs = progress.resume && LV[progress.resume.i] ? progress.resume : null;

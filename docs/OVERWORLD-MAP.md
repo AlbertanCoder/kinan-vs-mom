@@ -45,6 +45,13 @@ the train east to Montreal: `CUT_ESCAPE_RIDE` in `index.html`; World 6's is the 
 plane). A save standing in an unreleased world lands on the furthest open stop. Tests reach the later worlds' maps with
 `__k11.owRelease(n)` (developer mode only, kept for the tab's session).
 
+### Jump to a level (2026-11-10, index.html block "JUMP TO A LEVEL")
+**JUMP** beside the map's PLAY, or Menu › **🧭 Jump to a level**, lists the worlds Kinan has reached (each with how many of
+its levels are beaten); tap one, then any of its levels that is beaten or open, and Kinan lands on that stop (the saved
+spot `wmap` moves there; the map says JUMPED TO 1-3). Locked and "coming soon" stops are never offered, so it never skips
+ahead. From a level of the map it leaves the level first; it is hidden in races, fights, the Builder and cutscenes.
+Tests: `jump-to-level.spec.ts`.
+
 ### The title and the menu (2026-10-28, index.html block "THE MENU")
 The title shows only **PLAY / CONTINUE**, **Start over** (when there is a game to wipe) and **Menu**. One **☰ MENU** button
 in the header's top corner opens the same panel on every screen: Resume · World map · Pets · Shop · Settings · How to play
