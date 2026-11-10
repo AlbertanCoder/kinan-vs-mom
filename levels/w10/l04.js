@@ -170,7 +170,7 @@
       [4, 'MOM', "Elevators, sweetie? Only if you're sure. The wind blows hard up at the top.", 3.6],
       [24, 'CHENOA', "That's a baggage lift! Step on and it carries you up. A green lamp means it is waiting for you.", 4.2],
       [40, 'DAD', "Why does the elevator get invited to every party? It really knows how to lift the mood!", 3.8],
-      [40, 'CHENOA', "That one was... uplifting. ...Oh no. I'm doing it now.", 3],
+      [40, 'MOM', "That one was... uplifting. ...Oh no. I'm doing it now.", 3.6],
       [53, 'CHENOA', "A wooden board on that shop! Stand next to it and press KICK. Candles inside.", 3.6],
       [64, 'DAD', "That sign up there is twinkling, bud. Strange! I'd say it's a bit light-headed. Jump under it.", 3.8],
       [68, 'SHAD', "The yellow lamp flashes just before the lift leaves, little bro. And the express lift only waits a moment!", 4],
@@ -179,7 +179,7 @@
       [112, 'MOM', "Robin, I married you for your hugs, not your jokes. I am going up the lift.", 3.2, 'walkoff'],
       [117, 'CHENOA', "A gap in the skybridge! Jump it, little bro. The floor is a long way down from here.", 3.6],
       [144, 'MOM', "Hold on up here, sweetie. The wind pushes you back, but never off the edge.", 3.6],
-      [152, 'GRANDPA', "Grandpa here, at the top! Why was the elevator such a good worker? It always raised its game! Tell your dad that one's mine.", 5.4],
+      [152, 'GRANDPA', "Grandpa on the video call! Back home, our tallest buildings were grain elevators. No buttons. No music. Just the wheat going up.", 8],
       [196, 'SHAD', "Two little lifts go down from the deck, like window washers. Step on, or just hop down.", 3.8],
       [243, 'KINAN', "We made it down! And Glitchy is running off toward the glass dome and the butterflies!", 3.6]
     ]

@@ -134,12 +134,12 @@ KinanLevels.register({
     [2, 'KINAN', "The Nature Dome! It's a real jungle in here! Glitchy, where are you hiding?", 3.4],
     [7, 'MOM', "That green moss is sticky, sweetie. You'll walk slowly across it.", 3.4],
     [56, 'DAD', "The floor's wet by the waterfall, bud. Slippery! It's hard to stop. Don't fall for it.", 3.4],
-    [30, "DAD", "There are penguins in here, bud! How does a penguin build its house? Igloos it together!", 3.8],
+    [30, "DAD", "A jungle AND penguins under one roof, bud! How does a penguin build its house? Igloos it together!", 6.5],
     [30, "MOM", "Is that all you do, tell jokes? I am going to the lookout. Alone. With quiet.", 3.4, "walkoff"],
     [30, "DAD", "...I'll be here all week! Tough crowd. Colder than the penguin room.", 3.2],
     [98, 'CHENOA', 'A whole maple forest inside a building! So cool, little bro.', 3.2],
     [136, 'SHAD', "Brrr! That's the penguin room. The floor in there is pure ice. You'll slide!", 3.6],
-    [142, 'PASSER-BY', 'Bonjour! Look at the penguins! So cute, non?', 3],
+    [142, 'DAD', "Penguins, bud! All dressed in tuxedos. Don't tell our cat Tuxedo. That look was supposed to be one of a kind.", 7.3],
     [244, 'KINAN', "Penguins! And there's Glitchy's hockey bag... He went up the Montreal Tower!", 3.8]
   ]
 });

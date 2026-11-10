@@ -136,7 +136,7 @@
     talk: [
       [2, 'KINAN', 'This is the core of the console. The boards are glowing, and there are little lights racing along the traces!', 4.6],
       [4, 'SHAD', "Those are the data buses. I never got to finish the guard at the end... Sorry, little bro.", 4],
-      [6, 'DAD', "A circuit board? I'm all charged up, bud. Let's get this current-ly in motion!", 3.8],
+      [6, 'DAD', "A giant circuit board, bud? Brr. No wonder this computer's so cold. Somebody left its Windows open.", 6.6],
       [8, 'ANNIE', 'The traces carry you where the lights go. Chalo! (Let\'s go!) The ones running the other way push you back.', 4.6],
       [10, 'MOM', "Careful with the gaps, sweetie. A belt can't carry you across one.", 3.6],
       [52, 'CHENOA', "That trace is running LEFT. Keep running, little bro, you're stronger than it is.", 4],

@@ -1305,7 +1305,7 @@ const VO_WHO = {
   'SAFETY FOREMAN': 'f', LIFEGUARD: 'lg', CONDUCTOR: 'cd', BARKER: 'br', LUMBERJACK: 'lj', 'PROFESSOR STATIC': 'ps',
   DRIZZLE: 'dz', 'BIG KID': 'b', 'NOSY NEIGHBOUR': 'n', NEIGHBOUR: 'n', 'MEGA-MECH': 'mech',
   /* 2026-11-03 audit: speakers that had no entry (they fell back to "any English voice", often the wrong sex) */
-  'GRANDMA (EDMONTON)': 'm', 'GRANDMA (ONION LAKE)': 'm', GRANDMOTHERS: 'm', 'PASSER-BY': 'n', 'MALL WALKER': 'n', 'RODEO CLOWN': 'br',
+  'GRANDMA (EDMONTON)': 'm', 'GRANDMA (ONION LAKE)': 'm', GRANDMOTHERS: 'm', 'MALL WALKER': 'n', 'RODEO CLOWN': 'br',
   'PUMPJACK PETE': 'f', "THE NEIGHBOUR'S WIFE": 'm', 'THE RACCOON KING': 'br', 'BRICK-REX': 'mech', 'MIRROR KINAN': 'k', SABUMNIM: 'd', EVERYONE: 'k', 'SHAD AND CHENOA': 's'
 };
 const whoOfVoice = (name) => VO_WHO[String(name || '').trim().toUpperCase()] || null;
@@ -3918,7 +3918,7 @@ const W10_EXIT = {
   w10_glitchy_exit: ['GLITCHY', 'Bweee! Bweee-ooo!', 2.4],
   w10_kinan_exit: ['KINAN', 'He went through the door in the mist... straight into the console!', 3.8],
   w10_mom_exit: ['MOM', "Then that's where we're going. Together, my boy.", 3.2],
-  w10_robin_exit: ['DAD', "Into the console? I always wanted to be a gamer. Let's press start!", 6.1]
+  w10_robin_exit: ['DAD', "Into the console? Years of 'get off that game, bud'... and now we're all going IN it. Somebody press start!", 7.9]
 };
 if (STORY && STORY.lines) {
   for (const id of Object.keys(W10_EXIT)) { const d = W10_EXIT[id], h = talkHash(d[0], d[1]); STORY.lines[id] = d.concat([self.KINAN_TALK_CLIPS && self.KINAN_TALK_CLIPS[h] ? 'audio/talk/' + h + '.mp3' : null]); }   /* Dad's line has its recording (audio/talk) */
@@ -4160,7 +4160,7 @@ const END_LINES = {
   end_kinan_03: ['KINAN', "WHAT IS GOING ON HERE?! My hands are 3D! ...Okay, that's cool, BUT WHAT?!", 4.8],
   end_annie_01: ['ANNIE', "My scanners can't even measure this. The whole world just got DEEPER!", 3.6],
   end_chenoa_01: ['CHENOA', "Little bro, don't touch anything!", 2.6],
-  end_dad_01: ['DAD', 'One dimension at a time, guys.', 2.8],
+  end_dad_01: ['DAD', "Easy, everybody. Saskatchewan's been flat my whole life. About time it got a little depth.", 6.7],
   end_glitchy_02: ['GLITCHY', 'Ooooh... beep!', 3],
   end_shad_02: ['SHAD', 'Happy birthday week, bud. Welcome to year eleven.', 3.4],   /* 2026-11-03: the trip is his birthday WEEK (World 1 is the day itself) */
   end_kinan_04: ['KINAN', 'Wait... is that SASKATOON? In 3D?!', 3]
@@ -4767,10 +4767,11 @@ const ARENA_LINES = {
   t_w6_shad_04: ["SHAD", "All three wires! You didn't fight it, Kinan. You fixed it.", 4, true],
   t_w6_kinan_04: ['KINAN', 'Robo-Rex is my friend now! Can I ride him?', 3, true],
   t_w6_kinan_05: ['KINAN', "So he's not mean. He's just broken. Like my remote-control car when its wires came loose!", 4, true],   /* from the castle walk-up (2026-11-04) */
+  t_w6_dad_01: ['DAD', "(on the radio) Look at him purr, bud. He wasn't mean. He was a nervous wreck... a nervous REX!", 7, true],
   /* World 7 — Vancouver. Text only, like World 6 (no recordings): every line is a subtitle */
   t_slug_01: ['THE GIANT BANANA SLUG', 'SLLLURRRP. (A banana slug as big as a car rears up. It looks GRUMPY.)', 3.4, true],
   t_w7_kinan_01: ['KINAN', "Whoa! That's the biggest banana slug in the whole world!", 3, true],
-  t_w7_dad_01: ['DAD', "Careful, bud, that shiny slime is slippery! Don't let this slug get you down.", 6.6, true],
+  t_w7_dad_01: ['DAD', "Careful, bud, that shiny slime is slippery! I've vacuumed up a lot of slime in my day. Never had any stand up and look at me.", 10.2, true],
   t_slug_02: ['THE GIANT BANANA SLUG', 'HRRRMPH! (It rears up and flops forward. SPLAT!)', 3, true],
   t_slug_03: ['THE GIANT BANANA SLUG', 'ROLL-ROLL-ROLL! (It curls into a big yellow ball. Jump it!)', 3, true],
   t_slug_04: ['THE GIANT BANANA SLUG', 'PTOO! PTOO! (It spits slime blobs up into the air!)', 3, true],
@@ -4803,6 +4804,8 @@ const ARENA_LINES = {
   t_octo_07: ['THE BIG OCTOPUS', '...blub? (It stops shaking. It was only scared of all the noise.)', 3.8, true],
   t_w8_kinan_02: ['KINAN', "See? Nobody's going to hurt you. Bye, big guy!", 3, true],
   t_octo_08: ['THE BIG OCTOPUS', '(It waves all eight arms goodbye.)', 3, true],
+  t_w8_dad_01: ['DAD', "Bye, big guy! Know how you calm down an octopus, bud? Ten-tickles.", 4.9, true],
+  t_w8_kinan_06: ['KINAN', "Dad... it only has EIGHT arms.", 2.4, true],
   t_king_01: ['THE RACCOON KING', 'HALT! Who dares to enter the shiny treasure room of the RACCOON KING?', 4, true],
   t_w8_kinan_03: ['KINAN', "That's not garbage, Your Majesty. That's my friend Glitchy!", 3.4, true],
   t_w8_kinan_mem: ['KINAN', "His treasure pile... wait, that's my MOVING-DAY BOX! With my Pocket Critter dino card! I held it the whole drive to Saskatoon.", 6, true],   /* the age-8 memory, from the castle walk-up (2026-11-04) */
@@ -4849,11 +4852,11 @@ const ARENA_LINES = {
   t_gm_ed_01: ['GRANDMA (EDMONTON)', "There's my birthday boy! Oh, look at you, sweetheart. You're so SKINNY! Are they feeding you?", 4.6, true],
   t_gm_ol_01: ['GRANDMA (ONION LAKE)', "Your mom says you're ready for the big world, dear. We'll be the judge of that.", 4.2, true],
   t_w10_kinan_01: ['KINAN', "Grandmas... you're not going to pinch my cheeks, are you?", 3.2, true],
-  t_w10_gp_01: ['GRANDPA', "(from his lawn chair) Dodge, Kinan! Nobody's ever out-fussed those two. Not even me!", 7.8, true],
+  t_w10_gp_01: ['GRANDPA', "(from his lawn chair) Dodge, Kinan! I'd come help, but me and this lawn chair have a deal. It holds me up, and I don't get up.", 10.0, true],
   t_gm_ed_02: ['GRANDMA (EDMONTON)', 'Back for more fussing, sweetheart? Zip up that jacket first!', 3.4, true],
   t_w10_chenoa_01: ['CHENOA', 'Complaint bubbles! Jump over them, little bro. They pop after a few seconds.', 3.8, true],
   t_w10_shad_01: ['SHAD', "See the glowing circle on the grass? That's a cheek-pinch zone. Step out of it, bud!", 4, true],
-  t_w10_dad_01: ['DAD', "Her cane goes out low and comes back high. Jump the low part, bud. That's a cane-did tip!", 8.5, true],
+  t_w10_dad_01: ['DAD', "Her cane goes out low and comes back high. Jump the low part, bud. It always comes back... just like my jokes.", 9.9, true],
   t_gm_ed_03: ['GRANDMA (EDMONTON)', "Oof, my knees! I'm out of steam. Your turn, dear!", 3.2, true],
   t_gm_ol_02: ['GRANDMA (ONION LAKE)', "Watch my cane, my grandson. I've been throwing this thing since before your dad was born!", 4.6, true],
   t_gm_ol_03: ['GRANDMA (ONION LAKE)', "Huff... he's quick! Together, then!", 2.8, true],
@@ -4862,7 +4865,7 @@ const ARENA_LINES = {
   t_gm_ed_05: ['GRANDMA (EDMONTON)', "Then there's only one thing left to do... GROUP HUG!", 3.2, true],
   t_w10_kinan_02: ['KINAN', "Can't... breathe... love you too...", 2.8, true],
   t_gm_ol_05: ['GRANDMA (ONION LAKE)', "Now eat something. Sandwiches, pie, and my bannock. You're too skinny for a big trip!", 4.2, true],
-  t_w10_gp_02: ['GRANDPA', "That's my grandson! Now save me a sandwich, Kinan. A king needs his lunch!", 8.6, true],
+  t_w10_gp_02: ['GRANDPA', "That's my grandson! Pass the King a slice of pie. Know the best thing to put in a pie, Kinan? ...Your teeth.", 10.7, true],
   t_mf_01: ['MOM', "Kinan. The party's all set up... but first, one last inspection.", 3.8, true],
   t_w10_kinan_03: ['KINAN', "Mom! It's my BIRTHDAY!", 2.2, true],
   t_mf_02: ['MOM', 'I know, my boy. Show me you can look after yourself out there, and then we have cake. Three chores. Ready?', 5.2, true],
@@ -4880,26 +4883,26 @@ const ARENA_LINES = {
   /* the joke-off is the joke pass's notebook payoff (tools/dad-lines.mjs WORLD10_LATER, docs/DAD-JOKES.md): Dad has kept a
      notebook of Grandpa's jokes since 3-1 ("Do not show Grandpa"); here Grandpa turns out to keep one of Dad's */
   t_w10_gp_03: ['GRANDPA', 'Niagara Falls, Robin. Twelve thousand years of the same routine, and people still clap. Remind you of anyone?', 10.6, true],
-  t_w10_dad_02: ['DAD', "Okay, Dad. Three-layer cake, my boy's birthday, and the Falls. Look at me... I'm in TIERS.", 9.2, true, 'wheeze'],
+  t_w10_dad_02: ['DAD', "Final round. People look at Niagara Falls and see a wonder of the world. Fifteen years on a hydro vac... I see overtime.", 10.4, true, 'wheeze'],
   t_w10_gp_04: ['GRANDPA', "(writing in a little notebook) Ten out of ten. First one ever. I've kept your jokes in here since you were eight, son. You win.", 10.2, true],
   t_w10_kinan_05: ['KINAN', "'Robin's jokes. Do not show Robin.' ...Dad! He keeps one TOO! DAD WINS!", 8.6, true],
   /* THE JOKE-OFF (Shad, 2026-11-03: "a head-to-head battle on the best dad jokes ... you decide who wins"): best of three at
      the Niagara party, Kinan judging. Grandpa has won every round since 3-1 (3, 5 and 4 out of ten); Dad wins this one. */
   t_jo_dad_01: ['DAD', "That's it, Dad. Joke-off. Right here, at Kinan's party. Best of three, and Kinan's the judge.", 9.1, true],
-  t_jo_gp_01: ['GRANDPA', "Round one. Kinan, I'm reading a book about anti-gravity. I just can't put it down.", 8.6, true],
-  t_jo_dad_02: ['DAD', 'Why did the birthday cake go to the doctor? It was feeling a little crumby.', 5.2, true],
-  t_jo_kinan_01: ['KINAN', 'Round one goes to... Grandpa! Sorry, Dad.', 5.5, true],
-  t_jo_dad_03: ['DAD', "Round two. Why couldn't the bicycle stand up by itself? It was two-tired. ...Like me, after this trip.", 9.0, true],
-  t_jo_gp_02: ['GRANDPA', "Why don't eggs tell jokes, Kinan? They'd crack each other up.", 5.7, true],
-  t_jo_kinan_02: ['KINAN', "Round two goes to... Dad! It's a tie! FINAL ROUND!", 6.7, true],
+  t_jo_gp_01: ['GRANDPA', "Round one. Kinan, what goes up and never, ever comes down? ...Your age. Happy eleventh, my boy.", 7, true],
+  t_jo_dad_02: ['DAD', "Easy. Why couldn't the bicycle stand up by itself? It was two-tired. ...Like me, after this trip.", 7.2, true],
+  t_jo_kinan_01: ['KINAN', "Round one: Grandpa! Dad, you told the bicycle one in the car. In all five provinces.", 6.2, true],
+  t_jo_dad_03: ['DAD', "...Then it hit me! Page forty-one of the notebook, Dad. Now it's too long.", 5.5, true],
+  t_jo_gp_02: ['GRANDPA', "Round two. Kinan, I wondered why the baseball kept getting bigger... ... ... ...", 5.9, true],
+  t_jo_kinan_02: ['KINAN', "Dad read Grandpa's punchline right out of his notebook! ...My party, my rules. Round two: Dad! FINAL ROUND!", 7.9, true],
   t_jo_dad_04: ['DAD', "You kept them? ...Nobody look at me. It's the spray from the Falls.", 5.6, true],
   t_jo_gp_03: ['GRANDPA', "Don't let it go to your head, son. Rematch at Christmas.", 5.7, true],
   t_mf_11: ['MOM', "(laughing) Okay, okay! Cake's coming, my boy.", 4.6, true, 'laugh'],
-  t_w10_dad_03: ['DAD', 'Candles are lit! Everybody, on three. One, two, three...', 5.9, true],
+  t_w10_dad_03: ['DAD', "Candles are lit! Three layers of cake and I'm already in TIERS. Okay. Everybody, on three. One, two, three...", 10.7, true],
   t_w10_all_01: ['EVERYONE', 'Happy birthday to you... happy birthday, dear Kinan... happy birthday to YOU!', 4.6, true],
   t_w10_kinan_06: ['KINAN', 'Eleven! Okay. Big wish...', 2.4, true],
   t_w10_chenoa_03: ['CHENOA', 'Um... guys? Why is the waterfall going UP?', 3, true],
-  t_w10_kinan_07: ['KINAN', 'Wait... did the world just glitch?', 2.6, true],
+  t_w10_kinan_07: ['KINAN', "Grandpa said only my AGE goes up! ...Wait. Did the world just glitch?", 5.1, true],
   t_w10_glitchy_01: ['GLITCHY', 'Bweee! (A door opens in the mist. Glitchy zooms straight for it.)', 3.6, true],
   t_w10_shad_03: ['SHAD', "That door goes INTO the console. Glitchy's going home, bud.", 3.4, true],
   t_mf_12: ['MOM', 'Then we go together. Blow out your candles first, my boy. Then we go.', 4, true],
@@ -4923,7 +4926,7 @@ const ARENA_LINES = {
   t_droid_04: ['THE ROBOT COMMANDER', 'DRONE DOCKED? ...RECALCULATING. (He is getting smarter!)', 3.2, true],
   t_w11_kinan_05: ['KINAN', 'Two drones home! One more, Commander.', 2.4, true],
   t_droid_05: ['THE ROBOT COMMANDER', 'ALL DRONES DOCKED. THANK YOU, CADET. (He salutes.) SWITCHING TO... FRIENDLY MODE.', 4.6, true],
-  t_w11_dad_01: ['DAD', "Friendly mode! Bud, he saluted you. That's a five-star review.", 6.2, true],
+  t_w11_dad_01: ['DAD', "Friendly mode! Bud, a robot general just saluted you. That's a five-star review.", 6.9, true],
   t_w11_kinan_06: ['KINAN', 'At ease, Commander!', 2, true],
   t_trex_01: ['THE ALPHA T-REX', 'ROOOOAR! (She stomps so hard the whole valley shakes. She is looking for someone.)', 4, true],
   t_w11_kinan_07: ['KINAN', "She's not mad, she's scared! Her baby is lost... and it's right here with me.", 3.8, true],
@@ -4935,6 +4938,7 @@ const ARENA_LINES = {
   t_trex_05: ['THE ALPHA T-REX', '(She sees her baby... and gently nuzzles them both. The baby squeaks with joy!)', 4, true],
   t_w11_kinan_09: ['KINAN', "Home safe! Hey... she's nuzzling ME too!", 2.8, true],
   t_w11_mom_02: ['MOM', "That's a mama's love, sweetie. I know the feeling.", 3, true],
+  t_w11_dad_02: ['DAD', "She's not kidding, bud. I've seen your mom looking for you at the mall. That T-Rex was going easy.", 7.3, true],
   t_mirror_01: ['MIRROR KINAN', '...Copy. Copy. COPY. (A glitch Kinan steps out of the glass. He copies everything you do, a moment later.)', 4.6, true],
   t_w11_kinan_10: ['KINAN', 'He copies me! Wherever I go, he goes... a second later.', 3, true],
   t_w11_shad_02: ['SHAD', 'Use that, bud! When he stops to load, a switch pad glows. Walk onto it and let him copy you onto it too.', 4.8, true],
@@ -5163,7 +5167,7 @@ const ARENA_KINDS = {
     smarter: ['One wire fixed! Now he ROARS (it pushes you back), shakes bones off the exhibits, kicks bones at you and FAKES a stomp. Three baby dino robots wake up. Shad built you two platforms!', 'Two wires fixed! He aims where you are GOING, and then he CHARGES, turns and charges BACK. Jump him twice, and fix the last wire while he is dizzy!'],
     friend: '🦖 <b>ROBO-REX IS FIXED!</b> His eyes turn green and he purrs. Hop on his back for a ride!',
     lines: { intro: ['t_rex_01', 't_w6_kinan_02', 't_w6_shad_01', 't_w6_kinan_05', 't_w6_shad_02'], retry: ['t_rex_01', 't_w6_shad_02'], phase: [null, 't_w6_shad_03', 't_w6_kinan_03'],
-      first: { wave: 't_rex_02', blow: 't_rex_03', sweep: 't_rex_04' }, defeat: ['t_rex_05', 't_w6_shad_04', 't_w6_kinan_04'] },
+      first: { wave: 't_rex_02', blow: 't_rex_03', sweep: 't_rex_04' }, defeat: ['t_rex_05', 't_w6_shad_04', 't_w6_kinan_04', 't_w6_dad_01'] },
     phases: [
       { walk: 0.7, windup: 52, rest: 42, tired: 132, pattern: ['wave', 'sweep', 'wave'], n: 1, speed: 1.25 },
       { walk: 0.95, windup: 42, rest: 34, tired: 108, pattern: ['blow', 'wave', 'rain', 'toss', 'sweep', 'wave', 'rain'], n: 5, throwN: 2, speed: 1.45, feint: true, platforms: true, minions: 3 },
@@ -5235,7 +5239,7 @@ const ARENA_KINDS = {
     smarter: ['It FAKES a slam now and aims where you are GOING: three tentacles at once and two ink blobs. Watch out for its INK CLOUD: it hides inside and pops up somewhere new!'],
     friend: '🐙 <b>THE BIG OCTOPUS IS YOUR FRIEND NOW!</b> It was only scared of the noise. It waves all eight arms goodbye!',
     lines: { intro: ['t_octo_01', 't_w8_kinan_01', 't_w8_chenoa_01'], retry: ['t_octo_01'], phase: [null, 't_octo_06'],
-      first: { grab: 't_octo_02', sweep: 't_octo_03', toss: 't_octo_04', ink: 't_octo_05' }, defeat: ['t_octo_07', 't_w8_kinan_02', 't_octo_08'] },
+      first: { grab: 't_octo_02', sweep: 't_octo_03', toss: 't_octo_04', ink: 't_octo_05' }, defeat: ['t_octo_07', 't_w8_kinan_02', 't_octo_08', 't_w8_dad_01', 't_w8_kinan_06'] },
     phases: [
       { walk: 0.55, windup: 50, rest: 46, tired: 140, pattern: ['grab', 'toss', 'sweep', 'grab'], n: 1, grabs: 2, speed: 1.2 },
       { walk: 0.75, windup: 38, rest: 36, tired: 116, pattern: ['ink', 'grab', 'toss', 'sweep', 'grab', 'toss'], n: 2, grabs: 3, speed: 1.4, feint: true, predict: true }
@@ -5344,7 +5348,7 @@ const ARENA_KINDS = {
       defeat: ['t_mf_08', 't_mf_09', 't_w10_kinan_04', 't_mf_10', 't_w10_shad_02'],
       join: 't_mf_10',
       /* the ending's later beats (each 5 lines or fewer, a tap or Enter skips one): Grandpa's joke-off, the cake, THE TURN */
-      beats: [['t_w10_gp_03', 't_jo_dad_01', 't_jo_gp_01', 't_jo_dad_02', 't_jo_kinan_01'], ['t_jo_dad_03', 't_jo_gp_02', 't_jo_kinan_02', 't_w10_dad_02', 't_w10_gp_04'],
+      beats: [['t_w10_gp_03', 't_jo_dad_01', 't_jo_gp_01', 't_jo_dad_02', 't_jo_kinan_01'], ['t_jo_gp_02', 't_jo_dad_03', 't_jo_kinan_02', 't_w10_dad_02', 't_w10_gp_04'],
         ['t_w10_kinan_05', 't_jo_dad_04', 't_jo_gp_03', 't_mf_11'], ['t_w10_dad_03', 't_w10_all_01', 't_w10_kinan_06'],
         ['t_w10_chenoa_03', 't_w10_kinan_07', 't_w10_glitchy_01', 't_w10_shad_03', 't_mf_12']] },
     phases: [
@@ -5397,7 +5401,7 @@ const ARENA_KINDS = {
     smarter: ['She smells her baby! Now her stomps shake BOULDERS loose: stand between the marks.', 'Closer! She aims the boulders where you are GOING and FAKES a stomp. One more rock!'],
     friend: '🦖 <b>THE ALPHA T-REX HAS HER BABY BACK!</b> She nuzzles you both.',
     lines: { intro: ['t_trex_01', 't_w11_kinan_07', 't_w11_mom_01'], retry: ['t_trex_01'], phase: [null, 't_trex_04', 't_w11_kinan_08'],
-      first: { echo: 't_trex_02', boulder: 't_trex_03' }, defeat: ['t_trex_05', 't_w11_kinan_09', 't_w11_mom_02'] },
+      first: { echo: 't_trex_02', boulder: 't_trex_03' }, defeat: ['t_trex_05', 't_w11_kinan_09', 't_w11_mom_02', 't_w11_dad_02'] },
     phases: [
       { walk: 0, windup: 54, rest: 52, tired: 220, pattern: ['echo', 'echo'], speed: 1 },
       { walk: 0, windup: 44, rest: 44, tired: 210, pattern: ['echo', 'boulder', 'echo'], speed: 1.1, feint: true },
@@ -10364,7 +10368,7 @@ function updateDad() {
         const back = boss === 'fight' ? (L.bossR || bossRules(L.i)).heal : 99;   /* a tough boss fight: fewer hearts back */
         P.hp = Math.min(P.max, P.hp + back); P.inv = 120; updHud(); SFX.heart();
         if (back >= P.max) toast(dad.mom ? '<b>MOM:</b> ' + pick(['Care package! Eat this burger, sweetie 🍔', 'Nobody messes with MY boy! 🍔', 'Mom to the rescue! Hearts refilled! 🍔'])
-          : '<b>ROBIN:</b> ' + pick(["Back from camp, bud! This burger's a real patty-cake 🍔", 'Nobody beats up the birthday boy! Not on my grill-watch 🍔', "Dad's home from the oilfield! Hearts refilled, and that's crude-ly honest 🍔"]), 2400);
+          : '<b>ROBIN:</b> ' + pick(['Back from camp, bud! A cheeseburger joke? Nah. Too cheesy 🍔', 'Nobody beats up the birthday boy! Not on my grill-watch 🍔', "Dad's home from the oilfield! Hearts refilled, and that's crude-ly honest 🍔"]), 2400);
         else toast((dad.mom ? '<b>MOM:</b> ' : '<b>ROBIN:</b> ') + 'A little something to keep you going! Bun appetit! 🍔 +' + back + ' ❤', 2400);
         pop(P.x, P.y - 14, back >= 3 ? '+❤ +❤ +❤' : (back === 2 ? '+❤ +❤' : '+❤'), 50, '#ff6fae');
         sparks(P.x + 5, P.y, 16, ['#ff6fae', '#fff']);

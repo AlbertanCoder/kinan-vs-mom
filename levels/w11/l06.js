@@ -133,7 +133,7 @@
     talk: [
       [2, 'SHAD', "Copy-Paste City! I built ONE block of buildings and pasted it over and over. Lazy, I know.", 4.2],
       [4, 'KINAN', "Everything is repeated! Same buildings, same robots, again and again.", 3.6],
-      [6, 'DAD', "Déjà vu, bud! I feel like I've walked down this street before. And before that.", 3.8],
+      [6, 'DAD', "Copies everywhere, bud? I tried to fix a glitch once by turning it off and on again. Now there are two of them.", 7.4],
       [8, 'ANNIE', "Hai Rabba! (Oh my goodness!) One block, pasted three times. Look for what's different in each copy!", 4.6],
       [10, 'CHENOA', "A copy can have a bug, little bro. Compare it with the first one before you jump.", 4],
       [34, 'MOM', "The blue stamp says COPY, the red one says PASTE. I'll watch for the differences too, sweetie.", 4.2],
@@ -142,6 +142,7 @@
       [100, 'KINAN', '...Dad. Please press UNDO.', 2.8],
       [123, 'ANNIE', "Shabash! (Well done!) A flickering ghost can't hold you. Real stones are solid.", 3.8],
       [144, 'CHENOA', "Third copy. Something's different again, little bro. Check the third roof.", 3.8],
+      [196, 'GRANDPA', "Grandpa on the video call! A whole city of copy and paste? Kinan, that's how your dad tells jokes. Every one's a copy of mine.", 8],
       [196, 'MOM', "I'm saving these up so I can groan at them later. Last street, honey. A five-tile gap ahead.", 3.8, 'walkoff'],
       [214, 'SHAD', "A 5 gap. Take a running start. The checkpoint is right behind you.", 3.8],
       [234, 'ANNIE', "That lone block over the street... it doesn't belong there. It's glowing.", 4],

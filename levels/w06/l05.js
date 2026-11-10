@@ -135,7 +135,9 @@ KinanLevels.register({
     [30, "MOM", "Ha! Oh no, I laughed. Don't tell him I laughed.", 3, "laugh"],
     [30, "DAD", "Too late, hon, I heard! That's going in the notebook. Under 'Rare Events.'", 3.4],
     [40, 'KINAN', "I can walk right under its ribs!", 2.4],
-    [104, 'PASSER-BY', "Why didn't the skeleton go to the party? It had no BODY to go with!", 4.5],
+    [104, 'GRANDPA', "Grandpa on the video call! I asked a museum guard how old these bones are. He said seventy-five million and three years.", 8],
+    [104, 'KINAN', "How does he know about the THREE?", 2.4],
+    [104, 'GRANDPA', "They were seventy-five million when he started working there. That was three years ago.", 5.8],
     [145, 'SHAD', "That sea reptile's spine makes a pretty good bridge.", 3.5],
     [228, 'KINAN', "I'm standing on a T-REX's HEAD.", 2.4]
   ],

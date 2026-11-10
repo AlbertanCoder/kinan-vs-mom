@@ -154,11 +154,11 @@ KinanLevels.register({
   checkpoint: { col: 100, row: 11 },
   spawn: { col: 2, row: 11 },
   goal: { col: 320, row: 11 },   /* Dad's truck at the campground */
-  /* World 6's talk (2026-11-03 audit: the header's written beats, wired; strangers are PASSER-BY) */
+  /* World 6's talk (2026-11-03 audit: the header's written beats, wired; the jokes are Robin's and Grandpa's, Shad 2026-11-09) */
   talk: [
     [2, 'DAD', "The ferry's on the OTHER side. Of course it is.", 3.1],
     [34, 'KINAN', "Sandbars! I can cross on the sandbars!", 2.5],
-    [100, 'PASSER-BY', "What did the river say to the ferry? Nothing. It just waved!", 4],
+    [100, 'GRANDPA', "Grandpa on the video call! What did the river say to the ferry? Nothing. It just waved. Took me years to get that one across.", 6],
     [118, 'SHAD', "Hop on, bud, the ferry's back!", 2.4],
     [222, 'CHENOA', "Those are RAPIDS. Be careful!", 2.4],
     [300, 'KINAN', "I can see the whole river from up here.", 2.6]

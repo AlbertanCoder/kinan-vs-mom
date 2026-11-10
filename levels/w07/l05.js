@@ -163,7 +163,8 @@ KinanLevels.register({
   /* story bubbles as Kinan passes a column: [col, who, what they say, seconds] (subtitles only) */
   talk: [
     [2, 'MOM', 'This suspension bridge is seventy metres up! I am holding the railing the WHOLE way.', 4.4],
-    [27, 'DAD', 'It sags in the middle, bud. Run down, jump the hole, climb up the other side. The suspense is killing me!', 3.8],
+    [2, 'DAD', "Relax, hon. This bridge has held up for over a hundred years. ...Unlike my jokes.", 5.4],
+    [27, 'DAD', "It sags in the middle, bud. Run down, jump the hole, climb up the other side.", 3.8],
     [54, 'CHENOA', 'Little bridges from tree to tree, way up high in the cedars!', 3.2],
     [102, 'KINAN', 'Some of the planks are missing. Wait... is that a rock ledge way down there?', 3.8],
     [189, 'SHAD', 'A path bolted right onto the canyon wall. Mind your head on the rock!', 3.6],

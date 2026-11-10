@@ -183,7 +183,7 @@
       [3, 'DAD', "Welcome aboard, bud! Lovely day for it. I'm a little boat-tered by the spray already!", 3.6],
       [4, 'MOM', "Still not sure about this, Kinan. Ride the boats across the water, and mind the spray.", 3.6],
       [17, 'CHENOA', "The big tour boat is tied up here. Climb up to its top deck, little bro!", 3.4],
-      [36, 'DAD', "Why did the tour boat get such good grades? It always knew the current events!", 3.6],
+      [36, 'GRANDPA', "Grandpa on the video call! Why is the tour boat captain so smart, Kinan? He keeps up with all the current events!", 7.5],
       [36, 'CHENOA', "Okay, that one floats. Barely.", 2.6],
       [45, 'DAD', "See the lifebuoy on that boathouse, bud? It looks fishy. Something might be hiding up on the roof!", 3.8],
       [70, 'SHAD', "Before each gust the white mist rises on the right. Wait for it to pass, little bro.", 3.6],

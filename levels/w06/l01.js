@@ -143,12 +143,15 @@ KinanLevels.register({
   checkpoint: { col: 101, row: 10 },
   spawn: { col: 2, row: 5 },
   goal: { col: 293, row: 11 },   /* Dad's truck waits under the welcome sign */
-  /* World 6's talk (2026-11-03 audit: the header's written beats, wired; strangers are PASSER-BY) */
+  /* World 6's talk (2026-11-03 audit: the header's written beats, wired; the jokes are Robin's and Grandpa's, Shad 2026-11-09) */
   talk: [
     [2, 'DAD', "Glitchy's tumbleweed went THAT way, bud. Right into... a hole in the ground?", 5.1],
     [30, 'KINAN', "WHOA. The whole prairie just stops!", 2.4],
+    [30, 'DAD', "Not in Saskatchewan, bud. Back home it's so flat, you can watch your dog run away for three days.", 6.5],
     [66, 'SHAD', "That's the badlands, bud. Real dinosaurs lived right here, a long, long time ago.", 5.4],
-    [101, 'PASSER-BY', "Why don't dinosaurs drive trucks? Their arms can't reach the wheel!", 4.5],
+    [101, 'GRANDPA', "Grandpa on the video call! Kinan, why can't a T-rex clap its hands?", 4.5],
+    [101, 'KINAN', "Because its arms are too short?", 2.4],
+    [101, 'GRANDPA', "Nope. Because it's EXTINCT. Tell your dad that one's mine.", 3.9],
     [104, 'DAD', "Ooh. I'm stealing that one.", 2.4],
     [172, 'CHENOA', "Hey! That magpie took my candle!", 2.4],
     [290, 'KINAN', "WELCOME TO DRUMHELLER. The dinosaur on the sign is waving at me!", 4.3]

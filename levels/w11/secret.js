@@ -73,7 +73,7 @@
     talk: [
       [2, 'KINAN', "Wait... a real room? It's Shad's room, inside the console! Look at all the drawings!", 4.2],
       [4, 'SHAD', "You found it! My dev room. It's a bit messy. Don't look at the sticky notes.", 4],
-      [6, 'DAD', "A room full of notes? I'd say Shad really sticks to his plans. Get it? Sticky?", 4],
+      [6, 'DAD', "Too late, Shad, I read one. 'Make Dad's jokes funnier.' ...Rude. Accurate. But rude.", 5.6],
       [8, 'MOM', "Oh, Shad. It's so cosy in here, sweetie. And look at that window full of stars.", 4.2],
       [10, 'ANNIE', "Shabash! (Well done!) Your sketches are wonderful, Shad. Even my camel coat is right.", 4.2],
       [28, 'SHAD', "Those are my sketches of everybody. Pencil first, then pixels.", 3.6],

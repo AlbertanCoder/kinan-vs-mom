@@ -158,7 +158,7 @@ KinanLevels.register({
     [12, 'DAD', "Watch the water, bud: when it bubbles, a big wave's coming. Wait, or run past quick! And don't wave back.", 4.2],
     [26, 'MOM', 'Stay on the seawall, sweetie. Where it breaks, hop rock to rock.', 3.4],
     [55, 'CHENOA', 'See the frog in the puddle? Wait till it hops, then GO!', 3.2],
-    [100, 'DAD', 'Third Beach! I swam here at your age. The water was SO cold, I kept it shore-t.', 3.6],
+    [100, 'DAD', "Third Beach! Bud, this is the most water I've ever seen that I'm NOT supposed to vacuum up.", 6],
     [190, 'SHAD', "That big rock out in the water is Siwash Rock. There's a tree growing right on top of it!", 4.2],
     [243, 'KINAN', 'See that little grey cloud out over the water? It moves every time we move.', 3.8],
     [284, 'DAD', "The totem poles at Brockton Point! Next stop: the big trees. I'm rooting for us.", 3.4]

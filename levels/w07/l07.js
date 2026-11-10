@@ -189,13 +189,14 @@ KinanLevels.register({
     [6, 'KINAN', 'A magnet pad! Step on it and... WHOA, it throws you right up!', 3.4],
     [96, 'SHAD', 'A red door! See the switch with the lightning bolt? Jump and bump it from underneath.', 4],
     [104, 'DAD', 'I could spend all day at the vacuum exhibit. For work. It really sucks me in.', 3.6],
-    [30, "DAD", "Hon, what did one magnet say to the other? I find you very attractive. ...Get it? Like you and me?", 4.4],
+    [30, "DAD", "Hey bud, what did one magnet say to the other? I find you very attractive!", 4.9],
     [30, "MOM", "Robin. ROBIN. ...Fine, that one was a little funny. I am going to see the planets.", 3.4, "walkoff"],
-    [30, "DAD", "...I'll be here all week! She'll be back. Opposites attract.", 3],
+    [30, "DAD", "...I'll be here all week! She'll be back. My jokes are magnetic.", 4.3],
     [140, 'KINAN', 'Now the BLUE door is shut! Every switch flips red and blue.', 3.2],
     [308, 'CHENOA', 'A magnet lift! Stand in the purple light and it pulls you right up.', 3.4],
     [124, 'SHAD', 'The lightning coil! Ride the magnet pad right over the top, bud.', 3],
     [192, 'MOM', 'The planetarium! Look at all the stars on the ceiling, sweetie.', 3.4],
+    [192, 'GRANDPA', "Grandpa on the video call! Stars, eh? Know why the sun never went to university, Kinan? It already had a million degrees.", 8],
     [268, 'KINAN', "Glitchy's running for the train tracks! He's going to ride the SkyTrain!", 3.8],
     [298, 'CHENOA', 'Last stop: the elevated train. Hold on to something!', 3]
   ]

@@ -109,6 +109,7 @@ KinanLevels.register({
     { kind: 'skill', col: 194, row: 2, prize: 'hat' }                            /* the reading nook's floating shelves */
   ],
   goldenCandle: { col: 63, row: 9 },
+  talk: [[30, 'GRANDPA', "Grandpa on the video call! A library, Kinan? I once bought a dictionary, and every page was blank. I have no words.", 7.6]],
   checkpoint: { col: 97, row: 11 },
   spawn: { col: 2, row: 11 },
   pet: { id: 'cat2', col: 199, row: 11 },  /* Vader, found in the library: his crate on the floor by the reading-nook chair, on the way */

@@ -163,7 +163,7 @@ KinanLevels.register({
     [2, 'KINAN', "The startup lofts! Glitchy's hockey bag rolled right in. Everything in here has wheels!", 3.6],
     [40, 'MOM', 'See that rolling chair, sweetie? Step on it and hold still: it carries you over the gap.', 4],
     [56, 'CHENOA', 'A scooter lane! Jump on and ride it, little bro. Wheee!', 3.2],
-    [88, 'PASSER-BY', "Bonjour! Coffee in the break room... oh, you're eleven. Juice, then!", 3.6],
+    [88, 'DAD', "Free coffee in the break room! ...Juice for you, bud. You're wired enough.", 3.8],
     [109, 'DAD', "The whiteboard maze, bud! Walk under the hanging ones, hop over the standing ones. Then let's circle back and touch base.", 4.4],
     [30, "GRANDPA", "Grandpa on the video call! A startup? In my day, a startup was the tractor in January. Took all morning.", 4.8],
     [138, 'SHAD', "Annie's drones are coming over from the conference next door. Keep moving, little bro!", 3.8],

@@ -144,7 +144,7 @@ KinanLevels.register({
     [20, 'MOM', "It's a big climb, sweetie. One step at a time.", 3],
     [55, 'DAD', 'Rock stairs! Jump up onto one step, then the next, bud. My knees call this Mount Royal Pain.', 3.8],
     [88, 'CHENOA', 'The wooden stairs! Everybody in Montreal climbs these. Race you, little bro!', 3.6],
-    [116, 'PASSER-BY', 'Bonjour! Beautiful day for a climb, non?', 3],
+    [116, 'GRANDPA', "Grandpa on the video call! A farmer from back home moved to the mountains. Says they're pretty, but they sure block the view.", 8],
     [146, 'SHAD', "Annie's drones can't see under the trees up here. Good spot for Glitchy to hide.", 4],
     [165, 'MOM', 'Hold on, sweetie! When you hear the wind coming, stand still and let it pass.', 3.6],
     [244, 'KINAN', 'The lookout! You can see the whole city from up here... and there goes Glitchy, toward the Nature Dome!', 4.4]

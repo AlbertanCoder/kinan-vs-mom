@@ -115,12 +115,12 @@
     goal: { col: 237, row: 11 },   /* the end of the last barge */
     talk: [
       [2, 'KINAN', "A secret barge on the Niagara River! Fireworks are about to start, and look, there are launch pads!", 4.2],
-      [3, 'DAD', "Best seat in the house, bud. I'm all fired up. This is a real blast!", 3.2],
+      [3, 'DAD', "Fireworks, bud! Quick safety meeting first: is everybody having fun? Good. Meeting over.", 5.9],
       [4, 'ANNIE', "Hai Rabba! (Oh my goodness!) Look at all the candles hanging in the sky!", 3.6],
       [20, 'CHENOA', "Step onto a launch pad and it throws you right across the river, through the fireworks!", 3.8],
-      [38, 'DAD', "Why did the firework go to school? To get a little brighter!", 3.2],
+      [38, 'DAD', "What do baby fireworks call their dad, bud? POP!", 3.2],
       [38, 'KINAN', "...Okay. That one sparked.", 2.4],
-      [38, 'MOM', "Ha! Brighter! Oh, you two. This is the nicest surprise, sweetie.", 3.4, 'laugh'],
+      [38, 'MOM', "Ha! Pop! Oh, you two. This is the nicest surprise, sweetie.", 3.4, 'laugh'],
       [84, 'CHENOA', "A wooden board on that fireworks crate! Stand next to it and press KICK.", 3.4],
       [120, 'MOM', "Look at those colours over the water, Kinan. I think you might be ready after all.", 3.8],
       [180, 'GRANDPA', "Kinan, my boy! Fireworks are like your dad's jokes. Loud, bright, and gone before anybody gets them. Tell him that one's mine.", 5.6],

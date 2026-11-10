@@ -95,10 +95,11 @@ KinanLevels.register({
   /* story bubbles as Kinan passes a column: [col, who, what they say, seconds] (subtitles only) */
   talk: [
     [1, 'KINAN', "The island by the Falls! I can hear music... and I can smell CAKE. This is my party!", 3.8],
-    [9, 'DAD', "Birthday boy! Everybody's here. Even the Falls came. They never miss a chance to make a splash.", 4.4],
+    [9, 'DAD', "Birthday boy! Everybody's here. Eleven today, bud. You know what that makes you? Number one... twice.", 6.7],
     [14, 'CHENOA', "Up the bandstand, little bro! I hung the bunting myself. You're welcome.", 3.6],
     [27, 'ANNIE', "Kinan! Chalo! (Let's go!) Your mom's waiting by the big table. She looks... serious.", 4.2],
     [33, 'KINAN', 'The party tent! Streamers, lanterns, a hundred cupcakes... and a ditch right in the middle?', 4],
+    [33, 'DAD', "A ditch at a party, bud? Don't look at me. ...Okay, I dug it. Old habits.", 4.9],
     [46, 'SHAD', "Hop that hamper, bud. I built the party tables myself. They're solid. Mostly.", 3.6],
     [63, 'GRANDMA (EDMONTON)', 'Careful by the rapids, sweetheart! And zip up that jacket!', 3.4],
     [72, 'KINAN', "A big jump between the lookout walls. Mom's watching. I've got this.", 3.6],

@@ -123,7 +123,8 @@ KinanLevels.register({
   talk: [
     [2, 'KINAN', 'Whoa! The launch tube came out UNDER the city! Tunnels and shops everywhere!', 3.6],
     [28, 'CHENOA', "It's the Underground City, little bro. A whole downtown under the snow. And candles in every shop!", 4],
-    [66, 'PASSER-BY', 'Bonjour! In winter we walk everywhere down here. Bon appétit!', 3.2],
+    [66, 'MOM', 'In winter, people walk everywhere down here, sweetie. Bon appétit means enjoy your meal!', 4],
+    [66, 'DAD', "Food court, bud! What does the Emperor eat in Montreal? Pal-POUTINE. ...Extra gravy, from the dark side.", 6.9],
     [109, 'DAD', "Look at that atrium, bud, the sky right through the glass. A whole city underground? I've been digging the wrong holes.", 4.6],
     [190, 'MOM', "Sweetie, that's the SORTIE. The way out. Fill your pockets first!", 3.4]
   ]

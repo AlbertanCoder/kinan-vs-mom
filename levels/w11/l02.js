@@ -158,7 +158,7 @@
     talk: [
       [2, 'SHAD', 'The Brick Realm! I only built the baseplate and a few towers, then I got distracted. Sorry!', 4.2],
       [4, 'KINAN', 'Look! The Heart of the Blocks is stuck in that far tower, and a big brick dinosaur is guarding it.', 4.4],
-      [6, 'DAD', "A brick dinosaur? Don't worry, bud. He's all bark and no brick. I mean, bite.", 3.6],
+      [6, 'DAD', "A brick dinosaur, bud? Grandpa stepped on ONE toy brick and he's still talking about it. Nobody step on this guy.", 7.5],
       [8, 'CHENOA', 'See those square pads with studs on the floor? Step on one and bricks snap into place!', 4.2],
       [19, 'ANNIE', 'Shabash! (Well done!) The bricks build themselves. What lovely code, Shad.', 3.8],
       [56, 'DAD', "I'd tell you a joke about bricks, bud, but it takes a while to build up.", 3.6],
@@ -166,6 +166,7 @@
       [68, 'CHENOA', "That floating ledge has a gold stud on it, little bro. I'd jump up and step on it.", 4],
       [90, 'SHAD', 'Two studs in a row: the first builds stairs to the landing, then the second one builds the rest. Take your time!', 5],
       [140, 'ANNIE', "Hai Rabba! (Oh my goodness!) That archway has a glowing block. A loose brick, maybe?", 4],
+      [166, 'DAD', "Brick instructions, bud: the only map I've ever followed without arguing.", 4.9],
       [166, 'MOM', "That's the worst one yet. I love it. I'll be up the next tower. Careful, sweetie.", 3.6, 'walkoff'],
       [228, 'CHENOA', 'Wide open ground ahead. Something big lives here, little bro. Get ready.', 4],
       [260, 'KINAN', "Brick-Rex's heart is whole, and the Heart of the Blocks is glowing again. The whole realm feels happy!", 4.4]

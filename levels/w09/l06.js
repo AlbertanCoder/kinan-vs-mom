@@ -161,7 +161,8 @@ KinanLevels.register({
     [27, 'MOM', 'This is the training room, sweetie. The gravity is light in here, so your jumps float! Try a big one.', 4.2],
     [52, 'DAD', "Too high to jump, bud, but in light gravity you'll float right up it! I'd tell a space joke, but there's no atmosphere.", 4.6],
     [88, 'CHENOA', "Rocket simulators! Real astronauts train in those. You're basically an astronaut now, little bro.", 4],
-    [112, 'PASSER-BY', 'Bonjour! Climb the launch tower and look at the rocket!', 3],
+    [88, 'DAD', "Fun fact, bud: space is one giant vacuum. Finally, a vacuum bigger than my truck!", 5.4],
+    [112, 'MOM', 'Climb the launch tower, sweetie, and look at the rocket!', 3],
     [146, 'SHAD', "Careful: Annie's drones are scanning the exhibits. And past the moon walk the gravity is normal again.", 4.2],
     [214, 'KINAN', 'A launch tube! LANCEMENT means launch. Whoosh!', 3],
     [248, 'KINAN', "My STOMP ROCKET! I got it here at the space centre when I was nine. One big stomp on the air pad and WHOOSH, way up!", 5, 'hold']   /* the age-9 memory (Shad, 2026-10-29); 'hold' (2026-11-04): he stops to look, so a running kid hears it */

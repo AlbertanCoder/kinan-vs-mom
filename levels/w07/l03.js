@@ -177,6 +177,7 @@ KinanLevels.register({
     [20, 'SHAD', "See that shiny yellow? Banana-slug slime. It's slippery: you slide when you try to stop!", 4],
     [29, 'KINAN', "A tree is in the way. I'll climb it! Branch, branch, TOP!", 3.4],
     [56, 'SHAD', "Careful, bud: banana slugs. They're slow... and VERY slimy.", 3.4],
+    [56, 'GRANDPA', "Grandpa on the video call! Know what a banana slug is, Kinan? A snail that tried to buy a house in Vancouver.", 7.3],
     [58, 'KINAN', 'Squishy green moss! It slows me right down.', 2.8],
     [100, 'DAD', 'A raccoon just took my sandwich! Classic bandit. He even wore the mask.', 3.4],
     [30, "DAD", "How do the trees in Stanley Park get online? They... hee hee... they... HAHA... I can't—", 4, "wheeze"],

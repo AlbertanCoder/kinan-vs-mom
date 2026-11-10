@@ -159,8 +159,10 @@ KinanLevels.register({
   talk: [   /* Dad's joke (tools/dad-lines.mjs): he digs for a living */
     [2, "DAD", "A real fossil dig! Stand back, bud, I dig for a living. ...They gave me a toothbrush.", 4],
     [34, 'KINAN', "There are bones IN the roof!", 2.4],
-    [100, 'PASSER-BY', "What do you call a dinosaur that's never late? A pronto-saurus!", 4.2],
+    [100, 'GRANDPA', "Grandpa on the video call! Keep your dad's vac truck away from those bones. Last dig, he sucked up a whole triceratops.", 7.9],
+    [100, 'DAD', "...It was a SMALL triceratops.", 2.4],
     [140, 'SHAD', "The skull's around here somewhere. Look for the gap.", 3.5],
+    [140, 'DAD', "Will we find it? That remains to be seen, bud.", 3.1],
     [190, 'CHENOA', "Kinan's in the crane bucket. Of course he is.", 3],
     [284, 'KINAN', "I DUG my way to the top!", 2.4]
   ]

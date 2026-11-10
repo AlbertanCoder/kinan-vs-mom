@@ -107,9 +107,10 @@ KinanLevels.register({
       ],
       goldenCandle: { col: 69, row: 7 },
       talk: [
-        [2, 'DAD', "Over the Lions Gate Bridge! Hold on to your hood, it's windy up there. This bridge has mane attractions.", 4.4],
+        [2, 'DAD', "Over the Lions Gate Bridge! Hold on to your hood, bud, it's windy up there.", 5],
         [29, 'CHENOA', 'Prospect Point! You can see the whole green bridge from here.', 3.2],
         [51, 'KINAN', 'Stone lions guarding the bridge! Can I stand on one?', 3],
+        [51, 'DAD', "Go ahead, bud. They won't mind. They're just lion around.", 3.8],
         [63, 'SHAD', 'The road crew took panels out of the deck! Jump the holes, or climb the big cable up over the tower.', 4.6]
       ]
     },

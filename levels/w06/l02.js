@@ -113,11 +113,12 @@ KinanLevels.register({
   talk: [   /* Dad's jokes, the wheeze-laugh, Mom's reactions (tools/dad-lines.mjs) */
     [2, 'CHENOA', "There's a dinosaur on EVERY corner!", 2.4],
     [30, "DAD", "What do you call a dinosaur THAT big? You call it... hee... HAHA... you call it... I can't—", 4, "wheeze"],
-    [30, "CHENOA", "...SIR. You call it sir. Dad, it's standing right behind you.", 3.2],
+    [30, "MOM", "...SIR. You call it SIR, Robin. And it's standing right behind you.", 4.4, "laugh"],
     [40, 'KINAN', "Why is there a giant footprint in the sidewalk?", 3.1],
-    [99, 'PASSER-BY', "Why can't you hear a pterodactyl in the bathroom? Because the P is silent!", 4.9],
     [170, 'SHAD', "The big one is eighty-six feet tall, bud. And there are stairs inside!", 4.7],
+    [170, 'DAD', "Stairs, bud. Makes sense. Its arms are too short to push the elevator button.", 5.1],
     [214, 'KINAN', "I'm IN ITS MOUTH. I can see the whole town!", 2.9],
+    [214, 'DAD', "Careful in there, bud. That T-rex hasn't brushed in sixty-five million years.", 5.1],
     [290, 'DAD', "Those footprints lead toward the museum...", 2.8]
   ],
   foes: [
