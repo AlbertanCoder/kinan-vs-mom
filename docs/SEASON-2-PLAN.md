@@ -56,3 +56,7 @@ one tested, played by Shad, then pushed live ("small updates often"). Shad decid
 
 ## Progress
 - 2026-11-10: plan agreed. Jump to a level shipped (separate request).
+- 2026-11-10: **step 1 started — tall levels.** A level file can say `up: N` for N extra rows above (up to four screens
+  tall); the camera follows up and down and catches up on long falls. Test level: `?lab=playground` (the tower of shelves,
+  the rooftop, a three-screen drop, three springs to the sky ledge). Still to do in step 1: doors / pipes / chutes into
+  other areas. Tests: `lab-playground.spec.ts`.

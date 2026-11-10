@@ -2971,8 +2971,12 @@ function talkHash(who, text) { let h = 0x811c9dc5; const s = who + '|' + text; f
 function buildLevel(def) {
   const list = Array.isArray(def.areas) ? def.areas : [def];
   const cols = list.reduce((n, a) => n + a.cols, 0);
-  const w = cols + LEVEL_RUNOUT, g = new Uint8Array(w * ROWS);
-  const set = (x, y, v) => { if (x >= 0 && x < w && y >= 0 && y < ROWS) g[y * w + x] = v; };
+  /* Season 2 (2026-11-10): a tall level has `up` extra rows above row 0 (rows -up .. 14), stored like the Builder's tall
+     levels: cell (x, y) lives at g[(y + up) * w + x], and every key below (gifts, boards, slabs, pipes) uses that index */
+  const up = Math.max(0, Math.min(45, def.up | 0));
+  const w = cols + LEVEL_RUNOUT, g = new Uint8Array(w * (ROWS + up));
+  const set = (x, y, v) => { if (x >= 0 && x < w && y >= -up && y < ROWS) g[(y + up) * w + x] = v; };
+  const gi = (x, y) => (y + up) * w + x;
   const foes = [], candles = [], gifts = {}, areas = [], seams = [], pipes = [], secretList = [], boards = new Set(), slabs = new Map(), pipeCells = new Set();
   let checkpoint = null, golden = null, goal = null, spawn = def.spawn || null, base = 0, lastH = 192, arenaAt = null, petCrate = null;
   const tw = { on: false, t: 0, movers: [], pairs: [], swAt: {}, onB: [], offB: [], sw: 0, swCd: 0, magnets: [], signCols: [], signs: null, skins: [], rush: !!def.rush, storm: def.storm == null ? null : def.storm,
@@ -3005,13 +3009,13 @@ function buildLevel(def) {
     if (a.fakeWall) for (const yy of [8, 9, 10]) for (let c = a.fakeWall[0]; c <= a.fakeWall[1]; c++) set(base + c, yy, 1);
     for (const r of a.open || []) for (let y = r[1]; y <= r[3]; y++) for (let c = r[0]; c <= r[2]; c++) set(base + c, y, 0);   /* open: [c0, r0, c1, r1] cells cut out of the ground (a way in) */
     const tl = a.tiles || {};
-    for (const [gx, gy, kind] of tl.gift || []) { set(base + gx, gy, 3); gifts[gy * w + base + gx] = kind || 'candle'; }
+    for (const [gx, gy, kind] of tl.gift || []) { set(base + gx, gy, 3); gifts[gi(base + gx, gy)] = kind || 'candle'; }
     for (const [bx, by] of tl.brick || []) set(base + bx, by, 2);
     for (const [sx, sy] of tl.spring || []) set(base + sx, sy, 6);
     for (const [sx, sy] of tl.shelf || []) set(base + sx, sy, 7);
-    for (const [bx, by] of tl.board || []) { set(base + bx, by, 5); boards.add(by * w + base + bx); }   /* taekwondo: a wooden board (solid; only a KICK breaks it) */
-    for (const [cx, cy] of tl.crack || []) { set(base + cx, cy, 5); slabs.set(cy * w + base + cx, 'crack'); }   /* the butt slam: a cracked floor board (solid; only a SLAM from above breaks it) */
-    for (const [cx, cy] of tl.crate || []) { set(base + cx, cy, 5); slabs.set(cy * w + base + cx, 'crate'); }   /* the butt slam: a wooden crate (solid; only a SLAM from above breaks it) */
+    for (const [bx, by] of tl.board || []) { set(base + bx, by, 5); boards.add(gi(base + bx, by)); }   /* taekwondo: a wooden board (solid; only a KICK breaks it) */
+    for (const [cx, cy] of tl.crack || []) { set(base + cx, cy, 5); slabs.set(gi(base + cx, cy), 'crack'); }   /* the butt slam: a cracked floor board (solid; only a SLAM from above breaks it) */
+    for (const [cx, cy] of tl.crate || []) { set(base + cx, cy, 5); slabs.set(gi(base + cx, cy), 'crate'); }   /* the butt slam: a wooden crate (solid; only a SLAM from above breaks it) */
     for (const [cx, cy] of a.candles || []) candles.push({ tx: base + cx, ty: cy });
     for (const [fx, fy, type] of a.foes || []) {
       const t = type || 'sock';   /* ER-10: a plain foe rides the sock walker's rhythm */
@@ -3024,8 +3028,8 @@ function buildLevel(def) {
          that Kinan stands on; only its empty cells turn solid. A level whose pipes are just markers says pipesSolid: false
          (3-6: the hose tops over its suction hoses and the pipes lying in its dug holes) */
       if (def.pipesSolid !== false) for (const yy of [py - 1, py]) {
-        const at = yy * w + base + px;
-        if (yy >= 0 && !g[at]) { set(base + px, yy, 5); pipeCells.add(at); }
+        const at = gi(base + px, yy);
+        if (yy >= -up && !g[at]) { set(base + px, yy, 5); pipeCells.add(at); }
       }
     }
     twistsOf(def, a, base, tw, w, set);   /* World 7: the level's own trick (wind, slime, moss, waves, sway, planks, pulleys, circuits, signs ...) */
@@ -3043,15 +3047,15 @@ function buildLevel(def) {
      block; any other secret gets its prize floating at its spot (the first free cell at or above
      it). A secret with `exit` (1-7's painting room) opens a secret exit door on the floor below
      it once its block is bumped (at once if it has no block). */
-  const isSolidCell = (x, y) => x >= 0 && x < w && y >= 0 && y < ROWS && g[y * w + x] >= 1 && g[y * w + x] <= 6;
+  const isSolidCell = (x, y) => x >= 0 && x < w && y >= -up && y < ROWS && g[gi(x, y)] >= 1 && g[gi(x, y)] <= 6;
   const secretAt = {}, secretPrizes = [];
   let secretExit = null;
   secretList.forEach((s, k) => {
-    const gk = s.row * w + s.col;
+    const gk = gi(s.col, s.row);
     if (gifts[gk]) secretAt[gk] = k;
     else {
       let ty = s.row;
-      while (ty > 0 && g[ty * w + s.col]) ty--;
+      while (ty > -up && g[gi(s.col, ty)]) ty--;
       const kinds = prizeKinds(s.prize);
       if (kinds.length) secretPrizes.push({ k: k, tx: s.col, ty: ty, kinds: kinds });
     }
@@ -3059,7 +3063,7 @@ function buildLevel(def) {
       let fy = s.row + 1;
       while (fy < ROWS && !isSolidCell(s.col, fy)) fy++;
       /* the door stands one column in (towards the way in), so bumping the block never walks him straight out */
-      const dx = !g[(fy - 1) * w + s.col - 1] && isSolidCell(s.col - 1, fy) ? s.col - 1 : s.col;
+      const dx = !g[gi(s.col - 1, fy - 1)] && isSolidCell(s.col - 1, fy) ? s.col - 1 : s.col;
       secretExit = { tx: dx, ty: fy - 1, to: String(s.exit), k: k, gk: gifts[gk] ? gk : -1, open: !gifts[gk], t: 0 };
     }
   });
@@ -3067,7 +3071,7 @@ function buildLevel(def) {
      whose spot holds a gift block is invisible until bumped (from below, or walked into from the
      side) and glints faintly every 4 seconds — the kid radar */
   const hiddenGifts = new Set();
-  secretList.forEach((s) => { const gk = s.row * w + s.col; if (s.kind === 'hidden' && s.glint240 && gifts[gk]) hiddenGifts.add(gk); });
+  secretList.forEach((s) => { const gk = gi(s.col, s.row); if (s.kind === 'hidden' && s.glint240 && gifts[gk]) hiddenGifts.add(gk); });
   const sp = spawn || { col: 2, row: 11 };
   /* World 6: talk [col, 'WHO', 'text', seconds?] — a story line (subtitle only, no recording) as Kinan passes that
      column, once per visit. Each one joins the story lines (block "STORY LINES") under its own id. */
@@ -3101,7 +3105,7 @@ function buildLevel(def) {
   for (const t of talk) if (t.x === lastX) TALK_AT[t.id].last = true;
   return {
     i: 0, g, w, foes, candles, gifts, checkpoint, petSpot: null, petCrate, talk,
-    arenaX: w + 4, arenaW: 28, len: cols, buildPads: [], ice: false, wind: false, up: 0,   /* no arena: the boss gate can never fire */
+    arenaX: w + 4, arenaW: 28, len: cols, buildPads: [], ice: false, wind: false, up: up,   /* no arena: the boss gate can never fire; up: Season 2's tall levels */
     startT: [sp.col, sp.row], newWorld: true, th: levelTheme(def.theme),
     src: { name: def.id + ' ' + def.name },
     authored: true, levelId: def.id, levelName: def.name, levelWorld: def.world, levelSlot: def.slot, levelDef: def,
@@ -3151,6 +3155,7 @@ function secretExitFound() {
 }
 /* a level's id in words: '1-5' stays '1-5'; '1-castle' / '1-fort' / '1-secret' read WORLD 1 CASTLE / FORT / SECRET (QA 2026-10-28) */
 function levelTag(id) {
+  if (/^lab-/.test(String(id))) return 'TEST LEVEL';   /* Season 2: ?lab=... test levels */
   const m = /^(\d+)-(fort|secret|castle)$/.exec(String(id));
   return m ? 'WORLD ' + m[1] + ' ' + m[2].toUpperCase() : String(id);
 }
@@ -3190,6 +3195,8 @@ function levelReturn() {
   L.returned = true;
   toastHold = 0;   /* the lap is over: menus may speak again */
   running = false; Music.stop();
+  /* Season 2: a lab level (?lab=...) is a test: it saves nothing and goes back to the map as it was */
+  if (window.KinanLevels && KinanLevels.isLab && KinanLevels.isLab(L.levelId)) { worldMapScreen({ notice: 'PLAYGROUND DONE!' }); return; }
   /* back to the SMW overworld map (Producer ruling 2026-10-27): the level counts as beaten there and the next stop opens */
   worldMapScreen(owLevelBeaten(L.levelId, got, L.secretExitTo || null));
 }
@@ -9909,8 +9916,8 @@ function activateDinoFriend(kind) {
   let made = 0;
   for (let dy = 0; dy < 4 && made < 5; dy++) for (let dx = -6; dx <= 6 && made < 5; dx++) {
     const x = tx + dx, y = ty - dy;
-    if (x < 1 || x >= L.w - 1 || y < 1) continue;
-    const idx = y * L.w + x;
+    if (x < 1 || x >= L.w - 1 || y < 1 - (L.up | 0)) continue;
+    const idx = (y + (L.up | 0)) * L.w + x;   /* Season 2: a tall level's rows start at -up */
     if (L.g[idx] || friendPlatforms.some((fp) => fp.idx === idx)) continue;
     L.g[idx] = 7;
     friendPlatforms.push({ idx, old: 0, t: 999999 });
@@ -10078,8 +10085,8 @@ function buildBrickRecipe(pad) {
   let made = 0;
   for (let k = 0; k < 6; k++) {
     const tx = tx0 + (P.face > 0 ? k + 1 : -k - 1), ty = bridge ? ty0 : ty0 - k;
-    if (tx < 1 || tx >= L.w - 1 || ty < 1 || ty >= ROWS) continue;
-    const idx = ty * L.w + tx;
+    if (tx < 1 || tx >= L.w - 1 || ty < 1 - (L.up | 0) || ty >= ROWS) continue;
+    const idx = (ty + (L.up | 0)) * L.w + tx;   /* Season 2: a tall level's rows start at -up */
     if (L.g[idx] || friendPlatforms.some((fp) => fp.idx === idx)) continue;
     L.g[idx] = 7;
     friendPlatforms.push({ idx, old: 0, t: 480 });
@@ -10132,8 +10139,8 @@ function callMilo() {
   let made = 0;
   for (let k = 0; k < span; k++) {
     const tx = tx0 + (P.face > 0 ? k + 1 : -k - 1), ty = ty0 - 1 - k;
-    if (tx < 1 || tx >= L.w - 1 || ty < 1 || ty >= ROWS) continue;
-    const idx = ty * L.w + tx;
+    if (tx < 1 || tx >= L.w - 1 || ty < 1 - (L.up | 0) || ty >= ROWS) continue;
+    const idx = (ty + (L.up | 0)) * L.w + tx;   /* Season 2: a tall level's rows start at -up */
     if (L.g[idx] || friendPlatforms.some((fp) => fp.idx === idx)) continue;
     L.g[idx] = 7;
     friendPlatforms.push({ idx, old: 0, t: 480 });
@@ -12005,6 +12012,9 @@ function updateCamera3() {
   }
   wantY = clamp(wantY, camTopY(), 0);
   camY += (wantY - camY) * (wantY < camY ? 0.10 : 0.06);
+  /* Season 2 (2026-11-10): in a tall level a long fall outruns that gentle follow (at 9 px/f a 0.06 follow lags 150 px and
+     Kinan dropped out of the picture), so the camera never lets him come closer than 32 px to the bottom edge */
+  if ((L.up | 0) > 0) { const lo = P.y + P.h + 32 - H; if (camY < lo) camY = Math.min(lo, 0); }
 }
 /* how high the camera may rise. A tall homemade level has its extra rows; an authored level (QA 2026-10-28:
    on big bounces Kinan went up to 49 px off the top of the picture) gets headroom above row 0 only while
@@ -27427,6 +27437,22 @@ if (window.__k11DevOnly() && (W6_LINK === 'play' || W6_LINK === 'cutscene')) {
    localhost): inert in production and in shared links. */
 const LEVEL_LINK = window.__k11DevOnly() ? (new URLSearchParams(location.search).get('level') || '') : '';
 if (LEVEL_LINK && window.KinanLevels) window.KinanLevels.whenReady(() => playLevel(LEVEL_LINK));
+/* SEASON 2 PLAYGROUND (2026-11-10, docs/SEASON-2-PLAN.md): ?lab=playground plays the test level levels/lab/playground.js
+   (never on the map, never in the manifest or the offline cache; it saves nothing). Open on the live site too, so Shad can
+   try each new piece on his own phone before it goes into real levels. */
+const LAB_LINK = (new URLSearchParams(location.search).get('lab') || '').toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 30);
+function labPlay(name) {
+  const K = window.KinanLevels, id = 'lab-' + name;
+  if (!K) return;
+  const go = () => { if (K.get(id)) playLevel(id); else toast('🚧 No test level called <b>' + escAttr(name) + '</b>', 3000); };
+  if (K.get(id)) { go(); return; }
+  const sc = document.createElement('script');
+  sc.src = 'levels/lab/' + name + '.js';
+  sc.onload = go;
+  sc.onerror = () => toast('🚧 The test level <b>' + escAttr(name) + '</b> could not load', 3000);
+  document.head.appendChild(sc);
+}
+if (LAB_LINK && window.KinanLevels) window.KinanLevels.whenReady(() => labPlay(LAB_LINK));
 
 /* B1 dev tool: a boss bot that plays a fight through the same input state the keyboard and the touch pad
    feed (input.left / right / jump / jumpBuf). It only reads what a kid can see: the boss's pose (busy,
@@ -27640,6 +27666,8 @@ window.__k11 = window.__k11DevOnly() ? {
   advance: () => { if (advance) advance(); },
   jumpToStage: (i) => { playStage(i); },
   teleport: (x) => { P.x = x; P.y = (GROUND - 1) * T; camX = Math.max(0, x - W * 0.42); },
+  /* Season 2 (2026-11-10): where Kinan and the camera are (place(x, y) below puts him anywhere, tall levels too) */
+  where: () => ({ x: P.x, y: P.y, w: P.w, h: P.h, vx: P.vx, vy: P.vy, onGround: P.onGround, hp: P.hp, camX: camX, camY: camY, up: L ? L.up | 0 : 0, levelId: L ? L.levelId || null : null, cols: L ? L.w : 0 }),
   morph: () => (morph ? morph.t : null),   /* the "world goes 3D" cutscene */
   morphDraw: (t) => { morph = { t: t, wait: null }; drawMorph(); morph = null; },
   morphFreeze: (t) => { morph = { t: t, wait: { n: 1e9, res: () => {} } }; paused = true; },   /* hold one frame, for screenshots */

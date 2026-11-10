@@ -14,6 +14,9 @@
   var ROWS = 15, T = 16, SCREEN = 27;
   var MIN_COLS = SCREEN, MAX_COLS = 1200;
   var ID_RE = /^([1-9]|1[01])-([1-8]|fort|secret|castle)$/;
+  /* Season 2 (2026-11-10): test levels that are never on the map (levels/lab/, not in the manifest; ?lab=<name> plays one) */
+  var LAB_RE = /^lab-[a-z0-9-]{1,30}$/;
+  var MAX_UP = 45;   /* Season 2: a tall level has up to 45 extra rows above the usual 15 (four screens tall) */
   var TOY_KEYS = ['gift', 'brick', 'spring', 'shelf', 'board', 'crack', 'crate'];   /* board: a wooden taekwondo board, only a KICK breaks it (2026-10-28) · crack, crate: only a BUTT SLAM breaks them (2026-10-29) */
   /* what a gift block can pop (index.html hitGift/giveItem); 'gold' marks the
      golden-candle block — its reward is not wired yet (ER-6), it pops nothing */
@@ -56,11 +59,15 @@
   function problemsOf(def) {
     var out = [];
     if (!def || typeof def !== 'object') return ['the level must be an object'];
+    var lab = LAB_RE.test(def.id || '');
     var m = ID_RE.exec(def.id || '');
-    if (!m) out.push('id "' + def.id + '" must look like 1-5, 1-fort, 1-secret or 1-castle (worlds 1-11)');
-    else if (def.world !== Number(m[1])) out.push('world must be ' + m[1] + ' to match id ' + def.id);
+    if (!m && !lab) out.push('id "' + def.id + '" must look like 1-5, 1-fort, 1-secret or 1-castle (worlds 1-11), or lab-<name> for a test level');
+    else if (m && def.world !== Number(m[1])) out.push('world must be ' + m[1] + ' to match id ' + def.id);
     if (m && def.kind != null && def.kind !== kindOf(def.id)) out.push('kind must be "' + kindOf(def.id) + '" for id ' + def.id);
-    if (!isInt(def.slot) || def.slot < 1 || def.slot > 11) out.push('slot (its stop on the world map trail) must be 1-11');
+    if (!lab && (!isInt(def.slot) || def.slot < 1 || def.slot > 11)) out.push('slot (its stop on the world map trail) must be 1-11');
+    /* Season 2: a tall level (docs/LEVEL-AUTHORING.md §3): up = extra rows above row 0, so its rows run from -up to 14 */
+    if (def.up != null && (!isInt(def.up) || def.up < 0 || def.up > MAX_UP)) out.push('up (extra rows above the screen) must be a whole number 0-' + MAX_UP);
+    var up = isInt(def.up) ? Math.max(0, Math.min(MAX_UP, def.up)) : 0;
     if (typeof def.name !== 'string' || !def.name.trim() || def.name.length > 40) out.push('name must be 1-40 characters');
     if (def.theme != null && (!isInt(def.theme) || def.theme < 0)) out.push('theme must be a stage index (0, 1, 2, ...)');
     var list = areasOf(def);
@@ -78,7 +85,7 @@
       for (var c = 0; c < H.length; c++) {
         var h = H[c];
         if (h === null) { prev = null; prevD = 0; continue; }
-        if (!isInt(h) || h < 32 || h > 224 || h % 8) { out.push(tag + 'heights[' + c + '] = ' + h + ': use null (pit) or a multiple of 8 from 32 to 224'); continue; }
+        if (!isInt(h) || h < 32 - up * T || h > 224 || h % 8) { out.push(tag + 'heights[' + c + '] = ' + h + ': use null (pit) or a multiple of 8 from ' + (32 - up * T) + ' to 224'); continue; }
         var d = prev == null ? 0 : h - prev;
         if (d !== 0 && Math.abs(d) !== 8 && Math.abs(d) !== 16) out.push(tag + 'heights[' + c + ']: a step of ' + d + ' px — slopes step 8 (2:1) or 16 (1:1); build walls with solid blocks');
         if (d === 0 && h % 16) out.push(tag + 'heights[' + c + ']: a flat run must sit on a tile line (a multiple of 16)');
@@ -86,7 +93,7 @@
         if (d && prevD && (d > 0) !== (prevD > 0)) out.push(tag + 'heights[' + c + ']: slopes must meet a flat between up and down (no zigzag, Contract §2.2)');
         prevD = d; prev = h;
       }
-      var inside = function (cell) { return isCell(cell) && cell[0] >= 0 && cell[0] < a.cols && cell[1] >= 0 && cell[1] < ROWS; };
+      var inside = function (cell) { return isCell(cell) && cell[0] >= 0 && cell[0] < a.cols && cell[1] >= -up && cell[1] < ROWS; };
       var tiles = a.tiles || {};
       Object.keys(tiles).forEach(function (key) {
         if (TOY_KEYS.indexOf(key) < 0) { out.push(tag + 'tiles.' + key + ' is not a tile kind (gift, brick, spring, shelf, board, crack, crate)'); return; }
@@ -229,6 +236,8 @@
     validate: problemsOf,
     lint: lint,
     kindOf: kindOf,
+    isLab: function (id) { return LAB_RE.test(id || ''); },
+    MAX_UP: MAX_UP,
     fileFor: fileFor,
     ready: false,
     whenReady: function (cb) { if (api.ready) cb(); else waiters.push(cb); }

@@ -55,6 +55,16 @@ KinanLevels.register({
 
 **Coordinates:** `col` 0 is the level's left edge; `row` 0 is the sky, row 14 the bottom; 1 tile = 16 px; a screen is 27 × 15 tiles (432 × 240 px). The usual floor top is y = 192 (row 12 is the first ground row; Kinan stands in row 11).
 
+**Tall levels (Season 2, 2026-11-10):** `up: N` (0-45) adds N rows **above** row 0, so the level's rows run from `-N` to 14
+and it is `(15 + N) / 15` screens tall; the camera follows Kinan up and down (and catches up fast on a long fall). Put
+anything up high at negative rows (`solid: [[19, -20, 62, -19]]` is a roof 20 rows up, `candles: [[30, -23]]`); `heights`
+may go as high as `32 - 16 * up`. Falling a long way never hurts; only falling off the bottom (a pit) does. To go "deep
+down", start the level high up and finish low. The example is the test level `levels/lab/playground.js`
+(`?lab=playground`). Not tried in a tall level yet: World 7's twists and boss arenas.
+
+**Test levels (`lab-<name>`):** a file in `levels/lab/` registering `id: 'lab-<name>'` (no `slot`, any `world`) is never on the
+map, never in the manifest and never cached offline; `?lab=<name>` plays it (on the live site too) and it saves nothing.
+
 **Multi-area levels (in-level seams):** instead of putting the geometry at the top level, give `areas: [ {id, name, cols, heights, …entities…}, … ]`. Each area uses its own local columns; the engine joins them left to right and places a **seam** (a gate landmark, Contract §4.1 — no screen, no cut, a banner slides in) at every join. Exactly one area holds the `goal`; the `spawn` goes on the level or its first area.
 
 ## 4. Legend
