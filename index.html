@@ -8293,6 +8293,17 @@ if (S2 && window.KinanLevels) KinanLevels.whenReady(() => {
   progress.glitchyTeam = true; progress.worldsName = true; progress.beltSeen = 99; progress.s2seed = true;
   save();
 });
+/* Season 2 test, a link straight to one country (?season2=1&world=13 for Amandeep's Japan): the worlds before it count as
+   beaten, the World 11 ending is skipped, and Kinan stands at that world's first stop (only if he has not got further) */
+if (S2 && window.KinanLevels) KinanLevels.whenReady(() => {
+  let n = 0; try { n = Math.floor(Number(new URLSearchParams(location.search).get('world'))); } catch (e) { n = 0; }
+  if (!(n >= 13 && n <= 15)) return;
+  const lb = progress.levelsBeaten = progress.levelsBeaten || {}, un = progress.unlockedLevels = progress.unlockedLevels || [];
+  KinanLevels.list().forEach((id) => { const d = KinanLevels.get(id); if (d && d.world >= 12 && d.world < n) { lb[id] = 1; if (/-secret$/.test(id) && un.indexOf(id) < 0) un.push(id); } });
+  progress.s2EndingDue = false;
+  if (!progress.wmap || (progress.wmap.w || 0) < n) progress.wmap = { w: n, at: 0 };
+  save();
+});
 if (S2) {   /* a small badge so nobody mistakes the test for the real game */
   const b = document.createElement('div'); b.id = 's2badge'; b.textContent = 'SEASON 2 TEST';
   b.style.cssText = 'position:fixed;left:6px;bottom:4px;z-index:200;font:700 10px Pixelify Sans,monospace;color:#1b1220;background:#f6c445;padding:2px 6px;border-radius:4px;opacity:.85;pointer-events:none';
