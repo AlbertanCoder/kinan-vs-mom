@@ -11183,34 +11183,43 @@ function s2BoxHit(box) {   /* 1 = a stomp from above, -1 = bumped into it, 0 = n
   return P.vy > 0 && (P.prevBottom || P.y + P.h) <= box.y + 7 ? 1 : -1;
 }
 /* ---- THE GIANT MOLE ---- */
-function s2MoleBox(B) { const h = B.hole; return { x: h.x - 11, y: h.y - 18, w: 22, h: 18 }; }
+function s2MoleBox(B) { const h = B.hole; return { x: h.x - 14, y: h.y - 18, w: 28, h: 18 }; }   /* his head and hard hat, a generous stomp target */
 function s2MoleTick(B) {
-  const ph = Math.min(2, B.hits), TELL = [52, 42, 36][ph], UP = [104, 84, 70][ph], REST = [44, 36, 28][ph];
+  const ph = Math.min(2, B.hits), TELL = [56, 46, 40][ph], UP = [150, 120, 100][ph], REST = [44, 36, 28][ph];
   for (const r of B.rocks) { r.x += r.vx; r.vy += 0.17; r.y += r.vy; r.t++; if (overlap(P, { x: r.x - 3, y: r.y - 3, w: 6, h: 6 })) { hurt({ x: r.x, y: r.y }); r.dead = 1; } else if (r.t > 8 && solid(Math.floor(r.x / T), Math.floor(r.y / T))) { r.dead = 1; sparks(r.x, r.y, 4, ['#8a6a4a', '#c9a27a']); } }
   B.rocks = B.rocks.filter((r) => !r.dead && r.t < 240);
   if (B.state === 'wait') {
     if (P.x > B.x0 + 2 * T && P.x < B.x1 - 2 * T && !P.dead) {
       B.state = 'hidden'; B.t = 90; s2Gate(B.gateL, B.rTop, B.rBot, true); s2Gate(B.gateR, B.rTop, B.rBot, true);   /* both walls shut for the fight */
       Music.play('boss'); s2Say('MR. MOLE', 'WHO is stomping around in MY mine?!', 2.6);
+      setTimeout(() => { if (B.state !== 'friend' && L && L.s2) s2Say('GLITCHY', 'When he pops up, jump on his head! Watch the shaking dirt!', 3); }, 2800);
     }
     return;
   }
   if (B.state === 'friend') { if (B.t > 0) B.t--; return; }
   if (B.hitCd > 0) B.hitCd--;
-  if (--B.t > 0 && B.state !== 'up') return;
+  if (--B.t > 0 && B.state !== 'up') return;   /* 'up' runs every frame (the stomp check) */
   if (B.state === 'hidden' && B.t <= 0) {
-    const holes = B.holes.slice(), near = holes.slice().sort((a, b) => Math.hypot(a.x - P.x, a.y - P.y) - Math.hypot(b.x - P.x, b.y - P.y));
-    let pickH = ph === 0 ? pick(holes) : pick(near.slice(0, 3));   /* smarter: he comes up near Kinan */
-    if (B.hole && pickH === B.hole) pickH = holes[(holes.indexOf(pickH) + 1) % holes.length];
-    B.hole = pickH; B.fake = ph === 2 ? pick(holes.filter((h) => h !== pickH)) : null;
+    /* the girlfriend's playtest (2026-11-10): 3+ minutes and not one stomp: he kept popping up on ledges too high to jump
+       onto from where she stood. Now he always comes up where Kinan CAN stomp him: a hole on the floor Kinan is on (or the
+       nearest floor below him), at least two tiles to the side so he never pops up under him; smarter = closer */
+    const feetY = P.onGround ? P.y + P.h : P.y + P.h + 24, cxK = P.x + P.w / 2;
+    const below = B.holes.filter((h) => h.y >= feetY - 4).sort((a, b) => a.y - b.y);
+    const levelY = below.length ? below[0].y : B.holes.reduce((m, h) => Math.max(m, h.y), 0);
+    let mine = B.holes.filter((h) => Math.abs(h.y - levelY) < 4 && Math.abs(h.x - cxK) >= 2 * T);
+    if (!mine.length) mine = B.holes.filter((h) => Math.abs(h.y - levelY) < 4);
+    if (!mine.length) mine = B.holes.slice();
+    mine.sort((a, b) => Math.abs(a.x - cxK) - Math.abs(b.x - cxK));
+    let pickH = mine[0];   /* the nearest hole on his floor that is not under him (smarter = he stays up less long, rocks, a fake) */
+    if (mine.length > 1 && B.hole === pickH && ph === 0) pickH = mine[1];
+    B.hole = pickH; B.fake = ph === 2 ? (mine.find((h) => h !== pickH) || null) : null;
     B.state = 'tell'; B.t = TELL;
     AudioSys.noise(0.25, { filter: 'lowpass', freq: 400, vol: 0.08 });
   } else if (B.state === 'tell' && B.t <= 0) {
     B.state = 'up'; B.t = UP; B.threw = false; B.fake = null;
     SFX.pop(); sparks(B.hole.x, B.hole.y - 4, 8, ['#8a6a4a', '#c9a27a', '#fff']);
-  } else if (B.state === 'up') {
-    B.t--;
-    if (!B.threw && B.t < UP - 30) {   /* phase 2+: a rock, lobbed at where Kinan stands (wound up while he is up) */
+  } else if (B.state === 'up') {   /* (B.t already counted down above: it used to tick twice, so he stayed up half as long) */
+    if (ph >= 1 && !B.threw && B.t < UP - 30 && Math.abs(P.x + P.w / 2 - B.hole.x) > 64) {   /* rocks from his second phase on, and only a long lob at a Kinan who keeps away (never point-blank: it could not be dodged) */   /* phase 2+: a rock, lobbed at where Kinan stands (wound up while he is up) */
       B.threw = true; const dx = P.x + P.w / 2 - B.hole.x, n = 46;
       B.rocks.push({ x: B.hole.x, y: B.hole.y - 20, vx: dx / n, vy: -4.2 + (P.y - B.hole.y) / n * 0.5, t: 0 });
       AudioSys.tone(320, 0.08, { vol: 0.08, slide: 160 });
@@ -11226,8 +11235,10 @@ function s2MoleTick(B) {
         addCandle(10); pop(P.x, P.y - 20, '+10', 50, null, true);
       } else { B.state = 'hidden'; B.t = 70; s2Banner(B.hits === 1 ? 'THE MOLE IS GETTING SMARTER!' : 'HE IS EVEN SMARTER NOW!'); }
       return;
-    } else if (hit === -1) hurt({ x: B.hole.x, y: B.hole.y });
-    if (B.t <= 0) { B.state = 'hidden'; B.t = REST; }
+    } else if (hit === -1 && !B.bumpSaid && P.onGround) {   /* touching him from the side does nothing (no push, no hurt): only a stomp from above counts */
+      B.bumpSaid = true; s2Say('GLITCHY', 'Jump ON his head, Kinan! Land on top of him!', 2.6);
+    }
+    if (B.t <= 0) { B.state = 'hidden'; B.t = REST; B.misses = (B.misses || 0) + 1; if (B.misses === 3 && !B.hits) s2Say('SABUMNIM', 'He comes up on YOUR floor. Run to him and jump on his hard hat!', 3.4); }
   }
 }
 /* ---- THE GLITCH TIDE AND KING CRAB ---- */
@@ -11331,7 +11342,7 @@ function drawS2Bosses() {
         if (frame % 20 < 12) { ctx.fillStyle = '#e8364b'; ctx.fillRect(x - 1, h.y - 26, 3, 9); ctx.fillRect(x - 1, h.y - 15, 3, 3); } };
       if (B.state === 'tell') { shake(B.hole); if (B.fake) shake(B.fake); }
       if ((B.state === 'up' || B.state === 'friend') && B.hole) {
-        const m = s2MoleBox(B), x = m.x - ox, y = m.y, pr = B.state === 'up' ? Math.min(1, (([104, 84, 70][Math.min(2, B.hits)]) - B.t) / 8) : 1, dy = Math.round((1 - pr) * 14);
+        const m = s2MoleBox(B), x = m.x - ox, y = m.y, pr = B.state === 'up' ? Math.min(1, (([150, 120, 100][Math.min(2, B.hits)]) - B.t) / 8) : 1, dy = Math.round((1 - pr) * 14);
         ctx.save(); ctx.beginPath(); ctx.rect(x - 4, y - 14, 30, 32 - 0); ctx.clip();
         ctx.fillStyle = '#1b1220'; ctx.fillRect(x - 1, y + dy - 1, 24, 20);
         ctx.fillStyle = '#7a5236'; ctx.fillRect(x, y + dy, 22, 19);
@@ -11342,6 +11353,11 @@ function drawS2Bosses() {
         ctx.fillStyle = '#e8d8c0'; ctx.fillRect(x - 2, y + dy + 12, 4, 3); ctx.fillRect(x + 20, y + dy + 12, 4, 3);
         if (B.state === 'friend') { ctx.fillStyle = '#ff6fae'; ctx.fillRect(x + 8, y + dy - 14, 2, 2); ctx.fillRect(x + 12, y + dy - 14, 2, 2); ctx.fillRect(x + 9, y + dy - 12, 4, 2); }
         ctx.restore();
+        if (B.state === 'up') {   /* the gold ▼: stomp him now */
+          const bb = Math.round(Math.sin(frame / 5) * 2), ax = x + 11, ay = y - 22 + bb;
+          ctx.fillStyle = '#1b1220'; ctx.fillRect(ax - 7, ay - 1, 15, 5); ctx.fillRect(ax - 5, ay + 3, 11, 3); ctx.fillRect(ax - 3, ay + 5, 7, 3);
+          ctx.fillStyle = '#f6c445'; ctx.fillRect(ax - 6, ay, 13, 3); ctx.fillRect(ax - 4, ay + 3, 9, 2); ctx.fillRect(ax - 2, ay + 5, 5, 2);
+        }
       }
       for (const r of B.rocks) { ctx.fillStyle = '#1b1220'; ctx.fillRect(r.x - ox - 4, r.y - 4, 8, 8); ctx.fillStyle = '#9a8a7a'; ctx.fillRect(r.x - ox - 3, r.y - 3, 6, 6); }
       if (B.state !== 'wait' && B.state !== 'friend') s2Pips(B, 3);
@@ -11376,7 +11392,10 @@ function drawS2Bosses() {
     }
   }
   /* a dark mine: a pool of light round Kinan (his hard-hat lamp) */
-  for (const [x0, x1] of S.dark) {
+  const lit = S.bosses.filter((B) => B.kind === 'mole').map((B) => [B.x0 - T, B.x1 + T]);   /* the mole's arena has lanterns: no dark there */
+  const segs = [];
+  for (const [x0, x1] of S.dark) { let parts = [[x0, x1]]; for (const [l0, l1] of lit) parts = parts.flatMap(([a0, a1]) => (l1 <= a0 || l0 >= a1 ? [[a0, a1]] : [[a0, Math.max(a0, l0)], [Math.min(a1, l1), a1]].filter(([q0, q1]) => q1 > q0))); segs.push(...parts); }
+  for (const [x0, x1] of segs) {
     const a = Math.max(0, x0 - ox), b = Math.min(W, x1 - ox);
     if (b <= a) continue;
     ctx.fillStyle = 'rgba(38,26,18,.55)'; ctx.fillRect(a, camY - 4, b - a, H + 8);   /* rock all round: underground, not outdoors */

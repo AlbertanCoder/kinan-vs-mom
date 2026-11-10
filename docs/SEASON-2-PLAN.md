@@ -134,3 +134,13 @@ wall-jump and swim up a sea cave as it chases you, then calm the creature at the
   quicker mole (a rock from phase 1) and King Crab (bubbles from phase 1); swimming a bit quicker; the ledge grab only
   while you hold toward the edge (never mid wall-jump or in a fast fall), a shorter hang; KICK (or ↓) goes into a pipe,
   chute or door at once, and a bubble ("PIPE · KICK = GO IN") shows as you come near; the chimneys' walk-in gaps are 1 row.
+- 2026-11-10: **the girlfriend's video (phone, v1):** 3.5 minutes in Mr. Mole's arena and not one stomp; she lost 3 hearts
+  touching him and kept grabbing ladders. Causes: he came up in holes she could not reach (on ledges too high to jump
+  onto, under ledges a jump goes up through), every touch hurt, ladders stood beside his holes (holding JUMP grabbed
+  them), the fight was in the dark, nothing said how, and a bug kept him up only half as long as meant. **Fixed:** he comes
+  up at the nearest hole on Kinan's own floor that isn't under him; floor holes in the open middle, ladders at the ledges'
+  outer ends; touching him does nothing (only his rocks hurt, from phase 2, and only as a long lob at a Kinan who keeps
+  away); a gold ▼ over him while he is up; the arena is lit; Glitchy and Sabumnim say how; a bigger stomp target.
+  Honest checks now: a human-style robot (no teleports, no invulnerability, a quarter- or half-second reaction) calms him
+  in 7-14 s without a hit, and King Crab in 11-12 s losing one heart. (Earlier robot checks placed Kinan over the boss:
+  that hid the problem. Boss checks from now on use human-style inputs.)

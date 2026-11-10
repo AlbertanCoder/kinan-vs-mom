@@ -89,7 +89,7 @@
           [72, 7, 78, 11]       /* a ledge to grab */
         ],
         tiles: { shelf: s2, gift: [[30, 2, 'candle'], [44, -6, 'heart'], [99, 0, 'heart']] },
-        ladders: [[22, 5, 11], [91, 7, 11], [107, 7, 11]],
+        ladders: [[22, 5, 11], [88, 7, 11], [110, 7, 11]],   /* v3: the arena's ladders at the ledges' outer ends, away from every hole */
         warps: [
           { kind: 'pipe', col: 40, row: 4, to: { col: 42, row: -2 } },   /* up to the hidden room */
           { kind: 'pipe', col: 48, row: -4, to: { col: 56, row: 6 } },   /* and back to the track */
@@ -98,7 +98,7 @@
         secrets: [{ kind: 'visible', col: 44, row: -6, prize: 'heart' }],
         candles: c2,
         foes: [[9, 6, 'umbrellabat'], [20, 11, 'gopher'], [28, 5, 'gopher'], [33, 3, 'umbrellabat'], [40, 11, 'gopher'], [46, 5, 'cart'], [54, 11, 'cart'], [68, 11, 'gopher'], [70, 6, 'umbrellabat'], [80, 6, 'umbrellabat']],
-        s2boss: { kind: 'mole', col0: 86, col1: 112, rowTop: 2, holes: [[89, 11], [99, 11], [109, 11], [93, 7], [105, 7], [99, 3]] }
+        s2boss: { kind: 'mole', col0: 86, col1: 112, rowTop: 2, holes: [[96, 11], [99, 11], [102, 11], [92, 7], [106, 7], [99, 3]] }   /* v3 (her playtest): floor holes in the open middle (no ledge overhead), ledge holes away from the ladders */
       },
       {
         id: 'sea', name: 'ACT 3: THE WATERFALL AND THE SEA', cols: 150, heights: h3,
