@@ -65,8 +65,8 @@
                [69, 'SABUMNIM', 'Between two walls, kick off one, then the other. Up, up, up!', 3.4],
                [114, 'GLITCHY', 'A mine! It is dark in there. Good thing your hard hat has a lamp!', 3.2]],
         solid: [
-          [62, 7, 70, 11],      /* a ledge 5 rows up: grab it */
-          [70, -14, 70, 4],     /* the chimney's left wall (a gap at rows 5-6 lets him in from the ledge) */
+          [62, 7, 71, 11],      /* a ledge 5 rows up: grab it */
+          [71, -14, 71, 4],     /* the chimney's left wall (a gap at rows 5-6 lets him in from the ledge); 3 tiles to the cliff */
           [75, -14, 104, 11]    /* the cliff */
         ],
         tiles: { shelf: s1, spring: [[50, 12], [90, -14]], gift: [[34, -9, 'heart'], [90, -26, 'candle'], [96, -18, 'popper']] },
@@ -125,7 +125,7 @@
           [10, -43, 10, 8],     /* the cave's left wall (walk in at the bottom) */
           [41, -44, 41, 11],    /* its right wall */
           [10, -44, 41, -44],   /* its roof */
-          [27, -14, 27, -3], [32, -14, 32, -3],   /* the wall-jump chimney (walk in under it from L2) */
+          [28, -14, 28, -3], [32, -14, 32, -3],   /* the wall-jump chimney, 3 tiles wide (walk in under it from L2) */
           [32, -14, 40, -14],   /* L4, beside the chimney's top */
           [12, -26, 24, -21]    /* a ledge to grab, and the spring's block */
         ],

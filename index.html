@@ -8265,6 +8265,17 @@ function bindPad() {
   const cvEl = document.getElementById('cv');   /* 2026-10-28: the buttons sit on the picture now, so a long touch on it never brings up the iPhone magnifier either */
   if (cvEl) { cvEl.addEventListener('touchstart', noPhoneHold, { passive: false }); cvEl.addEventListener('touchmove', noPhoneHold, { passive: false }); cvEl.addEventListener('contextmenu', (e) => e.preventDefault()); }
   document.addEventListener('selectstart', (e) => { if (!el.stage.hidden) e.preventDefault(); });   /* nothing selects as text while a level is on screen */
+  /* Shad's playtest (2026-11-10, an iPhone and an Android phone): a thumb landing just beside a button (on the dark edge
+     of the page) let two thumbs pinch-zoom or slide the whole page, so the game moved under the buttons. While a level
+     is on screen no touch anywhere scrolls or zooms the page (the menu's own panels still scroll) */
+  const inLevel = () => !el.stage.hidden && running;
+  const noPageMove = (e) => { if (!inLevel() || !e.cancelable) return; const t = e.target; if (t && t.closest && t.closest('.menu, .sheet, input, textarea')) return; e.preventDefault(); };
+  document.addEventListener('touchmove', noPageMove, { passive: false });
+  document.addEventListener('touchstart', (e) => { if (inLevel() && e.touches && e.touches.length > 1) noPageMove(e); }, { passive: false });
+  for (const g of ['gesturestart', 'gesturechange']) document.addEventListener(g, (e) => { if (inLevel()) e.preventDefault(); }, { passive: false });   /* iPhone pinch */
+  document.addEventListener('dblclick', (e) => { if (inLevel()) e.preventDefault(); }, { passive: false });
+  const snapBack = () => { if (inLevel() && (window.scrollX || window.scrollY)) window.scrollTo(0, 0); };
+  window.addEventListener('scroll', snapBack, { passive: true });
 }
 
 let padPrev = {}, padIn = { left: false, right: false, jump: false, down: false, gas: false, fire: false };
@@ -11016,20 +11027,34 @@ function s2Tick(left, right, holdJump) {
       return;
     }
   }
-  /* WALL SLIDE + WALL JUMP (very forgiving: any wall he touches in the air, a short grace after leaving it) */
-  if (!P.onGround && side) { P.s2wall = side; P.s2wallT = 7; } else if (P.s2wallT > 0) P.s2wallT--;
-  if (!P.onGround && side && P.vy > 1.2 && ((side > 0 && right) || (side < 0 && left))) {
+  /* WALL SLIDE + WALL JUMP (very forgiving: any wall he touches in the air, a grace after leaving it). Shad's playtest
+     (2026-11-10, a phone): thumbs keep holding the old direction after a kick, which pulled Kinan back so he stopped short
+     of the other wall. Now a kick carries him across whatever is held (P.s2kick), and for a while after a kick any wall he
+     reaches holds him in a slow slide, held toward or not, so tapping JUMP at each wall is enough */
+  if (P.s2kick) {
+    const K2 = P.s2kick; K2.t++;
+    if (P.onGround || K2.t > 70) P.s2kick = null;
+    else if (!K2.there) { if (side === K2.d || K2.t > 15) K2.there = true; else P.vx = K2.d * Math.max(Math.abs(P.vx), 3.0); }   /* long enough to cross a 3-4 tile gap, not to fly off past a wall's top */
+  }
+  if (!P.onGround && side) { P.s2wall = side; P.s2wallT = 10; } else if (P.s2wallT > 0) P.s2wallT--;
+  const grip = !!(P.s2kick && P.s2kick.there);   /* after a kick: the wall he reached grips him (from the moment he touches it) */
+  if (!P.onGround && side && grip) {
+    const away = (side > 0 && left && !right) || (side < 0 && right && !left);   /* a thumb still on the old direction does not pull him off; */
+    P.s2away = away ? (P.s2away || 0) + (P.vy > 0 ? 1 : 0) : 0;                 /* holding away for half a second of sliding lets go */
+    if (P.s2away < 30) { P.vx = side * 0.5; P.face = side; }
+  }
+  if (!P.onGround && side && P.vy > 1.2 && ((grip && P.s2away < 30) || (side > 0 && right) || (side < 0 && left))) {
     P.vy = 1.2;
     if (frame % 6 === 0) part(side > 0 ? P.x + P.w : P.x, P.y + 4, { vx: -side * 0.3, vy: -0.2, life: 14, size: 1, color: 'rgba(244,241,232,.7)' });
   }
   if (input.jumpBuf > 0 && !P.onGround && P.coyote <= 0 && P.s2wallT > 0) {
     const d = -P.s2wall;
     input.jumpBuf = 0; P.s2wallT = 0;
-    P.vy = F.JUMP_V * 0.95; P.vx = d * 3.0; P.face = d; P.s2lock = 9; P.cuttable = true; P.jumpT = 0; P.stretch = F.STRETCH_F;
+    P.vy = F.JUMP_V * 0.95; P.vx = d * 3.0; P.face = d; P.s2lock = 9; P.s2kick = { d: d, t: 0, there: false }; P.cuttable = true; P.jumpT = 0; P.stretch = F.STRETCH_F;
     dust(d > 0 ? P.x : P.x + P.w, P.y + P.h / 2, 3); s2Sound('kick'); shakeIt(1);
     if (!S.wallSaid) { S.wallSaid = true; pop(P.x - 10, P.y - 16, 'WALL JUMP!', 50, '#f6c445'); }
   }
-  if (P.s2lock > 0) { P.s2lock--; P.vx = Math.sign(P.vx || P.face) * Math.max(Math.abs(P.vx), 2.6); }
+  if (P.s2lock > 0) P.s2lock--;   /* (now only times the kick pose: P.s2kick carries him across) */
 }
 /* behind Kinan: ladders, vines, pipes, chutes and doors */
 function drawS2Back() {

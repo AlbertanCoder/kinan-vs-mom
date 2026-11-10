@@ -121,3 +121,9 @@ wall-jump and swim up a sea cave as it chases you, then calm the creature at the
 - 2026-11-10: **the adventure test level is built:** `?lab=adventure`, MOUNTAINS TO THE SEA, four acts with a checkpoint
   each, Mr. Mole and the glitch tide + King Crab, 3 secrets (the golden candle is one), the end card. A robot clears every
   climb, both bosses and the goal (`lab-adventure.spec.ts`). Waiting on Shad's and his girlfriend's playtest.
+- 2026-11-10: **first playtest (Shad and his girlfriend, phones):** the cliff chimney's wall jumps were far too hard and the
+  page slid around under two thumbs. Fixed: a kick carries Kinan across the gap whatever is held (about a quarter second),
+  the wall he reaches grips him in a slow slide (a held old direction doesn't pull him off; holding away for half a second
+  of sliding lets go), the jump grace is 10 frames, the chimneys are 3 tiles wide, and during a level no touch outside the
+  buttons scrolls or zooms the page. Measured with human-style bots (quick, late, very late, holding one direction): all
+  but the very late and never-jumping ones now make both adventure chimneys.
