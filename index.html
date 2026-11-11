@@ -6184,7 +6184,7 @@ function arenaAttack(b, ph, A) {
   } else if (atk === 'wave') {
     /* B2: a whistle blast: a shockwave runs out both ways along the floor (jump it) */
     for (const d of [-1, 1]) arenaShot(A, { kind: K.wave || 'shock', roll: true, w: 10, h: 7, x: bc - 5 + d * (b.w / 2 + 6), y: A.floorY - 7, vx: d * 2 * sp, g: 0 });
-    SFX.boss(); shake = Math.max(shake, 4);
+    SFX.boss(); shakeIt(4);
     b.state = 'recover'; b.t = 30;
   } else if (atk === 'charge' || atk === 'charge2') {
     b.dir = dir; b.state = 'charge'; b.t = 400;
@@ -6212,7 +6212,7 @@ function arenaAttack(b, ph, A) {
     b.state = 'recover'; b.t = 30;
   } else if (atk === 'sweep') {
     b.state = 'sweep'; b.t = 30;
-    SFX.thud(); shake = Math.max(shake, 2);
+    SFX.thud(); shakeIt(2);
   } else if (atk === 'curl') {
     /* World 7: the slug curls up into a ball and rolls at Kinan, all the way to the gate on his side (jump it) */
     if (A.K.roll) arenaSize(A, A.K.roll[0], A.K.roll[1]);
@@ -6225,7 +6225,7 @@ function arenaAttack(b, ph, A) {
   } else if (atk === 'bolt') {
     /* World 7: the bolts strike their flashing targets one by one, 10 frames apart */
     b.state = 'zap'; b.t = 16 + 10 * Math.max(0, A.marks.length - 1); b.zapT = 0;
-    shake = Math.max(shake, 3);
+    shakeIt(3);
   } else if (atk === 'grab') {
     /* World 8: the tentacles / paws come down onto their shadows one by one, 12 frames apart, and go back up */
     b.state = 'grab'; b.t = 22 + 12 * Math.max(0, A.marks.length - 1); b.zapT = 0;
@@ -6236,7 +6236,7 @@ function arenaAttack(b, ph, A) {
     A.ink = { x: bc, t: 0, dur: 90 };
     b.inkTo = clamp(pc < mid ? (A.gateR - 4) * T - b.w / 2 : (A.gateL + 5) * T - b.w / 2, (A.gateL + 1) * T, A.gateR * T - b.w);
     b.state = 'ink'; b.t = 60;
-    SFX.pew(); shake = Math.max(shake, 2);
+    SFX.pew(); shakeIt(2);
   } else if (atk === 'reroute') {
     /* World 9: the firewall walls slide in; the pads stay lit until Kinan has stepped on all three or time runs out */
     if (!A.walls) arenaMarks(b, ph, A, 0);
@@ -6460,7 +6460,7 @@ function arenaBossAI(A) {
       for (const m of A.marks) {
         if (!m.grab) continue;
         const at = b.zapT - m.k * 12;
-        if (at === 3) { SFX.thud(); dust(m.x, m.y, 6); rings.push({ x: m.x, y: m.y - 2, r: 4, t: 14 }); shake = Math.max(shake, 2); }
+        if (at === 3) { SFX.thud(); dust(m.x, m.y, 6); rings.push({ x: m.x, y: m.y - 2, r: 4, t: 14 }); shakeIt(2); }
         if (at >= 3 && at <= 12 && !P.dead && Math.abs(pc - m.x) < reach) {
           if (A.K.thief && P.inv <= 0 && !m.stole) { m.stole = true; arenaSteal(A, m); }
           hurt(m.x);
@@ -6495,7 +6495,7 @@ function arenaBossAI(A) {
       if (b.t <= 0) {
         if (!Wl.done) {   /* out of time: the walls flash and send a little zap along the floor from each side (jump it) */
           for (const d of [1, -1]) arenaShot(A, { kind: 'shock', roll: true, w: 10, h: 7, x: (d > 0 ? Wl.l + 2 : Wl.r - 12), y: A.floorY - 7, vx: d * 1.6 * sp, g: 0 });
-          SFX.thud(); shake = Math.max(shake, 3); arenaLog(A, 'zap');
+          SFX.thud(); shakeIt(3); arenaLog(A, 'zap');
         }
         A.pads = null; A.walls = null;
         b.state = 'recover'; b.t = 24;
@@ -6583,7 +6583,7 @@ function arenaShots(A) {
     } else if (s.roll) {
       s.x += s.vx; s.y = A.floorY - s.h;
       if ((s.x < lo - 2 || s.x + s.w > hi + 2) && s.echo > 0) {   /* World 11: the T-Rex's echo stomp bounces off the wall once */
-        s.echo--; s.vx = -s.vx; s.x = clamp(s.x, lo, hi - s.w); shake = Math.max(shake, 2); dust(s.x + s.w / 2, A.floorY, 6);
+        s.echo--; s.vx = -s.vx; s.x = clamp(s.x, lo, hi - s.w); shakeIt(2); dust(s.x + s.w / 2, A.floorY, 6);
       } else if (s.x < lo - 2 || s.x + s.w > hi + 2) { s.gone = true; dust(s.x + s.w / 2, A.floorY, 4); }
     } else {
       s.vy += s.g; s.x += s.vx; s.y += s.vy;
@@ -7690,7 +7690,7 @@ function x11Attack(b, ph, A, atk, bc, sp) {
       if (safe.some((s) => Math.abs(s - x) < 24)) continue;
       arenaShot(A, { kind: 'brick', x: x - 6, y: -16, w: 12, h: 8, vy: 0, g: 0.22, tx: x, rain: true, wait: Math.round(Math.abs(x - bc) / 16) * 2, c: Math.floor(x / 16) % 4 });
     }
-    SFX.boss(); shake = Math.max(shake, 3);
+    SFX.boss(); shakeIt(3);
     b.state = 'recover'; b.t = 40;
     return true;
   }
@@ -7710,14 +7710,14 @@ function x11Attack(b, ph, A, atk, bc, sp) {
     const to = (X.quake && X.quake.dir) || sign(pc - bc) || -1;
     arenaShot(A, { kind: 'quake', roll: true, w: 12, h: 8, x: bc - 6 + to * (b.w / 2 + 6), y: A.floorY - 8, vx: to * 2.2 * sp, g: 0, echo: 1 });
     arenaShot(A, { kind: 'quake', roll: true, w: 12, h: 8, x: bc - 6 - to * (b.w / 2 + 6), y: A.floorY - 8, vx: -to * 2.2 * sp, g: 0, echo: 0 });
-    SFX.boss(); SFX.thud(); shake = Math.max(shake, 5); X.quake = null;
+    SFX.boss(); SFX.thud(); shakeIt(5); X.quake = null;
     b.state = 'recover'; b.t = Math.round((H0 - L0) / (2.2 * sp));   /* the echo comes back before the next stomp */
     return true;
   }
   if (atk === 'boulder') {
     const B = X.boulder || { x0: bc, dir: -1, span: 72 };
     arenaShot(A, { kind: 'boulder', hop: true, w: 16, h: 16, x: B.x0 - 8, y: A.floorY - 16, x0: B.x0, span: B.span, top: 46, vx: B.dir * 1.8 * sp, g: 0, life: 900 });
-    SFX.thud(); shake = Math.max(shake, 4);
+    SFX.thud(); shakeIt(4);
     b.state = 'recover'; b.t = 30;
     return true;
   }
@@ -7753,7 +7753,7 @@ function x11State(b, ph, A) {
     if (tp && ++tp.t === 14) {   /* it lands flat on the band: anything low inside it is hit */
       const a = Math.min(tp.x0, tp.x1), z = Math.max(tp.x0, tp.x1);
       if (!P.dead && P.x + P.w > a + 1 && P.x < z - 1 && P.y + P.h > A.floorY - 20) hurt(tp.x0);
-      SFX.thud(); shake = Math.max(shake, 5);
+      SFX.thud(); shakeIt(5);
       for (let x = a; x < z; x += 12) dust(x, A.floorY, 2);
       sparks((a + z) / 2, A.floorY - 6, 12, ['#e8364b', '#f6c445', '#2a5bd7', '#44c55a']);
     }
