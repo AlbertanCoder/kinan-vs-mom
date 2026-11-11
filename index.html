@@ -10606,6 +10606,7 @@ function petFloorY(x, footY) {
   for (; ty < ROWS; ty++) if (solid(tx, ty) && !solid(tx, ty - 1)) return ty * T;
   return footY;
 }
+let petProbeFn = null;   /* dev only (tools/pet-probe.mjs, __k11.petProbe): called after every pet update, to measure how the pets move */
 function updatePets() {
   trail.push({ x: P.x, y: P.y + P.h, face: P.face });
   if (trail.length > 60) trail.shift();
@@ -10684,6 +10685,7 @@ function updatePets() {
     }
   });
   if (L.s2) s2PetsFollow();   /* Season 2: the pets walk Kinan's exact path instead (their powers above are unchanged) */
+  if (petProbeFn) petProbeFn();
 }
 /* Season 2 (Shad 2026-11-10: "the pets are kind of just floating and jumping through walls ... they should be able to swim
    and climb, and abide by the physics Kinan has"): in a Season 2 level each pet walks Kinan's own path a little behind
@@ -29448,6 +29450,10 @@ window.__k11 = window.__k11DevOnly() ? {
   petLand: () => { noteCleanLanding(); return window.__k11.petInfo(); },
   petFloor: (x, footY) => petFloorY(x, footY),   /* 2026-11-04: the floor a following pet stands on at x (its foot height to start from) */
   petAbilityTick: (n) => { for (let k = 0; k < n; k++) tickCompanionTimers(); return window.__k11.petInfo(); },
+  /* the pet probe (tools/pet-probe.mjs): petProbe(fn) runs fn after every pet update; petWorld() is what it reads */
+  petProbe: (fn) => { petProbeFn = typeof fn === 'function' ? fn : null; return !!petProbeFn; },
+  petWorld: () => ({ P: P, pets: pets, L: L, camX: camX, camY: camY, frame: frame, deaths: deaths, W: W, T: T, ROWS: ROWS, solid: solid, tileAt: tileAt, slopeSurfaceY: slopeSurfaceY,
+    s2InWater: s2InWater, draw: draw, cv: cv, input: input, update: update, progress: progress, setFrame: (n) => { frame = n; } }),
   petTickPets: (n) => { for (let k = 0; k < n; k++) updatePets(); return window.__k11.petInfo(); },
   petBark: (offscreen) => {
     const f = foes.filter((x) => x.alive)[0], d = pets.dogs.filter((x) => x.id === 'dog1')[0];
