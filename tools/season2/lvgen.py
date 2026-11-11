@@ -13,6 +13,23 @@ def beat(fn):
         self.route.append([fn.__name__, self.c, list(a), k]); r = fn(self, *a, **k); self.route[-1].append(self.c); return r
     return w
 
+def talk_hash(who, text):
+    """index.html talkHash: FNV-1a over SPEAKER + '|' + words (UTF-16 code units), 8 hex digits"""
+    h = 0x811c9dc5; b = (who + '|' + text).encode('utf-16-le')
+    for i in range(0, len(b), 2): h = ((h ^ (b[i] | b[i + 1] << 8)) * 0x01000193) & 0xffffffff
+    return '%08x' % h
+
+def load_clips():
+    """the recorded lines' lengths (audio/talk/clips*.js: hash -> seconds), so the talk spacing knows how long each line is"""
+    import re
+    out = {}; d = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'audio', 'talk')
+    for f in ('clips.js', 'clips-all.js'):
+        try:
+            for h, v in re.findall(r'"([0-9a-f]{8})": ([0-9.]+)', open(os.path.join(d, f), encoding='utf-8').read()): out[h] = float(v)
+        except OSError: pass
+    return out
+CLIPS = load_clips()
+
 class Act:
     def __init__(self, L, aid, name):
         self.L = L; self.id = aid; self.name = name
@@ -42,6 +59,8 @@ class Act:
     def run(self, n=12, foes=1, fly=False, hidden=False, cand=True):
         x = self.c; self.g(x, x + n - 1)
         if cand and n >= 6: self.arc(x + 2, min(5, n - 4), 10, 1)
+        if x == 0: foes = 0; fly = False   # an act's first steps (the spawn, a checkpoint): nothing walks or flies into Kinan
+                                            # while its first line is said (2026-11-11: a foe stood 2 columns from the spawn)
         for k in range(foes): self.foe(x + 4 + (k * 5) % max(1, n - 5))
         if fly: self.foe(x + n // 2, fly=True)
         if hidden:   # an invisible gift block over the run: jump into it
@@ -111,8 +130,10 @@ class Act:
         self.c += 16
     @beat
     def ropes(self, n=10):
-        n = min(n, 10); x = self.c; self.hazards.append([x, 13, x + n - 1, 14])
-        self.l_ropes.append([x + 1, 5, 5]); self.l_ropes.append([x + n - 4, 4, 5]); self.cand([[x + 1, 10], [x + n // 2, 7], [x + n - 4, 9]])
+        n = min(n, 8); x = self.c; self.hazards.append([x, 13, x + n - 1, 14])
+        # 2026-11-11: 8 wide, the ropes 4 apart and the far bank 3 from the second rope: any let-go the way he faces lands
+        # (at 10 wide the play-through robot fell at the same rope five times in 13-1)
+        self.l_ropes.append([x + 1, 5, 5]); self.l_ropes.append([x + n - 3, 4, 5]); self.cand([[x + 1, 10], [x + n // 2, 7], [x + n - 3, 9]])
         self.c += n
     @beat
     def bars(self, n=10):
@@ -157,7 +178,7 @@ class Act:
             self.g(c, e - (3 if k < gaps else 0)); self.arc(c + 3, 5, 9)
             if k < gaps: self.hazards.append([e - 2, 13, e, 14])
             c = e + 1
-        self.foe(x + seg // 2); self.c = x + n
+        self.foe(x + seg // 2 + (seg if x == 0 else 0)); self.c = x + n   # (never in an act's first steps)
     @beat
     def open_area(self, n): self.g(self.c, self.c + n - 1); self.c += n
 
@@ -191,7 +212,11 @@ class Level:
         skips a line once Kinan is 48 columns past it, unless its conversation has started (lines within 3 columns of each
         other). So: lines written close together (within 15 columns) become one conversation, and a conversation that would
         still be waiting when a fast runner (12 columns a second) is 40 columns past it moves on to where the one before ends."""
-        RUN = 15.0; secs = lambda t: max(2.4, min(6.0, len(t) / 15.0)) + 0.6
+        RUN = 8.0   # columns a second: a kid who keeps running (2026-11-11: the recorded voices take about 11 letters a second,
+                    # so a line is 5-12 s; a flat-out sprint (15 a second) outruns the talk, and the game drops a line 48 columns late)
+        def secs(t, who=None):   # how long the game keeps a line up: its reading time, or its recording + 0.4 s when that is longer
+            read = max(2.4, min(6.0, len(t) / 15.0)); clip = CLIPS.get(talk_hash(who, t)) if who else None
+            return (max(read, clip + 0.4) if clip else read) + 0.6
         base = 0; lines = []
         for a in self.acts:
             for t in a.talk: lines.append([base + t[0], t[1], t[2], a, base, len(t) > 4])
@@ -210,9 +235,9 @@ class Level:
             for g in groups:
                 c = g[0][0]; a = g[0][3]; b0 = g[0][4]; held = any(l[5] for l in g)
                 if held:   # a lesson (Sabumnim's call, a new tool): it stays where it is, and Kinan stands still to hear it
-                    arrive = c / RUN + wait; start = max(arrive, free); free = start + sum(secs(l[2]) for l in g)
+                    arrive = c / RUN + wait; start = max(arrive, free); free = start + sum(secs(l[2], l[1]) for l in g)
                     last = max(k for k, l in enumerate(g) if l[5])   # the game holds him until the last 'hold' line is said
-                    wait += start + sum(secs(l[2]) for l in g[:last + 1]) - arrive
+                    wait += start + sum(secs(l[2], l[1]) for l in g[:last + 1]) - arrive
                     continue
                 if free > (c + 28) / RUN + wait:   # it would be skipped: start it where the queue is free (inside its act)
                     nc = min(b0 + a.c - 4, int((free - wait) * RUN) - 20)
@@ -220,7 +245,7 @@ class Level:
                         self.talk_moves.append((g[0][1], c - b0, nc - b0, ' / '.join(l[1] + ': ' + l[2][:40] for l in g)))
                         for k, l in enumerate(g): l[0] = nc + k
                         c = nc; moved = True
-                free = max(free, c / RUN + wait) + sum(secs(l[2]) for l in g)
+                free = max(free, c / RUN + wait) + sum(secs(l[2], l[1]) for l in g)
             if not moved: break
         for a in self.acts: a.talk = []
         for l in lines: l[3].talk.append([l[0] - l[4], l[1], l[2]] + ([None, 'hold'] if l[5] else []))

@@ -47,7 +47,22 @@ V = {
     'THE BIG BULL MOOSE': ('en-US-GuyNeural', '-15%', '-30Hz', None),              # *
     'BRONCO': ('en-US-RogerNeural', '-5%', '-20Hz', None),                         # *
     'THE ALPHA T-REX': ('en-US-ChristopherNeural', '-12%', '-38Hz', 'echo'),       # *
+    # 2026-11-11, Season 2 (Shad: "the voices are all the same": Worlds 12-15 had no recordings at all).
+    # Sabumnim: the voice of his belt scenes (audio/belt), found by matching belt_w01.mp3 against every male voice
+    # (Liam at -12% -4Hz: the same length to 0.01 s, the same pitch, spectrum correlation 0.988).
+    'SABUMNIM': ('en-CA-LiamNeural', '-12%', '-4Hz', None),
+    'MR. MOLE': ('en-US-AndrewNeural', '-6%', '-18Hz', None),                      # *
+    'KING CRAB': ('en-AU-WilliamMultilingualNeural', '+4%', '+10Hz', None),        # *
+    'THE MARKET MONKEY': ('en-NZ-MitchellNeural', '+14%', '+45Hz', None),          # * (en-IN-Prabhat was not being served)
+    'THE MONSOON FROG': ('en-US-GuyNeural', '-16%', '-34Hz', None),                # *
+    'THE SNOW MONKEY': ('en-US-EricNeural', '+12%', '+45Hz', None),                # *
+    'THE SAMURAI ARMOUR': ('en-GB-ThomasNeural', '-12%', '-26Hz', 'echo'),         # *
+    'THE GIANT AXOLOTL': ('en-GB-MaisieNeural', '+0%', '+15Hz', None),             # *
+    'THE LAVA IGUANA': ('en-US-SteffanNeural', '-6%', '-14Hz', None),              # *
+    'THE PIGEON KING': ('en-GB-RyanNeural', '+6%', '+26Hz', None),                 # *
+    'THE STONE GARGOYLE': ('en-US-ChristopherNeural', '-14%', '-36Hz', 'echo'),    # *
 }
+PROXY = ['--proxy', os.environ['HTTPS_PROXY']] if os.environ.get('HTTPS_PROXY') else []   # (a cloud machine reaches the voice service through its proxy)
 out = os.path.join(repo, 'audio', 'talk'); os.makedirs(out, exist_ok=True)
 
 def dur(p):
@@ -68,7 +83,7 @@ for i, l in enumerate(todo):
     dst = os.path.join(out, l['hash'] + '.mp3'); raw = dst + '.raw.mp3'
     for attempt in range(3):
         try:
-            subprocess.run(['edge-tts', '--voice', v, f'--rate={rate}', f'--pitch={pitch}', '--text', l['spoken'], '--write-media', raw], check=True, capture_output=True, timeout=60)
+            subprocess.run(['edge-tts'] + PROXY + ['--voice', v, f'--rate={rate}', f'--pitch={pitch}', '--text', l['spoken'], '--write-media', raw], check=True, capture_output=True, timeout=60)
             if os.path.getsize(raw) < 2000: raise RuntimeError('tiny file')
             finish(raw, dst, fx); os.remove(raw); made += 1
             break

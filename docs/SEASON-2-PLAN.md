@@ -183,8 +183,8 @@ The mine stays **dark** (the lit arena was wrong).
     Mom and Dad's "city of love" (Kinan: "Come ON, you guys, STOP!"), Chenoa's museum (the secret level), the Pigeon
     King, the Mont-Saint-Michel tide, the gargoyle up the Eiffel Tower, the Portal Core (every move; the Stone Gargoyle;
     "Merci... famille.").
-  - Not done yet: Season 2's talk lines are not recorded (subtitles only), no new music (the usual tracks play), and the
-    2D World 12 replaces the 3D sneak peek only in the test (the live map is unchanged until Shad says go).
+  - Not done yet: no new music (the usual tracks play), and the 2D World 12 replaces the 3D sneak peek only in the test
+    (the live map is unchanged until Shad says go). (The voices were recorded on 2026-11-11: see below.)
 - 2026-11-10: **Annie's Japan, Amandeep's wishes:** Annie is the biggest Japan fan ever (anime, manga, history facts in
   every level), the candles in Japan are **sushi**, Annie wears a **kimono** at the Thousand Gates, the robot cafe is a
   robot sushi cafe, and the castle is **Himeji** with the **Samurai Armour** (replacing the Big Tanuki).
@@ -203,3 +203,24 @@ The mine stays **dark** (the lit arena was wrong).
     0 lines overlapping.
   - **Letting go of a rope** never grabs the same rope again until Kinan lands or swings clear (from a still rope he hops
     off it, the way he faces).
+- 2026-11-11: **Season 2's voices (Shad: "the voices are all the same").** Worlds 12-15 had no recordings, so every line was
+  read by the phone's own voice: one voice for everybody. Now **all 267 Season 2 lines are recorded in the cast's voices**
+  (the same edge-tts cast as Worlds 1-11, `tools/rec-all-lines.py`): the levels' talk lines, the boss and rescue lines said
+  in the moment (found by speaker + words like every talk line), the helpers' lines (Robin, Mom, Shad, Glitchy) and both
+  cutscenes. New voices: **Sabumnim** (the voice of his belt scenes, found by matching belt_w01.mp3 against every male
+  voice: en-CA-Liam -12% -4Hz), and one each for the Market Monkey, Monsoon Frog, Snow Monkey, Samurai Armour (echo),
+  Giant Axolotl, Lava Iguana, Pigeon King, Stone Gargoyle, Mr. Mole and King Crab. `tools/all-lines-extract.cjs` finds the
+  Season 2 lines too (and writes what the voice reads: capitals as words, creature noises as they sound, no emoji). A unit
+  test fails if a Season 2 line has no recording.
+  - **The device voice** (only when a recording cannot load) deals the cast out too: each speaker gets a voice of the
+    right kind, nobody shares one while another fits, and pitch and speed differ per speaker.
+  - **The talk is spaced by the real recordings** (about 11 letters a second: a line is 5-10 s, not the 3-4 s guessed
+    before), at a kid's running pace (8 columns a second). A flat-out sprint can still outrun some chatter (the game
+    drops a line 48 columns late); the lessons hold Kinan. Annie's kimono and fox-manga lines were trimmed a little and
+    Mom's "red gates" line moved to the mountain top (13-4 had 47 s of talk).
+  - **Also fixed:** nothing walks or flies into Kinan in an act's first steps (a foe stood 2 columns from the spawn and hit
+    him during the first line); **crawling looks like crawling** (he lies flat, head first; he stood up in the tunnel);
+    over a **wide gap** (ropes, bars, rings, a dash, a glide) the **pets wait on the bank and leap across** once Kinan has
+    landed (they hovered behind him); **rope gaps are 8 wide** (any let-go the way he faces lands; the robot fell five
+    times at one rope in 13-1); a moment line (a boss's, a helper's) is **dropped when its level is over** instead of
+    being said on the map.

@@ -1342,13 +1342,16 @@ const VO_DIR = 'audio/vo2/';
    since 2026-10-31 the device voice fills in for a line with no recording, so every speaker who speaks needs
    an entry here (Grandpa, Grandma, Aiden and Milo were missing: his 5 story lines had no voice at all). */
 const VO_WHO = {
-  KINAN: 'k', MOM: 'm', CHENOA: 'c', DAD: 'd', ROBIN: 'd', SHAD: 's', GLITCHY: 'mech', ANNIE: 'a', AMANDEEP: 'a',
+  KINAN: 'k', MOM: 'm', CHENOA: 'c', DAD: 'd', ROBIN: 'd', SHAD: 's', GLITCHY: 'gl', ANNIE: 'a', AMANDEEP: 'a',
   GRANDPA: 'd', GRANDMA: 'm', AIDEN: 'k', MILO: 'b', REX: 'mech', FOREMAN: 'f',
   'SAFETY FOREMAN': 'f', LIFEGUARD: 'lg', CONDUCTOR: 'cd', BARKER: 'br', LUMBERJACK: 'lj', 'PROFESSOR STATIC': 'ps',
   DRIZZLE: 'dz', 'BIG KID': 'b', 'NOSY NEIGHBOUR': 'n', NEIGHBOUR: 'n', 'MEGA-MECH': 'mech',
   /* 2026-11-03 audit: speakers that had no entry (they fell back to "any English voice", often the wrong sex) */
   'GRANDMA (EDMONTON)': 'm', 'GRANDMA (ONION LAKE)': 'm', GRANDMOTHERS: 'm', 'MALL WALKER': 'n', 'RODEO CLOWN': 'br',
-  'PUMPJACK PETE': 'f', "THE NEIGHBOUR'S WIFE": 'm', 'THE RACCOON KING': 'br', 'BRICK-REX': 'mech', 'MIRROR KINAN': 'k', SABUMNIM: 'd', EVERYONE: 'k', 'SHAD AND CHENOA': 's'
+  'PUMPJACK PETE': 'f', "THE NEIGHBOUR'S WIFE": 'm', 'THE RACCOON KING': 'br', 'BRICK-REX': 'mech', 'MIRROR KINAN': 'k', SABUMNIM: 'sb', EVERYONE: 'k', 'SHAD AND CHENOA': 's',
+  /* 2026-11-11 (Shad: "the voices are all the same"): Season 2's creatures, each its own kind of voice */
+  'MR. MOLE': 'f', 'KING CRAB': 'cd', 'THE MARKET MONKEY': 'br', 'THE SNOW MONKEY': 'ps', 'THE GIANT AXOLOTL': 'lg', 'THE PIGEON KING': 'cd',
+  'THE MONSOON FROG': 'dz', 'THE SAMURAI ARMOUR': 'lj', 'THE LAVA IGUANA': 'n', 'THE STONE GARGOYLE': 'dz'
 };
 const whoOfVoice = (name) => VO_WHO[String(name || '').trim().toUpperCase()] || null;
 const VO = {
@@ -1361,24 +1364,64 @@ const VO = {
     }
     return VO.clipsP;
   },
-  /* an English device voice for this speaker, or null (then nothing is spoken: never a voice in another language) */
+  /* an English device voice for this speaker, or null (then nothing is spoken: never a voice in another language).
+     2026-11-11 (Shad, on his phone: "the voices are all the same"): the device voice only fills in for a line whose
+     recording cannot play, but then everyone sounded alike: most wish lists began with "natural" (one voice for all on
+     Edge), Annie and Mom shared a voice on an iPhone, and a phone with one English voice used it for everybody. Now the
+     cast is dealt out: each speaker gets a voice of the right kind (the cast's own voice by name where the device has it),
+     speakers never share a voice while there is another one of the right kind, and the pitch and speed differ per speaker
+     (VO.tune) so even a single voice sounds like different people. */
+  cast: {}, castKey: '',
+  WANT: {
+    k: { g: 'f', names: ['ana', 'junior', 'maisie', 'kid'], langs: ['en-us', 'en-ca'] },
+    m: { g: 'f', names: ['jenny', 'samantha', 'zira', 'victoria', 'allison', 'susan'], langs: ['en-us'] },
+    c: { g: 'f', names: ['clara', 'karen', 'moira', 'tessa', 'natasha', 'emily'], langs: ['en-ca', 'en-au', 'en-ie', 'en-za', 'en-nz'] },
+    a: { g: 'f', names: ['neerja', 'heera', 'veena', 'lekha', 'isha', 'swara'], langs: ['en-in'] },
+    d: { g: 'm', names: ['roger', 'david', 'alex', 'tom', 'mark', 'aaron'], langs: ['en-us'] },
+    s: { g: 'm', names: ['brian', 'evan', 'nathan', 'guy', 'reed', 'aaron', 'gordon', 'lee'], langs: ['en-us', 'en-au'] },
+    sb: { g: 'm', names: ['liam', 'daniel', 'oliver', 'arthur', 'thomas'], langs: ['en-ca', 'en-gb'] },
+    gl: { g: 'f', names: ['junior', 'ana', 'kathy', 'princess', 'maisie'], langs: ['en-us'] },
+    n: { g: 'm', names: ['rishi', 'steffan', 'prabhat', 'ravi'], langs: ['en-in', 'en-us'] }, b: { g: 'm', names: ['guy', 'eric'], langs: [] },
+    f: { g: 'm', names: ['andrew', 'guy', 'mark'], langs: [] }, lg: { g: 'f', names: ['maisie', 'karen', 'emma', 'aria'], langs: ['en-au', 'en-gb'] },
+    cd: { g: 'm', names: ['ryan', 'daniel', 'oliver', 'william', 'george'], langs: ['en-gb', 'en-au'] }, br: { g: 'm', names: ['prabhat', 'fred', 'eric', 'rishi'], langs: ['en-in'] },
+    lj: { g: 'm', names: ['thomas', 'christopher', 'arthur', 'ralph'], langs: ['en-gb'] }, ps: { g: 'm', names: ['eric', 'david', 'steffan'], langs: [] },
+    dz: { g: 'm', names: ['christopher', 'guy', 'rishi', 'ralph'], langs: [] }, x: { g: '', names: [], langs: ['en-us'] }, mech: { g: 'm', names: ['fred', 'zarvox', 'ralph', 'guy'], langs: [] }
+  },
+  /* [pitch, speed] per speaker: far enough apart that one device voice still sounds like different people */
+  TUNE: {
+    k: [1.45, 1.08], m: [1.05, 1.0], c: [0.92, 1.06], a: [1.2, 1.03], d: [0.72, 0.96], s: [0.98, 1.06], sb: [0.55, 0.86], gl: [1.9, 1.15],
+    n: [0.9, 0.95], b: [0.7, 0.95], f: [0.85, 0.95], lg: [1.3, 1.02], cd: [0.8, 0.95], br: [1.25, 1.12], lj: [0.6, 0.88], ps: [1.15, 1.08], dz: [0.5, 0.84], mech: [0.65, 0.9], x: [1, 1]
+  },
+  SEX_F: /\b(female|woman|girl|ana|jenny|samantha|zira|victoria|allison|susan|ava|aria|emma|michelle|clara|karen|moira|tessa|natasha|emily|neerja|heera|veena|lekha|isha|swara|kathy|princess|maisie|libby|sonia|hazel|kate|serena|fiona|nicky|catherine|linda|molly|leah|sandy|shelley|flo|grandma|martha|stephanie|joana|salli|kendra|kimberly|ivy|joanna|amy|olivia|aditi|raveena)\b/i,
+  SEX_M: /\b(male|man|boy|roger|david|alex|tom|mark|aaron|brian|evan|nathan|guy|reed|gordon|lee|liam|daniel|oliver|arthur|thomas|rishi|steffan|prabhat|ravi|eric|andrew|ryan|william|george|fred|christopher|ralph|junior|albert|eddy|grandpa|rocko|james|connor|mitchell|luke|sam|wayne|matthew|justin|joey|russell|geraint)\b/i,
+  SILLY: /\b(bad news|good news|bahh|bells|boing|bubbles|cellos|jester|organ|superstar|trinoids|whisper|wobble|zarvox|albert|hysterical|deranged|pipe organ)\b/i,
+  /* how well a device voice suits a speaker (taken: the voices other speakers already have) */
+  score(v, i, code, taken) {
+    const W = VO.WANT[code], n = String(v.name || '').toLowerCase(), lang = String(v.lang || '').toLowerCase().replace('_', '-');
+    const sx = VO.SEX_F.test(n) ? 'f' : VO.SEX_M.test(n) ? 'm' : '';
+    const ni = W.names.findIndex((w) => new RegExp('\\b' + w + '\\b').test(n)), li = W.langs.indexOf(lang);
+    let sc = (ni >= 0 ? 120 - ni * 4 : 0) + (W.g ? (sx === W.g ? 45 : sx ? -70 : 0) : 0) + (li >= 0 ? 24 - li * 3 : 0);
+    if (taken.indexOf(v) >= 0) sc -= 60;                              /* someone else has this voice already */
+    if (VO.SILLY.test(n) && !(code === 'mech' && ni >= 0)) sc -= 300;   /* the joke voices (bells, whispers) never read a line */
+    if (/natural|neural|enhanced|premium/.test(n)) sc += 6;
+    return sc - i * 0.01;                                             /* otherwise the device's own order */
+  },
   pick(who) {
     try {
       if (!VO.voices.length && window.speechSynthesis) VO.voices = speechSynthesis.getVoices() || [];
       const en = VO.voices.filter((x) => /^en([-_]|$)/i.test(String(x.lang || '')));
-      const want = {
-        k: ['natural', 'kid', 'junior', 'alex', 'daniel'], m: ['natural', 'samantha', 'zira', 'victoria', 'female'],
-        c: ['natural', 'karen', 'moira', 'samantha', 'female'], d: ['natural', 'daniel', 'david', 'alex', 'male'],
-        s: ['natural', 'alex', 'fred', 'daniel', 'male'], n: ['natural', 'rishi', 'male'], b: ['male'], f: ['male'],
-        lg: ['karen', 'female'], cd: ['daniel', 'male'], br: ['fred', 'male'], lj: ['male'],
-        ps: ['david', 'male'], dz: ['rishi', 'male'], mech: ['fred', 'male'],
-        a: ['natural', 'heera', 'veena', 'female', 'samantha', 'zira']   /* Annie (2026-11-03 audit: she had none, so "male" came first) */
-      }[who] || ['male', 'female'];
-      for (const w of want) {
-        const hit = en.find((x) => (x.name || '').toLowerCase().indexOf(w) >= 0);
-        if (hit) return hit;
+      if (!en.length) return null;
+      const best = (code) => { const taken = Object.keys(VO.cast).map((k) => VO.cast[k]); let b = en[0], bs = -1e9; en.forEach((v, i) => { const sc = VO.score(v, i, code, taken); if (sc > bs) { bs = sc; b = v; } }); return b; };
+      const key = en.length + ':' + (en[0].name || '') + ':' + (en[en.length - 1].name || '');
+      if (key !== VO.castKey) {   /* the device's voice list changed (it loads late): deal again. The family first, the surest match
+                                     first (Mom gets "Samantha" on an iPhone, Annie the Indian English voice on an Android) */
+        VO.castKey = key; VO.cast = {};
+        const top = (code) => en.reduce((m, v, i) => Math.max(m, VO.score(v, i, code, [])), -1e9);
+        ['a', 'k', 'm', 'd', 'c', 's', 'sb', 'gl'].map((c, k) => [c, top(c), k]).sort((p, q) => q[1] - p[1] || p[2] - q[2]).forEach((t) => { VO.cast[t[0]] = best(t[0]); });
       }
-      return en[0] || null;
+      const code = VO.WANT[who] ? who : 'x';
+      if (!VO.cast[code]) VO.cast[code] = best(code);
+      return VO.cast[code];
     } catch (e) { return null; }
   },
   /* the device voice says one line: the fallback for a line the recordings do not cover (2026-10-31).
@@ -1399,11 +1442,7 @@ const VO = {
       const u = new SpeechSynthesisUtterance(text);
       u.voice = v; u.lang = v.lang;
       u.volume = vol;
-      const tune = {
-        k: [1.35, 1.06], m: [1.04, 1.0], c: [0.94, 1.04], d: [0.8, 0.98], s: [1.12, 1.02],
-        n: [0.9, 0.95], b: [0.7, 0.95], f: [0.85, 0.95], lg: [1.1, 1.02], cd: [0.8, 0.95],
-        br: [1.05, 1.05], lj: [0.75, 0.92], ps: [1.15, 1.05], dz: [0.6, 0.88], mech: [0.65, 0.9], a: [1.08, 1.02]
-      }[who] || [1, 1];
+      const tune = VO.TUNE[VO.WANT[who] ? who : 'x'];
       u.pitch = tune[0];
       u.rate = tune[1];
       speechSynthesis.speak(u);
@@ -3629,6 +3668,7 @@ function worldMapScreen(o) {
    ============================================================ */
 const STORY = window.KINAN_STORY || null;
 const storyBox = document.getElementById('storyLine');
+const S2SAY_AT = {};   /* a Season 2 moment line's id -> { lvl, last } (s2Say fills it) */
 const TALK_AT = {};   /* a level talk line's id -> its spot: { x, lvl, group, last } (the level builder fills it; Story.stale reads it) */
 const Story = {
   q: [], cur: null, timer: 0, poll: 0, log: [], mapWorld: 0, barkN: {},
@@ -3676,6 +3716,8 @@ const Story = {
   },
   holdF: 0, holdMax: 0,
   stale(id) {
+    const sa = S2SAY_AT[id];
+    if (sa) return !(L && L.levelId === sa.lvl && !L.cleared && !el.stage.hidden) && !sa.last;   /* Season 2: a boss's or helper's line is for its level only */
     const ta = TALK_AT[id];
     if (!ta || Story.started[ta.group]) return false;
     const here = !!(L && L.levelId === ta.lvl && !L.cleared && !el.stage.hidden);
@@ -3691,7 +3733,7 @@ const Story = {
     const it = Story.q.shift(), d = Story.line(it.id), fx = (STORY.fx && STORY.fx[it.id]) || null;
     if (TALK_AT[it.id]) Story.started[TALK_AT[it.id].group] = true;
     Story.cur = { id: it.id, kind: it.kind, d: d, fx: fx };
-    Story.log.push({ id: it.id, kind: it.kind, src: d[3] || null, fx: fx, at: Date.now() });
+    Story.log.push({ id: it.id, kind: it.kind, src: d[3] || null, clip: lineClip(d), who: d[0], fx: fx, at: Date.now() });
     if (fx === 'wheeze') { Story.wheezes++; SFX.wheeze(); }   /* Dad can't get the joke out: the breathy hee-hee-hee */
     if (Story.log.length > 300) Story.log.shift();
     /* 2026-10-31: a line with no recording is said by the device voice (a clip always wins); muted or the
@@ -8970,7 +9012,7 @@ function toast(html, ms, hold) {
   /* Season 2 (Shad's audit, 2026-11-10: "are people talking over each other?"): in Worlds 12-15 a line someone SAYS
      (Robin's burger, Mom's care package...) waits its turn in the line queue and is voiced, like every other line */
   const said = /^<b>(ROBIN|DAD|MOM|ANNIE|SHAD|CHENOA|KINAN|GLITCHY|SABUMNIM|GRANDPA):<\/b>\s*(.+)$/.exec(String(html));
-  if (said && running && L && L.s2 && !el.stage.hidden && STORY && STORY.lines && typeof s2Say === 'function') { s2Say(said[1], said[2].replace(/<[^>]+>/g, ''), (ms || 2400) / 1000); return; }
+  if (said && running && L && L.s2 && !el.stage.hidden && STORY && STORY.lines && typeof s2Say === 'function') { s2Say(said[1], s2CleanSaid(said[2]), (ms || 2400) / 1000); return; }
   const now = Date.now();
   if (!hold && now < toastHold) return;
   if (hold) toastHold = now + (ms || 1600);
@@ -10651,6 +10693,7 @@ function s2PetsFollow() {
   if (P.s2warp) { if (S.path.length) S.path.length = 0; return; }   /* he's inside the pipe: they wait, then pop out after him */
   if (!last || Math.hypot(here.x - last.x, here.y - last.y) >= 2) { tr.push(here); if (tr.length > 400) tr.shift(); } else if (here.g && !last.g) last.g = true;
   const overGap = (x) => S.hazards.some((Z) => x > Z.x0 - 6 && x < Z.x1 + 6);
+  const Z0 = (Z) => Z.x0 + 2;
   const floorAt = (x0, x1, yb, prevB) => { const ty = Math.floor(yb / T); for (let tx = Math.floor(x0 / T); tx <= Math.floor(x1 / T); tx++) if (solid(tx, ty) || (tileAt(tx, ty) === 7 && prevB <= ty * T + 0.5)) return ty * T; return null; };
   const all = pets.cats.map((c) => [c, 10]).concat(pets.dogs.map((d) => [d, 11]));
   all.forEach(([pet, hgt], k) => {
@@ -10660,6 +10703,32 @@ function s2PetsFollow() {
     if (!pt) return;
     const tx = pt.x - 6, ty = pt.y - hgt;
     pet.face = pt.face; pet.s2swim = pt.swim; pet.s2climb = pt.climb;
+    /* a WIDE gap (ropes, monkey bars, rings, a dash, a glide: 5+ tiles): a pet cannot hang from a rope, so it waits at the
+       edge until Kinan is across, then leaps over in one big jump (2026-11-11: they hovered in mid-air behind him) */
+    const grav = () => {
+      const prevB = pet.y + hgt;
+      pet.s2vy = Math.min(7, (pet.s2vy || 0) + 0.45); pet.y += pet.s2vy;
+      const fl = pet.s2vy >= 0 ? floorAt(pet.x + 2, pet.x + 10, pet.y + hgt, prevB) : null;
+      if (fl != null) { pet.y = fl - hgt; pet.s2vy = 0; pet.s2g = true; } else pet.s2g = false;
+    };
+    if (pet.s2leap) {
+      const J = pet.s2leap, q = Math.min(1, ++J.t / J.dur);
+      pet.x = J.x0 + (tx - J.x0) * q; pet.y = J.y0 + (ty - J.y0) * q - Math.sin(Math.PI * q) * J.h; pet.s2vy = 0; pet.s2g = false; pet.face = tx >= J.x0 ? 1 : -1;
+      if (q >= 1) { pet.s2leap = null; dust(pet.x + 6, pet.y + hgt, 3); }
+      return;
+    }
+    const wideGap = (Z) => Z.x1 - Z.x0 >= 5 * T, pc = pet.x + 6;
+    const ZW = !pt.climb && !pt.swim ? S.hazards.find((Z) => wideGap(Z) && pt.x > Z.x0 - 6 && pt.x < Z.x1 + 6) : null;
+    if (ZW && (pc <= Z0(ZW) || pc >= ZW.x1 - 2)) {   /* he is over it and the pet is still on the bank: wait there, watching him */
+      if (pc <= Z0(ZW)) pet.x = Math.min(pet.x, ZW.x0 - 18); else pet.x = Math.max(pet.x, ZW.x1 + 6);
+      pet.face = pt.x > pc ? 1 : -1; grav(); return;
+    }
+    const ZB = S.hazards.find((Z) => wideGap(Z) && ((pc <= Z0(Z) && pt.x >= Z.x1 - 6) || (pc >= Z.x1 - 2 && pt.x <= Z.x0 + 6)));
+    if (ZB && !pt.climb && !pt.swim) {   /* he is across: the big jump */
+      pet.s2leap = { x0: pet.x, y0: pet.y, t: 0, dur: 22 + Math.min(16, Math.round((ZB.x1 - ZB.x0) / T)), h: 26 + Math.min(34, (ZB.x1 - ZB.x0) / 8) };
+      dust(pet.x + 6, pet.y + hgt, 3); if (k === 0) AudioSys.tone(520, 0.07, { type: 'triangle', vol: 0.05, slide: 880 });
+      return;
+    }
     if (Math.hypot(tx - pet.x, ty - pet.y) > 80) { pet.x = tx; pet.y = ty; pet.s2vy = 0; sparks(tx + 6, ty + 4, 6, ['#fff', '#9fe0ff']); return; }   /* out of a pipe or door (or left far behind): a poof */
     pet.x = tx;
     if (pt.climb || pt.swim || overGap(pt.x)) { pet.y = ty; pet.s2vy = 0; pet.s2g = false; }   /* up the ladder, through the water, across the gap: right behind him */
@@ -11476,7 +11545,7 @@ function drawS2Front() {
      glide: true      (France) hold JUMP while falling: his jacket opens like a kite and he glides; updrafts lift him
      updrafts [[c0, r0, c1, r1]] · skate [[c0, c1]] (France) the SKATEBOARD: much faster on these streets
    Bosses (s2boss): kind 'popper' (the mole's fight, look: monkey | snowmonkey | axolotl | pigeon), kind 'rise' (the tide,
-   look: glitch | flood | lava | tide | gargoyle; summit: crab | frog | tanuki | iguana | gargoyle, or none), kind 'chase'
+   look: glitch | flood | lava | tide | gargoyle; summit: crab | frog | samurai | iguana | gargoyle, or none), kind 'chase'
    (the avalanche: it rolls in from the left; outrun it to col1).
    ============================================================ */
 function s2BuildWorld(a, base, s2) {
@@ -11513,10 +11582,8 @@ function s2WorldMoves(left, right, holdJump) {
   const S = L.s2, F = feel(), cx = P.x + P.w / 2;
   /* ROPES AND THE GRAPPLING HOOK: one pendulum (a rope's top, or a ring) */
   if (P.s2ropeCd > 0) P.s2ropeCd--;
-  if (P.onGround) P.s2ropeLast = null;
   if (!P.s2rope && !P.onGround && !(P.s2ropeCd > 0)) {
     for (const R of S.ropes) {
-      if (P.s2ropeLast === R && Math.abs(cx - R.ax) < 28) continue;   /* the rope he just let go of: not again until he lands or swings clear */
       const th = s2RopeAt(R), dx = Math.sin(th), dy = Math.cos(th), hx = cx - R.ax, hy = P.y + 3 - R.ay;
       const along = hx * dx + hy * dy, off = Math.abs(hx * dy - hy * dx);
       if (along > 10 && along < R.len && off < 9) {
@@ -11541,8 +11608,7 @@ function s2WorldMoves(left, right, holdJump) {
     if (input.jumpBuf > 0 || input.down || P.dead) {   /* let go: he flies off with the swing, plus a hop */
       const vx = R.r * Math.cos(R.th) * R.om, vy = -R.r * Math.sin(R.th) * R.om;
       P.vx = clamp(vx, -3.8, 3.8); P.vy = clamp(Math.min(vy, 2) - (input.down ? 0 : 2.6), -6.2, 3);
-      if (Math.abs(P.vx) < 1.6 && !input.down) P.vx = (P.face || 1) * 1.6;   /* letting go of a still rope: a little hop off it, the way he faces */
-      P.s2ropeLast = R.ring ? null : S.ropes.find((q) => q.ax === R.ax && q.ay === R.ay) || null;   /* a fling of 5-8 tiles from a good swing (not a whole screen) */
+      if (Math.abs(P.vx) < 1.8 && !input.down) P.vx = (P.face || 1) * 1.8;   /* letting go of a still rope: a hop off it, the way he faces (clear of the rope: it is not caught again by accident) */   /* a fling of 5-8 tiles from a good swing (not a whole screen) */
       P.s2rope = null; P.s2ropeCd = 16; input.jumpBuf = 0; P.cuttable = false; P.jumpT = 0; s2Sound('hup');
       if (Math.abs(P.vx) > 0.5) P.face = P.vx > 0 ? 1 : -1;
       return false;
@@ -11646,8 +11712,6 @@ const S2_SUMMITS = {
     friend: 'Phew! I was only grumpy because of the glitch water. Thanks, friend! The way out is open.' },
   frog: { who: 'THE MONSOON FROG', start: 'RIBBIT! All this rain is MINE! Hop away, little climber!', smart: ['THE FROG IS GETTING FASTER!', 'NOW HE IS REALLY FAST!'],
     friend: 'Ribbit... the glitch made me SO grumpy. Thank you, friend! Your Glitchy is right over there.' },
-  tanuki: { who: 'THE BIG TANUKI', start: 'Hoho! Visitors! I can be anything I like. Can you catch me?', smart: ['THE TANUKI IS GETTING TRICKIER!', 'NOW HE IS REALLY TRICKY!'],
-    friend: 'Hohoho! A little song and a sweet dango... Annie, you know tanuki well! Arigato, friends!' },
   iguana: { who: 'THE LAVA IGUANA', start: 'HSSSS! Hot, hot, HOT! Who climbed MY volcano?', smart: ['THE IGUANA IS GETTING HOTTER!', 'NOW HE IS REALLY HOT!'],
     friend: 'Hsss... ahh, that feels better. The glitch made me so hot-headed! Gracias, amigo!' },
   samurai: { who: 'THE SAMURAI ARMOUR', start: 'HM! Who climbs the White Heron Castle? Show me your spirit, young one!', smart: ['THE ARMOUR IS GETTING QUICKER!', 'NOW IT FIGHTS LIKE A MASTER!'],
@@ -11754,11 +11818,6 @@ function s2SummitDraw(look, c, x, y, tell) {
     for (const ex of [4, 20]) { R('#1b1220', ex - 1, -3, 8, 8); R('#7ad06a', ex, -2, 6, 6); R('#fff', ex + 1, -1, 4, 3); R('#1b1220', ex + (c.dir > 0 ? 3 : 1), 0, 2, 2); }
     if (tell) { R('#ff9a3a', -2, 9, 6, 6); R('#ff9a3a', c.w - 4, 9, 6, 6); }
     R('#2f7a2a', -4, 15, 8, 4); R('#2f7a2a', c.w - 4, 15, 8, 4);
-  } else if (look === 'tanuki') {
-    R('#1b1220', -1, 1, c.w + 2, 18); R(fr ? '#c8945a' : '#a8743a', 0, 2, c.w, 16); R('#f0d8b0', 7, 9, 16, 8); R('#3a2a1e', 5, 5, 20, 4);
-    R('#fff', 8, 5, 3, 3); R('#fff', 19, 5, 3, 3); R('#1b1220', 9, 6, 1, 1); R('#1b1220', 20, 6, 1, 1); R('#1b1220', 4, -2, 5, 4); R('#1b1220', 21, -2, 5, 4);
-    R('#5aa83a', 12, -6 + up / 2, 6, 4); R('#3f8a2a', 14, -8 + up / 2, 2, 3);
-    const tx = c.dir > 0 ? -10 : c.w; for (let k = 0; k < 4; k++) R(k % 2 ? '#3a2a1e' : '#a8743a', tx + (c.dir > 0 ? 0 : 0), 6 + k * 3, 10, 3);
   } else if (look === 'iguana') {
     R('#1b1220', -1, 5, c.w + 2, 13); R(fr ? '#7ac85a' : '#4f9a3a', 0, 6, c.w, 11); R('#e8a040', 4, 12, c.w - 8, 4);
     for (let k = 0; k < 6; k++) R(tell ? '#ffb02e' : '#e8452e', 3 + k * 4, 2 + (k % 2), 3, 4);
@@ -11782,7 +11841,7 @@ function s2SummitDraw(look, c, x, y, tell) {
     for (let k = 0; k < 3; k++) { R('#1b1220', 3 + k * 4, 17, 2, 3); R('#1b1220', c.w - 5 - k * 4, 17, 2, 3); }
   }
 }
-const S2_SUMMIT_SHOTS = { samurai: ['#ffb3d0', '#ffd6e6'], crab: ['rgba(230,247,255,.9)', 'rgba(111,200,255,.9)'], frog: ['#d6f0ff', '#6fc8ff'], tanuki: ['#3f8a2a', '#7ad06a'], iguana: ['#ff5a1f', '#ffd36a'], gargoyle: ['#5a566a', '#a8a4b8'] };
+const S2_SUMMIT_SHOTS = { samurai: ['#ffb3d0', '#ffd6e6'], crab: ['rgba(230,247,255,.9)', 'rgba(111,200,255,.9)'], frog: ['#d6f0ff', '#6fc8ff'], iguana: ['#ff5a1f', '#ffd36a'], gargoyle: ['#5a566a', '#a8a4b8'] };
 /* the flashlight's beam in a dark place (India): a cone the way he faces, a small glow round him */
 function s2TorchDark(a, b, ox) {
   const cx = P.x + P.w / 2 - ox, cy = P.y + P.h / 2, d = P.face || 1, L1 = 170, sp = 0.42;
@@ -11874,10 +11933,13 @@ const s2GoalLocked = () => !!(L.s2 && L.s2.bosses.some((b) => b.lockGoal && (b.s
 /* a Season 2 line said in the moment (a boss, Glitchy's tip, Sabumnim): it joins the same line queue as everyone else
    (Shad's audit: two people must never talk at once, and every line is heard: subtitle and voice), ahead of what waits */
 let s2LineN = 0;
+/* a helper's message as a spoken line: no tags, no emoji, no "+2" at the end (the words are what its recording is keyed by) */
+function s2CleanSaid(t) { return String(t).replace(/<[^>]+>/g, '').replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}\u{FE0F}]/gu, '').replace(/\s*\+\d+\s*$/, '').replace(/\s+/g, ' ').trim(); }
 function s2Say(who, text, secs, back) {
   if (!STORY || !STORY.lines) { toastHold = 0; toast('<b>' + escAttr(who) + ':</b> ' + escAttr(text), Math.round((secs || 2.4) * 1000)); return; }
   const id = 's2say_' + (++s2LineN);
   STORY.lines[id] = [who, text, Math.max(secs || 0, Math.min(6, Math.max(2.4, text.length / 15))), null];
+  S2SAY_AT[id] = { lvl: L ? L.levelId : null, last: !!back };
   if (back) Story.add([id], 'open');
   else {   /* ahead of the level's waiting lines, but after the moment-lines already waiting (they keep their order) */
     let at = 0; while (at < Story.q.length && /^s2say_/.test(Story.q[at].id)) at++;
@@ -11887,7 +11949,7 @@ function s2Say(who, text, secs, back) {
 }
 function s2SayAll(lines) {   /* several lines in a row, all ahead of what waits (a boss and its tip) */
   if (!STORY || !STORY.lines) { lines.forEach((t) => s2Say(t[0], t[1], t[2])); return; }
-  const ids = lines.map((t) => { const id = 's2say_' + (++s2LineN); STORY.lines[id] = [t[0], t[1], Math.max(t[2] || 0, Math.min(6, Math.max(2.4, t[1].length / 15))), null]; return id; });
+  const ids = lines.map((t) => { const id = 's2say_' + (++s2LineN); STORY.lines[id] = [t[0], t[1], Math.max(t[2] || 0, Math.min(6, Math.max(2.4, t[1].length / 15))), null]; S2SAY_AT[id] = { lvl: L ? L.levelId : null, last: false }; return id; });
   Story.add(ids, 'open', true);
 }
 function s2Banner(text) { pop(P.x - 40, P.y - 30, text, 80, '#f6c445'); SFX.power(); }
@@ -14532,14 +14594,14 @@ function drawPlayer() {
   if (P.slam && KS.slam_tuck) img = KS.slam_tuck;   /* the butt slam: tucked for the spin and the drop, sitting for the landing */
   else if (P.slamLand > 0 && P.onGround && KS.slam_sit) img = KS.slam_sit;
   /* Season 2 poses (block "SEASON 2 MOVES"): his back on a ladder or vine, hands up on a ledge, strokes in water, the kick off a wall */
-  let s2face = 0, s2dx = 0, s2dy = 0;
+  let s2face = 0, s2dx = 0, s2dy = 0, s2lie = false;
   if (L.s2 && !P.slam && KS.s2_climbA) {
     if (P.s2climb || (P.s2ledge && P.s2ledge.pull)) { img = Math.floor(P.anim * 2) % 2 ? KS.s2_climbA : KS.s2_climbB; s2face = 1; }
     else if (P.s2ledge) { img = KS.s2_hang; s2face = 1; s2dx = P.s2ledge.d * 5; }
     else if (P.s2swim && !P.onGround) img = P.s2stroke > 0 || Math.floor(frame / 40) % 2 ? KS.s2_swimA : KS.s2_swimB;
     else if (P.s2lock > 4 && KS.kick_air) { img = KS.kick_air; s2face = -P.face; }   /* the taekwondo kick off the wall: his foot on it */
     else if (P.s2rope || P.s2bar) { img = KS.s2_hang; s2face = 1; }   /* hands up on a rope or the monkey bars */
-    else if (P.s2crawl) { img = Math.floor(P.anim * 3) % 2 ? KS.s2_swimA : KS.s2_swimB; s2dy = 3; }   /* down on hands and knees */
+    else if (P.s2crawl) { img = Math.floor(P.anim * 3) % 2 ? KS.kWalk : KS.kStand; s2lie = true; }   /* down flat, head first (Shad's audit: he stood up in the tunnel) */
     else if (P.s2glide) {   /* his jacket open like a kite over his head */
       img = KS.s2_hang; s2face = 1; const gx = Math.round(P.x + P.w / 2 - camX), gy = Math.round(P.y) - 8, fl = Math.floor(frame / 8) % 2;
       ctx.fillStyle = '#1b1220'; ctx.fillRect(gx - 17, gy - 1, 34, 6); ctx.fillStyle = '#e8364b'; ctx.fillRect(gx - 16, gy + fl, 32, 4); ctx.fillStyle = '#f6c445'; ctx.fillRect(gx - 4, gy + fl, 8, 4);
@@ -14571,7 +14633,8 @@ function drawPlayer() {
   ctx.save();
   ctx.translate(sx + 8, sy + 18);
   if (P.skid > 0) ctx.rotate(P.face * -0.2094);   /* §1.2: lean back 12° while skidding */
-  if (P.slam === 'spin') { ctx.translate(0, -9); ctx.rotate(P.face * (1 - P.slamT / SLAM_SPIN) * 6.2832); ctx.translate(0, 9); }   /* the butt slam: one full spin round his middle */
+  if (P.slam === 'spin') { ctx.translate(0, -9); ctx.rotate(P.face * (1 - P.slamT / SLAM_SPIN) * 6.2832); ctx.translate(0, 9); }
+  if (s2lie) { ctx.translate(0, -8 + (Math.floor(P.anim * 3) % 2)); ctx.rotate(P.face * 1.5708); ctx.translate(0, 9); }   /* crawling: lying forward, a little wriggle */   /* the butt slam: one full spin round his middle */
   ctx.scale(scaleX, scaleY);
   ctx.translate(-8, -18);
   if ((s2face || P.face) < 0) { ctx.translate(16, 0); ctx.scale(-1, 1); }
@@ -29238,6 +29301,7 @@ window.__k11 = window.__k11DevOnly() ? {
     bosses: L && L.s2 ? L.s2.bosses.map((B) => ({ kind: B.kind, look: B.look, state: B.state, hits: B.hits, wallX: B.wallX, tideY: B.tideY, summitY: B.summitY,
       crab: B.crab ? { x: B.crab.x, w: B.crab.w, st: B.crab.st } : null, hole: B.hole ? { x: B.hole.x, y: B.hole.y } : null })) : [] }),
   solidAt: (x, y) => !!solid(x, y), tileAt: (x, y) => tileAt(x, y),
+  voCast: (list, names) => { VO.voices = list.map(([name, lang]) => ({ name: name, lang: lang })); VO.cast = {}; VO.castKey = ''; const out = {}; for (const who of names) { const c = whoOfVoice(who), v = VO.pick(c); out[who] = [v ? v.name : null, VO.TUNE[VO.WANT[c] ? c : 'x'][0]]; } return out; },   /* dev: which device voice each speaker would get from this voice list */
   beatLevel: (id) => owLevelBeaten(id, 0),   /* dev: count a level as beaten (map tests) */
   s2BossHits: (n) => { for (const B of L.s2 ? L.s2.bosses : []) if (B.state !== 'friend' && B.state !== 'wait') B.hits = n; return true; },   /* dev: skip ahead in a fight */   /* Worlds 12-15 moves (dev) */
   where: () => ({ x: P.x, y: P.y, w: P.w, h: P.h, vx: P.vx, vy: P.vy, onGround: P.onGround, hp: P.hp, camX: camX, camY: camY, up: L ? L.up | 0 : 0, levelId: L ? L.levelId || null : null, cols: L ? L.w : 0 }),

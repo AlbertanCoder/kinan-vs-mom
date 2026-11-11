@@ -73,3 +73,62 @@ describe('the level talk bubbles speak (Dad and Grandpa)', () => {
     expect(bytes).toBeLessThan(30 * 1048576);
   });
 });
+
+/* SEASON 2's VOICES (Shad, 2026-11-11: "the voices are all the same"): Worlds 12-15 had no recordings, so every line was
+   read by the device's own voice. Now every Season 2 line has its recording in the cast's voices (tools/rec-all-lines.py):
+   the levels' talk lines and the lines said in the moment (a boss, the rescue at a castle, a chase), all found by
+   speaker + words (audio/talk/<hash>.mp3, listed in audio/talk/clips-all.js). */
+describe('Season 2 (Worlds 12-15): every line has its recording', () => {
+  const c: Record<string, unknown> = {}; c.self = c; createContext(c);
+  runInContext(readFileSync(join(ROOT, 'audio', 'talk', 'clips.js'), 'utf8'), c);
+  runInContext(readFileSync(join(ROOT, 'audio', 'talk', 'clips-all.js'), 'utf8'), c);
+  const CLIPS = c.KINAN_TALK_CLIPS as Record<string, number>;
+  type Boss = { say?: [string, string]; done?: [string, string]; after?: [string, string, number?][] };
+  type Area = { talk?: Talk[]; s2boss?: Boss };
+  const lines: { id: string; who: string; text: string }[] = [];
+  for (const w of readdirSync(join(ROOT, 'levels')).filter((d) => /^w1[2-5]$/.test(d))) {
+    for (const f of readdirSync(join(ROOT, 'levels', w)).filter((x) => x.endsWith('.js'))) {
+      const defs: { id: string; areas?: Area[] }[] = []; const reg = { register: (d: { id: string; areas?: Area[] }) => defs.push(d) };
+      const cx: Record<string, unknown> = { KinanLevels: reg }; createContext(cx);
+      runInContext(readFileSync(join(ROOT, 'levels', w, f), 'utf8'), cx);
+      for (const d of defs) for (const a of d.areas || []) {
+        for (const t of a.talk || []) lines.push({ id: d.id, who: t[1], text: t[2] });
+        const b = a.s2boss;
+        if (b && b.say) lines.push({ id: d.id, who: b.say[0], text: b.say[1] });
+        if (b && b.done) lines.push({ id: d.id, who: b.done[0], text: b.done[1] });
+        for (const t of (b && b.after) || []) lines.push({ id: d.id, who: t[0], text: t[1] });
+      }
+    }
+  }
+  const html = readFileSync(join(ROOT, 'index.html'), 'utf8');
+  const table = (name: string): Record<string, Record<string, unknown>> => {
+    const m = new RegExp('const ' + name + ' = (\\{[\\s\\S]*?\\n\\});').exec(html);
+    expect(m, name).not.toBeNull();
+    return runInContext('(' + m![1] + ')', createContext({})) as Record<string, Record<string, unknown>>;
+  };
+  const POP = table('S2_POPPERS'), SUM = table('S2_SUMMITS'), RISE = table('S2_RISES');
+  for (const k of Object.keys(POP)) { const p = POP[k] as Record<string, string>; lines.push({ id: k, who: p.who, text: p.start }, { id: k, who: 'GLITCHY', text: p.tip }, { id: k, who: p.who, text: p.friend }, { id: k, who: 'SABUMNIM', text: p.sab }); }
+  for (const k of Object.keys(SUM)) { const p = SUM[k] as Record<string, string>; lines.push({ id: k, who: p.who, text: p.start }, { id: k, who: p.who, text: p.friend }); }
+  for (const k of Object.keys(RISE)) { const say = RISE[k].say as [string, string]; lines.push({ id: k, who: say[0], text: say[1] }); }
+  for (const tbl of ['S2_END_LINES', 'S2_FINAL_LINES']) { const t = table(tbl) as unknown as Record<string, [string, string, number]>; for (const id of Object.keys(t)) lines.push({ id: id, who: t[id][0], text: t[id][1] }); }
+
+  it('every talk line, boss line and cutscene line of Worlds 12-15 has its clip, and the file is there', () => {
+    expect(lines.length).toBeGreaterThan(220);
+    const missing = lines.filter((l) => !CLIPS[talkHash(l.who, l.text)] || !existsSync(join(ROOT, 'audio', 'talk', talkHash(l.who, l.text) + '.mp3')));
+    expect(missing.map((l) => `${l.id} ${l.who}: ${l.text.slice(0, 50)}`)).toEqual([]);
+  });
+
+  it('every Season 2 speaker has a voice of their own in the recording cast and a kind of device voice for the fallback', () => {
+    const cast = readFileSync(join(ROOT, 'tools', 'rec-all-lines.py'), 'utf8');
+    const who = [...new Set(lines.map((l) => l.who))];
+    for (const w of who) {
+      expect(cast, `${w} in tools/rec-all-lines.py`).toContain(`'${w}': (`);
+      expect(html, `${w} in VO_WHO`).toMatch(new RegExp(`(?:'${w.replace(/[.]/g, '\\.')}'|\\b${w.replace(/[.]/g, '\\.')}): '[a-z]+'`));
+    }
+    /* the family never shares a recorded voice */
+    const voiceOf = (w: string): string => new RegExp(`'${w}': \\('([A-Za-z-]+)', '([^']+)', '([^']+)'`).exec(cast)!.slice(1, 4).join(' ');
+    const fam = ['KINAN', 'MOM', 'DAD', 'CHENOA', 'SHAD', 'ANNIE', 'SABUMNIM', 'GLITCHY'].map(voiceOf);
+    expect(new Set(fam).size).toBe(fam.length);
+  });
+});
+
