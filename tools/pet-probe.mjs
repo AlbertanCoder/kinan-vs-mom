@@ -50,15 +50,17 @@ const THRESHOLDS = {
   speedSpikes: { max: 0, why: 'no sliding or racing across the screen: never faster than Kinan can run (+1 px) except in a poof' },
   turnMaxDx: { max: KINAN_TOP, why: 'when Kinan turns around the pets stop and turn: in the 40 frames after a turn no pet moves faster than his top run speed' },
   pitFrames: { max: 0, why: 'never into a bottomless pit or the Season 2 glitch' },
-  poofsPerMinute: { max: 2, why: 'poofing back beside Kinan is the rare rescue for a pet left far behind, not how they move (per pet, per minute of play)' },
-  catMedianPx: { max: 36, why: 'the cat follows about one body behind Kinan (median distance)' },
-  dogMedianPx: { max: 56, why: 'the dog follows a little further back than the cat, never 80+ px (median distance)' }
+  poofsPerMinute: { max: 2, why: 'poofing back beside Kinan is the rare rescue for a pet left far behind, not how they move (per pet, per minute of play; the poof that brings them back after Kinan himself respawns or goes through a pipe is counted apart, as respawnPoofs)' },
+  catSettledPx: { max: 24, why: 'the cat stands about one body behind Kinan (median distance once he has stood still for a second)' },
+  dogSettledPx: { max: 44, why: 'the dog stands a little further back than the cat (median distance once he has stood still for a second)' },
+  catMedianPx: { max: 60, why: 'the cat keeps close while he plays (median over all frames; it includes waiting at a gap until he lands, which Shad asked for)' },
+  dogMedianPx: { max: 79, why: 'the dog keeps close while he plays: never the old 80+ px (median over all frames, waiting at gaps included)' }
 };
 
 /* the driving script, the same in every level: [kind, frames, held keys] */
 const SCRIPT = [
   ['auto', 240],
-  ['hold', 40, {}],                                   /* stop */
+  ['hold', 120, {}],                                  /* stop and stand still for two seconds (the pets settle behind him) */
   ['hold', 50, { left: true }],                       /* turn around and walk back past the pets */
   ['hold', 25, {}],
   ['hold', 70, { right: true }],                      /* turn again */
@@ -69,7 +71,7 @@ const SCRIPT = [
   ['hold', 1, { right: true, tapJump: true, jump: true }], ['hold', 14, { right: true, jump: true }], ['hold', 30, { right: true }],
   ['hold', 90, { right: true }],                      /* a plain run: walks off ledges (and into a pit now and then) */
   ['auto', 300],
-  ['hold', 40, {}], ['hold', 60, { left: true }], ['hold', 30, {}], ['hold', 60, { right: true }],
+  ['hold', 120, {}], ['hold', 60, { left: true }], ['hold', 30, {}], ['hold', 60, { right: true }],
   ['auto', 420]
 ];
 const CASTLE_EXTRA = 900;   /* a castle or fort: more autopilot, so the boss arena is reached */
@@ -93,20 +95,21 @@ function hashes() {
 
 /* ---------------------------------------------------------------- thresholds */
 function totals(levels) {
-  const t = { inWallFrames: 0, floatingFrames: 0, speedSpikes: 0, turnMaxDx: 0, pitFrames: 0, poofs: 0, petFrames: 0, catDist: [], dogDist: [], turns: 0 };
+  const t = { catSettled: [], dogSettled: [], inWallFrames: 0, floatingFrames: 0, speedSpikes: 0, turnMaxDx: 0, pitFrames: 0, poofs: 0, respawnPoofs: 0, petFrames: 0, catDist: [], dogDist: [], turns: 0 };
   for (const id of Object.keys(levels)) {
     for (const p of levels[id].pets) {
       t.inWallFrames += p.inWallFrames; t.floatingFrames += p.floatingFrames; t.speedSpikes += p.speedSpikes;
-      t.turnMaxDx = Math.max(t.turnMaxDx, p.turnMaxDx); t.pitFrames += p.pitFrames; t.poofs += p.poofs; t.petFrames += p.frames;
+      t.turnMaxDx = Math.max(t.turnMaxDx, p.turnMaxDx); t.pitFrames += p.pitFrames; t.poofs += p.poofs; t.respawnPoofs += p.respawnPoofs || 0; t.petFrames += p.frames;
       (p.kind === 'cat' ? t.catDist : t.dogDist).push(p.medianDist);
+      if (p.settledDist != null) (p.kind === 'cat' ? t.catSettled : t.dogSettled).push(p.settledDist);
     }
     t.turns += levels[id].turns;
   }
   const med = (a) => { const s = a.slice().sort((x, y) => x - y); return s.length ? s[Math.floor(s.length / 2)] : 0; };
   return {
     inWallFrames: t.inWallFrames, floatingFrames: t.floatingFrames, speedSpikes: t.speedSpikes, turnMaxDx: Math.round(t.turnMaxDx * 100) / 100,
-    pitFrames: t.pitFrames, poofs: t.poofs, poofsPerMinute: Math.round((t.poofs / Math.max(1, t.petFrames / 3600)) * 100) / 100,
-    catMedianPx: med(t.catDist), dogMedianPx: med(t.dogDist), petFrames: t.petFrames, turns: t.turns
+    pitFrames: t.pitFrames, poofs: t.poofs, respawnPoofs: t.respawnPoofs, poofsPerMinute: Math.round((t.poofs / Math.max(1, t.petFrames / 3600)) * 100) / 100,
+    catMedianPx: med(t.catDist), dogMedianPx: med(t.dogDist), catSettledPx: med(t.catSettled), dogSettledPx: med(t.dogSettled), petFrames: t.petFrames, turns: t.turns
   };
 }
 function judge(tot) {
@@ -142,36 +145,43 @@ function pageInstall(opts) {
   w.__petSeed = seed;
   const KTOP = opts.KINAN_TOP;
   const R = w.__petProbe = { on: false, pets: {}, turns: [], f: 0, prevP: null, prevFace: 0, shots: null, sheet: null };
-  const box = (p, hgt) => {   /* the body: 8 px wide in the middle of the 12 px sprite, from 2 px under its top to 2 px over its feet */
-    for (let ty = Math.floor((p.y + 2) / T); ty <= Math.floor((p.y + hgt - 2) / T); ty++)
-      for (let tx = Math.floor((p.x + 2) / T); tx <= Math.floor((p.x + 9) / T); tx++) if (tx >= 0 && tx < L.w && solid(tx, ty)) return true;
+  /* inside a wall: the core of its body (6 px across its middle, from 2 px under its top to 4 px over its feet) in a solid
+     tile. (The feet corners are left out: on a slope Kinan's own body corner dips into the block under the next slope tile.) */
+  const mid = (p) => p.x + (p.w || 12) / 2;   /* the middle of a pet (the old pets had no w: 12 px) */
+  const box = (p, hgt) => {
+    const cx = mid(p);
+    for (let ty = Math.floor((p.y + 2) / T); ty <= Math.floor((p.y + hgt - 4) / T); ty++)
+      for (let tx = Math.floor((cx - 3) / T); tx <= Math.floor((cx + 3) / T); tx++) if (tx >= 0 && tx < L.w && solid(tx, ty)) return true;
     return false;
   };
+  /* standing: ground under some part of its body (12 px wide, or its own w; the rule Kinan's own feet use), a slope, or a moving platform */
   const supported = (p, hgt) => {
     const feet = p.y + hgt, r = Math.round(feet / T);
-    if (Math.abs(feet - r * T) <= 1.5) for (let tx = Math.floor((p.x + 2) / T); tx <= Math.floor((p.x + 9) / T); tx++) if (solid(tx, r) || tileAt(tx, r) === 7) return true;
-    const cx = p.x + 6, ctx2 = Math.floor(cx / T);
+    if (Math.abs(feet - r * T) <= 1.5) for (let tx = Math.floor(p.x / T); tx <= Math.floor((p.x + (p.w || 12) - 1) / T); tx++) if (solid(tx, r) || tileAt(tx, r) === 7) return true;
+    const cx = mid(p), ctx2 = Math.floor(cx / T);
     for (let ty = Math.floor(feet / T) - 1; ty <= Math.floor(feet / T) + 1; ty++) { const s = slopeSurfaceY(ctx2, ty, cx); if (s != null && Math.abs(feet - s) <= 3) return true; }
-    if (L.tw && L.tw.movers) for (const m of L.tw.movers) if (p.x + 10 > m.x && p.x + 2 < m.x + m.w && Math.abs(feet - m.y) <= 3) return true;
+    if (L.tw && L.tw.movers) for (const m of L.tw.movers) if (p.x + (p.w || 12) > m.x && p.x < m.x + m.w && Math.abs(feet - m.y) <= 3) return true;
     return false;
   };
   const allowed = (p, hgt) => {
     if (p.s2swim || p.s2climb || p.s2leap) return true;
-    if (L.s2 && (P.s2warp || s2InWater(p.x + 6, p.y + hgt / 2))) return true;
+    if (L.s2 && (P.s2warp || s2InWater(mid(p), p.y + hgt / 2))) return true;
     return false;
   };
   const inPit = (p, hgt) => {
     if (p.y + hgt > ROWS * T + 8) return true;
-    if (L.s2) for (const Z of L.s2.hazards) if (p.x + 6 > Z.x0 && p.x + 6 < Z.x1 && p.y + hgt > Z.y0 + 2) return true;
+    if (L.s2) for (const Z of L.s2.hazards) if (mid(p) > Z.x0 && mid(p) < Z.x1 && p.y + hgt > Z.y0 + 2) return true;
     return false;
   };
-  R.begin = (id) => { refresh(); R.on = true; R.id = id; R.pets = {}; R.turns = []; R.f = 0; R.prevP = { x: P.x, y: P.y }; R.prevFace = P.face; R.cleared = false; };
+  R.begin = (id) => { refresh(); R.on = true; R.id = id; R.pets = {}; R.turns = []; R.f = 0; R.prevP = { x: P.x, y: P.y }; R.prevFace = P.face; R.cleared = false; R.teleport = -999; R.kStill = 0; };
   R.sample = () => {
     if (!R.on) return;
     refresh();
     if (!P || !L) return;
     R.f++;
     const kdx = P.x - R.prevP.x;
+    if (Math.abs(kdx) > 40 || Math.abs(P.y - R.prevP.y) > 40) R.teleport = R.f;
+    R.kStill = P.onGround && Math.abs(kdx) < 0.05 && Math.abs(P.y - R.prevP.y) < 0.05 ? (R.kStill || 0) + 1 : 0;   /* frames Kinan has stood still */   /* Kinan respawned, or a pipe or a door moved him */
     R.prevP = { x: P.x, y: P.y };
     const limit = Math.max(KTOP, Math.abs(kdx)) + 1;
     if (P.face !== R.prevFace && R.prevFace) R.turns.push({ at: R.f, max: {} });
@@ -180,7 +190,7 @@ function pageInstall(opts) {
     for (const [p, kind, hgt] of list) {
       const key = kind + ':' + p.id;
       let S = R.pets[key];
-      if (!S) S = R.pets[key] = { id: p.id, kind, frames: 0, inWallFrames: 0, floatingFrames: 0, speedSpikes: 0, pitFrames: 0, pitEvents: 0, poofs: 0, offscreen: 0, faceFlips: 0, dist: [], prev: null, pend: null, inPitPrev: false, firstBad: [] };
+      if (!S) S = R.pets[key] = { id: p.id, kind, frames: 0, inWallFrames: 0, floatingFrames: 0, speedSpikes: 0, pitFrames: 0, pitEvents: 0, poofs: 0, respawnPoofs: 0, offscreen: 0, faceFlips: 0, dist: [], settled: [], prev: null, pend: null, inPitPrev: false, firstBad: [] };
       S.frames++;
       const cur = { x: p.x, y: p.y, face: p.face };
       const bad = (what) => { if (S.firstBad.length < 6) S.firstBad.push(`${what} f${R.f} pet(${Math.round(p.x)},${Math.round(p.y)}) kinan(${Math.round(P.x)},${Math.round(P.y)}${P.onGround ? ' ground' : ' air'})`); };
@@ -189,7 +199,7 @@ function pageInstall(opts) {
         cur.dy = dy;
         /* a poof: one big step (12 px or more across, or 24 up or down) that ends at rest (the next frame moves no faster
            than Kinan). A slide (the old lerp) is big steps one after another: those count as speed spikes */
-        if (S.pend) { if (Math.abs(dx) <= limit && Math.abs(dy) <= 12) S.poofs++; else { S.speedSpikes += 1; bad('spike(big step)'); } S.pend = null; }
+        if (S.pend) { if (Math.abs(dx) <= limit && Math.abs(dy) <= 12) { if (R.f - R.teleport <= 120) S.respawnPoofs++; else S.poofs++; } else { S.speedSpikes += 1; bad('spike(big step)'); } S.pend = null; }
         const big = Math.abs(dx) >= 12 || Math.abs(dy) >= 24;
         if (big) S.pend = true;
         else if (Math.abs(dx) > limit) { S.speedSpikes++; bad('spike dx=' + dx.toFixed(1)); }
@@ -198,18 +208,22 @@ function pageInstall(opts) {
         const pit = inPit(p, hgt);
         if (pit) { S.pitFrames++; if (!S.inPitPrev) { S.pitEvents++; bad('pit'); } }
         S.inPitPrev = pit;
-        if (!big && !pit && !supported(p, hgt) && !allowed(p, hgt)) {
-          const arc = ddy >= 0.1 || dy >= 5 || (dy < 0 && S.prev.dy >= -0.01);   /* gravity pulling it down, a fast fall, or the take-off frame */
+        const sup = supported(p, hgt);
+        cur.sup = sup;
+        if (!big && !pit && !sup && !allowed(p, hgt)) {
+          /* a real jump or fall: gravity pulling it down, a fast fall, or the first frame off the ground (a take-off or a step off an edge) */
+          const arc = ddy >= 0.1 || dy >= 5 || S.prev.sup || (dy < 0 && S.prev.dy >= -0.01);
           if (!arc) { S.floatingFrames++; bad('floating dy=' + dy.toFixed(2)); }
         }
         if ((cur.face || 1) !== (S.prev.face || 1)) S.faceFlips++;
       } else cur.dy = 0;
-      if (p.x + 12 < camX - 8 || p.x > camX + W + 8) S.offscreen++;
-      S.dist.push(Math.abs(p.x + 6 - (P.x + P.w / 2)));
+      if (p.x + (p.w || 12) < camX - 8 || p.x > camX + W + 8) S.offscreen++;
+      S.dist.push(Math.abs(mid(p) - (P.x + P.w / 2)));
+      if (R.kStill >= 60) S.settled.push(Math.abs(mid(p) - (P.x + P.w / 2)));
       S.prev = cur;
     }
-    if (R.shots && R.shots.at.indexOf(R.f) >= 0) {   /* a frame for the strip */
-      draw();
+    if (R.shots && R.shots.at.indexOf(R.f) >= 0) {   /* a frame for the strip (drawing must not use up the seeded random numbers) */
+      const rnd = Math.random; Math.random = () => 0.5; draw(); Math.random = rnd;
       const k = R.shots.n++, cols = R.shots.cols, tw = R.shots.tw, th = R.shots.th;
       const g = R.sheet.getContext('2d'), x = (k % cols) * tw, y = Math.floor(k / cols) * (th + 14) + 26;
       g.imageSmoothingEnabled = false;
@@ -217,7 +231,7 @@ function pageInstall(opts) {
       const sc = cv.width / W, cw = tw / 2, ch = th / 2, H0 = cv.height / sc;
       const sx = Math.max(0, Math.min(W - cw, P.x - camX + P.w / 2 - cw / 2)), sy = Math.max(0, Math.min(H0 - ch, P.y - (camY || 0) - ch * 0.55));
       g.drawImage(cv, sx * sc, sy * sc, cw * sc, ch * sc, x, y, tw, th);
-      const mark = (p, col) => { const mx = x + (p.x + 6 - camX - sx) * 2, my = y + (p.y - (camY || 0) - sy) * 2 - 8; if (mx < x || mx > x + tw || my < y || my > y + th) return; g.fillStyle = col; g.beginPath(); g.moveTo(mx - 5, my - 7); g.lineTo(mx + 5, my - 7); g.lineTo(mx, my); g.fill(); };
+      const mark = (p, col) => { const mx = x + (mid(p) - camX - sx) * 2, my = y + (p.y - (camY || 0) - sy) * 2 - 8; if (mx < x || mx > x + tw || my < y || my > y + th) return; g.fillStyle = col; g.beginPath(); g.moveTo(mx - 5, my - 7); g.lineTo(mx + 5, my - 7); g.lineTo(mx, my); g.fill(); };
       pets.cats.forEach((c) => mark(c, '#ffe14a')); pets.dogs.forEach((d) => mark(d, '#4ad8ff'));
       g.fillStyle = '#000'; g.fillRect(x, y + th, tw, 14);
       g.fillStyle = '#fff'; g.font = '11px monospace'; g.fillText(R.shots.label(R.f), x + 4, y + th + 11);
@@ -227,12 +241,12 @@ function pageInstall(opts) {
     R.on = false;
     const out = { turns: R.turns.length, pets: [] };
     for (const key of Object.keys(R.pets)) {
-      const S = R.pets[key], d = S.dist.slice().sort((a, b) => a - b);
+      const S = R.pets[key], d = S.dist.slice().sort((a, b) => a - b), sd = S.settled.slice().sort((a, b) => a - b);
       let tmax = 0;
       for (const T0 of R.turns) tmax = Math.max(tmax, T0.max[key] || 0);
       out.pets.push({ id: S.id, kind: S.kind, frames: S.frames, inWallFrames: S.inWallFrames, floatingFrames: S.floatingFrames, speedSpikes: S.speedSpikes,
-        turnMaxDx: Math.round(tmax * 100) / 100, pitFrames: S.pitFrames, pitEvents: S.pitEvents, poofs: S.poofs, offscreenFrames: S.offscreen, faceFlips: S.faceFlips,
-        medianDist: Math.round(d[Math.floor(d.length / 2)] || 0), p90Dist: Math.round(d[Math.floor(d.length * 0.9)] || 0), firstBad: S.firstBad });
+        turnMaxDx: Math.round(tmax * 100) / 100, pitFrames: S.pitFrames, pitEvents: S.pitEvents, poofs: S.poofs, respawnPoofs: S.respawnPoofs, offscreenFrames: S.offscreen, faceFlips: S.faceFlips,
+        medianDist: Math.round(d[Math.floor(d.length / 2)] || 0), settledDist: sd.length ? Math.round(sd[Math.floor(sd.length / 2)]) : null, settledFrames: sd.length, p90Dist: Math.round(d[Math.floor(d.length * 0.9)] || 0), firstBad: S.firstBad });
     }
     return out;
   };
@@ -317,9 +331,9 @@ window.__petRunLevel = ${pageRunLevel.toString()};` });
       if (/castle|fort/.test(id)) script.push(['auto', CASTLE_EXTRA]);
       let shots = null;
       if (stripsDir && STRIP_LEVELS[id]) {
-        /* the first stop-and-turn-around (frames 240-420: stop, walk back, turn again) and a jump on the run, every 6 frames */
+        /* the end of the first stop and the turn-arounds (stood still to frame 360, walks back to 410, stops to 435, walks on), every 6 frames */
         const at = [], names = {};
-        for (let f = 270; f <= 420; f += 6) { at.push(f); names[f] = f < 280 ? 'stopped' : f < 330 ? 'turned back' : f < 355 ? 'stopped' : 'turned again'; }
+        for (let f = 330; f <= 516; f += 6) { at.push(f); names[f] = f <= 360 ? 'standing still' : f <= 410 ? 'turned back' : f <= 435 ? 'stopped' : 'turned again'; }
         shots = { at, names, cols: 4, tw: 432, th: 240, title: `${STRIP_LEVELS[id]} (${process.env.PET_PROBE_LABEL || 'this code'}): Kinan stops, turns back, stops, turns again. Every 6th frame, zoomed on Kinan. Yellow mark = cat, blue mark = dog.` };
       }
       const r = await page.evaluate((a) => window.__petRunLevel(a), { id, cat: pair[0], dog: pair[1], seed: 1000 + n, script, shots });
@@ -332,7 +346,7 @@ window.__petRunLevel = ${pageRunLevel.toString()};` });
         console.log(`  strip saved: ${relative(ROOT, file)}`);
       }
       results[id] = r;
-      const pp = r.pets.map((p) => `${p.kind} wall ${p.inWallFrames} float ${p.floatingFrames} spikes ${p.speedSpikes} turn ${p.turnMaxDx} pit ${p.pitFrames} poofs ${p.poofs} dist ${p.medianDist}`).join(' | ');
+      const pp = r.pets.map((p) => `${p.kind} wall ${p.inWallFrames} float ${p.floatingFrames} spikes ${p.speedSpikes} turn ${p.turnMaxDx} pit ${p.pitFrames} poofs ${p.poofs}+${p.respawnPoofs} dist ${p.medianDist}`).join(' | ');
       console.log(`${id.padEnd(9)} ${String(r.frames).padStart(5)} frames  ${pp}`);
     }
     const after = hashes();
