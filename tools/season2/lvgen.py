@@ -34,9 +34,8 @@ class Act:
         if kind is None: kind = self.rand.choice(W['fly'] if fly else W['walk'])
         if r is None: r = 7 if kind in W['fly'] else GROUND - 1
         self.foes.append([c, r, kind])
-    def say(self, col, who, text, secs=None):
-        secs = secs or round(min(4.2, max(2.4, len(text) / 26)), 1)
-        self.talk.append([col, who, text, secs])
+    def say(self, col, who, text, secs=None, hold=False):
+        self.talk.append([col, who, text] + ([None, 'hold'] if hold else []))   # (the game times each line: len / 15 s, 2.4-6 s; see Level.place_talk)
 
     # ---------------- beats ----------------
     @beat
@@ -187,6 +186,46 @@ class Level:
     def __init__(self, W, lid, slot, name, theme, hazard='glitch', flags=None, up=14):
         self.W = W; self.id = lid; self.slot = slot; self.name = name; self.theme = theme; self.hazard = hazard
         self.flags = flags or {}; self.acts = []; self.up = up
+    def place_talk(self):
+        """Shad's audit (2026-11-10): nobody talks over anyone and every line is heard. The game says one line at a time and
+        skips a line once Kinan is 48 columns past it, unless its conversation has started (lines within 3 columns of each
+        other). So: lines written close together (within 15 columns) become one conversation, and a conversation that would
+        still be waiting when a fast runner (12 columns a second) is 40 columns past it moves on to where the one before ends."""
+        RUN = 15.0; secs = lambda t: max(2.4, min(6.0, len(t) / 15.0)) + 0.6
+        base = 0; lines = []
+        for a in self.acts:
+            for t in a.talk: lines.append([base + t[0], t[1], t[2], a, base, len(t) > 4])
+            base += a.c
+        lines.sort(key=lambda l: l[0])
+        groups = []
+        lines.sort(key=lambda l: l[0])
+        for l in lines:
+            if groups and l[0] - groups[-1][-1][0] <= 15 and l[3] is groups[-1][-1][3]: groups[-1].append(l)
+            else: groups.append([l])
+        for g in groups:
+            for k, l in enumerate(g): l[0] = g[0][0] + k   # one conversation: one column apart (the game keeps it together)
+        self.talk_moves = []
+        for _pass in range(10):   # a moved conversation can land after another one: re-plan in the new order until nothing moves
+            groups.sort(key=lambda g: g[0][0]); moved = False; free = 0.0; wait = 0.0   # wait: seconds Kinan stood still for 'hold' lines
+            for g in groups:
+                c = g[0][0]; a = g[0][3]; b0 = g[0][4]; held = any(l[5] for l in g)
+                if held:   # a lesson (Sabumnim's call, a new tool): it stays where it is, and Kinan stands still to hear it
+                    arrive = c / RUN + wait; start = max(arrive, free); free = start + sum(secs(l[2]) for l in g)
+                    last = max(k for k, l in enumerate(g) if l[5])   # the game holds him until the last 'hold' line is said
+                    wait += start + sum(secs(l[2]) for l in g[:last + 1]) - arrive
+                    continue
+                if free > (c + 28) / RUN + wait:   # it would be skipped: start it where the queue is free (inside its act)
+                    nc = min(b0 + a.c - 4, int((free - wait) * RUN) - 20)
+                    if nc > c:
+                        self.talk_moves.append((g[0][1], c - b0, nc - b0, ' / '.join(l[1] + ': ' + l[2][:40] for l in g)))
+                        for k, l in enumerate(g): l[0] = nc + k
+                        c = nc; moved = True
+                free = max(free, c / RUN + wait) + sum(secs(l[2]) for l in g)
+            if not moved: break
+        for a in self.acts: a.talk = []
+        for l in lines: l[3].talk.append([l[0] - l[4], l[1], l[2]] + ([None, 'hold'] if l[5] else []))
+        for mv in self.talk_moves: print('  %s: col %d -> %d  %s' % (self.id, mv[1], mv[2], mv[3]))
+
     def act(self, name):
         a = Act(self, 'a%d' % (len(self.acts) + 1), name); self.acts.append(a); return a
     def write(self, path, header):
@@ -211,6 +250,7 @@ class Level:
             cands = sorted([(c, a) for (c, a) in ground if sc <= c < sc + 27], key=lambda t: abs(t[0] - (sc + 13)))
             if cands:
                 c, a = cands[0]; b0 = sum(x.c for x in self.acts[:self.acts.index(a)]); a.tile('gift', c - b0, 8, 'candle'); toys.add(c)
+        self.place_talk()
         d['areas'] = [a.js() for a in self.acts]
         s = json.dumps(d, indent=None, separators=(', ', ': '))
         s = s.replace('"@H', '@H')

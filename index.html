@@ -3250,6 +3250,9 @@ function buildLevel(def) {
   for (const g in Story.started) if (g.indexOf(def.id + ':') === 0) delete Story.started[g];   /* a new visit: its conversations start fresh */
   const lastX = talk.reduce((m, t) => Math.max(m, t.x), -1);
   for (const t of talk) if (t.x === lastX) TALK_AT[t.id].last = true;
+  /* Season 2 (Shad's playtest: the gate "sunken into the ground"): ground there is solid rows over a low floor, so the gate
+     between two acts stands on the first solid tile from the top at its column, not on the floor line */
+  if (s2.moves) for (const sm of seams) for (let y = -up; y < ROWS; y++) if (g[(y + up) * w + sm.x] === 1) { sm.ty = y - 1; break; }
   return {
     i: 0, g, w, foes, candles, gifts, checkpoint, petSpot: null, petCrate, talk,
     arenaX: w + 4, arenaW: 28, len: cols, buildPads: [], ice: false, wind: false, up: up,   /* no arena: the boss gate can never fire; up: Season 2's tall levels */
@@ -3664,7 +3667,11 @@ const Story = {
      passing): once the frames for the whole conversation have gone by, Kinan is free, whatever the clock says */
   holdTick() {
     if (!Story.holdOn()) { Story.holdF = 0; Story.holdMax = 0; return false; }
-    if (!Story.holdF) { Story.holdMax = 90; for (const x of [Story.cur].concat(Story.q)) { const ta = x && TALK_AT[x.id]; if (ta && ta.hold) Story.holdMax += Math.round(Math.max(1.2, lineSecs(Story.line(x.id))) * 60) + 20; } }
+    if (!Story.holdF) {   /* (Season 2 audit: the lines still ahead of the 'hold' line count too, or he walked on before it was said) */
+      const all = [Story.cur].concat(Story.q); let lastHold = -1;
+      all.forEach((x, k) => { const ta = x && TALK_AT[x.id]; if (ta && ta.hold) lastHold = k; });
+      Story.holdMax = 90; for (let k = 0; k <= lastHold; k++) if (all[k]) Story.holdMax += Math.round(Math.max(1.2, lineSecs(Story.line(all[k].id))) * 60) + 20;
+    }
     return ++Story.holdF <= Story.holdMax;
   },
   holdF: 0, holdMax: 0,
@@ -8960,6 +8967,10 @@ function advanceDialog() { if (advance) advance(); }
 el.dialog.addEventListener('click', advanceDialog);
 
 function toast(html, ms, hold) {
+  /* Season 2 (Shad's audit, 2026-11-10: "are people talking over each other?"): in Worlds 12-15 a line someone SAYS
+     (Robin's burger, Mom's care package...) waits its turn in the line queue and is voiced, like every other line */
+  const said = /^<b>(ROBIN|DAD|MOM|ANNIE|SHAD|CHENOA|KINAN|GLITCHY|SABUMNIM|GRANDPA):<\/b>\s*(.+)$/.exec(String(html));
+  if (said && running && L && L.s2 && !el.stage.hidden && STORY && STORY.lines && typeof s2Say === 'function') { s2Say(said[1], said[2].replace(/<[^>]+>/g, ''), (ms || 2400) / 1000); return; }
   const now = Date.now();
   if (!hold && now < toastHold) return;
   if (hold) toastHold = now + (ms || 1600);
@@ -10632,10 +10643,15 @@ function updatePets() {
    him: the points he passed (where he stood, climbed, swam), so a pet goes up the same ladder, through the same water,
    over the same gaps and never through a wall. Through a pipe or a door they pop out after him with a sparkle. */
 function s2PetsFollow() {
+  /* Shad's playtest (2026-11-10): pets floated in mid-air (they stopped on a point of Kinan's jump when he stood still).
+     Now they walk his path with GRAVITY: they fall onto whatever is under them, hop when his path goes up, and only
+     follow his path exactly up ladders and vines, in water, and over a gap (so they never fall into the glitch) */
   const S = L.s2, tr = S.path || (S.path = []), last = tr[tr.length - 1];
-  const here = { x: P.x + P.w / 2, y: P.y + P.h, face: P.face, swim: !!P.s2swim, climb: !!P.s2climb, warp: !!P.s2warp };
+  const here = { x: P.x + P.w / 2, y: P.y + P.h, face: P.face, swim: !!P.s2swim, climb: !!P.s2climb, warp: !!P.s2warp, g: !!P.onGround };
   if (P.s2warp) { if (S.path.length) S.path.length = 0; return; }   /* he's inside the pipe: they wait, then pop out after him */
-  if (!last || Math.hypot(here.x - last.x, here.y - last.y) >= 2) { tr.push(here); if (tr.length > 400) tr.shift(); }
+  if (!last || Math.hypot(here.x - last.x, here.y - last.y) >= 2) { tr.push(here); if (tr.length > 400) tr.shift(); } else if (here.g && !last.g) last.g = true;
+  const overGap = (x) => S.hazards.some((Z) => x > Z.x0 - 6 && x < Z.x1 + 6);
+  const floorAt = (x0, x1, yb, prevB) => { const ty = Math.floor(yb / T); for (let tx = Math.floor(x0 / T); tx <= Math.floor(x1 / T); tx++) if (solid(tx, ty) || (tileAt(tx, ty) === 7 && prevB <= ty * T + 0.5)) return ty * T; return null; };
   const all = pets.cats.map((c) => [c, 10]).concat(pets.dogs.map((d) => [d, 11]));
   all.forEach(([pet, hgt], k) => {
     const want = 22 * (k + 1);   /* how far back along his path this pet walks */
@@ -10643,9 +10659,19 @@ function s2PetsFollow() {
     while (j > 0 && dist < want) { dist += Math.hypot(tr[j].x - tr[j - 1].x, tr[j].y - tr[j - 1].y); j--; pt = tr[j]; }
     if (!pt) return;
     const tx = pt.x - 6, ty = pt.y - hgt;
-    if (Math.hypot(tx - pet.x, ty - pet.y) > 60) { pet.x = tx; pet.y = ty; sparks(tx + 6, ty + 4, 6, ['#fff', '#9fe0ff']); }   /* out of a pipe or door: a poof */
-    else { pet.x = tx; pet.y = ty; }   /* exactly on his path (smoothing cut corners into walls) */
     pet.face = pt.face; pet.s2swim = pt.swim; pet.s2climb = pt.climb;
+    if (Math.hypot(tx - pet.x, ty - pet.y) > 80) { pet.x = tx; pet.y = ty; pet.s2vy = 0; sparks(tx + 6, ty + 4, 6, ['#fff', '#9fe0ff']); return; }   /* out of a pipe or door (or left far behind): a poof */
+    pet.x = tx;
+    if (pt.climb || pt.swim || overGap(pt.x)) { pet.y = ty; pet.s2vy = 0; pet.s2g = false; }   /* up the ladder, through the water, across the gap: right behind him */
+    else {
+      const prevB = pet.y + hgt;
+      if (pet.s2g && pt.g && ty < pet.y - 6) { pet.s2vy = -Math.min(8.5, Math.sqrt(2 * 0.45 * (pet.y - ty + 8))); pet.s2g = false; }   /* his path goes up: hop */
+      pet.s2vy = Math.min(7, (pet.s2vy || 0) + 0.45); pet.y += pet.s2vy;
+      if (pet.s2vy < 0 && solid(Math.floor((pet.x + 6) / T), Math.floor(pet.y / T))) { pet.y = (Math.floor(pet.y / T) + 1) * T; pet.s2vy = 0; }   /* a ceiling */
+      const fl = pet.s2vy >= 0 ? floorAt(pet.x + 2, pet.x + 10, pet.y + hgt, prevB) : null;
+      if (fl != null) { pet.y = fl - hgt; pet.s2vy = 0; pet.s2g = true; } else pet.s2g = false;
+      if (pet.y > ty + 96 && pt.g) { pet.y = ty; pet.s2vy = 0; }   /* never left stranded far below where he stands */
+    }
     if (pt.swim && frame % 30 === k * 7 % 30) part(pet.x + 6, pet.y, { vx: 0, vy: -0.45, life: 30, size: 1, color: '#e6f7ff', g: -0.01 });
   });
 }
@@ -11487,8 +11513,10 @@ function s2WorldMoves(left, right, holdJump) {
   const S = L.s2, F = feel(), cx = P.x + P.w / 2;
   /* ROPES AND THE GRAPPLING HOOK: one pendulum (a rope's top, or a ring) */
   if (P.s2ropeCd > 0) P.s2ropeCd--;
+  if (P.onGround) P.s2ropeLast = null;
   if (!P.s2rope && !P.onGround && !(P.s2ropeCd > 0)) {
     for (const R of S.ropes) {
+      if (P.s2ropeLast === R && Math.abs(cx - R.ax) < 28) continue;   /* the rope he just let go of: not again until he lands or swings clear */
       const th = s2RopeAt(R), dx = Math.sin(th), dy = Math.cos(th), hx = cx - R.ax, hy = P.y + 3 - R.ay;
       const along = hx * dx + hy * dy, off = Math.abs(hx * dy - hy * dx);
       if (along > 10 && along < R.len && off < 9) {
@@ -11512,7 +11540,9 @@ function s2WorldMoves(left, right, holdJump) {
     if (R.shoot > 0) R.shoot--;
     if (input.jumpBuf > 0 || input.down || P.dead) {   /* let go: he flies off with the swing, plus a hop */
       const vx = R.r * Math.cos(R.th) * R.om, vy = -R.r * Math.sin(R.th) * R.om;
-      P.vx = clamp(vx, -3.8, 3.8); P.vy = clamp(Math.min(vy, 2) - (input.down ? 0 : 2.6), -6.2, 3);   /* a fling of 5-8 tiles from a good swing (not a whole screen) */
+      P.vx = clamp(vx, -3.8, 3.8); P.vy = clamp(Math.min(vy, 2) - (input.down ? 0 : 2.6), -6.2, 3);
+      if (Math.abs(P.vx) < 1.6 && !input.down) P.vx = (P.face || 1) * 1.6;   /* letting go of a still rope: a little hop off it, the way he faces */
+      P.s2ropeLast = R.ring ? null : S.ropes.find((q) => q.ax === R.ax && q.ay === R.ay) || null;   /* a fling of 5-8 tiles from a good swing (not a whole screen) */
       P.s2rope = null; P.s2ropeCd = 16; input.jumpBuf = 0; P.cuttable = false; P.jumpT = 0; s2Sound('hup');
       if (Math.abs(P.vx) > 0.5) P.face = P.vx > 0 ? 1 : -1;
       return false;
@@ -11796,7 +11826,8 @@ function s2ChaseDraw(B, ox) {
 /* a castle's closing lines, one after another once the creature is calm (Glitchy freed, his new word, the portal again) */
 function s2AfterLines(B) {
   const lv = L;
-  (B.after || []).forEach((t, i) => setTimeout(() => { if (L === lv && L.s2) s2Say(t[0], t[1], t[2] || 3.2); }, 3700 + i * 3500));
+  B.talkIds = B.talkIds || [];
+  (B.after || []).forEach((t) => { if (L === lv && L.s2) B.talkIds.push(s2Say(t[0], t[1], t[2], true)); });   /* in order, after the creature's own line */
 }
 function s2GargoyleChaser(B, ox) {
   const x = Math.round(clamp(P.x + P.w / 2, B.x0 + 20, B.x1 - 20) - ox) - 18, y = Math.round(B.tideY) - 8, f = Math.floor(frame / 6) % 2;
@@ -11839,8 +11870,26 @@ function s2BuildMore(a, base, s2) {
   }
 }
 function s2Gate(col, r0, r1, shut) { const up = L.up | 0; for (let r = r0; r <= r1; r++) { const i = (r + up) * L.w + col; if (i >= 0 && i < L.g.length) L.g[i] = shut ? 5 : 0; } }
-const s2GoalLocked = () => !!(L.s2 && L.s2.bosses.some((b) => b.lockGoal && b.state !== 'friend'));
-function s2Say(who, text, secs) { toastHold = 0; toast('<b>' + escAttr(who) + ':</b> ' + escAttr(text), Math.round((secs || 2.4) * 1000)); }
+const s2GoalLocked = () => !!(L.s2 && L.s2.bosses.some((b) => b.lockGoal && (b.state !== 'friend' || (b.after && b.after.length && b.talkIds && b.talkIds.some((id) => Story.has(id))))));   /* and the rescue lines are said first (or tapped through) */
+/* a Season 2 line said in the moment (a boss, Glitchy's tip, Sabumnim): it joins the same line queue as everyone else
+   (Shad's audit: two people must never talk at once, and every line is heard: subtitle and voice), ahead of what waits */
+let s2LineN = 0;
+function s2Say(who, text, secs, back) {
+  if (!STORY || !STORY.lines) { toastHold = 0; toast('<b>' + escAttr(who) + ':</b> ' + escAttr(text), Math.round((secs || 2.4) * 1000)); return; }
+  const id = 's2say_' + (++s2LineN);
+  STORY.lines[id] = [who, text, Math.max(secs || 0, Math.min(6, Math.max(2.4, text.length / 15))), null];
+  if (back) Story.add([id], 'open');
+  else {   /* ahead of the level's waiting lines, but after the moment-lines already waiting (they keep their order) */
+    let at = 0; while (at < Story.q.length && /^s2say_/.test(Story.q[at].id)) at++;
+    Story.q.splice(at, 0, { id: id, kind: 'open' }); Story.pump();
+  }
+  return id;
+}
+function s2SayAll(lines) {   /* several lines in a row, all ahead of what waits (a boss and its tip) */
+  if (!STORY || !STORY.lines) { lines.forEach((t) => s2Say(t[0], t[1], t[2])); return; }
+  const ids = lines.map((t) => { const id = 's2say_' + (++s2LineN); STORY.lines[id] = [t[0], t[1], Math.max(t[2] || 0, Math.min(6, Math.max(2.4, t[1].length / 15))), null]; return id; });
+  Story.add(ids, 'open', true);
+}
 function s2Banner(text) { pop(P.x - 40, P.y - 30, text, 80, '#f6c445'); SFX.power(); }
 /* once a frame after Kinan moves: checkpoints, the act clock, the bosses */
 function s2After() {
@@ -11874,8 +11923,7 @@ function s2MoleTick(B) {
   if (B.state === 'wait') {
     if (P.x > B.x0 + 2 * T && P.x < B.x1 - 2 * T && !P.dead) {
       B.state = 'hidden'; B.t = 90; s2Gate(B.gateL, B.rTop, B.rBot, true); s2Gate(B.gateR, B.rTop, B.rBot, true);   /* both walls shut for the fight */
-      Music.play('boss'); s2Say(B.cr.who, B.cr.start, 2.6);
-      setTimeout(() => { if (B.state !== 'friend' && L && L.s2) s2Say('GLITCHY', B.cr.tip, 3); }, 2800);
+      Music.play('boss'); s2SayAll([[B.cr.who, B.cr.start], ['GLITCHY', B.cr.tip]]);
     }
     return;
   }
@@ -11945,7 +11993,7 @@ function s2TideTick(B) {
     if (B.state === 'rise') {
       const k = clamp((B.bottom - B.tideY) / Math.max(1, B.bottom - B.stopY), 0, 1);
       B.tideY = Math.max(B.stopY, B.tideY - (0.56 + 0.26 * k) * (B.spd || 1));   /* about 20 s floor to summit: a steady climber stays ahead; a long stop and it catches up */
-      if (P.onGround && P.y + P.h <= B.summitY + 1 && inShaft) { if (B.summit) { B.state = 'crab'; B.t = 0; s2CrabStart(B); } else { B.state = 'friend'; Music.play('stage'); SFX.win(); if (B.done) s2Say(B.done[0], B.done[1], 3); s2AfterLines(B); } }
+      if (P.onGround && P.y + P.h <= B.summitY + 1 && inShaft) { if (B.summit) { B.state = 'crab'; B.t = 0; s2CrabStart(B); } else { B.state = 'friend'; Music.play('stage'); SFX.win(); B.talkIds = B.done ? [s2Say(B.done[0], B.done[1], 3)] : []; s2AfterLines(B); } }
     }
     if (inShaft && P.y + P.h > B.tideY + 5 && !P.dead) {   /* it stings and pops him up; it never drowns him */
       if (P.inv <= 0) { hurt({ x: P.x + P.w / 2, y: P.y + P.h }); sparks(P.x + 5, B.tideY, 10, S2_RISES[B.look].bits.concat('#fff')); }
@@ -11997,7 +12045,7 @@ function s2CrabTick(B) {
     pop(c.x, B.summitY - c.h - 18, 'BONK!', 40, '#f6c445');
     if (B.hits >= 4) {
       B.state = 'friend'; c.st = 'friend'; s2Gate(B.gateCol, B.gateTop, Math.round(B.summitY / T) - 1, false); Music.play('stage'); SFX.win();
-      s2Say(S2_SUMMITS[B.summit].who, S2_SUMMITS[B.summit].friend, 3.4); s2AfterLines(B);
+      B.talkIds = [s2Say(S2_SUMMITS[B.summit].who, S2_SUMMITS[B.summit].friend, 3.4)]; s2AfterLines(B);
       addCandle(15); pop(P.x, P.y - 20, '+15', 50, null, true);
     } else { c.st = 'walk'; c.t = 54; c.x = clamp(c.x - toK * 20, lo, hi); s2Banner(['', S2_SUMMITS[B.summit].smart[0], S2_SUMMITS[B.summit].smart[1], 'ONE MORE STOMP!'][B.hits]); }
   } else if (hit === 1 && c.st !== 'tired') { P.vy = -5; hurt({ x: c.x + c.w / 2, y: B.summitY }); }

@@ -188,3 +188,18 @@ The mine stays **dark** (the lit arena was wrong).
 - 2026-11-10: **Annie's Japan, Amandeep's wishes:** Annie is the biggest Japan fan ever (anime, manga, history facts in
   every level), the candles in Japan are **sushi**, Annie wears a **kimono** at the Thousand Gates, the robot cafe is a
   robot sushi cafe, and the castle is **Himeji** with the **Samurai Armour** (replacing the Big Tanuki).
+- 2026-11-11: **Shad's audit of Worlds 12-15 (his phone screenshots):**
+  - **Pets have gravity now:** they walk Kinan's path but fall onto whatever is under them, hop up only to spots where he
+    stood, and follow him exactly only up ladders and vines, in water and over a gap. They used to stop on a point of his
+    jump when he stood still, floating in the air.
+  - **The gate between acts stands on the ground** (it stood on the low floor under Season 2's solid ground: sunk 2 rows).
+  - **Nobody talks over anyone, and every line is heard:** a boss's or Glitchy's line in the moment, and Robin's or Mom's
+    helper lines, join the same one-at-a-time line queue as the level's lines (subtitle and voice; they used to be a
+    top-of-screen message at the same time as the subtitle). Lines written close together are one conversation (the game
+    keeps it together); `tools/season2` times every line (length / 15 s) and spaces them so a fast runner hears them all.
+    The lessons (Sabumnim's video calls, a new tool, Annie's kimono) are 'hold' lines: Kinan stands still to hear them,
+    and the game now counts the lines still ahead of a hold line too (he walked on two seconds early). A castle's rescue
+    conversation is said before its exit opens. Checked with a real-time runner through all 44 levels: 0 lines skipped,
+    0 lines overlapping.
+  - **Letting go of a rope** never grabs the same rope again until Kinan lands or swings clear (from a still rope he hops
+    off it, the way he faces).
