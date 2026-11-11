@@ -84,6 +84,14 @@ any level or world** Shad or Kinan want. Shad's Builder answers:
 Ship in small pieces as each is ready. At the end, either another model or Claude goes through the entire game and checks
 everything once more.
 
+**Into the main game (Shad, 2026-11-11):** Season 2 becomes part of the main storyline for everyone, **after one more
+family playtest** of the test link (fix what they find first). When Shad says go:
+- World 12 is **India** (2D) and Worlds 13-15 follow. The live **3D World 12 sneak peek stays as a bonus**: off the main
+  trail, a bonus spot on the map (its files and its four levels unchanged).
+- Players who already beat World 11: the next time they open the map, **the new World 11 ending plays, then the trip to
+  India opens**. New players get it after World 11 as normal.
+- Then: the title counts 15 worlds, the full browser and robot checks, a service-worker bump, and the live site checked.
+
 ## Progress
 - 2026-11-10: plan agreed. Jump to a level shipped (separate request).
 - 2026-11-10: **step 1 started — tall levels.** A level file can say `up: N` for N extra rows above (up to four screens
