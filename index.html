@@ -29753,9 +29753,9 @@ window.__k11 = window.__k11DevOnly() ? {
     ids: progress.pets.ids.slice(), names: Object.assign({}, progress.pets.names),
     equippedCat: progress.pets.equippedCat || null, equippedDog: progress.pets.equippedDog || null,
     liveCats: pets.cats.length, liveDogs: pets.dogs.length,
-    cats: pets.cats.map((c) => ({ id: c.id, x: Math.round(c.x), y: Math.round(c.y) })),
+    cats: pets.cats.map((c) => ({ id: c.id, x: Math.round(c.x), y: Math.round(c.y), ground: !!c.onGround })),   /* ground: standing (the pet brain's own floor test) */
     cleanLandings: P ? P.cleanLandings : 0, zoomies: P ? P.zoomiesT : 0, zoomiesCooldown: P ? P.zoomiesCd : 0,
-    dogs: pets.dogs.map((d) => ({ id: d.id, cooldown: d.t, warning: d.warn || 0, x: Math.round(d.x), y: Math.round(d.y) })),
+    dogs: pets.dogs.map((d) => ({ id: d.id, cooldown: d.t, warning: d.warn || 0, x: Math.round(d.x), y: Math.round(d.y), ground: !!d.onGround })),
     stunnedFoes: foes.filter((f) => f.alive && f.stun > 0).map((f) => f.idx),
     vaderCooldown: P ? P.vaderCd : 0, tuxCooldown: P ? P.tuxCd : 0,
     hunterUsed: P ? !!P.hunterUsed : false, hunterT: P ? P.hunterT : 0,
