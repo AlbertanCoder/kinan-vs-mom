@@ -9718,8 +9718,7 @@ function restoreStage(s) {
   P.vx = 0; P.vy = 0; P.inv = 60;
   lastSafe = { x: P.x, y: P.y };
   camX = clamp(Math.round(P.x - W * 0.42), 0, Math.min(L.w * T - W, (L.arenaX + L.arenaW + 1) * T - W));
-  pets.cats.forEach((c, k) => { c.x = P.x - 18 - k * 16; c.y = P.y + 7; });
-  pets.dogs.forEach((d, k) => { d.x = P.x - 80 - k * 20; d.y = P.y + 6; });
+  petsReset();   /* the pets stand behind him again (the pet brain places them) */
   updHud();
 }
 function autoSave() {
@@ -10610,13 +10609,8 @@ let petProbeFn = null;   /* dev only (tools/pet-probe.mjs, __k11.petProbe): call
 function updatePets() {
   trail.push({ x: P.x, y: P.y + P.h, face: P.face });
   if (trail.length > 60) trail.shift();
-  const at = (n) => trail[Math.max(0, trail.length - n)];
-  pets.cats.forEach((c, i) => {
-    const p = at(12 + i * 10);
-    if (!p) return;
-    c.x = lerp(c.x, p.x - (18 + i * 16) * p.face, 0.22);
-    c.y = lerp(c.y, petFloorY(c.x, p.y) - 10 - (i % 2), 0.35);
-    c.face = p.face;
+  petsFollow();   /* where the cat and the dog walk: the pet brain below (one for every level, Season 2 too) */
+  pets.cats.forEach((c) => {
     if (Math.random() < 0.006) part(c.x + 5, c.y + 8, { vx: 0, vy: -0.2, life: 16, size: 1, color: c.def.color, glow: true });
     if (c.id === 'cat2' && P.vaderCd <= 0) {
       /* Vader pulls in the candles on screen (never a power-up or a secret's prize out of its
@@ -10641,17 +10635,11 @@ function updatePets() {
       } else P.duchessT = 0;
     }
   });
-  pets.dogs.forEach((d, i) => {
+  pets.dogs.forEach((d) => {
     d.t++;
     if (d.id === 'dog1') {
       /* Chikastino: follows, then barks to stun nearby enemies without killing
          them (14-second cooldown). One power: the old off-screen warning retired. */
-      const p = at(34 + i * 10);
-      if (p) {
-        d.x = lerp(d.x, p.x - (80 + i * 20) * p.face, 0.16);
-        d.y = lerp(d.y, petFloorY(d.x, p.y) - 11, 0.35);
-        d.face = p.face;
-      }
       if (d.t > 840) {
         const nearFoes = foes.filter((f) => f.alive && !f.hidden && !f.def.tough && Math.abs(f.x - P.x) < 145 && Math.abs(f.y - P.y) < 80 && f.x > camX - 20 && f.x < camX + W + 20);
         const nearBosses = boss === 'fight' ? bosses.filter((b) => !b.out && Math.abs(b.x - P.x) < 170) : [];
@@ -10675,81 +10663,415 @@ function updatePets() {
     if (d.id === 'dog2') {
       /* Hunter follows; his one power (hunterSave) waits for the hit that would take the last heart */
       d.mission = null;
-      const p = at(34 + i * 10);
-      if (p) {
-        d.x = lerp(d.x, p.x - (80 + i * 20) * p.face, 0.16);
-        d.y = lerp(d.y, petFloorY(d.x, p.y) - 11, 0.35);
-        d.face = p.face;
-      }
       return;
     }
   });
-  if (L.s2) s2PetsFollow();   /* Season 2: the pets walk Kinan's exact path instead (their powers above are unchanged) */
   if (petProbeFn) petProbeFn();
 }
-/* Season 2 (Shad 2026-11-10: "the pets are kind of just floating and jumping through walls ... they should be able to swim
-   and climb, and abide by the physics Kinan has"): in a Season 2 level each pet walks Kinan's own path a little behind
-   him: the points he passed (where he stood, climbed, swam), so a pet goes up the same ladder, through the same water,
-   over the same gaps and never through a wall. Through a pipe or a door they pop out after him with a sparkle. */
-function s2PetsFollow() {
-  /* Shad's playtest (2026-11-10): pets floated in mid-air (they stopped on a point of Kinan's jump when he stood still).
-     Now they walk his path with GRAVITY: they fall onto whatever is under them, hop when his path goes up, and only
-     follow his path exactly up ladders and vines, in water, and over a gap (so they never fall into the glitch) */
-  const S = L.s2, tr = S.path || (S.path = []), last = tr[tr.length - 1];
-  const here = { x: P.x + P.w / 2, y: P.y + P.h, face: P.face, swim: !!P.s2swim, climb: !!P.s2climb, warp: !!P.s2warp, g: !!P.onGround };
-  if (P.s2warp) { if (S.path.length) S.path.length = 0; return; }   /* he's inside the pipe: they wait, then pop out after him */
-  if (!last || Math.hypot(here.x - last.x, here.y - last.y) >= 2) { tr.push(here); if (tr.length > 400) tr.shift(); } else if (here.g && !last.g) last.g = true;
-  const overGap = (x) => S.hazards.some((Z) => x > Z.x0 - 6 && x < Z.x1 + 6);
-  const Z0 = (Z) => Z.x0 + 2;
-  const floorAt = (x0, x1, yb, prevB) => { const ty = Math.floor(yb / T); for (let tx = Math.floor(x0 / T); tx <= Math.floor(x1 / T); tx++) if (solid(tx, ty) || (tileAt(tx, ty) === 7 && prevB <= ty * T + 0.5)) return ty * T; return null; };
-  const all = pets.cats.map((c) => [c, 10]).concat(pets.dogs.map((d) => [d, 11]));
-  all.forEach(([pet, hgt], k) => {
-    const want = 22 * (k + 1);   /* how far back along his path this pet walks */
-    let dist = 0, j = tr.length - 1, pt = tr[j];
-    while (j > 0 && dist < want) { dist += Math.hypot(tr[j].x - tr[j - 1].x, tr[j].y - tr[j - 1].y); j--; pt = tr[j]; }
-    if (!pt) return;
-    const tx = pt.x - 6, ty = pt.y - hgt;
-    pet.face = pt.face; pet.s2swim = pt.swim; pet.s2climb = pt.climb;
-    /* a WIDE gap (ropes, monkey bars, rings, a dash, a glide: 5+ tiles): a pet cannot hang from a rope, so it waits at the
-       edge until Kinan is across, then leaps over in one big jump (2026-11-11: they hovered in mid-air behind him) */
-    const grav = () => {
-      const prevB = pet.y + hgt;
-      pet.s2vy = Math.min(7, (pet.s2vy || 0) + 0.45); pet.y += pet.s2vy;
-      const fl = pet.s2vy >= 0 ? floorAt(pet.x + 2, pet.x + 10, pet.y + hgt, prevB) : null;
-      if (fl != null) { pet.y = fl - hgt; pet.s2vy = 0; pet.s2g = true; } else pet.s2g = false;
-    };
-    if (pet.s2leap) {
-      const J = pet.s2leap, q = Math.min(1, ++J.t / J.dur);
-      pet.x = J.x0 + (tx - J.x0) * q; pet.y = J.y0 + (ty - J.y0) * q - Math.sin(Math.PI * q) * J.h; pet.s2vy = 0; pet.s2g = false; pet.face = tx >= J.x0 ? 1 : -1;
-      if (q >= 1) { pet.s2leap = null; dust(pet.x + 6, pet.y + hgt, 3); }
-      return;
+/* ============================================================
+   THE PET BRAIN (2026-11-11, Shad on World 7-7: "one of the dogs ... just goes through walls ... you decide to go one
+   direction he flips he bounces around the screen ... they'll float in the air ... they should move fluidly like how I do
+   and they shouldn't be able to go through walls ... they can wait for me somewhere before making a move").
+   One brain for every level (it replaced the old Worlds 1-11 follow and Season 2's own, s2PetsFollow):
+   - FOOTSTEPS: Kinan leaves a footstep wherever he stands on the ground (in Season 2 also on a ladder or a vine and in
+     water). A pet is a real little body: it walks his footsteps in order with gravity and the level's own walls
+     (moveX / moveY, as Kinan and the foes move), the cat about one body behind him, the dog a little further back.
+   - SMART WAITING: while Kinan is in the air (a jump, a fall, a rope, hanging off a ledge) he leaves no footsteps, so the
+     pets wait on the last safe ground. Once he has landed and walked on a little they hop over to his next footstep, on
+     an arc tried out frame by frame first: no wall in the way, never into a pit or the glitch. (Season 2's wide gaps:
+     they wait on the bank and leap across in one big jump; up ladders and through water they follow his exact path,
+     climbing and swimming.)
+   - TURNING AROUND: when Kinan comes back towards a pet it stops and faces him; he walks past it, then it falls in
+     behind him again. No sliding across the screen.
+   - POOF: a pet that can't follow (left far behind, stuck, off the screen, after a pipe or a door, a respawn) pops back
+     beside Kinan in a puff of dust. Pets can't be hurt: enemies and hazards pass through them.
+   ============================================================ */
+const PET_G = 0.45, PET_FALL = 7, PET_TOP = 4, PET_WALK = 3.4, PET_W = 10;   /* a pet's body is as wide as Kinan's: it fits wherever he fits */
+/* ground right under a pair of feet at height y between x0 and x1: a solid tile, a thin platform or a slope */
+function petGroundUnder(x0, x1, y) {
+  const r = Math.round(y / T);
+  if (Math.abs(y - r * T) <= 1) for (let tx = Math.floor(x0 / T); tx <= Math.floor((x1 - 1) / T); tx++) if (solid(tx, r) || tileAt(tx, r) === 7) return true;
+  const cx = (x0 + x1) / 2, sx = Math.floor(cx / T);
+  for (let ty = Math.floor(y / T) - 1; ty <= Math.floor(y / T) + 1; ty++) { const s = slopeSurfaceY(sx, ty, cx); if (s != null && Math.abs(y - s) <= 3) return true; }
+  return false;
+}
+/* Season 2's glitch: a gap in the ground a pet must never step into */
+const petInGlitch = (cx, feet) => !!(L.s2 && L.s2.hazards.some((Z) => cx > Z.x0 && cx < Z.x1 && feet > Z.y0 + 1));
+/* the first floor under a falling pet (its feet in px), or null over a bottomless pit or the glitch */
+function petFloorBelow(x, w, feet) {
+  for (let ty = Math.max(-(L.up | 0), Math.floor(feet / T)); ty < ROWS; ty++)
+    for (let tx = Math.floor(x / T); tx <= Math.floor((x + w - 1) / T); tx++)
+      if (solid(tx, ty) || tileAt(tx, ty) === 7 || isSlope(tileAt(tx, ty))) return petInGlitch(x + w / 2, ty * T) ? null : ty * T;
+  return null;
+}
+/* a place to stand in the column at x (left edge) from about feet height y down: its feet height, or null */
+function petSpotAt(x, y, h) {
+  for (let ty = Math.floor(y / T) - 1; ty <= Math.floor(y / T) + 6 && ty < ROWS; ty++) {
+    if (!petGroundUnder(x, x + PET_W, ty * T) || famOverlaps(x, ty * T - h, PET_W, h) || petInGlitch(x + PET_W / 2, ty * T)) continue;
+    return ty * T;
+  }
+  return null;
+}
+/* Kinan's footsteps (one list per level, on L): { x: his middle, y: his feet, k: 'g' ground | 'climb' | 'swim', air: he was in
+   the air on the way to it }. A teleport (a respawn, a pipe, a door, a checkpoint) starts a new list. */
+function petStepsUpdate() {
+  let S = L.petSteps;
+  if (!S) S = L.petSteps = { list: [], base: 0, air: true, kx: P.x, ky: P.y };
+  if (Math.abs(P.x - S.kx) > 40 || Math.abs(P.y - S.ky) > 40 || P.s2warp) { S.base += S.list.length; S.list = []; S.air = true; }
+  S.kx = P.x; S.ky = P.y;
+  const cx = P.x + P.w / 2, feet = P.y + P.h;
+  const k = L.s2 && P.s2climb ? 'climb' : L.s2 && P.s2swim ? 'swim' : P.onGround && !P.rideM && petGroundUnder(P.x, P.x + P.w, feet) ? 'g' : null;
+  const push = (st) => { S.list.push(st); if (S.list.length > 600) { S.list.shift(); S.base++; } };
+  if (!k) {
+    /* in the air: the spot he took off from is a footstep, and his flight is kept (a pet can do the very same jump) */
+    if (!S.air && S.lastG) {
+      const last = S.list[S.list.length - 1];
+      if (!last || Math.abs(S.lastG.x - last.x) > 0.01 || Math.abs(S.lastG.y - last.y) > 0.01) push({ x: S.lastG.x, y: S.lastG.y, k: S.lastG.k, air: false });
+      S.fly = S.lastG.k === 'g' ? [{ x: S.lastG.x, y: S.lastG.y }] : null;
     }
-    const wideGap = (Z) => Z.x1 - Z.x0 >= 5 * T, pc = pet.x + 6;
-    const ZW = !pt.climb && !pt.swim ? S.hazards.find((Z) => wideGap(Z) && pt.x > Z.x0 - 6 && pt.x < Z.x1 + 6) : null;
-    if (ZW && (pc <= Z0(ZW) || pc >= ZW.x1 - 2)) {   /* he is over it and the pet is still on the bank: wait there, watching him */
-      if (pc <= Z0(ZW)) pet.x = Math.min(pet.x, ZW.x0 - 18); else pet.x = Math.max(pet.x, ZW.x1 + 6);
-      pet.face = pt.x > pc ? 1 : -1; grav(); return;
+    if (S.fly) { if (S.fly.length < 150) S.fly.push({ x: cx, y: feet }); else S.fly = null; }
+    S.air = true; S.lastG = null;
+    return S;
+  }
+  const last = S.list[S.list.length - 1];
+  if (S.air && last && (Math.abs(cx - last.x) > 0.5 || Math.abs(feet - last.y) > 0.5 || last.k !== k)) {   /* landed */
+    const fly = S.fly ? S.fly.concat([{ x: cx, y: feet }]) : null;
+    push({ x: cx, y: feet, k: k, air: true, fly: fly && petFlightOk(fly) ? fly : null });
+  } else if (!last || Math.abs(cx - last.x) >= 4 || Math.abs(feet - last.y) >= 3 || last.k !== k) push({ x: cx, y: feet, k: k, air: false });
+  S.air = false; S.fly = null; S.lastG = { x: cx, y: feet, k: k };
+  S.still = k === 'g' && Math.abs(P.vx) < 0.3 ? (S.still || 0) + 1 : 0;   /* how long he has stood still on the ground */
+  return S;
+}
+/* Kinan's own flight is one a pet can copy: a plain jump or fall (gravity all the way, no bounce off a foe, no rope, no
+   glide, no dash) no faster across than a pet runs */
+function petFlightOk(fly) {
+  for (let i = 1; i < fly.length; i++) {
+    const dx = fly[i].x - fly[i - 1].x, dy = fly[i].y - fly[i - 1].y;
+    if (Math.abs(dx) > PET_TOP) return false;
+    if (i >= 2 && i < fly.length - 1) { const pdy = fly[i - 1].y - fly[i - 2].y; if (!(dy - pdy >= 0.1 || dy >= 5)) return false; }
+    if (fly[i].y > ROWS * T || petInGlitch(fly[i].x, fly[i].y)) return false;
+  }
+  return fly.length >= 3;
+}
+/* the footstep a pet wants to stand on: `back` px of his path behind where he is now (in the air: at most his last footstep,
+   the last safe ground) */
+function petGoal(S, back) {
+  const n = S.list.length, settled = S.still >= 20;
+  let j = n - 1, d = Math.abs(P.x + P.w / 2 - S.list[j].x) + Math.abs(P.y + P.h - S.list[j].y) * 0.5;
+  while (j > 0 && d < back) {
+    const a = S.list[j], b = S.list[j - 1];
+    if (settled && a.air) break;   /* he has landed and stopped just past a jump: they come over to him (and settle beside him) */
+    d += Math.abs(a.x - b.x) + Math.abs(a.y - b.y) * 0.5; j--;
+  }
+  return S.base + j;
+}
+/* the path between two footsteps, in px */
+function petPathLen(S, i, j) {
+  let d = 0;
+  for (let q = Math.max(i, S.base) + 1; q <= j; q++) { const a = S.list[q - S.base], b = S.list[q - 1 - S.base]; d += Math.abs(a.x - b.x) + Math.abs(a.y - b.y) * 0.5; }
+  return d;
+}
+/* a hop from where the pet is to a footstep (tx = middle, ty = feet), tried out frame by frame with the real collision first:
+   the lowest arc that lands there without touching a wall and no faster than Kinan runs; a long gap (Season 2's ropes and
+   bars) takes one big jump. null: no hop gets there from here */
+function petPlanHop(pet, tx, ty) {
+  const y0 = pet.y + pet.h, dx = tx - (pet.x + PET_W / 2), arcs = [];
+  /* n frames exactly: x moves dx / n a frame, and the height after n frames of (move, then gravity) is exactly ty */
+  const arc = (g, n, big) => ({ g: g, n: n, vx: dx / n, vy: (ty - y0 - g * n * (n - 1) / 2) / n, big: !!big });
+  for (const extra of [6, 14, 24, 38, 58, 80]) {
+    const top = Math.min(y0, ty) - extra;
+    arcs.push(arc(PET_G, Math.max(4, Math.round(Math.sqrt(2 * (y0 - top) / PET_G) + Math.sqrt(2 * (ty - top) / PET_G)))));
+  }
+  if (Math.abs(dx) > 7 * T) {   /* one big jump: as long as it needs at Kinan's speed, as high as the gap is wide (to 4.5 tiles) */
+    const n = Math.ceil(Math.abs(dx) / (PET_TOP - 0.2)), top = Math.min(y0, ty) - Math.min(72, 24 + Math.abs(dx) / 5);
+    const g = 2 * Math.pow(Math.sqrt(y0 - top) + Math.sqrt(ty - top), 2) / (n * n);
+    if (g >= 0.12) arcs.push(arc(g, n, true));
+  }
+  for (const a of arcs) {
+    if (Math.abs(a.vx) > PET_TOP) continue;
+    a.tx = tx; a.ty = ty; a.t = 0;
+    const e = { x: pet.x, y: pet.y, w: PET_W, h: pet.h, vx: a.vx, vy: a.vy, onGround: false, landTile: 0 };
+    let ok = false;
+    for (let f = 0; f < a.n + 40; f++) {
+      petHopStep(e, a);
+      if (e.y + e.h > ROWS * T || petInGlitch(e.x + PET_W / 2, e.y + e.h)) break;
+      if (e.onGround) { ok = Math.abs(e.x + PET_W / 2 - tx) <= 4.5 && Math.abs(e.y + e.h - ty) <= 3; break; }
     }
-    const ZB = S.hazards.find((Z) => wideGap(Z) && ((pc <= Z0(Z) && pt.x >= Z.x1 - 6) || (pc >= Z.x1 - 2 && pt.x <= Z.x0 + 6)));
-    if (ZB && !pt.climb && !pt.swim) {   /* he is across: the big jump */
-      pet.s2leap = { x0: pet.x, y0: pet.y, t: 0, dur: 22 + Math.min(16, Math.round((ZB.x1 - ZB.x0) / T)), h: 26 + Math.min(34, (ZB.x1 - ZB.x0) / 8) };
-      dust(pet.x + 6, pet.y + hgt, 3); if (k === 0) AudioSys.tone(520, 0.07, { type: 'triangle', vol: 0.05, slide: 880 });
-      return;
+    if (ok) { a.t = 0; return a; }
+  }
+  return null;
+}
+/* one frame of copying Kinan's jump: his flight, frame by frame */
+function petFlyStep(pet, pb) {
+  const F = pb.fly, q = F.path[Math.min(F.path.length - 1, ++F.i)], last = F.i >= F.path.length - 1;
+  const nx = q.x - PET_W / 2 + (last ? 0 : F.dx * (1 - F.i / (F.path.length - 1)));
+  pet.vx = nx - pet.x; pet.vy = q.y - pet.h - pet.y; pet.x = nx; pet.y = q.y - pet.h; pet.onGround = false;
+  if (Math.abs(pet.vx) > 0.25) pet.face = pet.vx > 0 ? 1 : -1;
+  if (last) {
+    pb.fly = null; pb.ci = F.to; pb.spd = Math.min(PET_TOP, Math.abs(pet.vx)); pet.vx = 0; pet.vy = 0;
+    if (F.line) pb.line = true; else { pet.onGround = true; pb.safe = { x: pet.x, y: pet.y }; dust(q.x, q.y, 2); }
+  }
+}
+/* one frame of a hop (the plan and the real hop use this same step) */
+function petHopStep(e, a) {
+  /* across: what is left to the landing spot over the frames left (like Kinan steering in the air), so a hop that starts
+     against a wall goes up it first and still lands on the spot; never faster than Kinan runs */
+  e.vx = Math.max(-PET_TOP, Math.min(PET_TOP, (a.tx - e.x - e.w / 2) / Math.max(1, a.n - a.t)));
+  a.t++;
+  moveX(e);
+  moveY(e);
+  e.vy = e.onGround ? 0 : Math.min(10, e.vy + a.g);
+}
+/* walk there instead (a short jump of his on flat ground, a step down off a ledge): tried out first, at walking speed */
+function petPlanWalk(pet, tx, ty) {
+  const e = { x: pet.x, y: pet.y, w: PET_W, h: pet.h, vx: 0, vy: 0, onGround: pet.onGround, landTile: pet.landTile || 0 };
+  for (let f = 0; f < Math.abs(tx - pet.x - PET_W / 2) / PET_WALK + 40; f++) {
+    if (petWalkStep(e, tx)) return false;
+    if (e.y + e.h > ROWS * T || petInGlitch(e.x + PET_W / 2, e.y + e.h)) return false;
+    if (Math.abs(e.x + PET_W / 2 - tx) < 0.01 && e.onGround) return Math.abs(e.y + e.h - ty) <= 3;
+  }
+  return false;
+}
+function petWalkStep(e, tx) {
+  const d = tx - (e.x + PET_W / 2);
+  return petBody(e, Math.abs(d) < PET_WALK ? d : Math.sign(d) * PET_WALK);
+}
+/* one frame of a pet's body on foot: across by vx, gravity, the level's walls and floors; true when a wall stopped it */
+function petBody(e, vx) {
+  const was = e.onGround;
+  e.vx = vx;
+  const wall = vx ? moveX(e) : 0;
+  if (was) {   /* walking onto an uphill slope: its feet go up onto the slope's surface, as Kinan's do */
+    const cx = e.x + e.w / 2, feet = e.y + e.h, sx = Math.floor(cx / T);
+    for (const ty of [Math.floor((feet - 1) / T), Math.floor((feet - 1) / T) - 1]) {
+      const sy = slopeSurfaceY(sx, ty, cx);
+      if (sy != null && sy < feet - 0.01 && feet - sy <= 8 && !famOverlaps(e.x, sy - e.h, e.w, e.h)) { e.y = sy - e.h; e.landTile = tileAt(sx, ty); break; }
     }
-    if (Math.hypot(tx - pet.x, ty - pet.y) > 80) { pet.x = tx; pet.y = ty; pet.s2vy = 0; sparks(tx + 6, ty + 4, 6, ['#fff', '#9fe0ff']); return; }   /* out of a pipe or door (or left far behind): a poof */
-    pet.x = tx;
-    if (pt.climb || pt.swim || overGap(pt.x)) { pet.y = ty; pet.s2vy = 0; pet.s2g = false; }   /* up the ladder, through the water, across the gap: right behind him */
-    else {
-      const prevB = pet.y + hgt;
-      if (pet.s2g && pt.g && ty < pet.y - 6) { pet.s2vy = -Math.min(8.5, Math.sqrt(2 * 0.45 * (pet.y - ty + 8))); pet.s2g = false; }   /* his path goes up: hop */
-      pet.s2vy = Math.min(7, (pet.s2vy || 0) + 0.45); pet.y += pet.s2vy;
-      if (pet.s2vy < 0 && solid(Math.floor((pet.x + 6) / T), Math.floor(pet.y / T))) { pet.y = (Math.floor(pet.y / T) + 1) * T; pet.s2vy = 0; }   /* a ceiling */
-      const fl = pet.s2vy >= 0 ? floorAt(pet.x + 2, pet.x + 10, pet.y + hgt, prevB) : null;
-      if (fl != null) { pet.y = fl - hgt; pet.s2vy = 0; pet.s2g = true; } else pet.s2g = false;
-      if (pet.y > ty + 96 && pt.g) { pet.y = ty; pet.s2vy = 0; }   /* never left stranded far below where he stands */
-    }
-    if (pt.swim && frame % 30 === k * 7 % 30) part(pet.x + 6, pet.y, { vx: 0, vy: -0.45, life: 30, size: 1, color: '#e6f7ff', g: -0.01 });
+  }
+  e.vy = Math.min(PET_FALL, (e.vy || 0) + PET_G); moveY(e);
+  if (was && !e.onGround && e.vy >= 0) {   /* walking down a slope or a small step: its feet stay on the ground (to 5 px) */
+    const y = e.y, vy = e.vy; e.vy = 5; moveY(e);
+    if (!e.onGround) { e.y = y; e.vy = vy; }
+  }
+  return !!wall;
+}
+/* the straight line to a footstep on a ladder or in water (and back out) is clear of walls */
+function petLineClear(pet, tx, ty) {
+  const x0 = pet.x, y0 = pet.y, x1 = tx - PET_W / 2, y1 = ty - pet.h, n = Math.ceil(Math.hypot(x1 - x0, y1 - y0) / 3);
+  for (let q = 1; q <= n; q++) if (famOverlaps(x0 + (x1 - x0) * q / n, y0 + (y1 - y0) * q / n, PET_W, pet.h)) return false;
+  return true;
+}
+/* a pet pops back beside Kinan: on the footstep behind him (where he stood, so there is room) */
+function petPoof(pet, S, quiet, rescue) {
+  if (pet.pb.cool > 0) return false;   /* (just popped somewhere: it stays a moment) */
+  const n = S.list.length;
+  if (!n || S.air) return false;
+  const gi = petGoal(S, pet.back), top = S.base + n - 1;
+  for (const j of [gi, gi + 1, gi + 2, gi - 1, gi - 2, gi + 3, top]) {
+    if (j < S.base || j > top) continue;
+    const st = S.list[j - S.base];
+    if (famOverlaps(st.x - PET_W / 2, st.y - pet.h, PET_W, pet.h)) continue;
+    if (!quiet && Math.abs(st.x - pet.x - PET_W / 2) < 16 && Math.abs(st.y - pet.y - pet.h) < 24) { if (rescue) continue; return false; }   /* that close it walks (out of trouble: a spot a little further) */
+    const seen = pet.x + PET_W > camX && pet.x < camX + W;
+    if (!quiet && seen) dust(pet.x + PET_W / 2, pet.y + pet.h, 6);
+    pet.x = st.x - PET_W / 2; pet.y = st.y - pet.h; pet.vx = 0; pet.vy = 0; pet.onGround = st.k === 'g';
+    pet.face = P.x + P.w / 2 >= st.x ? 1 : -1;
+    Object.assign(pet.pb, { ci: j, hop: null, fly: null, plan: null, line: st.k !== 'g', still: 0, off: 0, spd: 0, cool: 3 });
+    if (st.k === 'g') pet.pb.safe = { x: pet.x, y: pet.y };
+    if (!quiet) { dust(st.x, st.y, 8); sparks(st.x, st.y - 4, 5, ['#fff', '#f4f1e8', '#9fe0ff']); }
+    return true;
+  }
+  return false;
+}
+/* out of trouble (no floor under it, a block over it): beside Kinan, or back to the last place it stood */
+function petRescue(pet, S) {
+  const pb = pet.pb;
+  if (petPoof(pet, S, false, true)) return;
+  if (pb.safe && !famOverlaps(pb.safe.x, pb.safe.y, PET_W, pet.h)) {
+    dust(pet.x + PET_W / 2, pet.y + pet.h, 6);
+    pet.x = pb.safe.x; pet.y = pb.safe.y; pet.vx = pet.vy = 0; pet.onGround = true; pb.hop = null; pb.fly = null; pb.cool = 3; pb.ci = -1;
+    dust(pet.x + PET_W / 2, pet.y + pet.h, 6);
+  }
+}
+/* a new pet (a level start, a checkpoint swap, a rescue) stands on the floor behind Kinan, or where it is if that is a floor */
+function petPlace(pet, S, puff) {
+  pet.pb = { ci: -1, hop: null, plan: null, line: null, still: 0, off: 0, spd: 0, safe: null };
+  if (S.list.length && petPoof(pet, S, !puff)) return;
+  for (const off of [pet.back, pet.back * 0.6, pet.back * 0.3, 0]) {
+    const x = Math.round(P.x + P.w / 2 - (P.face || 1) * off - PET_W / 2), fy = petSpotAt(x, P.y + P.h, pet.h);
+    if (fy == null) continue;
+    pet.x = x; pet.y = fy - pet.h; pet.vx = 0; pet.vy = 0; pet.onGround = true; pet.face = P.face || 1;
+    pet.pb.safe = { x: pet.x, y: pet.y };
+    if (puff) dust(x + PET_W / 2, fy, 8);
+    return;
+  }
+  pet.vx = 0; pet.vy = 0;
+}
+/* every level, every frame: the footsteps, then each pet */
+function petsFollow() {
+  const S = petStepsUpdate();
+  let k = 0, prev = null;
+  for (const [list, h, back, gap] of [[pets.cats, 10, 14, 16], [pets.dogs, 11, 30, 18]]) list.forEach((pet, i) => {
+    pet.w = PET_W; pet.h = h; pet.back = back + i * gap;
+    if (!pet.pb) petPlace(pet, S, stageTime > 2);
+    /* the footstep it heads for: its distance behind him, and never the same spot as the pet in front (waiting at a gap, the
+       dog stands a little behind the cat, not on top of her) */
+    let gi = S.list.length ? petGoal(S, pet.back) : -1;
+    if (prev != null && gi >= 0) { let j = prev, d = 0; while (j > S.base && d < 14) { const a = S.list[j - S.base], b = S.list[j - 1 - S.base]; if (a.air && S.still >= 20) break; d += Math.abs(a.x - b.x) + Math.abs(a.y - b.y) * 0.5; j--; } gi = Math.min(gi, j); }
+    petStep(pet, S, k++, gi);
+    prev = gi;
   });
+}
+function petStep(pet, S, k, gi) {
+  const pb = pet.pb, n = S.list.length, top = S.base + n - 1;
+  const st = (j) => S.list[j - S.base];
+  const kc = P.x + P.w / 2, kfeet = P.y + P.h;
+  const kStands = n > 0 && !S.air;   /* he is on the ground (or on a ladder, in water) where he left his last footstep */
+  const seen = pet.x + PET_W > camX - 4 && pet.x < camX + W + 4;
+  pb.off = seen ? 0 : pb.off + 1;
+  if (pb.cool > 0) pb.cool--;
+  pet.s2swim = false; pet.s2climb = false;
+  /* 0. a block appeared where it stands, or something put it in a pit (Hunter's save drops him next to Kinan): out at once */
+  if (!pb.fly && !pb.line && (pet.y + pet.h > ROWS * T || petInGlitch(pet.x + PET_W / 2, pet.y + pet.h) || famOverlaps(pet.x, pet.y, PET_W, pet.h))) {
+    let up = 0;
+    if (pet.y + pet.h <= ROWS * T && !petInGlitch(pet.x + PET_W / 2, pet.y + pet.h)) while (up <= T && famOverlaps(pet.x, pet.y - up, PET_W, pet.h)) up++;
+    pb.hop = null;
+    if (up && up <= T) pet.y -= up; else { petRescue(pet, S); return; }
+  }
+  /* 1. copying Kinan's jump, or a hop on its way (the same steps that were tried out) */
+  if (pb.fly) { petFlyStep(pet, pb); return; }
+  if (pb.hop) {
+    const a = pb.hop;
+    petHopStep(pet, a);
+    pet.face = a.vx >= 0 ? 1 : -1;
+    if (pet.onGround) {
+      pb.hop = null; pb.ci = a.to; pb.spd = Math.min(PET_TOP, Math.abs(a.vx)); pb.safe = { x: pet.x, y: pet.y };
+      dust(pet.x + PET_W / 2, pet.y + pet.h, a.big ? 5 : 2);
+    } else if (a.t > a.n + 40 || (pet.y + pet.h > a.ty + 2 * T && petFloorBelow(pet.x, PET_W, pet.y + pet.h) == null)) {
+      pb.hop = null;   /* the world changed under it (a plank dropped): back beside Kinan, or to its last safe spot */
+      petRescue(pet, S);
+    }
+    return;
+  }
+  /* 2. lost the footsteps (a respawn, a pipe or a door; a teleport): poof beside him once he stands somewhere */
+  if (pb.ci < S.base || pb.ci > top) {
+    pb.ci = -1;
+    if (kStands && (pb.off > 0 || Math.abs(pet.x + PET_W / 2 - kc) > 6 * T || Math.abs(pet.y + pet.h - kfeet) > 2 * T)) { petPoof(pet, S); return; }
+    if (n && pet.onGround) {   /* near him on the same floor: step onto his nearest footstep */
+      for (let j = top; j >= Math.max(S.base, top - 200); j--) { const s = st(j); if (s.k === 'g' && Math.abs(s.x - pet.x - PET_W / 2) <= 6 && Math.abs(s.y - pet.y - pet.h) <= 3) { pb.ci = j; break; } }
+      if (pb.ci < 0) { const j = Math.max(S.base, petGoal(S, pet.back)); if (petPlanWalk(pet, st(j).x, st(j).y)) { pb.ci = j; pb.walkTo = true; } }
+    }
+  }
+  if (pb.ci < 0) { petPhysics(pet, null, 0); if (++pb.still > 60 && kStands) petPoof(pet, S); return; }
+  /* 3. Kinan came back over the pet's way (the floor between it and the footstep it is heading for): it skips the loop he
+     walked, so it never runs out to where he turned and back */
+  if (pet.onGround && !pb.line) {
+    const px = pet.x + PET_W / 2, py = pet.y + pet.h, t0 = st(pb.ci);
+    const flat = t0.k === 'g' && !t0.air && Math.abs(t0.y - py) <= 3, lo = flat ? Math.min(px, t0.x) - 5 : px - 5, hi = flat ? Math.max(px, t0.x) + 5 : px + 5;
+    for (let j = Math.min(top, pb.ci + 400); j > pb.ci; j--) { const s = st(j); if (s.k === 'g' && s.x >= lo && s.x <= hi && Math.abs(s.y - py) <= 3) { pb.ci = j; pb.plan = null; break; } }
+  }
+  const pc = pet.x + PET_W / 2, feet = pet.y + pet.h;
+  /* 4. left far behind, stuck, or off the screen for a while: poof */
+  const far = Math.hypot(pc - kc, feet - kfeet) > 16 * T || petPathLen(S, pb.ci, top) > 40 * T;
+  if (kStands && (far || (pb.still > 60 && (pb.off > 0 || Math.abs(pc - kc) > 6 * T)) || pb.still > 300 || pb.off > 120)) { if (petPoof(pet, S)) return; }
+  /* 5. Kinan walks back towards it: it stops and faces him (he walks past it, then it falls in behind him) */
+  const coming = P.face * (pc - kc) > 3 && Math.abs(feet - kfeet) < 20 && Math.abs(pc - kc) < 140 && pet.onGround && !pb.line;
+  let here = st(pb.ci), stuck = false;
+  const reached = Math.abs(here.x - pc) < 0.6 && Math.abs(here.y - feet) <= 4;
+  if (reached && pb.ci < gi && !coming) {
+    const nx = st(pb.ci + 1);
+    if (nx.k !== 'g' || here.k !== 'g') {   /* up a ladder, into the water, along them: his exact path, climbing or swimming */
+      if (nx.air && nx.fly && here.k === 'g' && nx.fly.every((q) => !famOverlaps(q.x - PET_W / 2, q.y - pet.h, PET_W, pet.h))) {   /* his jump onto it */
+        pb.fly = { path: nx.fly, i: 0, to: pb.ci + 1, dx: pc - nx.fly[0].x, line: nx.k !== 'g' }; pb.still = 0;
+        petFlyStep(pet, pb);
+        return;
+      }
+      if (petLineClear(pet, nx.x, nx.y)) { pb.ci++; pb.line = true; pb.still = 0; here = nx; } else stuck = true;
+    } else if (nx.air) {   /* he jumped (or dropped) to the next one: walk it if that works, else the hop, else wait */
+      if (!pb.plan || pb.plan.to !== pb.ci + 1 || (pb.plan.how === 'none' && ++pb.plan.t > 20)) {
+        const how = petPlanWalk(pet, nx.x, nx.y) ? 'walk' : nx.fly && nx.fly.every((q) => !famOverlaps(q.x - PET_W / 2, q.y - pet.h, PET_W, pet.h)) ? 'copy' : null, hop = how ? null : petPlanHop(pet, nx.x, nx.y);
+        pb.plan = { to: pb.ci + 1, how: how || (hop ? 'hop' : 'none'), hop: hop, t: 0 };
+      }
+      if (pb.plan.how === 'copy') {   /* the very jump Kinan did, frame by frame (his body went there: no wall, and it lands) */
+        pb.fly = { path: nx.fly, i: 0, to: pb.ci + 1, dx: pc - nx.fly[0].x }; pb.plan = null; pb.still = 0;
+        dust(pc, feet, 2);
+        petFlyStep(pet, pb);
+        return;
+      }
+      if (pb.plan.how === 'hop') {
+        const a = Object.assign({}, pb.plan.hop, { t: 0, to: pb.ci + 1 });
+        pet.vx = a.vx; pet.vy = a.vy; pet.onGround = false; pb.hop = a; pb.plan = null; pb.still = 0;
+        if (a.big && k === 0) AudioSys.tone(520, 0.07, { type: 'triangle', vol: 0.05, slide: 880 });
+        dust(pc, feet, 2);
+        petHopStep(pet, a); pet.face = a.vx >= 0 ? 1 : -1;
+        return;
+      }
+      if (pb.plan.how === 'walk') { pb.ci++; pb.walkTo = true; here = nx; }
+      else stuck = true;
+    }
+  }
+  /* 6. on a ladder or in water: along his exact path */
+  if (pb.line) {
+    const t = st(pb.ci), d = Math.hypot(t.x - pc, t.y - feet), sp = Math.min(3, d);
+    pet.s2climb = t.k === 'climb' || st(Math.max(S.base, pb.ci - 1)).k === 'climb';
+    pet.s2swim = !pet.s2climb && (t.k === 'swim' || st(Math.max(S.base, pb.ci - 1)).k === 'swim');
+    if (d > 0) { pet.x += (t.x - pc) / d * sp; pet.y += (t.y - feet) / d * sp; pet.face = t.x > pc + 0.3 ? 1 : t.x < pc - 0.3 ? -1 : pet.face; }
+    pet.vx = 0; pet.vy = 0; pet.onGround = false;
+    if (d <= 3) {
+      if (pb.ci < gi && st(pb.ci + 1) && (st(pb.ci + 1).k !== 'g' || t.k !== 'g') && petLineClear(pet, st(pb.ci + 1).x, st(pb.ci + 1).y)) pb.ci++;
+      else if (t.k === 'g') { pb.line = false; pet.onGround = true; pb.safe = { x: pet.x, y: pet.y }; }
+    }
+    if (pet.s2swim && frame % 30 === k * 7 % 30) part(pet.x + PET_W / 2, pet.y, { vx: 0, vy: -0.45, life: 30, size: 1, color: '#e6f7ff', g: -0.01 });
+    return;
+  }
+  /* 7. walking his footsteps: as far along them this frame as its speed goes (never past the next hop) */
+  let tx = pc;
+  /* settling: he has stood still a moment and the pet is on his floor at its footstep: it walks to its own distance from
+     him on the side it is on (never past him), if the floor goes there */
+  const settle = S.still >= 20 && !coming && pet.onGround && pb.ci >= gi && Math.abs(here.x - pc) <= pet.back + 6 && Math.abs(feet - kfeet) <= 3 && Math.abs(pc - kc) < 8 * T;
+  if (settle) {
+    const side = pc < kc - 0.5 ? -1 : pc > kc + 0.5 ? 1 : -(P.face || 1), want = kc + side * pet.back;
+    if (Math.abs(want - pc) > 1.5) {
+      const key = Math.round(want) + ',' + Math.round(kfeet);
+      if (pb.settleKey !== key) { pb.settleKey = key; pb.settleOk = petPlanWalk(pet, want, kfeet); }
+      if (pb.settleOk) { const d = Math.max(-1.6, Math.min(1.6, want - pc)); petPhysics(pet, d, kc); pet.face = kc > pet.x + PET_W / 2 ? 1 : -1; pb.still = 0; pb.spd = 0; if (pet.onGround) pb.safe = { x: pet.x, y: pet.y }; return; }
+    }
+  } else pb.settleKey = null;
+  if (!coming) {
+    const rem = Math.abs(here.x - pc) + petPathLen(S, pb.ci, gi);
+    const want = pb.walkTo ? PET_WALK : Math.min(PET_TOP, 0.5 + rem * 0.3);
+    pb.spd += Math.max(-0.6, Math.min(0.35, want - pb.spd));
+    let budget = pb.walkTo ? PET_WALK : pb.spd, j = pb.ci;
+    for (;;) {
+      const t = st(j), d = t.x - tx;
+      if (Math.abs(d) > budget) { tx += Math.sign(d) * budget; break; }
+      tx = t.x; budget -= Math.abs(d);
+      if (j >= gi) break;
+      const nx = st(j + 1);
+      if (nx.air || nx.k !== 'g' || t.k !== 'g') break;
+      j++; pb.walkTo = false;
+    }
+    pb.ci = j;
+  } else pb.spd = Math.max(0, pb.spd - 0.6);
+  petPhysics(pet, tx - pc, kc);
+  if (Math.abs(pet.x + PET_W / 2 - tx) > 0.5 && Math.abs(tx - pc) > 0.5) stuck = true;   /* a wall stopped it */
+  else if (!coming && !reached && Math.abs(tx - pc) <= 0.5 && Math.abs(here.y - feet) > 4 && pet.onGround) stuck = true;   /* under or over its footstep */
+  pb.still = stuck ? pb.still + 1 : 0;
+  if (pet.onGround && !pb.walkTo) pb.safe = { x: pet.x, y: pet.y };
+  if (pb.walkTo && pet.onGround && Math.abs(st(pb.ci).x - pet.x - PET_W / 2) < 0.6) pb.walkTo = false;
+  /* falling into a pit or the glitch after all (a plank gave way under it): back beside Kinan before it is in */
+  if (!pet.onGround && pet.vy > 0 && (pet.y + pet.h > ROWS * T - 4 || petInGlitch(pet.x + PET_W / 2, pet.y + pet.h + 6))) petRescue(pet, S);
+}
+/* one frame of a pet's body: dx across (null: standing), gravity, the level's walls and floors */
+function petPhysics(pet, dx, kc) {
+  petBody(pet, dx || 0);
+  if (Math.abs(pet.vx) > 0.25) pet.face = pet.vx > 0 ? 1 : -1;
+  else if (kc && Math.abs(kc - pet.x - PET_W / 2) > 4) pet.face = kc > pet.x + PET_W / 2 ? 1 : -1;
+}
+/* the footsteps start over and every pet is placed again (a saved game restored, back from a puzzle room) */
+function petsReset() {
+  if (L) L.petSteps = null;
+  pets.cats.concat(pets.dogs).forEach((p) => { p.pb = null; });
 }
 
 /* ============================================================
@@ -17712,8 +18034,7 @@ function exitPuzzle() {
   camX = sv.camX; lastSafe = sv.lastSafe; trail = [];
   pieceCool[j] = 90;   /* no stepping straight back in */
   puzzle = null;
-  pets.cats.forEach((c, k) => { c.x = P.x - 18 - k * 16; c.y = P.y + 7; });
-  pets.dogs.forEach((d, k) => { d.x = P.x - 80 - k * 20; d.y = P.y + 6; });
+  petsReset();   /* the pets stand behind him again (the pet brain places them) */
   el.stageLbl.textContent = stageLabel(L.i);
 }
 function solvePuzzle(pz) {
