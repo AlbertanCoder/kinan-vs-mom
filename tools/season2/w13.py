@@ -144,6 +144,7 @@ L.write(OUT + 'secret.js', HD)
 
 # ---- 13-8 MOUNT FUJI (the avalanche) ----
 L = lv('13-8', 10, 'MOUNT FUJI', 329)
+L.tier = min(L.tier, 0.44)   # (the avalanche chase: its gaps stay 3 wide; running from the snow is the challenge)
 a = L.act('THE MOUNTAIN TRAIL')
 a.say(2, 'ANNIE', 'Mount Fuji! Japan\'s tallest mountain. Glitchy\'s beeps are coming from up there.')
 a.run(12); a.ropes(10); a.run(10, hidden=True); a.shelves(visible='heart'); a.bars(10); a.run(12)

@@ -227,3 +227,31 @@ The mine stays **dark** (the lit arena was wrong).
   - Found on the live link the same day: the **test's title screen** was drawn before its save was seeded (it said "Kinan
     vs. Mom", PLAY · START, 12 worlds; now "Kinan vs. Worlds", PLAY · CONTINUE, the right world), and a level's **opening
     conversation starts with the level** (its lines sat at Kinan's own column and waited for his first step).
+- 2026-11-11: **The kid playthrough of Worlds 11-15 (Shad: "the ropes are a bit awkward... swinging too fast... play it
+  like a kid").** His answers: easy auto-swing ropes and grappling hook; "fair, a little challenge, getting harder as you
+  go"; move unreachable candles where they can be reached; publish to the Season 2 test link only.
+  - **Ropes: the easy swing.** Kinan grabs a rope by himself, it swings slowly by itself (one swing every 2.7 s), ◀▶ only turn him, and JUMP at ANY moment flings him forward the way he faces (a let-go on the back
+    swing hops higher). A rope catches him a tile below its end. Checked: every let-go moment on every rope gap lands
+    (420/420); a kid mashing JUMP gets across every rope, ring and bar gap (648/648).
+  - **Grappling hook:** the same easy swing. It never hooks the ring he just let go of (a kid mashing JUMP after the last
+    ring was yanked back onto it, over and over), and by itself only hooks rings ahead.
+  - **Monkey bars, kid-proof:** JUMP in the middle does nothing (a tap there dropped him in); hold ▶ and he hops off the
+    far end by himself; and he reaches up for the bars from 3 tiles below (a kid making small hops, or running off the
+    edge, never reached them and fell in).
+  - **The glide folds safely:** holding JUMP (as kids do) after a ring glided him low over the ground into the next pit.
+    Now, over the ground, when a glide can't carry him past the pit ahead (and no updraft will), the umbrella folds and
+    he lands before it; it opens again after any landing, climb, swing or bounce.
+  - **Levels:** tunnel roofs had 2 candles nobody could reach and a flyer that started inside the roof (gone; a walker
+    comes out of the tunnel instead); the per-screen candle gift no longer lands inside or beside a tower, wall or ladder
+    (one blocked the glide tower's climb in World 15); a pool's raised rim right after a swing gets ground in front (the
+    fling hit the rim and bounced him back into the gap); two pits back to back get ground between them (14-6 had a
+    10-wide pit; after a dash gap 9 tiles, a dash carries him ~5); a pit right at a tunnel's mouth gets 3 tiles to run up
+    (the low roof stopped the jump). New dev check `__k11.s2audit()`: every candle, gift, golden candle and goal is
+    reachable (walks, jumps, climbs, wall-jumps, swings, dashes, glides), no foe in a wall, no ladder to nowhere: 0 issues
+    in all 44 levels.
+  - **Harder as you go** (`Level.tier`, 0 at 12-1 to 1 at 15-castle): gaps 1 wider from the middle of World 13 and 2 wider
+    late in World 15 (never over 5: he clears 6), busier runs (a walker more, sometimes a flyer) in Worlds 14-15, the
+    castle climbs rise a little faster each world (0.64 to 0.78), and each world's popper boss is 5% quicker. The Mount
+    Fuji avalanche keeps 3-wide gaps (running from the snow is the challenge).
+  - Checked: the play-through robot clears all 44 levels (the castles with every line said); the kid tests above; dash
+    gaps 525/525 with any dash timing; unit tests; the World 11 and Season 2 browser tests.

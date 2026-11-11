@@ -7,9 +7,16 @@ GROUND = 12  # surface row (Kinan stands in row 11)
 
 DROPS = ('tower', 'spring', 'chimney', 'highblock', 'stairs', 'shelves', 'glide', 'pool', 'dig', 'boards')
 HAZ = ('gap', 'ropes', 'bars', 'rings', 'dashgap', 'glide', 'pool', 'chimney', 'tower', 'skatest')
+SWINGS = ('gap', 'ropes', 'rings', 'bars', 'dashgap')
 def beat(fn):
     def w(self, *a, **k):
         if fn.__name__ in HAZ and self.route and self.route[-1][0] in DROPS: Act.open_area(self, 7)   # solid ground after a high drop
+        # a pool's raised rim right after a swing: the last fling hit the rim and bounced him back into the gap (2026-11-11, 13-secret)
+        # two pits back to back made one long one (14-6: a dash gap then a gap, 10 wide): ground between them
+        elif fn.__name__ in SWINGS and self.route and self.route[-1][0] in SWINGS: Act.open_area(self, 9 if self.route[-1][0] == 'dashgap' else 5)   # (a dash carries him ~5 tiles)
+        # a pit right at a tunnel's mouth: the low roof stops the jump (14-6: every kid fell in): room to run up first
+        elif fn.__name__ in SWINGS and self.route and self.route[-1][0] == 'tunnel': Act.open_area(self, 3)
+        elif fn.__name__ == 'pool' and self.route and self.route[-1][0] in ('ropes', 'rings', 'bars', 'dashgap', 'gap'): Act.open_area(self, 4)
         self.route.append([fn.__name__, self.c, list(a), k]); r = fn(self, *a, **k); self.route[-1].append(self.c); return r
     return w
 
@@ -57,7 +64,9 @@ class Act:
     # ---------------- beats ----------------
     @beat
     def run(self, n=12, foes=1, fly=False, hidden=False, cand=True):
-        x = self.c; self.g(x, x + n - 1)
+        x = self.c; self.g(x, x + n - 1); t = self.L.tier
+        if t >= 0.55 and n >= 10: foes = min(foes + 1, n // 5)            # busier runs later on
+        if t >= 0.75 and n >= 12 and not fly and foes and self.rand.random() < 0.5: fly = True
         if cand and n >= 6: self.arc(x + 2, min(5, n - 4), 10, 1)
         if x == 0: foes = 0; fly = False   # an act's first steps (the spawn, a checkpoint): nothing walks or flies into Kinan
                                             # while its first line is said (2026-11-11: a foe stood 2 columns from the spawn)
@@ -69,6 +78,7 @@ class Act:
         self.c += n
     @beat
     def gap(self, w=3):
+        w = min(5, w + (self.L.tier >= 0.45) + (self.L.tier >= 0.8))   # wider later on (he clears 6)
         x = self.c; self.hazards.append([x, 13, x + w - 1, 14]); self.arc(x, w, 8); self.c += w
     @beat
     def stairs(self):
@@ -121,7 +131,9 @@ class Act:
         x = self.c; self.g(x, x + n + 3); self.sol(x + 2, 4, x + n + 1, 10)   # a crawl space one tile high (row 11)
         self.cand([[x + 3 + k, 11] for k in range(0, n - 1, 2)])
         if golden: self.golden = {'col': x + 2 + n // 2, 'row': 11}; self.secrets.append({'kind': 'hidden', 'col': x + 2 + n // 2, 'row': 11, 'prize': 'GOLDEN CANDLE'})
-        self.cand([[x + 4, 3], [x + 6, 3]]); self.foe(x + n, fly=True)
+        # (2026-11-11 playthrough: the 2 candles on the tunnel's roof (7 rows up) were out of reach, and the flying foe started
+        # inside the roof block: both gone; a walker comes out of the tunnel's far end instead)
+        self.foe(x + n + 2)
         self.c += n + 4
     @beat
     def chimney(self):
@@ -133,7 +145,9 @@ class Act:
         n = min(n, 8); x = self.c; self.hazards.append([x, 13, x + n - 1, 14])
         # 2026-11-11: 8 wide, the ropes 4 apart and the far bank 3 from the second rope: any let-go the way he faces lands
         # (at 10 wide the play-through robot fell at the same rope five times in 13-1)
-        self.l_ropes.append([x + 1, 5, 5]); self.l_ropes.append([x + n - 3, 4, 5]); self.cand([[x + 1, 10], [x + n // 2, 7], [x + n - 3, 9]])
+        self.l_ropes.append([x + 1, 5, 6]); self.l_ropes.append([x + n - 3, 4, 6]);
+        # (they hang to just above the gap: an early jump still catches the end)
+        self.cand([[x + 1, 10], [x + n // 2, 7], [x + n - 3, 9]])
         self.c += n
     @beat
     def bars(self, n=10):
@@ -207,6 +221,10 @@ class Level:
     def __init__(self, W, lid, slot, name, theme, hazard='glitch', flags=None, up=14):
         self.W = W; self.id = lid; self.slot = slot; self.name = name; self.theme = theme; self.hazard = hazard
         self.flags = flags or {}; self.acts = []; self.up = up
+        # 2026-11-11 (the owner: "fair, a little challenge, getting harder as you go"): how far into Season 2 this level is,
+        # 0 at 12-1 to 1 at 15-castle. Gaps widen, runs get busier and the castle climbs rise faster as it grows.
+        order = ['1', '2', '3', '4', 'fort', '5', '6', '7', 'secret', '8', 'castle']
+        k = lid.split('-')[1]; self.tier = ((W['n'] - 12) * 11 + (order.index(k) if k in order else 0)) / 43.0
     def place_talk(self):
         """Shad's audit (2026-11-10): nobody talks over anyone and every line is heard. The game says one line at a time and
         skips a line once Kinan is 48 columns past it, unless its conversation has started (lines within 3 columns of each
@@ -274,7 +292,11 @@ class Level:
         total = base
         for sc in range(0, total, 27):
             if any(c in toys for c in range(sc, min(total, sc + 27))): continue
-            cands = sorted([(c, a) for (c, a) in ground if sc <= c < sc + 27], key=lambda t: abs(t[0] - (sc + 13)))
+            # (never in or beside a tower, a wall or a ladder: 2026-11-11, a gift next to the glide tower blocked its climb)
+            free = lambda c, a, b0: not any(r[0] - 3 <= c - b0 <= r[2] + 3 and r[1] <= 9 for r in a.solid) and not any(abs(l[0] - (c - b0)) <= 3 for l in a.ladders + a.vines)
+            cands = sorted([(c, a) for (c, a) in ground if sc <= c < sc + 27 and free(c, a, sum(x.c for x in self.acts[:self.acts.index(a)]))], key=lambda t: abs(t[0] - (sc + 13)))
+            if not cands:   # (a short last screen beside a wall: anywhere not inside a solid)
+                cands = sorted([(c, a) for (c, a) in ground if sc <= c < sc + 27 and not any(r[0] <= c - sum(x.c for x in self.acts[:self.acts.index(a)]) <= r[2] and r[1] <= 8 <= r[3] for r in a.solid)], key=lambda t: abs(t[0] - (sc + 13)))
             if cands:
                 c, a = cands[0]; b0 = sum(x.c for x in self.acts[:self.acts.index(a)]); a.tile('gift', c - b0, 8, 'candle'); toys.add(c)
         self.place_talk()
@@ -325,10 +347,11 @@ def arena(a, look, holes=None, width=30):
     a.cps = [[2, GROUND], [c0 - 3, GROUND]]
     a.c = x + width + 4
 
-def shaft(a, look, summit=None, floors=5, conns=None, say=None, done=None, after=None, width=28, spd=0.7):
+def shaft(a, look, summit=None, floors=5, conns=None, say=None, done=None, after=None, width=28, spd=None):
     a.route.append(['shaft', a.c, [look, summit, floors, width], {}])
     """the castle's climb: a shaft (walls at x+0 and x+31) with one-way floors every 6 rows; the rise starts as Kinan walks in.
     summit: a creature at the top (frog / tanuki / iguana / gargoyle), or None (a chase: reach the top and it stops)"""
+    if spd is None: spd = round(0.64 + 0.14 * a.L.tier, 3)   # the castle climbs rise a little faster each world
     x = a.c; a.g(x, x + width + 3)
     L0, R0 = x + 1, x + width            # inside the walls
     S = GROUND - 6 * (floors + 1)     # the summit row
