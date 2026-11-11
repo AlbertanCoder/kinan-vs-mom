@@ -224,3 +224,6 @@ The mine stays **dark** (the lit arena was wrong).
     landed (they hovered behind him); **rope gaps are 8 wide** (any let-go the way he faces lands; the robot fell five
     times at one rope in 13-1); a moment line (a boss's, a helper's) is **dropped when its level is over** instead of
     being said on the map.
+  - Found on the live link the same day: the **test's title screen** was drawn before its save was seeded (it said "Kinan
+    vs. Mom", PLAY · START, 12 worlds; now "Kinan vs. Worlds", PLAY · CONTINUE, the right world), and a level's **opening
+    conversation starts with the level** (its lines sat at Kinan's own column and waited for his first step).

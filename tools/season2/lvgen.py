@@ -229,6 +229,8 @@ class Level:
             else: groups.append([l])
         for g in groups:
             for k, l in enumerate(g): l[0] = g[0][0] + k   # one conversation: one column apart (the game keeps it together)
+        if groups and groups[0][0][0] <= 3 and groups[0][0][4] == 0:   # the level's opening conversation starts the moment the level does
+            for l in groups[0]: l[0] = 1                                 # (Kinan stands at column 2: a line there waited for his first step)
         self.talk_moves = []
         for _pass in range(10):   # a moved conversation can land after another one: re-plan in the new order until nothing moves
             groups.sort(key=lambda g: g[0][0]); moved = False; free = 0.0; wait = 0.0   # wait: seconds Kinan stood still for 'hold' lines
