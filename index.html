@@ -12699,9 +12699,11 @@ function drawS2Bosses() {
   drawS2Listen();
 }
 /* "listen..." over Kinan while the talk keeps him waiting (2026-11-12, Shad's answers 36-37): a small bubble with dots that
-   fill one by one, so a kid can see the game has not frozen */
+   fill one by one, so a kid can see the game has not frozen: at the top of a castle while the rescue lines are said, and
+   while a lesson line holds him (Sabumnim's video calls, a new tool: 13-1's call kept him still ~8 s with nothing on him) */
 function drawS2Listen() {
-  if (!P || P.dead || !s2TalkLocked()) return;
+  if (!P || P.dead || !(s2TalkLocked() || Story.holding())) return;
+  window.__k11Listen = frame;   /* (dev: the frame it was last drawn, for the checks) */
   const cx = Math.round(P.x + P.w / 2 - camX), top = Math.round(P.y) - 24 + Math.round(Math.sin(frame / 10)), dots = '...'.slice(0, 1 + Math.floor(frame / 20) % 3);
   ctx.font = "700 8px 'Pixelify Sans', monospace";
   const tw = Math.round(ctx.measureText('LISTEN...').width) + 8;   /* (capitals: the thin l and i of "listen" blurred into one blob at this size) */
