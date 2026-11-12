@@ -29567,6 +29567,29 @@ moveFromLink();   /* a Move-my-save QR code opened the game: its code waits in "
 try {
   if (sessionStorage.getItem('kinan-return') === 'map') { sessionStorage.removeItem('kinan-return'); worldMapScreen(); }
 } catch (e) { /* storage blocked: the title screen it is */ }
+/* A LINK STRAIGHT TO ONE COUNTRY (Shad, 2026-11-12, launch answer 38, "Annie's link"): ...?world=13 opens the game straight onto
+   Japan's map with Japan's first level ready, on this device's own save; ?world=12, 14 and 15 do the same for India, Mexico and
+   France. The worlds before it count as beaten (added to the save: nothing it already has is lost, not its levels, candles or
+   pets), the World 11 ending is not shown, and Kinan stands on that world's map (where he stood in it, else its first stop): a
+   save already further along just opens that map. The link works once per visit: ?world then leaves the address, so a reload
+   or the way back from a 3D level never moves him again. (Annie's World 9 link, ?world=9&guest=annie, is GUEST, its own save.) */
+const WORLD_LINK = (() => { if (GUEST) return 0; try { const n = Number(new URLSearchParams(location.search).get('world')); return Number.isInteger(n) && n >= 12 && n <= 15 ? n : 0; } catch (e) { return 0; } })();
+function worldLinkOpen() {
+  const n = WORLD_LINK, K = window.KinanLevels;
+  if (!n || !K) return;
+  const lb = progress.levelsBeaten = progress.levelsBeaten || {}, un = progress.unlockedLevels = progress.unlockedLevels || [];
+  K.list().forEach((id) => { const d = K.get(id); if (d && d.world >= 1 && d.world < n) { lb[id] = 1; if (/-secret$/.test(id) && un.indexOf(id) < 0) un.push(id); } });
+  progress.introSeen = true; progress.endingSeen = true; progress.s2EndingDue = false;
+  progress.escapes = progress.escapes || {}; for (let k = 1; k <= 10; k++) progress.escapes[k] = 1;
+  progress.glitchyTeam = true; progress.worldsName = true; progress.blackBelt = true;   /* as after the 11-castle (the black belt comes just before it) */
+  progress.beltSeen = Math.max(Number(progress.beltSeen) || 0, BELT_BLACK);
+  if (!progress.wmap || progress.wmap.w !== n) progress.wmap = { w: n, at: 0 };
+  save();
+  try { const q = new URLSearchParams(location.search); q.delete('world'); history.replaceState(history.state, '', location.pathname + (q.toString() ? '?' + q.toString() : '') + location.hash); } catch (e) { /* the address keeps ?world */ }
+  applyGameName();
+  if (!running && el.stage.hidden && !Cut.on && !menuIsOpen()) worldMapScreen();
+}
+if (WORLD_LINK && window.KinanLevels) KinanLevels.whenReady(worldLinkOpen);
 /* a shared room link (…?smash=ABCD) opens the join screen with the code filled in */
 const SMASH_LINK = (new URLSearchParams(location.search).get('smash') || '').toUpperCase().replace(/[^A-Z]/g, '');
 if (SMASH_LINK.length === 4) smashOnlineScreen(SMASH_LINK);
