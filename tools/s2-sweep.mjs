@@ -22,7 +22,8 @@
  * ladders to nowhere, an unreachable goal) taken at the spawn, Glitchy's help offers (5 falls in one spot), and the
  * pets' frames inside a wall / floating / in a hazard (the measures of tools/pet-probe.mjs).
  *
- * How it works: it starts tools/preview-server.mjs on port 4183, opens index.html?devtools=1&season2=1 in headless
+ * How it works: it starts tools/preview-server.mjs on port 4183, opens index.html?devtools=1 in headless (Season 2 is part
+ * of the main game since 2026-11-12: no ?season2=1)
  * Chromium (one browser, one page), and for each level calls __k11.playLevel(id), then steps the game itself
  * (update(), 60 per game second) in batches while the page's own clock is paused, choosing the keys every frame from
  * what a player can see: the ground, walls, hazard trenches, ropes, bars, rings, ladders, water, foes and the bosses.
@@ -458,7 +459,7 @@ async function main() {
     const add = (kind, msg) => { (errs[cur] = errs[cur] || { page: [], console: [] })[kind].push(msg.slice(0, 400)); };
     page.on('pageerror', (e) => add('page', e.message));
     page.on('console', (m) => { if (m.type() === 'error') add('console', m.text()); });
-    await page.goto(`http://127.0.0.1:${PORT}/index.html?devtools=1&season2=1`);
+    await page.goto(`http://127.0.0.1:${PORT}/index.html?devtools=1`);   /* the normal game (Season 2 is in it since 2026-11-12) */
     await page.waitForFunction(() => !!window.__k11 && window.KinanLevels && window.KinanLevels.ready, null, { timeout: 30000 });
     const src = `(${pageInstall.toString()})();`.replace(/STUCK_FRAMES_/g, String(STUCK_FRAMES)).replace(/GIVE_UP_/g, String(GIVE_UP_FRAMES)).replace(/MAX_FRAMES_/g, String(MAX_FRAMES));
     await page.addScriptTag({ content: src });

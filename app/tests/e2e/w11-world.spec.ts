@@ -10,9 +10,9 @@ import { expect, test, type ConsoleMessage, type Page } from '@playwright/test';
    - Sabumnim's black belt plays right before the Last Stand with the whole team shown, and is saved,
    - lost tries in the Last Stand: a different family member gives a tip each time; after 5 an extra heart is offered,
    - the final hug ends the fight; Glitchy joins the team; the game's name becomes "Kinan vs. Worlds" only after the
-     11-castle and stays after a reload; the 3D cutscene, World 12's teaser, TO BE CONTINUED (with the World 12 sneak-peek
-     card) and the credits play and can be skipped; World 12 is a sneak peek (2026-10-30: four of its levels are open, the
-     rest "coming soon", w12-preview.spec.ts) and Kinan walks on from the 11-castle into its map; no page errors. */
+     11-castle and stays after a reload; the ending plays and can be skipped: since 2026-11-12 (Season 2 in the main game) the
+     new end of World 11 (home, the birthday party, Shad's globe, Annie: India), TO BE CONTINUED with the Season 2 card, the
+     credits; then Kinan walks on from the 11-castle past the 3D bonus stop and flies to India (World 12); no page errors. */
 
 const BASE = `http://127.0.0.1:${process.env.KVM_PORT || 4174}/index.html`;
 const DEV_URL = `${BASE}?devtools=1`;
@@ -371,8 +371,8 @@ test.describe("World 11 · Glitchy's Last Stand", () => {
 /* ---- the map and the ending ---- */
 type MapS = { mounted: boolean; walking: boolean; crossing: boolean; busy: boolean; banner: string | null; notice: string | null; world: number | null; at: number; gate?: number | null; gatePeek?: boolean;
   three?: boolean; threeReady?: boolean; stops: { id: string | null; kind: string; built: boolean; state: string | null }[] };
-type CutS = { on: boolean; mode: string | null; ending: { beat: number; beats: string[]; lines: string[]; skips: number; replay: boolean; t: number; peek: boolean } | null };
-type EndInfo = { name: string; label: string; title: string; worldsName: boolean; glitchyTeam: boolean; endingSeen: boolean; beats: string[]; lines: [string, string, string][]; credits: string[]; menuBtn: boolean; peek: string; peekOn: boolean };
+type CutS = { on: boolean; mode: string | null; ending: { beat: number; beats: string[]; lines: string[]; skips: number; replay: boolean; t: number; peek: boolean; card: boolean } | null };
+type EndInfo = { name: string; label: string; title: string; worldsName: boolean; glitchyTeam: boolean; endingSeen: boolean; beats: string[]; lines: [string, string, string][]; credits: string[]; menuBtn: boolean; card: string };
 type MapDev = Dev & { mapState: () => MapS; cut: () => CutS; cutSpeed: (n: number) => number; owRelease: (n: number) => number; ending: () => EndInfo; endingPlay: () => boolean;
   progress: () => { levelsBeaten: Record<string, number> } };
 const dev = (page: Page) => ({
@@ -420,9 +420,9 @@ test.describe('World 11 · on the map, and the ending', () => {
     await seedSave(page, { beltSeen: 11, wmap: { w: 10, at: 10 } }, () => false, 10);
     await page.locator('#startBtn').click({ force: true });
     expect(await settle(page)).toMatchObject({ world: 10, at: 10, gate: 11 });
-    /* released (v54: the build's own OW_RELEASED is 11; owRelease(0) goes back to the build's number): no sign, and
-       Kinan crosses into World 11 through the door in the mist */
-    expect(await page.evaluate(() => (window as unknown as { __k11: MapDev }).__k11.owRelease(0)), "this build's release").toBe(11);
+    /* released (v54: World 11; 2026-11-12: the build's own OW_RELEASED is 15, Season 2; owRelease(0) goes back to the build's number):
+       no sign, and Kinan crosses into World 11 through the door in the mist */
+    expect(await page.evaluate(() => (window as unknown as { __k11: MapDev }).__k11.owRelease(0)), "this build's release").toBe(15);
     await page.reload();
     await page.waitForFunction(() => !!(window as unknown as Win).__k11 && (window as unknown as Win).KinanLevels?.ready);
     await page.locator('#startBtn').click({ force: true });
@@ -447,10 +447,10 @@ test.describe('World 11 · on the map, and the ending', () => {
     expect(errors).toEqual([]);
   });
 
-  test("the 11-castle: the final hug ends the fight, Glitchy joins the team, the ending plays (the name card, the 3D cutscene, World 12's teaser, TO BE CONTINUED with the World 12 sneak-peek card, the credits), the name becomes Kinan vs. Worlds for good, and Kinan walks on from the castle into World 12's sneak peek", async ({ page }) => {
+  test("the 11-castle: the final hug ends the fight, Glitchy joins the team, the new end of World 11 plays (the name card, home, the party, Shad's globe, India, TO BE CONTINUED with the Season 2 card, the credits), the name becomes Kinan vs. Worlds for good, and Kinan walks on from the castle past the 3D bonus stop and flies to India", async ({ page }) => {
     test.setTimeout(400_000);
     const errors = watchErrors(page);
-    await seedSave(page, { beltSeen: 11, blackBelt: true, wmap: { w: 11, at: 10 } }, (id: string) => /^11-/.test(id) && id !== '11-castle', 11);
+    await seedSave(page, { beltSeen: 11, blackBelt: true, wmap: { w: 11, at: 10 } }, (id: string) => /^11-/.test(id) && id !== '11-castle', 15);   /* the build's release (Season 2: World 12 is India) */
     /* before: still "Kinan vs. Mom" */
     await expect(page.locator('#screen h1.title .t1')).toHaveText('Kinan vs. Mom');
     const e0 = await dev(page).ending();
@@ -482,14 +482,16 @@ test.describe('World 11 · on the map, and the ending', () => {
       if (b && beats[beats.length - 1] !== b) beats.push(b);
       await page.waitForTimeout(60);
     }
-    expect(beats).toEqual(['friend', 'name', 'unfold', 'turn', 'teaser', 'tbc', 'credits']);
-    /* the World 12 sneak-peek card was painted under TO BE CONTINUED (it stays true once shown; the card's pixels are checked in w12-preview.spec.ts) */
-    expect(last!.ending!.peek, 'the sneak-peek card was shown in the ending').toBe(true);
+    expect(beats).toEqual(['friend', 'name', 's2home', 's2party', 's2globe', 's2india', 'tbc', 'credits']);
+    /* the Season 2 card was painted under TO BE CONTINUED (it stays true once shown; the card's pixels are checked in w12-preview.spec.ts) */
+    expect(last!.ending!.card, 'the Season 2 card was shown in the ending').toBe(true);
     const said = last!.ending!.lines;
-    for (const id of ['end_glitchy_01', 'end_kinan_02', 'end_mom_02', 'end_kinan_03', 'end_annie_01', 'end_chenoa_01', 'end_dad_01', 'end_glitchy_02', 'end_shad_02']) expect(said, id).toContain(id);
+    for (const id of ['end_glitchy_01', 'end_kinan_01', 'end_mom_01', 'end_shad_01', 's2e_kinan_01', 's2e_mom_01', 's2e_dad_01', 's2e_chenoa_01', 's2e_glitchy_01', 's2e_shad_01',
+      's2e_kinan_02', 's2e_glitchy_02', 's2e_kinan_03', 's2e_annie_01', 's2e_shad_02']) expect(said, id).toContain(id);
     const info = await dev(page).ending();
     const text = Object.fromEntries(info.lines.map(([id, who, t]) => [id, `${who}: ${t}`]));
-    /* 2026-11-03 audit: the ending's words fixed (home, Annie's line, Glitchy's first words stay World 11's, the birthday week) */
+    /* 2026-11-03 audit: the ending's words fixed (home, Annie's line, Glitchy's first words stay World 11's, the birthday week).
+       (The old ending's 3D part no longer plays since Season 2 joined the game, but its lines are kept as they are.) */
     expect(text.end_kinan_02).toBe("KINAN: We did it! ...Wait, we're HOME? Why can I see the BACK of my house?!");
     expect(text.end_mom_02).toBe('MOM: Kinan, stay close!');
     expect(text.end_kinan_03).toBe("KINAN: WHAT IS GOING ON HERE?! My hands are 3D! ...Okay, that's cool, BUT WHAT?!");
@@ -501,19 +503,23 @@ test.describe('World 11 · on the map, and the ending', () => {
     for (const who of ['Kinan', 'Mom', 'Dad', 'Big Sis Chenoa', 'Big Bro Shad', 'Annie', 'GRANDPA', 'the Grandmas',   /* GRANDPA as labelled (the World 11 review, 4477a7b) */ 'Sabumnim', 'Glitchy', 'Ginger', 'Chikastino', 'Vader', 'Hunter', 'Duchess', 'Tuxedo',
       'Bronco', 'Robo-Rex', 'Drizzle', 'the Raccoon King', 'Brick-Rex', 'the Alpha T-Rex']) expect(info.credits, who).toContain(who);
     expect(info.credits.join(' ')).toContain("Made for Kinan's 11th birthday by Big Bro Shad");
-    /* the card's words: the hint that four levels are open now and a lot more is coming */
-    expect(info.peekOn).toBe(true);
-    expect(info.peek).toBe('WORLD 12 SNEAK PEEK: Four levels of 3D Saskatoon are open now. Much more is coming!');
-    /* after it: the name, Glitchy on the team, World 12 behind its SNEAK PEEK sign (2026-10-30: it was a "coming soon" sign) */
+    /* the card's words: where the story goes next */
+    expect(info.card).toBe('SEASON 2: AROUND THE WORLD · World 12: India · then Japan, Mexico and France');
+    /* after it: the name, Glitchy on the team, and no sign past the castle (World 12 is released: India) */
     expect(info).toMatchObject({ name: 'Kinan vs. Worlds', label: 'KINAN vs. WORLDS', worldsName: true, glitchyTeam: true, endingSeen: true, menuBtn: true });
     expect(info.title.startsWith('Kinan vs. Worlds')).toBe(true);
     const s1 = await settle(page);
-    expect(s1).toMatchObject({ world: 11, at: 10, notice: 'WORLD 12 SNEAK PEEK IS OPEN!', gate: 12, gatePeek: true });
+    expect(s1).toMatchObject({ world: 11, at: 10, notice: 'THE WAY ON TO THE NEXT WORLD IS OPEN!', gate: null, gatePeek: false });
     expect(s1.stops[10].state).toBe('beaten');
-    /* and the sign does not stop him: Kinan walks on from the 11-castle into World 12's 3D map (the 2D-to-3D change plays) */
+    expect(s1.stops[11]).toMatchObject({ kind: 'bonus', state: 'open' });
+    /* Kinan walks on from the 11-castle: the 3D bonus stop, then the plane to India (World 12) */
     await page.locator('#owNext').click();
-    await page.waitForFunction(() => { const s = (window as unknown as { __k11: MapDev }).__k11.mapState(); return s.world === 12 && !!s.three && !!s.threeReady; }, null, { timeout: 120_000 });
-    await expect(page.locator('#owHost .k3-peek')).toContainText('SNEAK PEEK');
+    expect(await settle(page)).toMatchObject({ world: 11, at: 11 });
+    await page.locator('#owNext').click();
+    await expect.poll(async () => (await dev(page).map()).banner, { timeout: 10_000 }).toBe('✈ FLYING TO INDIA!');
+    const s2 = await settle(page);
+    expect(s2).toMatchObject({ world: 12, at: 0, three: false });
+    expect(s2.stops[0]).toMatchObject({ id: '12-1', state: 'open' });
     /* it stays after a reload: the title says Kinan vs. Worlds */
     await page.reload();
     await page.waitForFunction(() => !!(window as unknown as Win).__k11 && (window as unknown as Win).KinanLevels?.ready);
@@ -531,18 +537,11 @@ test.describe('World 11 · on the map, and the ending', () => {
       if (!c.on) break;
       const b = c.ending!.beats[c.ending!.beat];
       if (order[order.length - 1] !== b) order.push(b);
-      if (b === 'unfold' && c.ending!.t < 3000) {   /* the 3D cutscene holds its first 3 s */
-        const before = c.ending!.beat;
-        await page.evaluate(() => (window as unknown as { __k11: MapDev }).__k11.cutSkip());
-        const c2 = await dev(page).cut();
-        if (c2.ending!.t < 3000) expect(c2.ending!.beat, 'no skip in the first 3 s').toBe(before);
-        await page.waitForTimeout(3100);
-      }
       await page.evaluate(() => (window as unknown as { __k11: MapDev }).__k11.cutSkip());
       await page.waitForTimeout(80);
     }
     expect((await dev(page).cut()).on, 'skipped to the end').toBe(false);
-    expect(order).toEqual(['friend', 'name', 'unfold', 'turn', 'teaser', 'tbc', 'credits']);
+    expect(order).toEqual(['friend', 'name', 's2home', 's2party', 's2globe', 's2india', 'tbc', 'credits']);
     expect(errors).toEqual([]);
   });
 });

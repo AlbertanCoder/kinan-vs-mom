@@ -226,75 +226,55 @@ test.describe('the overworld map between levels', () => {
   });
 
   test('a "Coming soon" stop is safe: PLAY says so and launches nothing, and it never blocks the trail', async ({ page }) => {
-    test.setTimeout(150_000);   /* was the 60 s default: the first stop with no file is now on the 3D World 12 map (measured 2026-10-30 on desktop Chromium: this test took 2.2 min), and overworld-seams-3d.spec.ts gives its 3D mount 150 s */
+    test.setTimeout(150_000);   /* the stops with no level file are on the 3D map (its mount is slow: overworld-seams-3d.spec.ts gives it 150 s) */
     const errors = watchErrors(page);
     await boot(page);
-    /* 2026-10-28: this build releases Worlds 1-5 (World 6 waits behind its "coming soon" sign, c1-cutscenes.spec.ts).
-       2026-10-30: it releases Worlds 1-11 and opens World 12 as a SNEAK PEEK (w12-preview.spec.ts): only 12-4, 12-5, the fort and
-       12-6 are built there, so the stops with no level file are in World 12 and the test needs no owRelease for them any more */
+    /* 2026-11-12 (Season 2 in the main game): the build releases Worlds 1-15 and every stop on the trail has its level file, every
+       castle included (checked here). The stops with no file yet are on the 3D Saskatoon bonus map (its four sneak-peek levels are
+       built, the other seven are "coming soon": w12-preview.spec.ts), so this runs there. (2026-11-12: this test failed before the
+       merge, because the Season 2 level files on the live build made its search find India's ids: app/audit/season2-ready M1.) */
     await openMap(page);
-    /* level files keep arriving: find the first stop with no file yet and the first castle with no file yet */
     const plan = await page.evaluate(() => {
-      const w = window as unknown as Win, k = w.__k11 as Dev & { owRelease: (n: number) => number };
-      let soon: { n: number; i: number } | null = null, castle: number | null = null;
-      const built: string[] = [];   /* World 12's built stops are 3D levels, not level files: the save below beats them too */
-      /* World 11 is complete (v54): Worlds 1-11 have every level file, so the search runs on into World 12 (3D Saskatoon). In the
-         sneak peek only 12-4, 12-5, the fort and 12-6 are built: the first stop with no file is 12-1, and the castle has none */
-      for (let n = 1; n <= 12 && (!soon || castle === null); n++) {
+      const k = (window as unknown as Win).__k11, trail: string[] = [], noCastleFile: number[] = [];
+      for (const n of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]) {
         const s = k.mapWarp(n, 0)!;
-        s.stops.forEach((q, i) => { if (!soon && !q.built && q.kind !== 'secret' && i < 10) soon = { n, i }; if (q.built && q.id) built.push(q.id); });
-        if (castle === null && !s.stops[10].built) castle = n;
+        s.stops.forEach((q, i) => { if (!q.built && q.kind !== 'bonus') trail.push(`${n}:${i}`); });
+        if (!s.stops[10].built) noCastleFile.push(n);
       }
-      /* with World 12 released (the developer view: owRelease(12)) every castle in Worlds 1-12 has its level file, as this test
-         always checked; then back to the build's own release (owRelease(0) = OW_RELEASED) */
-      k.owRelease(12);
-      const noCastleFile: number[] = [];
-      for (let n = 1; n <= 12; n++) if (!k.mapWarp(n, 0)!.stops[10].built) noCastleFile.push(n);
-      k.owRelease(0);
-      return { soon, castle, noCastleFile, ids: [...new Set([...w.KinanLevels.list(), ...built])] } as { soon: { n: number; i: number } | null; castle: number | null; noCastleFile: number[]; ids: string[] };
+      const ids = (window as unknown as Win).KinanLevels.list().filter((id) => (window as unknown as Win).KinanLevels.get(id).world <= 11);
+      return { trail, noCastleFile, ids };
     });
-    console.log('first stop / castle with no level file: ' + JSON.stringify({ soon: plan.soon, castle: plan.castle }));
-    expect(plan.soon).not.toBeNull();
-    /* every built level beaten: the whole trail up to there is open. Written by an init script on the reload, so a
-       story line finishing on the old page (it saves) can never write over it (2026-10-28: a firefox race) */
-    await page.addInitScript(({ key, ids, at }) => {
+    expect(plan.trail, 'no "coming soon" stop on the trail of Worlds 1-15').toEqual([]);
+    expect(plan.noCastleFile, 'every castle in Worlds 1-15 has its level file').toEqual([]);
+    /* a save of this build with Worlds 1-11 beaten (the 3D bonus open), standing in 3D Saskatoon on its first stop, 12-1 (no file) */
+    await page.addInitScript(({ key, ids }) => {
       if (sessionStorage.getItem('ow-soon-seeded')) return;
       sessionStorage.setItem('ow-soon-seeded', '1');
-      localStorage.setItem(key, JSON.stringify({ unlocked: 1, beaten: [], levelsBeaten: Object.fromEntries(ids.map((id) => [id, 1])), wmap: { w: at.n, at: at.i } }));
-    }, { key: CURRENT, ids: plan.ids, at: plan.soon! });
+      localStorage.setItem(key, JSON.stringify({ unlocked: 1, beaten: [], introSeen: true, beltSeen: 11, blackBelt: true, endingSeen: true, bonus3dMoved: true,
+        escapes: { 1: 1, 2: 1, 3: 1, 4: 1, 5: 1, 6: 1, 7: 1, 8: 1, 9: 1, 10: 1 }, levelsBeaten: Object.fromEntries(ids.map((id) => [id, 1])), wmap: { w: 11, at: 11, b: 0 } }));
+    }, { key: CURRENT, ids: plan.ids });
     await page.reload();
     await page.waitForFunction(() => !!(window as unknown as Win).__k11 && (window as unknown as Win).KinanLevels?.ready);
-    if (plan.soon!.n === 12) {
-      /* World 12's map is the 3D one: it takes the 2D map's place (its canvas is hidden: measured on desktop Chromium,
-         openMap's '.km-canvas' check reads "hidden"), so it opens like openMap and then waits for the 3D map's own
-         canvas, as overworld-seams-3d.spec.ts does */
-      await page.locator('#startBtn').click({ force: true });
-      if (await page.locator('#cut').isVisible()) { await page.locator('#cutSkip').click(); await expect(page.locator('#cut')).toBeHidden(); }
-      await page.waitForFunction(() => { const s = (window as unknown as Win).__k11.mapState() as unknown as { mounted: boolean; three?: boolean; threeReady?: boolean }; return s.mounted && !!s.three && !!s.threeReady; }, null, { timeout: 90_000 });
-      await expect(page.locator('#owHost .k3-wrap canvas')).toBeVisible();
-    } else await openMap(page);
+    /* the 3D map takes the 2D map's place (its canvas is hidden), so it opens like openMap and then waits for the 3D map's own canvas */
+    await page.locator('#startBtn').click({ force: true });
+    if (await page.locator('#cut').isVisible()) { await page.locator('#cutSkip').click(); await expect(page.locator('#cut')).toBeHidden(); }
+    await page.waitForFunction(() => { const s = (window as unknown as Win).__k11.mapState() as unknown as { mounted: boolean; three?: boolean; threeReady?: boolean }; return s.mounted && !!s.three && !!s.threeReady; }, null, { timeout: 90_000 });
+    await expect(page.locator('#owHost .k3-wrap canvas')).toBeVisible();
     const s0 = await settle(page);
-    expect(s0).toMatchObject({ world: plan.soon!.n, at: plan.soon!.i });
-    expect(s0.stops[plan.soon!.i]).toMatchObject({ built: false, state: 'open' });
+    expect(s0).toMatchObject({ world: 12, at: 0 });
+    expect(s0.stops[0]).toMatchObject({ id: '12-1', built: false, state: 'open' });
     await page.locator('#owPlay').click();
-    if (plan.soon!.n === 12) {
-      /* the 3D map shows its banner itself (mapState only says '3D'): the same words, in its own banner */
-      await expect.poll(async () => (await mapState(page)).banner).toBe('3D');
-      await expect(page.locator('#owHost .k3-ban')).toHaveText('COMING SOON!');
-    } else await expect.poll(async () => (await mapState(page)).banner).toBe('COMING SOON!');
+    /* the 3D map shows its banner itself (mapState only says '3D'): the same words, in its own banner */
+    await expect.poll(async () => (await mapState(page)).banner).toBe('3D');
+    await expect(page.locator('#owHost .k3-ban')).toHaveText('COMING SOON!');
     await settle(page);   /* the banner runs out (slower on a slow frame rate); nothing launched */
     await expect(page.locator('#stage')).toBeHidden();
+    expect(page.url()).not.toContain('/3d/');
     expect(await page.evaluate(() => (window as unknown as Win).__k11.levelInfo().id)).toBeNull();
     /* it does not block: Kinan walks on past it */
     await page.locator('#owNext').click();
-    await expect.poll(async () => { const q = await mapState(page); return (q.world ?? 0) * 100 + q.at; }, { timeout: 30_000 }).toBeGreaterThan(plan.soon!.n * 100 + plan.soon!.i);
+    await expect.poll(async () => (await mapState(page)).at, { timeout: 30_000 }).toBeGreaterThan(0);
     await settle(page);
-    /* The walk past "a castle with no level file yet" (its seam stays open, on into the next world) is gone in v54, with
-       its reason: no castle in Worlds 1-11 is without a level file, so there is no such castle left to walk past. That is checked
-       here. 2026-10-30: the one castle with no file is World 12's, in the sneak peek only (the Bessborough festival stays hidden:
-       "coming soon"); with World 12 released every castle in Worlds 1-12 has its level file again */
-    expect(plan.castle, "World 12's castle is the only one with no level file, in the sneak peek").toBe(12);
-    expect(plan.noCastleFile, 'every castle in Worlds 1-12 has its level file once World 12 is released').toEqual([]);
     expect(errors).toEqual([]);
   });
 

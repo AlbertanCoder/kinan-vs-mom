@@ -10,8 +10,9 @@ import { fileURLToPath } from 'node:url';
    - the foes are gentle: Kinan stands in the first one and keeps every heart, and a KICK sends it off;
    - a fall in the river or the street only goes back to the start or the checkpoint (nobody is hurt, nobody is out);
    - the goal can be reached with the dev hooks (a teleport near the end, then real key presses, as w12-finale.spec.ts
-     does): LEVEL CLEAR, and the clear is saved under the level's map stop;
-   - the map side: the stop opens the level, and World 12 stays unreleased (OW_RELEASED 11).
+     does): LEVEL CLEAR, and the clear is saved under the level's map stop, in the 3D bonus's own progress (bonus3d: since
+     2026-11-12 the 3D World 12 is a bonus off the trail and World 12 is India, whose stops have the same ids);
+   - the map side: the stop opens the level; the 3D World 12 is never on the trail (OW_RELEASED 15: World 12 is India).
    No page errors in any of it. Screenshots for Shad: app/w12-levels-shots/<project>/ */
 const BASE = `http://127.0.0.1:${process.env.KVM_PORT || '4174'}/`;
 const SHOTS = fileURLToPath(new URL('../../w12-levels-shots/', import.meta.url));
@@ -137,8 +138,9 @@ test.describe('World 12 rough-draft side levels', () => {
       await page.keyboard.down('KeyD');
       await page.waitForFunction(() => (window as unknown as Win).GAME!.info().cleared, null, { timeout: 90_000 });
       await page.keyboard.up('KeyD');
-      const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('kinan-remaster-v1') || '{}').levelsBeaten);
-      expect(saved[def.stop], 'the clear is saved under the map stop').toBe(1);
+      const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('kinan-remaster-v1') || '{}'));
+      expect(saved.bonus3d.beaten[def.stop], "the clear is saved under the map stop, in the 3D bonus's own progress").toBe(1);
+      expect((saved.levelsBeaten || {})[def.stop], "not India's stop").toBeUndefined();
       await expect(page.locator('#clear.on #btn-map')).toBeVisible({ timeout: 30_000 });   // the LEVEL CLEAR panel
       await shot(page, `${def.stop}-03-level-clear`);
       expect(errors, errors.join('\n')).toEqual([]);
@@ -219,20 +221,21 @@ test.describe('World 12 rough-draft side levels', () => {
     expect(slid.s1 - slid.s0, 'the slide carried him down the roof with no key pressed').toBeGreaterThan(25);
     expect(slid.y1, 'down at the terrace').toBeLessThan(3);
     /* the painting: s 7, behind the start */
-    expect(await page.evaluate(() => JSON.parse(localStorage.getItem('kinan-remaster-v1') || '{}').unlockedLevels || [])).not.toContain('12-secret');
+    expect(await page.evaluate(() => (JSON.parse(localStorage.getItem('kinan-remaster-v1') || '{}').bonus3d || {}).unlocked || [])).not.toContain('12-secret');
     await page.evaluate(() => { const g = (window as unknown as Win).GAME!, a = g.side!.at(9); g.teleport(a.x, 0.3, a.z, 90); });
-    await page.waitForFunction(() => (JSON.parse(localStorage.getItem('kinan-remaster-v1') || '{}').unlockedLevels || []).includes('12-secret'), null, { timeout: 30_000 });
+    await page.waitForFunction(() => ((JSON.parse(localStorage.getItem('kinan-remaster-v1') || '{}').bonus3d || {}).unlocked || []).includes('12-secret'), null, { timeout: 30_000 });
+    expect(await page.evaluate(() => JSON.parse(localStorage.getItem('kinan-remaster-v1') || '{}').unlockedLevels || []), "not India's secret").not.toContain('12-secret');
     await shot(page, '12-7-04-secret-opened');
     expect(errors, errors.join('\n')).toEqual([]);
   });
 
-  test('the map side: every new stop opens its level, and World 12 stays unreleased', async ({ page }) => {
+  test('the map side: every new stop opens its level, and the 3D World 12 stays off the trail (World 12 is India)', async ({ page }) => {
     test.setTimeout(120_000);
     const errors = watchErrors(page);
     await page.goto(`${BASE}index.html?devtools=1`);
     await page.waitForFunction(() => !!(window as unknown as Win).__k11 && (window as unknown as Win).KinanLevels?.ready);
     for (const def of LEVELS) expect(await page.evaluate((id) => (window as unknown as Win).__k11.owLevelFile(id), def.stop), `${def.stop} opens ${def.file}`).toBe(def.file);
-    expect(readFileSync(`${ROOT}index.html`, 'utf8')).toContain('const OW_RELEASED = 11;');
+    expect(readFileSync(`${ROOT}index.html`, 'utf8')).toContain('const OW_RELEASED = 15;');
     const sw = readFileSync(`${ROOT}sw.js`, 'utf8');
     for (const def of LEVELS) expect(sw, `${def.file}.js is cached for offline play`).toContain(`./3d/levels/${def.file}.js`);
     expect(errors, errors.join('\n')).toEqual([]);
