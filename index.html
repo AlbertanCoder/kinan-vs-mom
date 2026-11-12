@@ -11943,6 +11943,55 @@ function s2First(key, text, col) { const S = L.s2; if (S['said_' + key]) return;
 function s2RopeAt(R) {   /* a hanging rope's sway (no one on it) */
   return Math.sin(frame / 48 + R.ax / 37) * 0.12;
 }
+/* 2026-11-12 (Shad's answer 35: "slow, natural, forgiving"; Annie found Japan's ropes too frustrating): the rope's let-go is
+   AIMED. JUMP at any moment of the swing throws Kinan on an arc that lands on the far bank of the gap under the rope (the
+   bank he faces), or into the next rope on the way, which catches him. Worked out from the game's own gravity (FEEL), so
+   the landing is where it is aimed; ◀ ▶ do not steer him off it until he lands. null: no gap under this rope (the old fling) */
+const S2_FLING_VY = -5.6;
+function s2RopeFling(R, fc) {
+  const F = feel();
+  if (F !== FEEL || !L.s2 || !R.rope) return null;
+  const Z = L.s2.hazards.find((q) => R.ax >= q.x0 - T && R.ax <= q.x1 + T && q.y0 > R.ay);
+  if (!Z) return null;
+  const cx = P.x + P.w / 2, tx = fc > 0 ? Z.x1 + 22 : Z.x0 - 22, col = Math.floor(tx / T);
+  let ty = Math.max(-(L.up | 0), Math.floor((P.y + P.h) / T));
+  while (ty < ROWS && !solid(col, ty)) ty++;
+  if (ty >= ROWS) return null;
+  const surf = ty * T;
+  /* the frames until his feet come down onto that bank: the let-go frame moves by vy0, then gravity, then the move */
+  let y = P.y + P.h, vy = S2_FLING_VY, n = 0;
+  for (; n < 240; n++) { if (n > 0) vy = Math.min(F.MAX_FALL, vy + (vy < 0 ? F.GRAV_HOLD : F.GRAV_FALL)); y += vy; if (vy > 0 && y >= surf) break; }
+  const vx = clamp((tx - cx) / (n + 1), -4.4, 4.4);
+  return { vx: Math.abs(vx) < 0.8 ? fc * 0.8 : vx, vy: S2_FLING_VY, t: n + 30 };
+}
+/* the rope drawn as a bendy rope (2026-11-12: "a stiff rope, not swinging naturally"): from its peg, bowed against the
+   swing (the middle lags behind his hands), and the end below his hands trails behind the swing and hangs down */
+function s2RopePoints(R, held, ox) {
+  const pts = [], len = R.len, x0 = R.ax - ox, y0 = R.ay;
+  if (held) {
+    const th = held.th, r = Math.min(held.r, len), om = (held.om || 0);
+    const hx = x0 + Math.sin(th) * r, hy = y0 + Math.cos(th) * r;
+    const bow = clamp(-om * 900, -9, 9) * (r / 96);   /* sideways bow of the part above his hands */
+    for (let d = 0; d <= r; d += 2) {
+      const k = d / r, s = Math.sin(Math.PI * k);
+      pts.push([x0 + (hx - x0) * k + Math.cos(th) * bow * s, y0 + (hy - y0) * k - Math.sin(th) * bow * s + s * 2]);
+    }
+    const tail = len - r, tth = th * 0.45 - clamp(om * 40, -0.6, 0.6);   /* the end below him: half as far out, lagging behind */
+    for (let d = 2; d <= tail; d += 2) {
+      const k = d / Math.max(1, tail), a = th + (tth - th) * Math.min(1, k * 1.6);
+      const p = pts[pts.length - 1]; pts.push([p[0] + Math.sin(a) * 2, p[1] + Math.cos(a) * 2]);
+    }
+  } else {
+    /* hanging free: a slow wave runs down it (the end lags behind the top), so it sways like a rope */
+    let px = x0, py = y0;
+    pts.push([px, py]);
+    for (let d = 2; d <= len; d += 2) {
+      const k = d / len, a = Math.sin(frame / 48 + R.ax / 37 - k * 1.4) * 0.12 * (0.6 + 0.8 * k);
+      px += Math.sin(a) * 2; py += Math.cos(a) * 2; pts.push([px, py]);
+    }
+  }
+  return pts;
+}
 /* the world moves: true = this frame is handled (s2Tick returns) */
 function s2WorldMoves(left, right, holdJump) {
   const S = L.s2, F = feel(), cx = P.x + P.w / 2;
@@ -11951,20 +12000,28 @@ function s2WorldMoves(left, right, holdJump) {
      its own (no pumping); ◀ ▶ only turn him; JUMP lets go at ANY moment and always throws him forward the way he faces,
      far enough to reach the next rope or the far side; ↓ just lets go. */
   if (P.s2ropeCd > 0) P.s2ropeCd--;
-  if (P.onGround) P.s2ringLast = null;
-  const ROPE_A = 0.5, ROPE_W = 6.2832 / 160;   /* swing size (radians) and speed: one swing there and back in 2.7 s */
-  const grabRope = (ax, ay, r, ring) => {
+  if (P.onGround) { P.s2ringLast = null; P.s2ropeLast = null; P.s2fling = null; }
+  /* swing size (radians) and speed. Ropes: one swing there and back in 5.3 s (2026-11-12, Shad's answer 35: half the old
+     2.7 s, "slow, natural"); the grappling hook keeps its 2.7 s. A sine swing: it eases to a stop at each end */
+  const ROPE_A = 0.5, ROPE_W = 6.2832 / 320, RING_W = 6.2832 / 160;
+  const grabRope = (ax, ay, r, ring, rope) => {
     const th = Math.atan2(cx - ax, P.y + 3 - ay);
     const ph = Math.asin(clamp(th / ROPE_A, -1, 1));
-    P.s2rope = { ax: ax, ay: ay, r: r, th: clamp(th, -ROPE_A, ROPE_A), ph: (P.face || 1) > 0 ? ph : Math.PI - ph, ring: ring, shoot: ring ? 6 : 0, t: 0 };
-    P.vx = 0; P.vy = 0; input.jumpBuf = 0; s2Sound('grab');
+    P.s2rope = { ax: ax, ay: ay, r: r, th: clamp(th, -ROPE_A, ROPE_A), ph: (P.face || 1) > 0 ? ph : Math.PI - ph, ring: ring, rope: rope || null, shoot: ring ? 6 : 0, t: 0, om: 0 };
+    P.vx = 0; P.vy = 0; input.jumpBuf = 0; P.s2fling = null; s2Sound('grab');
   };
+  /* the aimed let-go (s2RopeFling) carries him: his speed across stays the aimed one until he lands or a rope catches him */
+  if (P.s2fling && !P.s2rope) { if (--P.s2fling.t <= 0 || P.dead) P.s2fling = null; else { P.vx = P.s2fling.vx; P.s2glide = false; } }
   if (!P.s2rope && !P.onGround && !(P.s2ropeCd > 0)) {
+    /* a jump that ends near a rope grabs it (2026-11-12: a small jump dropped him in the gap): falling over a gap, a rope
+       within 2.5 tiles catches him, down to 2.5 tiles below its end */
+    const overGap = P.vy > 0 && S.hazards.some((Z) => cx > Z.x0 - 4 && cx < Z.x1 + 4);
     for (const R of S.ropes) {
+      if (R === P.s2ropeLast) continue;   /* (never the rope he just let go of, until he lands) */
       const th = s2RopeAt(R), dx = Math.sin(th), dy = Math.cos(th), hx = cx - R.ax, hy = P.y + 3 - R.ay;
       const along = hx * dx + hy * dy, off = Math.abs(hx * dy - hy * dx);
-      if (along > 6 && along < R.len + 22 && off < 20) {   /* (generous: a kid flying past the low end still catches it) */
-        grabRope(R.ax, R.ay, clamp(along, 24, R.len), false); s2First('rope', 'SWING! Tap JUMP to let go'); break; }
+      if (along > 6 && along < R.len + (overGap ? 40 : 22) && off < (overGap ? 40 : 20)) {   /* (generous: a kid flying past the low end still catches it) */
+        grabRope(R.ax, R.ay, clamp(along, 24, R.len), false, R); s2First('rope', 'SWING! Tap JUMP to let go'); break; }
     }
     if (!P.s2rope && S.rings.length && P.coyote <= 0 && !P.s2climb) {   /* JUMP near a ring hooks it; flying right past one hooks it by itself */
       let best = null, bd = 1e9;
@@ -11987,15 +12044,19 @@ function s2WorldMoves(left, right, holdJump) {
       else {   /* 2026-11-11 playthrough: a let-go on the back swing fell short 1 time in 5: the farther behind the rope he
                   is, the higher the hop (the air speed cap keeps vx), and ropes catch him a tile below their end */
         const fc = P.face || 1, behind = Math.max(0, Math.min(1, -fc * Math.sin(R.th) / 0.48));
-        P.vx = fc * 3.4; P.vy = -4.8 - 0.8 * behind; s2Sound('hup');
+        const fl = R.ring ? null : s2RopeFling(R, fc);   /* a rope over a gap: the aimed let-go (the far bank, whatever the moment) */
+        if (fl) { P.vx = fl.vx; P.vy = fl.vy; P.s2fling = { vx: fl.vx, t: fl.t }; }
+        else { P.vx = fc * 3.4; P.vy = -4.8 - 0.8 * behind; }
+        s2Sound('hup');
       }
+      if (R.rope) P.s2ropeLast = R.rope;
       P.s2rope = null; P.s2ropeCd = 14; input.jumpBuf = 0; P.cuttable = false; P.jumpT = 0;
       return false;
     }
     if (input.jumpBuf > 0) input.jumpBuf = 0;   /* (the press that hooked a ring is not also the let-go) */
     if (right && !left) P.face = 1; else if (left && !right) P.face = -1;
     const th0 = R.th;
-    R.ph += ROPE_W; R.th = ROPE_A * Math.sin(R.ph);
+    R.ph += R.ring ? RING_W : ROPE_W; R.th = ROPE_A * Math.sin(R.ph); R.om = R.th - th0;
     if (R.r > 30) R.r -= 0.4;   /* he pulls himself up the rope a little (clear of the hazard below) */
     let nx = R.ax + Math.sin(R.th) * R.r - P.w / 2, ny = R.ay + Math.cos(R.th) * R.r - 3;
     const hit = (x, y) => { for (let ty = Math.floor(y / T); ty <= Math.floor((y + P.h - 1) / T); ty++) for (let tx = Math.floor(x / T); tx <= Math.floor((x + P.w - 1) / T); tx++) if (solid(tx, ty)) return true; return false; };
@@ -12179,9 +12240,13 @@ function drawS2World() {
   const held = P.s2rope && !P.s2rope.ring ? P.s2rope : null;
   for (const R of S.ropes) {
     const x = R.ax - ox; if (x < -80 || x > W + 80) continue;
-    const on = held && held.ax === R.ax && held.ay === R.ay, th = on ? held.th : s2RopeAt(R), len = R.len;
+    const on = held && held.ax === R.ax && held.ay === R.ay;
+    /* a bendy rope (2026-11-12): a dark edge, then the strands, with a twist mark every few pixels and a knot at the end */
+    const pts = s2RopePoints(R, on ? held : null, ox);
+    ctx.fillStyle = '#3a2412'; for (const p of pts) ctx.fillRect(Math.round(p[0]) - 2, Math.round(p[1]) - 1, 4, 4);
+    pts.forEach((p, i) => { ctx.fillStyle = (i >> 1) % 2 ? '#c9a26a' : '#a8824a'; ctx.fillRect(Math.round(p[0]) - 1, Math.round(p[1]), 2, 2); });
+    const e = pts[pts.length - 1]; ctx.fillStyle = '#3a2412'; ctx.fillRect(Math.round(e[0]) - 3, Math.round(e[1]) - 1, 6, 5); ctx.fillStyle = '#a8824a'; ctx.fillRect(Math.round(e[0]) - 2, Math.round(e[1]), 4, 3);
     ctx.fillStyle = '#5b3a1e'; ctx.fillRect(x - 4, R.ay - 3, 8, 4);
-    for (let d = 0; d < len; d += 3) { const px = x + Math.sin(th) * d, py = R.ay + Math.cos(th) * d; ctx.fillStyle = (d / 3) % 2 ? '#c9a26a' : '#a8824a'; ctx.fillRect(Math.round(px) - 1, Math.round(py), 3, 3); }
   }
   if (P.s2rope && P.s2rope.ring) {   /* the grappling hook's line */
     const R = P.s2rope, hx = P.x + P.w / 2 - ox, hy = P.y + 3, k = R.shoot > 0 ? 1 - R.shoot / 6 : 1;
