@@ -13,7 +13,7 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
 const WORLD_FILES = ['w01', 'w02', 'w03', 'w04', 'w05', 'w06', 'w06t', 'w07', 'w08', 'w09', 'w09t', 'w10', 'w11', 'w12', 'w12i', 'w13', 'w14', 'w15'];   /* w12i-w15: Season 2's 2D maps (the ?season2=1 test) */
 
 type Stop = { at: [number, number]; name: string; st: string };
-type World = { n: number; travel?: boolean; stops: Stop[]; entryPath?: unknown; exitPath?: unknown; edges?: [unknown, unknown, ...unknown[]][] };
+type World = { n: number; travel?: boolean; flat?: boolean; stops: Stop[]; entryPath?: unknown; exitPath?: unknown; edges?: [unknown, unknown, ...unknown[]][] };
 type Def = { id: string; world: number; slot: number; kind?: string };
 
 function loadWorlds(): World[] {

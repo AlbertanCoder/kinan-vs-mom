@@ -287,8 +287,11 @@ test.describe('Fixes run 2: pets join the team', () => {
 });
 
 /* 2026-11-04 (Shad, final QC): "the cats and the dogs ... when Kinan is over a ledge they just seem to float in the air".
-   A following pet now stands on the floor under its OWN feet (index.html petFloorY), not at Kinan's height. */
-type PetXY = { id: string; x: number; y: number };
+   A following pet now stands on the floor under its OWN feet (index.html petFloorY), not at Kinan's height.
+   2026-11-11 (the pet brain): pets now really jump and fall, with gravity, where Kinan jumped (Shad: "they should move
+   fluidly like how I do"). The old check counted ANY 12 frames in the air as floating, which a real jump also is. Now a
+   pet in the air is floating only when it is not moving like a jump or a fall: gravity speeds a fall up every frame. */
+type PetXY = { id: string; x: number; y: number; ground?: boolean };
 type Win3 = Window & { __k11: Dev & { grantPets: () => string[]; petEquip: (c: string | null, d: string | null) => unknown; petInfo: () => { cats: PetXY[]; dogs: PetXY[] }; petFloor: (x: number, footY: number) => number; state: () => { px: number; py: number; onGround: boolean }; tile: (tx: number, ty: number) => number } };
 test.describe('pets stand on the floor (2026-11-04)', () => {
   test("1-7 (Chenoa's art room): a cat and a dog following Kinan over the ledges stand on the floor under them, never in the air", async ({ page }) => {
@@ -302,7 +305,9 @@ test.describe('pets stand on the floor (2026-11-04)', () => {
       k.playLevel('1-7'); k.godMode(); k.clearFoes(); k.storyStop(); k.freeze(false);
       let samples = 0, floating = 0, worst = 0, ledgeShot: { px: number; py: number; cat: PetXY; dog: PetXY } | null = null;
       const bad: string[] = [];   /* the first floating samples, for the error message */
-      const streak: Record<string, number> = {};   /* a pet hops DOWN to its floor over about 8 frames (0.35 a frame): only a pet that STAYS in the air (4 samples = 12 frames) is floating */
+      const streak: Record<string, number> = {};   /* only a pet that STAYS in the air without falling like a real jump or fall (2 samples in a row) is floating */
+      const lastY: Record<string, number> = {}, lastD: Record<string, number> = {};   /* its height and how far it moved down at the last sample (3 frames apart) */
+      const air: Record<string, number> = {};   /* samples since it left the ground (the first two hold the take-off, half on the ground) */
       const H = { cat: 10, dog: 11 };
       for (let f = 0; f < 6000 && !k.levelInfo().cleared; f += 3) {
         k.auto(3, { run: true });
@@ -311,11 +316,15 @@ test.describe('pets stand on the floor (2026-11-04)', () => {
           for (const p of list) {
             const foot = p.y + H[kind];
             const floor = k.petFloor(p.x, foot);   /* the surface under the pet's own column (its own foot height as the start) */
+            if (p.ground) { if (floor !== foot) samples++; streak[kind + p.id] = 0; lastY[kind + p.id] = p.y; lastD[kind + p.id] = 0; air[kind + p.id] = 0; continue; }   /* 2026-11-11: standing (on a slope or a thin platform too, which petFloor does not see) */
             if (floor === foot) continue;            /* nothing to stand on within reach (a pit): it keeps the trail height, by design */
             samples++;
             const gap = floor - foot;                /* how far above the floor its feet are */
-            const sk = kind + p.id; streak[sk] = gap > 3 ? (streak[sk] || 0) + 1 : 0;
-            if (streak[sk] >= 4) { floating++; if (gap > worst) worst = gap; if (bad.length < 10) { const st2 = k.state(); bad.push(`f${f} ${kind} x${Math.round(p.x)} foot${Math.round(foot)} floor${floor} kinan x${st2.px} y${st2.py} ${st2.onGround ? 'ground' : 'air'}`); } }
+            const sk = kind + p.id, d = lastY[sk] == null ? 0 : p.y - lastY[sk], pd = lastD[sk] == null ? d : lastD[sk];
+            lastY[sk] = p.y; lastD[sk] = d; air[sk] = (air[sk] || 0) + 1;
+            const arc = d - pd >= 2 || d >= 15 || air[sk] <= 2;      /* gravity: over 3 frames a jump or a fall moves down about 4 px more each time (less the rounding) */
+            streak[sk] = gap > 3 && !arc ? (streak[sk] || 0) + 1 : 0;
+            if (streak[sk] >= 2) { floating++; if (gap > worst) worst = gap; if (bad.length < 10) { const st2 = k.state(); bad.push(`f${f} ${kind} x${Math.round(p.x)} foot${Math.round(foot)} floor${floor} kinan x${st2.px} y${st2.py} ${st2.onGround ? 'ground' : 'air'}`); } }
           }
         }
         /* a picture for Shad: Kinan standing on a raised ledge with the pets on the floor behind him */
