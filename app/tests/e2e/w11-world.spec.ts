@@ -439,9 +439,10 @@ test.describe('World 11 · on the map, and the ending', () => {
     expect(s1.stops.map((q) => [q.id, q.kind, q.built])).toEqual([
       ['11-1', 'level', true], ['11-2', 'level', true], ['11-3', 'level', true], ['11-4', 'level', true], ['11-5', 'level', true],
       ['11-fort', 'fort', true], ['11-6', 'level', true], ['11-7', 'level', true], ['11-secret', 'secret', true], ['11-8', 'level', true],
-      ['11-castle', 'boss', true]]);
+      ['11-castle', 'boss', true], [null, 'bonus', true]]);   /* 2026-11-12: the 3D bonus stop past the castle (Season 2 in the main game) */
     expect(s1.stops[0].state).toBe('open');
     expect(s1.stops[10].state).toBe('locked');
+    expect(s1.stops[11].state, 'the bonus stop opens with the castle').toBe('locked');
     const names = await page.evaluate(() => { const w = window as unknown as { KINAN: { W: { n: number; stops: { name: string }[] }[] } }; return w.KINAN.W.find((q) => q.n === 11)!.stops.map((q) => q.name); });
     expect(names[5]).toBe('FORT  THE CORE GUARDIAN');
     expect(errors).toEqual([]);
