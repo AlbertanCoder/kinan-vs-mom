@@ -70,7 +70,11 @@ class Act:
         if cand and n >= 6: self.arc(x + 2, min(5, n - 4), 10, 1)
         if x == 0: foes = 0; fly = False   # an act's first steps (the spawn, a checkpoint): nothing walks or flies into Kinan
                                             # while its first line is said (2026-11-11: a foe stood 2 columns from the spawn)
-        for k in range(foes): self.foe(x + 4 + (k * 5) % max(1, n - 5))
+        used = []   # two foes never start on the same tile (2026-11-11 robot sweep: a run of 10 put both at x + 4, 62 times)
+        for k in range(foes):
+            m = max(1, n - 5); o = (k * 5) % m
+            while o in used and len(used) < m: o = (o + 3) % m
+            used.append(o); self.foe(x + 4 + o)
         if fly: self.foe(x + n // 2, fly=True)
         if hidden:   # an invisible gift block over the run: jump into it
             hc = x + n // 2; self.tile('gift', hc, 8, hidden if isinstance(hidden, str) else 'heart')
