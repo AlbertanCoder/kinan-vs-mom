@@ -8,6 +8,9 @@
  *   node tools/s2-sweep.mjs --levels 12-1,13-4 only these levels, to app/audit/season2-ready/sweep-partial.json
  *                                              (a quick look; never the saved proof)
  *   node tools/s2-sweep.mjs --shots <dir>      also save a screenshot at every stuck spot (default: none)
+ *   node tools/s2-sweep.mjs --resume           the whole sweep, carried on from app/audit/season2-ready/sweep-progress.json
+ *                                              (written after every level) when the code is the same; a run stopped by the
+ *                                              laptop-heat rule picks up at the next level. Same levels, seeds and pass rule
  *   node tools/s2-sweep.mjs --verify           no browser: check sweep.json is bound to the current code (sha256 of
  *                                              index.html, sw.js, every file under levels/ and map/, and this file):
  *                                              STALE = exit 2. Then exit 0 only if every one of the 44 levels was
@@ -30,7 +33,7 @@
  */
 import { spawn } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, unlinkSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -197,18 +200,30 @@ function pageInstall() {
       } else still = true;
       for (const d of B.drops || []) if (!d.fall && Math.abs(d.x - cx) < 14) { tx = cx + (d.x < cx ? 40 : -40); still = false; }   /* a marked ceiling rock: step aside */
     } else if (mode === 'crab') {
-      /* a summit creature (King Crab's rules: it walks at him, shows a tell, charges to a wall and is dizzy there). The
-         robot waits in the one-tile corner at the summit's left end, past where the creature can go: the charge stops
-         right beside him, and he hops on its head while it is dizzy, then back into the corner */
-      const B = bossB, c = B.crab, ccx = c.x + c.w / 2;
+      /* a summit creature (King Crab's rules: it walks at him, shows a tell, charges to a wall and is dizzy there). Since
+         2026-11-12 it reaches every tile of the summit (there is no safe corner any more), so the robot fights it the way
+         a player does: it keeps about seven tiles away on its own side, jumps straight up as a charge comes at it (the
+         creature runs on under him to the wall, or stops under him at the wall, dizzy), jumps over it if it walks him into
+         a wall, and hops on its head while it is dizzy */
+      const B = bossB, c = B.crab, ccx = c.x + c.w / 2, T = g.T;
       m.bossInfo = c.st + ':' + Math.round(ccx) + ':h' + B.hits;
-      const pk = B.cx0 - 8, near = Math.abs(ccx - pk) < 70;
-      if (c.st === 'tired' && near) {
-        tx = ccx - 9;   /* land on the corner side of its middle: the stomp pushes it away from him, out of the corner */
+      const SPD = [2.7, 3.2, 3.7, 4.1][Math.min(3, B.hits)];
+      const wl = B.x0 + 8, wr = B.gateCol * T - 8;   /* where his middle can be on the summit (the left wall, the shut gate) */
+      const side = cx < ccx ? -1 : 1, gapB = side < 0 ? c.x - (P.x + P.w) : P.x - (c.x + c.w), coming = c.dir === side;
+      if (c.st === 'tired') {
+        tx = ccx + side * 9;   /* land on his side of its middle: the stomp pushes it away from him */
         if (P.onGround && Math.abs(tx - cx) < 34) { wantJump = true; holdN = 14; }
         if (!P.onGround && Math.abs(tx - cx) < 5) still = true;
+      } else if (c.st === 'charge' && coming) {
+        tx = cx; still = true;
+        if (P.onGround && gapB < 16 * SPD) { wantJump = true; holdN = 22; }   /* straight up, ~16 frames ahead: it runs on under him */
+      } else if (c.st === 'charge') {
+        tx = ccx + side * 24;   /* it ran past him: run after it, so he is there while it is dizzy at the wall */
       } else {
-        tx = pk; if (Math.abs(tx - cx) < 2) still = true;
+        const want = ccx + side * 7 * T;
+        if ((want < wl || want > wr) && c.st === 'walk' && coming && gapB < 10) {   /* backed into a wall: over its head */
+          tx = ccx - side * 7 * T; if (P.onGround) { wantJump = true; holdN = 22; }
+        } else { tx = Math.max(wl, Math.min(wr, want)); if (Math.abs(tx - cx) < 2) still = true; }
         if (Math.abs(ccx - cx) > 100) for (const q of B.bubbles) {   /* a lobbed bubble (only from far away): step out of its way */
           const a2 = 0.04, b2 = q.vy, c2 = q.y - (B.summitY - 8), disc = b2 * b2 - 4 * a2 * c2;
           if (disc < 0) continue;
@@ -448,9 +463,16 @@ async function main() {
     const src = `(${pageInstall.toString()})();`.replace(/STUCK_FRAMES_/g, String(STUCK_FRAMES)).replace(/GIVE_UP_/g, String(GIVE_UP_FRAMES)).replace(/MAX_FRAMES_/g, String(MAX_FRAMES));
     await page.addScriptTag({ content: src });
     if (!(await page.evaluate(() => !!window.__s2bot))) throw new Error('the robot could not be installed (are the __k11 dev hooks there?)');
-    const results = {};
+    let results = {}, resumed = 0;
+    const PROGRESS = join(OUT_DIR, 'sweep-progress.json');
+    if (args.includes('--resume') && !only && existsSync(PROGRESS)) {
+      const pr = JSON.parse(readFileSync(PROGRESS, 'utf8'));
+      if (JSON.stringify(pr.hashes) === JSON.stringify(before)) { results = pr.levels || {}; resumed = Object.keys(results).length; console.log(`resuming: ${resumed} level(s) already played on this code`); }
+      else console.log('sweep-progress.json is from other code: starting over');
+    }
     for (let n = 0; n < levels.length; n++) {
       const id = levels[n], pair = PAIRS[n % PAIRS.length];
+      if (results[id]) continue;   /* (--resume: played already on this same code) */
       const tries = [];
       for (const god of args.includes('--god') ? [true] : [false, true]) {
         cur = id;
@@ -485,6 +507,7 @@ async function main() {
         godTry: last.god ? { cleared: last.cleared, frames: last.frames, deaths: last.deaths, falls: last.falls, stuck: last.stuck, end: last.end } : null
       };
       const R = results[id], pw = R.pets.reduce((s, p) => s + p.inWallFrames, 0), pf = R.pets.reduce((s, p) => s + p.floatingFrames, 0), pp = R.pets.reduce((s, p) => s + p.pitFrames, 0);
+      if (!only) { mkdirSync(OUT_DIR, { recursive: true }); writeFileSync(PROGRESS, JSON.stringify({ hashes: before, levels: results })); }
       console.log(`${id.padEnd(10)} ${R.cleared ? 'CLEARED' : R.clearedGod ? 'GOD-ONLY' : 'NOT-CLEARED'} frames ${String(R.frames).padStart(5)} deaths ${R.deaths} falls ${R.falls} hearts ${R.heartsLost} stuck ${R.stuck.length}${R.stuck.length ? ' @' + R.stuck.map((q) => `(${q.x},${q.y})`).join('') : ''} candles ${R.candles}/${R.candlesTotal} audit ${auditCount(R.audit)} auditInPlay ${(R.auditDuringPlay || []).length} pageErr ${R.pageErrors.length} consoleErr ${R.consoleErrors.length} pets wall ${pw} float ${pf} pit ${pp}${R.helpOffers.length ? ' helpOffers ' + R.helpOffers.length : ''}`);
     }
     const after = hashes();
@@ -498,9 +521,10 @@ async function main() {
       stuckSpots: levels.reduce((s, i) => s + results[i].stuck.length, 0), pageErrors: levels.reduce((s, i) => s + results[i].pageErrors.length, 0),
       consoleErrors: levels.reduce((s, i) => s + results[i].consoleErrors.length, 0), auditProblems: levels.reduce((s, i) => s + auditCount(results[i].audit), 0),
       candles: levels.reduce((s, i) => s + results[i].candles, 0), candlesTotal: levels.reduce((s, i) => s + results[i].candlesTotal, 0) };
-    saved.totals = tot;
+    saved.totals = tot; saved.resumedLevels = resumed;
     mkdirSync(dirname(OUT), { recursive: true });
     writeFileSync(OUT, JSON.stringify(saved, null, 1));
+    if (!only && existsSync(join(OUT_DIR, 'sweep-progress.json'))) unlinkSync(join(OUT_DIR, 'sweep-progress.json'));   /* (the whole sweep is saved: the progress file is done) */
     console.log(`\nsaved ${relative(ROOT, OUT)} in ${saved.seconds}s (${levels.length} levels${only ? ', PARTIAL' : ''})`);
     console.log('totals: ' + JSON.stringify(tot));
     if (fails.length) { console.log(`FAIL (${fails.length}):\n  ` + fails.join('\n  ')); process.exitCode = 1; } else console.log('PASS');
