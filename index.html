@@ -10156,7 +10156,7 @@ function drawGlitchyHelper() {
 }
 function levelRespawn() {
   deaths++;
-  if (L.s2) s2Respawn();   /* Season 2: count the try for its act; a lost boss fight starts fresh */
+  const s2spot = L.s2 ? s2Respawn() : null;   /* Season 2: count the try for its act; a lost boss fight starts fresh */
   breakCombo();
   /* B1: a lost boss fight counts at the arena's door (one spot for the helper) and starts fresh on re-entry */
   if (L.arena && L.arena.state === 'fight') { L.deathX = L.arena.spotX; arenaReset(L.arena); }
@@ -10165,12 +10165,13 @@ function levelRespawn() {
   P.hp = P.max; P.dead = 0; P.inv = 110; P.vx = 0; P.vy = 0;
   shots = []; dad = null; bro = null;
   P.x = spawn.x; P.y = spawn.y;   /* the checkpoint once he touched it, else the level's start */
+  if (s2spot) { P.x = s2spot.x; P.y = s2spot.y; }   /* Season 2: a lost summit fight starts over at the summit */
   lastSafe = { x: P.x, y: P.y };
   if (L.s2) { P.s2climb = null; P.s2ledge = null; P.s2swim = false; P.s2vy = null; P.s2warp = null; s2CamSnap(); }
   camX = clamp(Math.round(P.x - W * 0.42), 0, Math.min(L.w * T - W, (L.arenaX + L.arenaW + 1) * T - W));
   trail = []; updHud();
   toastHold = 0;
-  toast('💫 ' + (cpHit ? '<b>Back to the checkpoint!</b>' : '<b>Back to the start!</b>') + ' Full hearts, and your candles are safe.', 2200);
+  toast('💫 ' + (s2spot ? '<b>Back to the summit!</b>' : cpHit ? '<b>Back to the checkpoint!</b>' : '<b>Back to the start!</b>') + ' Full hearts, and your candles are safe.', 2200);
   maybeOfferHelp(sp);
 }
 function die() {
@@ -12548,10 +12549,10 @@ function s2TideTick(B) {
   if (B.state === 'crab') s2CrabTick(B);
   if (B.state === 'friend') B.tideY = Math.min(B.bottom + 40, B.tideY + 2.2);
 }
-function s2CrabStart(B) {
+function s2CrabStart(B, again) {
   B.crab = { x: B.cx1 - 40, w: 30, h: 20, dir: -1, st: 'enter', t: 70, rise: 0 };
   s2Gate(B.gateCol, B.gateTop, Math.round(B.summitY / T) - 1, true);
-  s2Say(S2_SUMMITS[B.summit].who, S2_SUMMITS[B.summit].start, 2.6);
+  if (!again) s2Say(S2_SUMMITS[B.summit].who, S2_SUMMITS[B.summit].start, 2.6);   /* (a fight started over at the summit: no second hello) */
   AudioSys.tone(110, 0.5, { type: 'sawtooth', vol: 0.08, slide: 70 });
 }
 function s2CrabBox(B) { const c = B.crab; return { x: c.x, y: B.summitY - c.h + (c.st === 'enter' ? Math.round(c.h * (c.t / 70)) : 0), w: c.w, h: c.h }; }
@@ -12596,19 +12597,28 @@ function s2CrabTick(B) {
   } else if (hit === 1 && c.st !== 'tired') { P.vy = -5; hurt({ x: c.x + c.w / 2, y: B.summitY }); }
   else if (hit === -1 && c.st !== 'tired') hurt({ x: c.x + c.w / 2, y: B.summitY });
 }
-/* a fall or a lost fight: back at the checkpoint, the fight starts fresh (the gates open again) */
+/* a fall or a lost fight: back at the checkpoint, the fight starts fresh (the gates open again). A lost SUMMIT fight
+   (2026-11-12, Shad's answer 37: it sent Kinan back to the bottom of the tower, the flood and the whole climb again) starts
+   over at the summit: Kinan stands at its left end, the creature comes in again, 4 stomps. Returns that spot, or null */
 function s2Respawn() {
-  P.s2rope = null; P.s2bar = null; P.s2dash = 0; P.s2glide = false;
+  P.s2rope = null; P.s2bar = null; P.s2dash = 0; P.s2glide = false; P.s2fling = null;
   const S = L.s2, x = L.deathX != null ? L.deathX : P.x;
   const k = L.areas ? Math.max(0, L.areas.findIndex((a) => x >= a.from * T && x < a.to * T)) : 0;
   S.stats.deaths[k] = (S.stats.deaths[k] || 0) + 1;
+  let spot = null;
   for (const B of S.bosses) {
     if (B.state === 'friend' || B.state === 'wait' || B.state === 'done') continue;
+    if (B.kind === 'tide' && B.state === 'crab' && B.crab) {
+      B.hits = 0; B.bubbles = []; B.waves = []; B.hitCd = 0; s2CrabStart(B, true);
+      spot = { x: B.x0 + T + 3, y: B.summitY - P.h };
+      continue;
+    }
     if (B.kind === 'chase') { B.state = 'wait'; B.wallX = -999; Music.play('stage'); continue; }
     if (B.kind === 'mole') { s2Gate(B.gateL, B.rTop, B.rBot, false); s2Gate(B.gateR, B.rTop, B.rBot, false); B.state = 'wait'; B.hits = 0; B.rocks = []; B.drops = []; B.hole = null; }
     else { if (B.crab) s2Gate(B.gateCol, B.gateTop, Math.round(B.summitY / T) - 1, false); B.state = 'wait'; B.hits = 0; B.crab = null; B.bubbles = []; B.waves = []; B.tideY = B.bottom + 40; }
     Music.play('stage');
   }
+  return spot;
 }
 function s2CamSnap() { camY = clamp(Math.round(P.y + P.h / 2 - H * 0.55), camTopY(), 0); }
 /* the bosses, the tide, the flags and the dark (over everything in the level) */
