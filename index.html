@@ -12402,7 +12402,15 @@ function s2BuildMore(a, base, s2) {
   }
 }
 function s2Gate(col, r0, r1, shut) { const up = L.up | 0; for (let r = r0; r <= r1; r++) { const i = (r + up) * L.w + col; if (i >= 0 && i < L.g.length) L.g[i] = shut ? 5 : 0; } }
-const s2GoalLocked = () => !!(L.s2 && L.s2.bosses.some((b) => b.lockGoal && (b.state !== 'friend' || (b.after && b.after.length && b.talkIds && b.talkIds.some((id) => Story.has(id))))));   /* and the rescue lines are said first (or tapped through) */
+/* THE RESCUE TALK AT THE TOP (2026-11-12, Shad's answer 36: "same talk, shorter wait"): every line is still said, but the
+   way to the goal opens once the creature's line and the first S2_RESCUE_MAIN rescue lines are said (13-castle kept Kinan
+   at the gate over a minute); the rest keep playing as he walks on to the flag and through the LEVEL CLEAR lap (the lap
+   waits for them: on the map a cutscene or the next level would cut them off). While he waits, a "listen..." bubble over
+   him says why */
+const S2_RESCUE_MAIN = 2;
+const s2GoalLocked = () => !!(L.s2 && L.s2.bosses.some((b) => b.lockGoal && (b.state !== 'friend' || (b.after && b.after.length && b.talkIds && b.talkIds.slice(0, 1 + S2_RESCUE_MAIN).some((id) => Story.has(id))))));   /* and the main rescue lines are said first (or tapped through) */
+const s2TalkLocked = () => !!(L && L.s2 && !L.cleared && L.s2.bosses.some((b) => b.lockGoal && b.state === 'friend') && s2GoalLocked());   /* waiting at the top for the main rescue lines */
+const s2RescueTalking = () => !!(L && L.s2 && L.s2.bosses.some((b) => b.lockGoal && b.state === 'friend' && b.after && b.after.length && b.talkIds && b.talkIds.some((id) => Story.has(id))));
 /* a Season 2 line said in the moment (a boss, Glitchy's tip, Sabumnim): it joins the same line queue as everyone else
    (Shad's audit: two people must never talk at once, and every line is heard: subtitle and voice), ahead of what waits */
 let s2LineN = 0;
@@ -12676,6 +12684,20 @@ function drawS2Bosses() {
     ctx.fillStyle = g; ctx.fillRect(a, camY - 4, b - a, H + 8);
   }
   if (S.warps.length) drawS2Hints();   /* the pipe / chute / door bubbles, over the dark */
+  drawS2Listen();
+}
+/* "listen..." over Kinan while the talk keeps him waiting (2026-11-12, Shad's answers 36-37): a small bubble with dots that
+   fill one by one, so a kid can see the game has not frozen */
+function drawS2Listen() {
+  if (!P || P.dead || !s2TalkLocked()) return;
+  const cx = Math.round(P.x + P.w / 2 - camX), top = Math.round(P.y) - 24 + Math.round(Math.sin(frame / 10)), dots = '...'.slice(0, 1 + Math.floor(frame / 20) % 3);
+  ctx.font = "700 8px 'Pixelify Sans', monospace";
+  const tw = Math.round(ctx.measureText('LISTEN...').width) + 8;   /* (capitals: the thin l and i of "listen" blurred into one blob at this size) */
+  ctx.fillStyle = '#1b1220'; ctx.fillRect(cx - (tw >> 1) - 1, top - 1, tw + 2, 13); ctx.fillRect(cx - 3, top + 11, 6, 4);
+  ctx.fillStyle = '#f4f1e8'; ctx.fillRect(cx - (tw >> 1), top, tw, 11); ctx.fillRect(cx - 2, top + 11, 4, 3);
+  ctx.fillStyle = '#1b1220'; ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+  ctx.fillText('LISTEN' + dots, cx - (tw >> 1) + 4, top + 2);
+  ctx.textBaseline = 'alphabetic';
 }
 function s2Pips(B, n) {   /* the boss's hits left, as pips above the action */
   const x = W / 2 - n * 7 + Math.round(camX), y = camY + 30;
@@ -14131,7 +14153,8 @@ function update() {
   if (L.goal && boss === 'off' && !(L.s2 && s2GoalLocked())) {   /* Season 2: a boss that guards the goal must be a friend first */
     if (!L.cleared) { if (P.x + P.w / 2 >= L.goal.x && (!L.s2 || P.y + P.h <= (L.goal.ty + 2) * T)) levelClear(); }   /* Season 2: a goal up high (a climb's top) is reached up there, not under it */
     /* B1: after a boss, the lap waits (up to 8 s more) while the befriended boss finishes the last line */
-    else if (!L.returned && ++L.clearT >= LEVEL_CLEAR_FRAMES && !(L.arena && (L.arena.line || L.arena.lineQ.length) && L.clearT < LEVEL_CLEAR_FRAMES + 480)) { levelReturn(); return; }
+    else if (!L.returned && ++L.clearT >= LEVEL_CLEAR_FRAMES && !(L.arena && (L.arena.line || L.arena.lineQ.length) && L.clearT < LEVEL_CLEAR_FRAMES + 480)
+      && !(L.s2 && s2RescueTalking() && L.clearT < LEVEL_CLEAR_FRAMES + 3600)) { levelReturn(); return; }   /* (Season 2: a castle's last rescue lines finish on the LEVEL CLEAR lap) */
   }
   if (boss === 'off' && P.x > (L.arenaX + 3) * T && (!L.up || P.y > (GROUND - 7) * T)) { startBoss(); return; }   /* a tall level of his own: from down at the arena, not from a walkway up high */
   if (boss === 'fight') {
