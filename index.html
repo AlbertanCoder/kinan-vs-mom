@@ -12214,15 +12214,20 @@ const S2_SUMMIT_SHOTS = { samurai: ['#ffb3d0', '#ffd6e6'], crab: ['rgba(230,247,
 /* the flashlight's beam in a dark place (India): a cone the way he faces, a small glow round him */
 function s2TorchDark(a, b, ox) {
   const cx = P.x + P.w / 2 - ox, cy = P.y + P.h / 2, d = P.face || 1, L1 = 170, sp = 0.42;
+  /* the dark part's slice of the screen, minus the glow and the beam: each is cut out with its own clip (a big box with the
+     shape inside, even-odd), so a glow or beam outside the slice is never painted dark (2026-11-11 play-test: 12-5's lit climb
+     showed a black ball over Kinan with a grey cone) and the beam's start inside the glow stays lit */
   ctx.save();
-  ctx.beginPath(); ctx.rect(a, camY - 4, b - a, H + 8);
-  ctx.moveTo(cx + 30, cy); ctx.arc(cx, cy, 30, 0, 6.284, true);
-  ctx.moveTo(cx, cy - 4); ctx.lineTo(cx + d * L1, cy - L1 * sp); ctx.lineTo(cx + d * L1, cy + L1 * sp); ctx.lineTo(cx, cy + 4); ctx.closePath();
-  ctx.fillStyle = 'rgba(6,6,18,.86)'; ctx.fill('evenodd');
+  ctx.beginPath(); ctx.rect(cx - 4000, cy - 4000, 8000, 8000); ctx.moveTo(cx + 30, cy); ctx.arc(cx, cy, 30, 0, 6.284, true); ctx.clip('evenodd');
+  ctx.beginPath(); ctx.rect(cx - 4000, cy - 4000, 8000, 8000);
+  ctx.moveTo(cx, cy - 4); ctx.lineTo(cx + d * L1, cy - L1 * sp); ctx.lineTo(cx + d * L1, cy + L1 * sp); ctx.lineTo(cx, cy + 4); ctx.closePath(); ctx.clip('evenodd');
+  ctx.fillStyle = 'rgba(6,6,18,.86)'; ctx.fillRect(a, camY - 4, b - a, H + 8);
   ctx.restore();
   const g = ctx.createLinearGradient(cx, cy, cx + d * L1, cy);
   g.addColorStop(0, 'rgba(255,240,170,.22)'); g.addColorStop(1, 'rgba(255,240,170,0)');
+  ctx.save(); ctx.beginPath(); ctx.rect(a, camY - 4, b - a, H + 8); ctx.clip();   /* the beam's glow only where it is dark */
   ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(cx, cy - 4); ctx.lineTo(cx + d * L1, cy - L1 * sp); ctx.lineTo(cx + d * L1, cy + L1 * sp); ctx.lineTo(cx, cy + 4); ctx.closePath(); ctx.fill();
+  ctx.restore();
 }
 /* each world's candles are its own treat (Shad: food and festivals) */
 function s2TreatDraw(kind, sx, y) {
