@@ -11063,6 +11063,11 @@ function petStep(pet, S, k, gi) {
       const key = Math.round(want) + ',' + Math.round(kfeet);
       if (pb.settleKey !== key) { pb.settleKey = key; pb.settleOk = petPlanWalk(pet, want, kfeet); }
       if (pb.settleOk) { const d = Math.max(-1.6, Math.min(1.6, want - pc)); petPhysics(pet, d, kc); pet.face = kc > pet.x + PET_W / 2 ? 1 : -1; pb.still = 0; pb.spd = 0; if (pet.onGround) pb.safe = { x: pet.x, y: pet.y }; return; }
+    } else if (pb.settleOk !== false) {
+      /* at its spot beside him: it stands there. (2026-11-12, Shad on 14-4: "violently vibrating" while a talk line held
+         Kinan: a pet at its spot used to fall through to walking his footsteps, one step towards his last footstep, and the
+         settle walked it back the next frame: a left-right flip every frame, ~500 in 15 s, whenever he stood still) */
+      petPhysics(pet, 0, kc); pb.still = 0; pb.spd = 0; if (pet.onGround) pb.safe = { x: pet.x, y: pet.y }; return;
     }
   } else pb.settleKey = null;
   if (!coming) {
@@ -12075,7 +12080,10 @@ function s2WorldMoves(left, right, holdJump) {
     if (z) {
       if (!P.s2skate) { P.s2skate = true; P.s2sk = Math.abs(P.vx); s2First('skate', 'SKATEBOARD!', '#f6c445'); }
       const d = right && !left ? 1 : left && !right ? -1 : 0;
-      if (d && d === P.face) P.s2sk = Math.min(5.0, (P.s2sk || 0) + 0.09); else if (d) P.s2sk = Math.max(0, (P.s2sk || 0) - 0.4); else P.s2sk = (P.s2sk || 0) * 0.985;
+      /* (2026-11-12: a lesson line that holds Kinan stops the board too: on 15-1's street he rolled on through Chenoa's
+         skateboard line and into the gap ahead, twice in one line) */
+      if (Story.holding()) P.s2sk = Math.max(0, (P.s2sk || 0) - 0.4);
+      else if (d && d === P.face) P.s2sk = Math.min(5.0, (P.s2sk || 0) + 0.09); else if (d) P.s2sk = Math.max(0, (P.s2sk || 0) - 0.4); else P.s2sk = (P.s2sk || 0) * 0.985;
       P.vx = (d || P.face) * P.s2sk;
       if (P.s2sk > 3 && frame % 4 === 0) part(cx - P.face * 6, P.y + P.h, { vx: -P.face * 0.6, vy: -0.2, life: 10, size: 1, color: 'rgba(255,255,255,.7)', g: 0 });
     } else if (P.onGround) P.s2skate = false;
