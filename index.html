@@ -397,6 +397,7 @@ html.sideways .bossline{font-size:11px;padding:2px 8px}
    at the bottom stays between the see-through buttons instead of under the thumbs */
 html.sideways .stage .bossbar{top:calc(var(--hudh) + 8px)}
 html.sideways .stage.bossmode:not(.smashmode):not(.kartmode) .dialog,html.sideways .stage.bossmode:not(.smashmode):not(.kartmode) .toast{top:calc(var(--hudh) + 52px)}
+html.sideways .stage:not(.bossmode):not(.smashmode):not(.kartmode):not(.buildmode) .toast{top:calc(var(--hudh) + 8px)}   /* under the HUD bar that lies over the picture (2026-11-11 play-test: CHECKPOINT! sat on the level's name) */
 html.sideways:not(.kartpad) .stage:not(.smashmode):not(.kartmode) .bossline{max-width:calc(100% - 2 * (2 * clamp(80px,11vw,128px) + 28px));bottom:max(8px,env(safe-area-inset-bottom,0px))}
 /* V1 story lines: the subtitle at the bottom of the map picture (in a level it is #storyLine, a .bossline) */
 .storysub{position:absolute;left:50%;transform:translateX(-50%);bottom:13.5%;z-index:5;   /* just above the map's stop-name plaque (y 210-234 of 240) */width:max-content;max-width:92%;padding:4px 11px;border-radius:6px;background:rgba(17,19,43,.9);border:2px solid var(--edge);color:#f4f1e8;font-family:Nunito,system-ui,sans-serif;font-size:clamp(11px,2.3vw,15px);line-height:1.25;pointer-events:none;text-align:center}
@@ -763,7 +764,7 @@ html.sideways .hud .iconbtn.menubtn{width:auto;min-width:76px;font-size:13px}
   .s2in{padding:5px;font-size:14px}.s2in[rows]{height:64px}.s2out{min-height:84px;height:96px;font-size:11px}.s2card .btnrow{margin:0}}.s2tab td,.s2tab th{padding:3px 10px;border-bottom:1px solid var(--panel2)}
 #owHost .km-btn.km-jump{background:#2a7fd0;font-size:18px;min-width:84px;letter-spacing:.04em}
 @media (orientation:portrait) and (max-width:700px){#owHost .km-side{gap:8px}#owHost .km-btn.km-jump{min-width:0;padding:0 10px;font-size:16px}#owHost .km-play{min-width:96px}}
-@media (orientation:portrait) and (max-width:380px){#owHost .km-btn{min-width:58px}#owHost .km-btn.km-jump{min-width:0;padding:0 8px;font-size:14px}#owHost .km-play{min-width:84px}}
+@media (orientation:portrait) and (max-width:430px){#owHost .km-btn{min-width:58px}#owHost .km-btn.km-jump{min-width:0;padding:0 8px;font-size:14px}#owHost .km-play{min-width:84px}}
 @media (orientation:landscape) and (max-height:560px){#owHost .km-btn.km-jump{min-width:64px;padding:0;font-size:15px}}
 @media (hover:none){.mhint{display:none}}
 @media (max-width:560px){.mgrid{grid-template-columns:repeat(2,minmax(0,1fr))}.msplit{grid-template-columns:1fr}}
