@@ -9778,7 +9778,7 @@ function hunterSave() {
   P.hunterUsed = true; P.hp = Math.max(1, P.hp);
   P.inv = Math.max(P.inv, feel().INVULN); P.vx = 0; P.vy = Math.min(P.vy, -3); P.cuttable = false;
   const d = pets.dogs.find((v) => v.id === 'dog2');
-  if (d) { d.x = P.x - 14; d.y = P.y + 6; }
+  if (d) { d.x = P.x - 14; d.y = P.y + 6; if (d.pb) Object.assign(d.pb, { line: false, hop: null, fly: null, plan: null, ci: -1 }); }   /* (he forgets the path he was on: walking back along it from here went through 14-5's pool bank, 2026-11-11 sweep) */
   popIn(P.x - 18, P.y - 18, 'HUNTER SAVED YOU!', 70, '#7be3a3');
   sparks(P.x + 5, P.y + 6, 16, ['#7be3a3', '#fff', '#f6c445']);
   toast('🐶 <b>HUNTER</b> jumped in and saved you! (once per level)', 2200);
@@ -10866,7 +10866,7 @@ function petLineClear(pet, tx, ty) {
   return true;
 }
 /* a pet pops back beside Kinan: on the footstep behind him (where he stood, so there is room) */
-function petPoof(pet, S, quiet, rescue) {
+function petPoof(pet, S, quiet, rescue, above) {
   if (pet.pb.cool > 0) return false;   /* (just popped somewhere: it stays a moment) */
   const n = S.list.length;
   if (!n || S.air) return false;
@@ -10874,6 +10874,7 @@ function petPoof(pet, S, quiet, rescue) {
   for (const j of [gi, gi + 1, gi + 2, gi - 1, gi - 2, gi + 3, top]) {
     if (j < S.base || j > top) continue;
     const st = S.list[j - S.base];
+    if (above != null && st.y > above) continue;   /* (out of a castle's flood: only a footstep above it) */
     if (famOverlaps(st.x - PET_W / 2, st.y - pet.h, PET_W, pet.h)) continue;
     if (!quiet && Math.abs(st.x - pet.x - PET_W / 2) < 16 && Math.abs(st.y - pet.y - pet.h) < 24) { if (rescue) continue; return false; }   /* that close it walks (out of trouble: a spot a little further) */
     const seen = pet.x + PET_W > camX && pet.x < camX + W;
@@ -10935,6 +10936,17 @@ function petStep(pet, S, k, gi) {
   pb.off = seen ? 0 : pb.off + 1;
   if (pb.cool > 0) pb.cool--;
   pet.s2swim = false; pet.s2climb = false;
+  /* 0b. a castle's rising flood never covers a pet (2026-11-11 play-test: they stood under it 2.5-3.5 s): once it is over its
+     feet the pet pops up beside Kinan onto a footstep above the flood, or (none yet) it floats up on the flood's top, as
+     the flood pops Kinan up */
+  let flood = null;
+  if (L.s2 && !pb.fly && !pb.hop) for (const B of L.s2.bosses) if (B.kind === 'tide' && (B.state === 'rise' || B.state === 'crab') && pet.x + PET_W > B.x0 && pet.x < B.x1 && pet.y + pet.h > B.tideY + (pb.onFlood ? 0 : 3)) { flood = B; break; }
+  pb.onFlood = false;
+  if (flood) {
+    if (petPoof(pet, S, false, true, flood.tideY - 2)) return;
+    const y = flood.tideY + 2 - pet.h;
+    if (y <= pet.y + 0.01 && !famOverlaps(pet.x, y, PET_W, pet.h)) { pet.y = Math.max(y, pet.y - 3); pet.vx = 0; pet.vy = 0; pet.onGround = false; pet.s2swim = true; pb.line = false; pb.ci = -1; pb.onFlood = true; return; }
+  }
   /* 0. a block appeared where it stands, or something put it in a pit (Hunter's save drops him next to Kinan): out at once */
   if (!pb.fly && !pb.line && (pet.y + pet.h > ROWS * T || petInGlitch(pet.x + PET_W / 2, pet.y + pet.h) || famOverlaps(pet.x, pet.y, PET_W, pet.h))) {
     let up = 0;
@@ -11022,8 +11034,20 @@ function petStep(pet, S, k, gi) {
     if (d > 0) { pet.x += (t.x - pc) / d * sp; pet.y += (t.y - feet) / d * sp; pet.face = t.x > pc + 0.3 ? 1 : t.x < pc - 0.3 ? -1 : pet.face; }
     pet.vx = 0; pet.vy = 0; pet.onGround = false;
     if (d <= 3) {
-      if (pb.ci < gi && st(pb.ci + 1) && (st(pb.ci + 1).k !== 'g' || t.k !== 'g') && petLineClear(pet, st(pb.ci + 1).x, st(pb.ci + 1).y)) pb.ci++;
+      const nx = pb.ci < gi ? st(pb.ci + 1) : null;
+      if (nx && (nx.k !== 'g' || t.k !== 'g') && petLineClear(pet, nx.x, nx.y)) pb.ci++;
       else if (t.k === 'g') { pb.line = false; pet.onGround = true; pb.safe = { x: pet.x, y: pet.y }; }
+      else if (nx && nx.k === 'g' && (pb.lineHopT = (pb.lineHopT || 0) + 1) % 10 === 1) {
+        /* the top of a ladder: Kinan hopped up onto the roof, and the straight line there cuts the roof's corner. A hop,
+           tried out first, gets the pet up there too (2026-11-11 play-test, 13-1: cat and dog hung on the top rung 6 s) */
+        const hop = petPlanHop(pet, nx.x, nx.y);
+        if (hop) {
+          const a = Object.assign({}, hop, { t: 0, to: pb.ci + 1 });
+          pb.line = false; pb.lineHopT = 0; pet.vx = a.vx; pet.vy = a.vy; pet.onGround = false; pb.hop = a; pb.still = 0;
+          petHopStep(pet, a); pet.face = a.vx >= 0 ? 1 : -1;
+          return;
+        }
+      }
     }
     if (pet.s2swim && frame % 30 === k * 7 % 30) part(pet.x + PET_W / 2, pet.y, { vx: 0, vy: -0.45, life: 30, size: 1, color: '#e6f7ff', g: -0.01 });
     return;
