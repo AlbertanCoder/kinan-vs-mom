@@ -226,7 +226,7 @@ test.describe('the overworld map between levels', () => {
   });
 
   test('a "Coming soon" stop is safe: PLAY says so and launches nothing, and it never blocks the trail', async ({ page }) => {
-    test.setTimeout(150_000);   /* the stops with no level file are on the 3D map (its mount is slow: overworld-seams-3d.spec.ts gives it 150 s) */
+    test.setTimeout(300_000);   /* the stops with no level file are on the 3D map (its mount is slow), and it first opens all 15 trail maps (2026-11-12: 150 s ran out on the hot laptop, its runs paused for heat) */
     const errors = watchErrors(page);
     await boot(page);
     /* 2026-11-12 (Season 2 in the main game): the build releases Worlds 1-15 and every stop on the trail has its level file, every
@@ -272,8 +272,8 @@ test.describe('the overworld map between levels', () => {
     expect(page.url()).not.toContain('/3d/');
     expect(await page.evaluate(() => (window as unknown as Win).__k11.levelInfo().id)).toBeNull();
     /* it does not block: Kinan walks on past it */
-    await page.locator('#owNext').click();
-    await expect.poll(async () => (await mapState(page)).at, { timeout: 30_000 }).toBeGreaterThan(0);
+    /* (the 3D map takes ▶ once its banner and fly-in are over: pressed again until Kinan walks, at most every 2 s) */
+    await expect.poll(async () => { const q = await mapState(page); if (q.at === 0 && !q.walking) await page.locator('#owNext').click(); return (await mapState(page)).at; }, { timeout: 60_000, intervals: [2000] }).toBeGreaterThan(0);
     await settle(page);
     expect(errors).toEqual([]);
   });
