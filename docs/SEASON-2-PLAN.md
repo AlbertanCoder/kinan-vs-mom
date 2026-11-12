@@ -263,3 +263,21 @@ The mine stays **dark** (the lit arena was wrong).
     Fuji avalanche keeps 3-wide gaps (running from the snow is the challenge).
   - Checked: the play-through robot clears all 44 levels (the castles with every line said); the kid tests above; dash
     gaps 525/525 with any dash timing; unit tests; the World 11 and Season 2 browser tests.
+- 2026-11-12: **Shad and Annie's morning playtest (answers 35-37).** Same story, every line kept; only timing and moves:
+  - **No more shaking:** a pet that had reached its spot beside a standing Kinan stepped toward his last footstep and back
+    every frame (500 flips in one held line on 14-4); now it stands. A held lesson line also stops the skateboard (15-1:
+    he rolled through Chenoa's line into the gap). 0 flips on 14-4, 13-1, 12-1, 12-5, 13-3, 14-1, 15-1.
+  - **Ropes: slow, natural, forgiving.** Half the speed (there and back in 5.3 s), drawn as a bendy rope (bowed against the
+    swing, the end trailing below his hands). JUMP at any moment throws him on an aimed arc to the far bank (or into the
+    next rope); falling over a gap, a rope within 2.5 tiles catches him. Checked: 17,636 let-gos on all 42 ropes, 0 falls;
+    a kid mashing JUMP 1,134/1,134 across; one jump at the edge 4,032 runs, 0 falls. The hook and the bars are unchanged.
+  - **Castle tops: same talk, shorter wait.** The way to the goal opens once the creature's thank-you and the first two
+    rescue lines are said; the rest play while Kinan walks to the flag and on the LEVEL CLEAR lap (on the map they were cut
+    off). A **LISTEN...** bubble sits over him while he waits. 13-castle 58.5 s -> 23.8 s, 15-castle 45.4 s -> 25.6 s.
+  - **Summit fights:** losing one starts it over at the summit (not the bottom of the tower); the creature now reaches
+    every tile (the far-left tile and the tile by the gate were safe). The sweep robot fights like a player now (no
+    corner): all 4 castles, 0 deaths.
+  - **14-castle:** the opening lava pit is 5 wide (a jump clears it) at columns 19-23, right of the opening subtitle on a
+    phone (generator change, only levels/w14/castle.js rewritten).
+  - **Lessons:** the same LISTEN... bubble while a lesson line holds Kinan (13-1's Sabumnim call).
+  - `node tools/s2-sweep.mjs --resume` carries a sweep stopped by the heat rule on from where it stopped.
