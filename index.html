@@ -11712,9 +11712,12 @@ function s2Tick(left, right, holdJump) {
     P.s2climb = c; input.jumpBuf = 0; P.s2ledge = null;
   }
   if (P.s2climbCd > 0) P.s2climbCd--;
+  if (c && !P.s2climb && P.onGround) s2First('climb', (c.vine ? 'VINE!' : 'LADDER!') + ' Hold JUMP to climb');   /* the first time he stands at one (2026-11-11 play-test: no hint said how) */
   if (P.s2climb) {
     const C = P.s2climb;
-    if (left || right) {   /* step off sideways (with JUMP: jump off) */
+    /* step off sideways: an arrow alone drops him off, an arrow with a fresh JUMP tap jumps off. An arrow with JUMP HELD
+       keeps climbing (2026-11-11 play-test: a kid holding ▶ and JUMP at a ladder ran straight past it) */
+    if ((left || right) && (!holdJump || input.jumpBuf > 0)) {
       P.s2climb = null; P.s2climbCd = 12; P.vx = (right ? 1 : -1) * 1.6;
       P.vy = input.jumpBuf > 0 || holdJump ? F.JUMP_V * 0.8 : 0;
       input.jumpBuf = 0; return;

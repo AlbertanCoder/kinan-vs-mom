@@ -245,7 +245,7 @@ function pageInstall() {
       const C = P.s2climb, upWay = m.climbing && (mode === 'shaft' || m.climbing === C);
       input.left = input.right = false; input.down = false;
       if (upWay || mode === 'shaft') { input.jump = true; }
-      else { input.jump = true; if (m.f - (m.climbStart || 0) > 240) { input.right = dir >= 0; input.left = dir < 0; } }
+      else { input.jump = true; if (m.f - (m.climbStart || 0) > 240) { input.right = dir >= 0; input.left = dir < 0; input.jumpBuf = 8; } }   /* jump off: an arrow with a fresh JUMP tap (an arrow with JUMP held climbs on) */
       return dir;
     }
     m.climbing = mode === 'shaft' ? m.climbTo : (m.climbing && P.onGround && Math.abs(feet - m.climbFeet) > 2 * T ? null : m.climbing);
