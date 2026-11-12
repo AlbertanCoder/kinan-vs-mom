@@ -3467,6 +3467,7 @@ const owKind = (s) => s.kind || (s.st === 'open' || s.st === 'lock' || s.st === 
 /* every stop's id / built / state and every world's done, from the save */
 function owAnnotate(W) {
   const beaten = progress.levelsBeaten || {}, secrets = progress.unlockedLevels || [];
+  const b3 = progress.bonus3d || {}, beaten3d = b3.beaten || {}, secrets3d = b3.unlocked || [];   /* the 3D levels' own progress (loadProgress "THE 3D BONUS") */
   let reach = true;   /* everything before this stop is beaten or not built yet */
   W.slice().sort((a, b) => a.n - b.n).forEach((w) => {
     if (w.travel) { w.done = true; return; }
@@ -3483,9 +3484,9 @@ function owAnnotate(W) {
       const def = threeD ? null : owDef(w.n, i + 1);
       s.id = def ? def.id : own;
       s.built = threeD ? !!OW_3D_LEVELS[s.id] && (!w.peek || W12_PREVIEW.indexOf(s.id) >= 0) : !!def;   /* the sneak peek builds only its four stops; the rest are "coming soon" */
-      const done = !!beaten[s.id];
+      const done = !!(threeD ? beaten3d : beaten)[s.id];
       if (kind === 'secret') {   /* a side trip: only a secret exit opens it, and it never blocks the trail */
-        s.state = !reach ? 'locked' : done ? 'beaten' : (!s.built || secrets.indexOf(s.id) >= 0) ? 'open' : 'locked';
+        s.state = !reach ? 'locked' : done ? 'beaten' : (!s.built || (threeD ? secrets3d : secrets).indexOf(s.id) >= 0) ? 'open' : 'locked';
         return;
       }
       s.state = !reach ? 'locked' : done ? 'beaten' : 'open';
@@ -8184,6 +8185,7 @@ const DEFAULT_PROGRESS = { unlocked: 1, beaten: [], stars: {}, bestScore: {}, to
   goldenCandles: {}, unlockedLevels: [],   /* authored levels (pass A): golden candle per level id; levels a secret exit opened */
   levelsBeaten: {}, wmap: null,   /* the overworld map (2026-10-27): levels finished by id; where Kinan stands { w, at } */
   introSeen: false, escapes: {},   /* CUTSCENES (2026-10-28): the opening was shown; worlds whose castle escape played { 1: 1 } */
+  bonus3d: { beaten: {}, unlocked: [] }, bonus3dMoved: true,   /* the 3D Saskatoon levels' own progress (2026-11-12; loadProgress "THE 3D BONUS") */
   beltSeen: 0 };   /* BELT SCENES (2026-10-28): the belt step whose scene has played (a save from before has none: null = catch up) */
 /* Annie's save the first time her link opens: every World 1-8 level beaten (so their escapes and belts count as seen,
    and the pets those worlds rescue are along), standing on World 9's first stop; the World 9 opening is still to come */
@@ -8279,6 +8281,20 @@ function loadProgress() {
   /* the overworld map: an old save starts the new map fresh at World 1 (its candles, golden candles and pets stay) */
   out.levelsBeaten = {};
   if (p.levelsBeaten && typeof p.levelsBeaten === 'object' && !Array.isArray(p.levelsBeaten)) for (const k in p.levelsBeaten) if (levelIdOk(k) && p.levelsBeaten[k]) out.levelsBeaten[k] = 1;
+  /* THE 3D BONUS (2026-11-12, Season 2 joins the main game, docs/SEASON-2-PLAN.md): the 3D Saskatoon levels (3d/) keep their own
+     progress, bonus3d { beaten: { '12-4': 1 }, unlocked: ['12-secret'] } (3d/js/main.js writes it), because World 12 on the trail
+     becomes the 2D India, whose stops have the same ids (12-4, 12-5, 12-fort, 12-6). A save from before (no bonus3dMoved) had
+     the 3D page write its clears into levelsBeaten / unlockedLevels: they move to bonus3d here, once, so India starts unbeaten.
+     (Only the main save: the 3D page never writes Annie's save or the Season 2 test's.) */
+  const b3 = p.bonus3d && typeof p.bonus3d === 'object' && !Array.isArray(p.bonus3d) ? p.bonus3d : {}, id3d = (k) => /^12-(\d|fort|secret|castle)$/.test(k);
+  out.bonus3d = { beaten: {}, unlocked: [] };
+  if (b3.beaten && typeof b3.beaten === 'object' && !Array.isArray(b3.beaten)) for (const k in b3.beaten) if (id3d(k) && b3.beaten[k]) out.bonus3d.beaten[k] = 1;
+  if (Array.isArray(b3.unlocked)) b3.unlocked.forEach((k) => { if (k === '12-secret' && out.bonus3d.unlocked.indexOf(k) < 0) out.bonus3d.unlocked.push(k); });
+  if (p.bonus3dMoved !== true && SAVE_KEY === 'kinan-remaster-v1') {
+    for (const k of Object.keys(out.levelsBeaten)) if (id3d(k)) { out.bonus3d.beaten[k] = 1; delete out.levelsBeaten[k]; bonus3dMovedNow = true; }
+    out.unlockedLevels = out.unlockedLevels.filter((k) => { if (!id3d(k)) return true; if (out.bonus3d.unlocked.indexOf(k) < 0) out.bonus3d.unlocked.push(k); bonus3dMovedNow = true; return false; });
+  }
+  out.bonus3dMoved = SAVE_KEY === 'kinan-remaster-v1' ? true : p.bonus3dMoved === true;
   const wm = p.wmap, wmW = wm && Math.floor(Number(wm.w)), wmAt = wm && Math.floor(Number(wm.at));
   out.wmap = wm && typeof wm === 'object' && wmW >= 1 && wmW <= 12 && wmAt >= 0 && wmAt <= 10 ? { w: wmW, at: wmAt } : null;
   if (!out.mapSeen || typeof out.mapSeen !== 'object') out.mapSeen = {};
@@ -8331,6 +8347,7 @@ function loadProgress() {
   }
   return out;
 }
+let bonus3dMovedNow = false;   /* loadProgress moved an older save's 3D clears to bonus3d: written back at once */
 let progress = loadProgress();
 /* Season 2 test: its save starts with Worlds 1-11 beaten, Kinan standing at World 12, and the new end of World 11 plays
    first on the map (s2EndingDue) */
@@ -8378,6 +8395,7 @@ const save = (loud) => {   /* loud: a save the player asked for always says when
   }
   return false;
 };
+if (bonus3dMovedNow) save();   /* THE 3D BONUS: an older save's 3D clears, moved once, are written back straight away */
 
 let L = null, P = null;
 let foes = [], shots = [], blasts = [], allyShots = [], bosses = [], allies = [], items = [];

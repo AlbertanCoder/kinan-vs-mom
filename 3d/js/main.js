@@ -1,7 +1,8 @@
 // Boot: read the level id from <body data-level="12-1">, load levels/<id>.js, start the game.
 // URL options: ?q=low|high (quality), ?debug=1 (fps readout), ?autostart=1 (skip the title card),
 // ?level=12-N (load another level file), ?kinan=procedural (ignore kinan.glb, use the built-in Kinan),
-// ?id=12-N|12-castle (the World 12 map stop this level belongs to: a clear is saved under it in the game's save).
+// ?id=12-N|12-castle (the 3D map stop this level belongs to: a clear is saved under it in the game's save, in the 3D bonus's own
+// progress, bonus3d, never in levelsBeaten: since 2026-11-12 World 12 on the main trail is the 2D India, whose stops have the same ids).
 // ?devtools=1 (localhost only): opens any World 12 level; the live site opens only the four sneak-peek levels (see W12_PREVIEW below).
 import { Game } from './game.js';
 
@@ -11,12 +12,22 @@ const SAVE_KEY = 'kinan-remaster-v1', BACKUP_KEY = SAVE_KEY + '-backup';
 const validRecord = (p) => !!p && typeof p === 'object' && !Array.isArray(p) && Number.isFinite(Number(p.unlocked)) && Array.isArray(p.beaten);
 function readRecord(key) { try { const v = JSON.parse(localStorage.getItem(key) || 'null'); return validRecord(v) ? v : null; } catch (e) { return null; } }
 function writeRecord(key, v) { try { const raw = JSON.stringify(v); localStorage.setItem(key, raw); return localStorage.getItem(key) === raw; } catch (e) { return false; } }
+// THE 3D BONUS'S OWN PROGRESS (2026-11-12, Season 2 joins the main game): World 12 on the trail is now the 2D India, and its
+// stops 12-4, 12-5, 12-fort and 12-6 have the same ids as these 3D levels. So a 3D clear goes in the save's bonus3d
+// ({ beaten: { '12-4': 1 }, unlocked: ['12-secret'] }), never in levelsBeaten / unlockedLevels (index.html reads it for the
+// 3D bonus map, and moves an older save's 3D clears there once).
+function bonusOf(next) {
+  const b = next.bonus3d && typeof next.bonus3d === 'object' && !Array.isArray(next.bonus3d) ? next.bonus3d : {};
+  b.beaten = b.beaten && typeof b.beaten === 'object' && !Array.isArray(b.beaten) ? b.beaten : {};
+  b.unlocked = Array.isArray(b.unlocked) ? b.unlocked : [];
+  next.bonus3d = b;
+  return b;
+}
 export function saveCleared(stopId, candles) {
   if (!/^12-(\d|fort|secret|castle)$/.test(String(stopId || ''))) return false;
   const current = readRecord(SAVE_KEY), backup = readRecord(BACKUP_KEY);
   const next = current ? JSON.parse(JSON.stringify(current)) : { unlocked: 1, beaten: [] };
-  next.levelsBeaten = next.levelsBeaten && typeof next.levelsBeaten === 'object' && !Array.isArray(next.levelsBeaten) ? next.levelsBeaten : {};
-  next.levelsBeaten[stopId] = 1;
+  bonusOf(next).beaten[stopId] = 1;
   // the candles picked up in the level go to the Party Shop wallet, like a 2D level's clear (index.html owLevelBeaten): the sneak peek's
   // levels save "its clear and its candles" (2026-10-30). The golden candles of the 3D levels (their three stars) are not part of the save.
   const add = Math.max(0, Math.floor(Number(candles) || 0));
@@ -28,13 +39,13 @@ export function saveCleared(stopId, candles) {
   if (previous && !writeRecord(BACKUP_KEY, previous)) return false;
   return writeRecord(SAVE_KEY, next);
 }
-// a hidden painting in 12-7 opens the secret stop on the map: the id goes in the save's unlockedLevels (backup-first, like a clear)
+// a hidden painting in 12-7 opens the secret stop on the 3D map: the id goes in bonus3d.unlocked (backup-first, like a clear)
 export function saveUnlocked(stopId) {
   if (stopId !== '12-secret') return false;
   const current = readRecord(SAVE_KEY), backup = readRecord(BACKUP_KEY);
   const next = current ? JSON.parse(JSON.stringify(current)) : { unlocked: 1, beaten: [] };
-  next.unlockedLevels = Array.isArray(next.unlockedLevels) ? next.unlockedLevels : [];
-  if (next.unlockedLevels.indexOf(stopId) < 0) next.unlockedLevels.push(stopId);
+  const b = bonusOf(next);
+  if (b.unlocked.indexOf(stopId) < 0) b.unlocked.push(stopId);
   const previous = current || backup;
   if (previous && !writeRecord(BACKUP_KEY, previous)) return false;
   return writeRecord(SAVE_KEY, next);
