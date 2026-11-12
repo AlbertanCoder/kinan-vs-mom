@@ -9989,12 +9989,15 @@ function updatePlayer() {
 
   if (P.y > H + 10) {
     P.cleanLandings = 0;
-    const fellAt = P.x;
+    const fellAt = P.x, trench = !!P.s2trench; P.s2trench = false;
     L.falls = (L.falls || 0) + 1;
     if (!L.noHurt && !(P.hp <= 1 && hunterSave())) { P.hp = Math.max(0, P.hp - 1); heartsLost++; SFX.hurt(); flashScreen(); }   /* the Builder's can't-get-hurt switch; Hunter catches a last-heart fall */
     if (P.hp <= 0) { P.dead = 1; P.vy = -5; L.deathX = fellAt; return; }
-    P.x = boss === 'fight' ? (L.arenaX + 2) * T : (cpHit ? spawn.x : lastSafe.x || spawn.x);
-    P.y = boss === 'fight' ? (GROUND - 1) * T : (cpHit ? spawn.y : lastSafe.y || spawn.y);
+    /* a Season 2 trench (glitch, lava, flood): back to the safe ground before it, not to the act's flag (2026-11-11 play-test:
+       the flag stands on the start spot, so a fall at column 49 of 12-1 sent him back to column 2) */
+    const toSafe = trench && lastSafe.x;
+    P.x = boss === 'fight' ? (L.arenaX + 2) * T : (toSafe ? lastSafe.x : cpHit ? spawn.x : lastSafe.x || spawn.x);
+    P.y = boss === 'fight' ? (GROUND - 1) * T : (toSafe ? lastSafe.y : cpHit ? spawn.y : lastSafe.y || spawn.y);
     P.vx = P.vy = 0; P.inv = 100; trail = []; breakCombo();
     camX = clamp(Math.round(P.x - W * 0.42), 0, Math.min(L.w * T - W, (L.arenaX + L.arenaW + 1) * T - W));
     updHud();
@@ -11892,7 +11895,7 @@ function s2BuildWorld(a, base, s2) {
 function s2HazardTick() {
   if (P.dead || P.s2rope || P.s2bar) return;
   for (const Z of L.s2.hazards) if (P.x + P.w > Z.x0 + 2 && P.x < Z.x1 - 2 && P.y + P.h > Z.y0 + 6 && P.y < Z.y1) {
-    sparks(P.x + P.w / 2, Z.y0 + 4, 10, (S2_RISES[Z.look] || S2_RISES.glitch).bits.concat('#fff')); P.y = H + 11; return;   /* the pit rule: a heart, back to safe ground */
+    sparks(P.x + P.w / 2, Z.y0 + 4, 10, (S2_RISES[Z.look] || S2_RISES.glitch).bits.concat('#fff')); P.y = H + 11; P.s2trench = true; return;   /* the pit rule: a heart, back to safe ground */
   }
 }
 function drawS2Hazards() {
