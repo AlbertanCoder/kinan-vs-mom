@@ -11688,6 +11688,7 @@ function s2Tick(left, right, holdJump) {
   /* SWIMMING: a JUMP press is a stroke; he sinks slowly; no air limit */
   const wet = S.water.length ? s2InWater(cx, cy) : null;
   if (wet) {
+    P.s2glide = false;   /* the umbrella folds in the water (2026-11-11 play-test, 15-1: it stayed open on the bottom) */
     if (!P.s2swim) { P.s2swim = true; P.s2climb = null; P.s2ledge = null; P.s2vy = Math.min(P.vy, 2.5) * 0.5; sparks(cx, wet.y0, 10, ['#9fe0ff', '#fff']); s2Sound('splash'); }
     if (P.s2vy == null) P.s2vy = P.vy;
     let v = P.s2vy == null ? P.vy : P.s2vy;
@@ -12968,9 +12969,15 @@ function updateFoes() {
         f.x += (f.vx || -0.75) * 1.6; f.y -= 1.1;
         if (f.y < -30) { f.alive = false; f.dead = 20; continue; }
       } else {
+        const ox = f.x, oy = f.y;
         f.x += f.vx;
       if (Math.abs(f.x - f.originX) > 78) f.vx = -f.vx;
       f.y = f.baseY + Math.sin(f.t / 22) * 13;
+      if (L.s2) {   /* Season 2: a bird, a kite or a fish turns at a wall or a pool's bank instead of flying or swimming into it
+                       (2026-11-11 sweep: fish inside the stone banks of 15 pools, a kite inside 12-5's rock) */
+        const inWall = (x, y) => { for (let ty = Math.floor((y + 2) / T); ty <= Math.floor((y + f.h - 3) / T); ty++) for (let tx = Math.floor((x + 2) / T); tx <= Math.floor((x + f.w - 3) / T); tx++) if (solid(tx, ty)) return true; return false; };
+        if (!inWall(ox, oy)) { if (inWall(f.x, oy)) { f.x = ox; f.vx = -f.vx; } if (inWall(f.x, f.y)) f.y = oy; }
+      }
       if (f.def.drone) droneTick(f);   /* World 9: Annie's scanner and deletion drones */
       if (f.def.drips && f.t % 100 === 0 && Math.abs(P.x - f.x) < 140) shots.push({ x: f.x + 5, y: f.y + 12, w: 3, h: 5, vx: 0, vy: 0.6, g: 0.12, life: 160, kind: 'drop' });   /* a rain cloud drips on you */
       }
@@ -13009,6 +13016,11 @@ function updateFoes() {
         }
       }
       if (f.baseVx == null) f.baseVx = f.vx;
+      if (L.s2 && L.s2.hazards.length && f.vx) {   /* Season 2: a walker (or a charge, or a hop) turns at a trench's edge instead of
+                                                     walking down into the glitch or the lava (2026-11-11 sweep: 32 spots) */
+        const nx = f.x + f.vx, feet = f.y + f.h;
+        if (L.s2.hazards.some((Z) => nx + f.w > Z.x0 && nx < Z.x1 && feet <= Z.y0 + 2 && !(f.x + f.w > Z.x0 && f.x < Z.x1))) { f.vx = -f.vx; f.charge = 0; if (beh === 'charger') f.baseVx = f.vx; }
+      }
       const spd = f.vx;
       const wetF = L.s2 && L.s2.water.length && s2InWater(f.x + f.w / 2, f.y + f.h / 2);
       if (wetF) {   /* Season 2 (Shad: "the frog falls straight down ... it should swim up and down"): in water a foe paddles: it sinks slowly and strokes up now and then (a hopper on its hop beat) */
