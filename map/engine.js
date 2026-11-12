@@ -9,8 +9,10 @@
      every world { done } (its castle is beaten or not built yet). The engine draws those states,
      walks Kinan only where they allow, crosses a world seam only when the world is done, and calls
      opts.onPlay(worldN, stopIndex, stop) for a built, open stop ("Coming soon" for the rest).
-   - World 12 is the 3D map (map/worlds/w12_3d.js, window.KINAN3D), loaded on demand through
-     opts.need3D(); after World 11 its 2D->3D transition plays.
+   - The 3D map (map/worlds/w12_3d.js, window.KINAN3D) is loaded on demand through opts.need3D(). Since 2026-11-12
+     (Season 2 in the main game) it is THE 3D BONUS: the game marks that world bonus (World 12 on the trail is the 2D
+     India), it is sorted after every trail world and never walked into from the trail; a stop of kind 'bonus' (the game
+     adds one past the 11-castle) plays the 2D->3D transition into it on PLAY, and BACK comes out on that stop.
    ============================================================ */
 (function(){
 const cv=document.createElement('canvas');cv.width=1296;cv.height=720;cv.className='km-canvas';cv.tabIndex=0;
@@ -274,7 +276,7 @@ function build(w){
   /* the trail network: every piece of trail is drawn once; side branches hang off it */
   const ptOf=k=>typeof k==='number'?w.stops[k].at:w.J[k];
   /* entryPath / exitPath join this world to its neighbours at the map edge */
-  w.J=w.J||{};const xtra=[];if(w.exitPath){w.J.__OUT=w.exitPath.to;xtra.push([w.stops.length-1,'__OUT',w.exitPath.via||[],w.exitPath]);}if(w.entryPath){w.J.__IN=w.entryPath.from;xtra.push(['__IN',0,w.entryPath.via||[],w.entryPath]);}
+  w.J=w.J||{};const xtra=[];if(w.exitPath){w.J.__OUT=w.exitPath.to;xtra.push([lastStop(w),'__OUT',w.exitPath.via||[],w.exitPath]);}if(w.entryPath){w.J.__IN=w.entryPath.from;xtra.push(['__IN',0,w.entryPath.via||[],w.entryPath]);}
   w.E=(w.edges||w.stops.slice(1).map((st,i)=>[i,i+1,st.via||[],st.road?{road:1}:0])).concat(xtra).map(([a,b,via,o])=>{const raw=[ptOf(a),...(via||[]),ptOf(b)];const geo=(w.sharp||(o&&o.road))?dense(raw,3):dense(chaikin(raw,4),3);return {a,b,geo,len:segLen(geo),road:!!(o&&o.road),style:(o&&o.style)||null};});
   const key=k=>(typeof k==='number'?'s':'j')+k;
   const route=(from,to)=>{const dist={},prev={},done={},nodes=new Set();w.E.forEach(e=>{nodes.add(key(e.a));nodes.add(key(e.b));});dist[key(from)]=0;
@@ -284,7 +286,7 @@ function build(w){
     let pts=[];const used=[];chain.forEach(([u,ei])=>{const e=w.E[ei];const g=key(e.a)===u?e.geo:e.geo.slice().reverse();pts=pts.concat(pts.length?g.slice(1):g);used.push(ei);});return {pts,used};};
   w.route=route;   /* the game walks stop to stop through the network (a locked secret spur is skipped, not walked) */
   w.SEGS=[];w.used=[];for(let i=1;i<w.stops.length;i++){const r=route(i-1,i);w.SEGS.push(r.pts.length>1?r.pts:[w.stops[i-1].at,w.stops[i].at]);w.used.push(r.used);}
-  if(w.exitPath)w.outGeo=route(w.stops.length-1,'__OUT').pts;if(w.entryPath)w.inGeo=route('__IN',0).pts;
+  if(w.exitPath)w.outGeo=route(lastStop(w),'__OUT').pts;if(w.entryPath)w.inGeo=route('__IN',0).pts;
   const base=document.createElement('canvas');base.width=WW;base.height=WH;const g=base.getContext('2d');G=g;
   const img=g.createImageData(WW,WH),D=img.data;const cache={};const hex=h=>cache[h]||(cache[h]=[parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)]);
   const wat=WATER[w.water],cl=CLIFFS[w.cliff];
@@ -352,6 +354,8 @@ function along(p,d){for(let i=1;i<p.length;i++){const l=Math.hypot(p[i][0]-p[i-1
 const NODE={red:['#e8364b','#ff8a9a'],open:['#f6c445','#fff3c4'],lock:['#7d86a8','#c9cfe6'],shop:['#ff6fae','#ffd1e6'],boss:['#e8364b','#ffd1e6'],fort:['#9aa3b2','#dfe5ee'],secret:['#7a2fd0','#e6c8ff']};
 /* the kind a world file gave a stop (its st): level | fort | secret | boss | shop | travel */
 const kindOf=s=>s.kind||(s.st==='open'||s.st==='lock'||s.st==='red'?'level':s.st);
+/* a world's last trail stop (its castle): a bonus stop the game adds after the castle never counts as the end of the trail */
+function lastStop(w){let k=w.stops.length-1;while(k>0&&kindOf(w.stops[k])==='bonus')k--;return k;}
 /* a little traffic cone beside a stop whose level is still being built ("Coming soon") */
 function cone(X,Y){px('#1b1220',X-4,Y,9,2);px('#1b1220',X-3,Y-8,7,8);px('#ff8a3d',X-2,Y-7,5,7);px('#ffffff',X-2,Y-4,5,1);px('#ff8a3d',X-3,Y-1,7,1);px('#ffd9b0',X-1,Y-7,1,2);}
 /* a stop drawn by its state: locked = faded, open = yellow with a pulse ring, beaten = red; forts and castles fly a
@@ -360,6 +364,10 @@ function node(s,t){const k=kindOf(s);if(k==='travel')return;const[X,Y]=s.at;cons
   const lock=st==='locked',done=st==='beaten',flag=lock?'#7d86a8':done?'#e8364b':'#f6c445';
   G.save();if(lock)G.globalAlpha=k==='secret'?0.35:0.6;
   if(k==='fort'){G.fillStyle='rgba(0,0,0,.35)';G.beginPath();G.ellipse(X,Y+6,10,3,0,0,Math.PI*2);G.fill();box('#9aa3b2',X-7,Y-9,14,14);px('#dfe5ee',X-7,Y-9,14,2);[-7,-2,3].forEach(o=>box('#9aa3b2',X+o,Y-13,4,4));box('#2b2f45',X-2,Y-1,4,6);px('#1b1220',X+6,Y-22,1,10);px('#1b1220',X+6,Y-23,8,6);px(flag,X+7,Y-22,6,4);}
+  else if(k==='bonus'){   /* the 3D bonus: a little toy block drawn in 3D, gold when open */
+    G.fillStyle='rgba(0,0,0,.35)';G.beginPath();G.ellipse(X+1,Y+6,10,3,0,0,Math.PI*2);G.fill();
+    px('#1b1220',X-7,Y-10,16,16);px(lock?'#9aa3b2':'#f6c445',X-6,Y-5,10,10);px(lock?'#c9cfe6':'#fff3c4',X-6,Y-9,14,4);px(lock?'#6b7390':'#c9922f',X+4,Y-9,4,14);
+    px('#e8364b',X-3,Y-2,4,4);px('#ffffff',X-6,Y-5,10,1);}
   else if(k==='secret'){const R=8,r2=3.5;G.fillStyle='rgba(0,0,0,.35)';G.beginPath();G.ellipse(X,Y+6,8,3,0,0,Math.PI*2);G.fill();G.beginPath();for(let i=0;i<10;i++){const a=-Math.PI/2+i*Math.PI/5,rr=i%2?r2:R;G.lineTo(X+Math.cos(a)*rr,Y+Math.sin(a)*rr);}G.closePath();G.fillStyle='#1b1220';G.lineWidth=3;G.strokeStyle='#1b1220';G.stroke();G.fillStyle=lock?'#7d86a8':done?'#e8364b':Math.sin(t/250)>0?'#f6c445':'#ffe58a';G.fill();}
   else{const[c,hl]=NODE[k==='boss'?'boss':k==='shop'?'shop':lock?'lock':done?'red':'open'];const r=k==='boss'?8:6;
     G.fillStyle='rgba(0,0,0,.35)';G.beginPath();G.ellipse(X,Y+5,r+2,3,0,0,Math.PI*2);G.fill();
@@ -369,6 +377,7 @@ function node(s,t){const k=kindOf(s);if(k==='travel')return;const[X,Y]=s.at;cons
   G.restore();
   if(st==='open'&&s.built!==false&&k!=='shop'){const q=(t/80)%10;G.strokeStyle='rgba(246,196,69,'+(1-q/10)+')';G.lineWidth=1;G.beginPath();G.ellipse(X,Y,8+q,(8+q)*0.7,0,0,Math.PI*2);G.stroke();}
   if(s.built===false&&!lock&&k!=='shop')cone(X+9,Y+4);}
+let bonusFrom=null;   /* the 3D bonus: the world (index) and stop it was entered from, where BACK comes out */
 let wi=0,at=0,walk=null,face=1,camX=0,camY=0,banner=null,fade=0,cross=null,notice=null,busy=false,mounted=false,raf=0,root=null,scr=null,ro=null,opts={},celebrate=null,speed=1;
 const cur=()=>W[wi];
 const idxOf=n=>W.findIndex(v=>v.n===n);
@@ -380,26 +389,34 @@ function refresh(){W.forEach(w=>w.stops.forEach(s=>{s.kind=kindOf(s);}));if(opts
 /* a secret spur that is still locked (or has no level yet) is walked past, never onto */
 const skip=s=>s.kind==='secret'&&(s.state==='locked'||s.built===false);
 const worldDone=w=>!!(w.travel||w.done);
-function arrived(){const w=cur();if(!w.travel&&opts.onMove)opts.onMove(w.n,at);}
+function arrived(){const w=cur();if(w.travel||!opts.onMove)return;if(w.bonus&&bonusFrom){opts.onMove(W[bonusFrom.wi].n,bonusFrom.at,at);return;}opts.onMove(w.n,at);}   /* in the 3D bonus: its stop is saved with the bonus stop it hangs off */
 function hint(txt){notice={t:0,txt,dur:1600};}
-const label=s=>s.kind==='fort'?'THE FORT':s.kind==='boss'?'THE CASTLE':s.kind==='secret'?'THE SECRET LEVEL':s.name.split('  ')[0];
+const label=s=>s.kind==='bonus'?'THE BONUS':s.kind==='fort'?'THE FORT':s.kind==='boss'?'THE CASTLE':s.kind==='secret'?'THE SECRET LEVEL':s.name.split('  ')[0];
 /* ---- World 12: the 3D map, loaded on demand ---- */
 function need3D(){return window.KINAN3D?Promise.resolve():(opts.need3D?opts.need3D():Promise.reject(new Error('no 3D loader')));}
 function k3opts(w12,stop){return {at:stop||0,
   peek:!!w12.peek,   /* the sneak peek (2026-10-30): the 3D map carries a sign saying so, and a "coming soon" stop says more is coming */
-  back:()=>goWorld(idxOf(11),'last'),
+  back:()=>{if(w12.bonus&&bonusFrom)goWorld(bonusFrom.wi,bonusFrom.at);else goWorld(idxOf(11),'last');},   /* the bonus: out on the stop it was entered from */
   candles:()=>opts.candles?opts.candles():0,
   skip:k=>!!(w12.stops[k]&&skip(w12.stops[k])),
   canWalk:k=>!!(w12.stops[k]&&w12.stops[k].state!=='locked'),
-  onMove:k=>{if(opts.onMove)opts.onMove(12,k);},
+  onMove:k=>{if(!opts.onMove)return;if(w12.bonus&&bonusFrom)opts.onMove(W[bonusFrom.wi].n,bonusFrom.at,k);else opts.onMove(12,k);},
   onPlay:k=>{const s=w12.stops[k];if(!s)return null;
     if(s.state==='locked')return {banner:'LOCKED  -  BEAT THE YELLOW DOT FIRST',ok:false};
     if(s.built===false)return {banner:'COMING SOON!',sub:w12.peek?'This one is not in the sneak peek. Much more is coming!':'This level is still being built. Walk on past it!',ok:false};
     return {banner:"LET'S GO!  "+s.name.split('  -  ')[0],ok:true,go:()=>{if(opts.onPlay)opts.onPlay(12,k,s);}};},
   stops:()=>w12.stops.map(s=>({kind:s.kind,state:s.state,built:s.built!==false}))};}
-/* World 12 is the 3D Saskatoon map, except in the Season 2 test (a world marked flat: the new 2D India) */
+/* the 3D Saskatoon map (World 12's 3D file; the 2D India World 12 is marked flat) */
 const is3D=(w)=>!!w&&w.n===12&&!w.flat;
-function goWorld(i,stop){wi=i;ensure(cur());const w=cur();at=stop==='last'?w.stops.length-1:Math.max(0,Math.min(w.stops.length-1,stop||0));walk=null;cross=null;snapCam();fade=1;
+/* THE 3D BONUS (2026-11-12): the world the game marks bonus, the stop of kind 'bonus' it hangs off, and the way in (the 2D->3D
+   transition from that stop, the same one World 11 used to walk into) */
+const bonusIdx=()=>W.findIndex(v=>v.bonus);
+function bonusHost(){for(let i=0;i<W.length;i++){if(W[i].bonus||W[i].travel)continue;const k=W[i].stops.findIndex(s=>kindOf(s)==='bonus');if(k>=0)return {wi:i,at:k};}return null;}
+function enterBonus(){const j=bonusIdx(),from={wi,at};if(j<0||!mounted)return;busy=true;
+  need3D().then(()=>{busy=false;if(!mounted||wi!==from.wi||at!==from.at)return;const wb=W[j];ensure(wb);bonusFrom=from;
+    KINAN3D.transitionFrom2D(cv,wb,Object.assign(k3opts(wb,0),{done:()=>{wi=j;at=0;arrived();}}));})
+    .catch(e=>{busy=false;console.warn('[map] the 3D world could not load',e);hint('THE 3D WORLD COULD NOT LOAD');});}
+function goWorld(i,stop){wi=i;ensure(cur());const w=cur();at=stop==='last'?lastStop(w):Math.max(0,Math.min(w.stops.length-1,stop||0));walk=null;cross=null;snapCam();fade=1;
   const k3=window.KINAN3D;
   if(is3D(w)){
     if(!k3){busy=true;need3D().then(()=>{busy=false;if(mounted&&cur()===w)goWorld(i,stop);}).catch(e=>{busy=false;console.warn('[map] the 3D world could not load',e);hint('THE 3D WORLD COULD NOT LOAD');});return;}
@@ -410,14 +427,14 @@ function goWorld(i,stop){wi=i;ensure(cur());const w=cur();at=stop==='last'?w.sto
    stays behind a "COMING SOON" sign at this world's way out, Glitchy waving beside it (Shad, 2026-10-28) */
 /* World 12's sneak peek (2026-10-30, the game marks it peek in opts.annotate): its sign past the 11-castle says SNEAK PEEK!
    instead of COMING SOON!, and Kinan may walk on past it into World 12's 3D map */
-function gateAhead(){const w=cur();if(!w||w.travel)return null;for(let j=wi+1;j<W.length;j++){if(W[j].travel)continue;return W[j].soon||W[j].peek?W[j]:null;}return null;}
+function gateAhead(){const w=cur();if(!w||w.travel||w.bonus)return null;for(let j=wi+1;j<W.length;j++){if(W[j].travel||W[j].bonus)continue;return W[j].soon||W[j].peek?W[j]:null;}return null;}
 function drawGate(w,t,wave){if(w.travel||w!==cur())return;
   /* a world can name its sign's spot (w.gate = [x, y]): World 10 has no road out (it glitches into World 11) and its castle
      stands in the party scene, so its sign stands on the grass by the bridge; otherwise the sign goes on the road out, a
      few steps from the castle (or between the castle and the exit point), where Kinan sees it */
   const g=gateAhead();if(!g)return;let X,Y;
   if(w.gate){X=w.gate[0];Y=w.gate[1];}
-  else{const o=w.outGeo||(w.exit?[w.stops[w.stops.length-1].at,w.exit]:null);if(!o||o.length<2)return;
+  else{const o=w.outGeo||(w.exit?[w.stops[lastStop(w)].at,w.exit]:null);if(!o||o.length<2)return;
     const L=segLen(o),p=along(o,Math.max(0,Math.min(L-30,64)));X=Math.round(Math.max(40,Math.min(w.WW-40,p[0])));Y=Math.round(Math.max(36,Math.min(w.WH-8,p[1])));}
   shadow(X,Y+2,22,4);for(const dx of[-16,10]){px('#1b1220',dx+X,Y-9,7,9);px('#ff8a3d',dx+X+1,Y-8,5,8);px('#ffffff',dx+X+1,Y-5,5,1);}
   px('#1b1220',X-20,Y-10,40,4);for(let k=0;k<5;k++)px(k%2?'#ffffff':'#e8364b',X-19+k*8,Y-9,8,2);
@@ -460,6 +477,7 @@ function play(){if(!mounted||busy)return;if(window.KINAN3D&&KINAN3D.active){KINA
   const w=cur(),s=w.stops[at];if(!s||s.kind==='travel')return;
   if(s.state==='locked'){banner={t:0,txt:'LOCKED  -  BEAT THE YELLOW DOT FIRST',ok:false,dur:1400};return;}
   if(s.built===false){banner={t:0,txt:'COMING SOON!',sub:'This level is still being built. Walk on past it!',ok:false,soon:true,dur:2200};return;}
+  if(s.kind==='bonus'){banner={t:0,txt:"LET'S GO!  "+s.name.split('  -  ')[0],ok:true,dur:800,then:()=>{if(mounted)enterBonus();}};return;}   /* the 3D bonus: in through the 2D->3D transition */
   const i=at;banner={t:0,txt:"LET'S GO!  "+s.name.split('  -  ')[0],ok:true,dur:800,then:()=>{if(mounted&&opts.onPlay)opts.onPlay(w.n,i,s);}};}
 /* ---- CUTSCENES (index.html block "CUTSCENES"): Glitchy runs across the map and the camera follows him ----
    fly(kind,o) plays one; the map is busy (no walking, no PLAY) until it ends, then Kinan stands where he was.
@@ -484,7 +502,7 @@ function crossLeg(i){const A=W[i],B=W[i+1];ensure(B);const ex=A.exitPath.to,en=B
   return legOf(i,A.outGeo.concat(B.inGeo.map(([a,b])=>[a+off[0],b+off[1]])),null,{other:{wi:i+1,off},road:true});}
 function flyLegs(kind,hi,at){const w=W[hi];ensure(w);const legs=[];
   if(kind==='intro'){
-    const last=w.stops.length-1,tr=flyStops(w,at,last);legs.push(legOf(hi,tr.pts,tr.marks,{ev:'start'}));
+    const last=lastStop(w),tr=flyStops(w,at,last);legs.push(legOf(hi,tr.pts,tr.marks,{ev:'start'}));
     if(w.outGeo&&w.outGeo.length>1){const o=w.outGeo,a=o[o.length-2],b=o[o.length-1],d=Math.hypot(b[0]-a[0],b[1]-a[1])||1;
       legs.push(legOf(hi,o.concat([[b[0]+(b[0]-a[0])/d*90,b[1]+(b[1]-a[1])/d*90]]),null,{ev:'castle'}));}
     return legs;}
@@ -494,12 +512,12 @@ function flyLegs(kind,hi,at){const w=W[hi];ensure(w);const legs=[];
     if(canCross(1,i)){legs.push(crossLeg(i));i++;
       if(B.travel){const tr=flyStops(B,0,B.stops.length-1);legs.push(legOf(i,tr.pts,tr.marks,{road:true}));continue;}break;}
     /* no road over this seam (World 10 glitches into 11): run off the edge, then a quick cut */
-    const A=W[i],p0=A.stops[A.stops.length-1].at,out=A.outGeo&&A.outGeo.length>1?A.outGeo:[p0,[A.WW+40,p0[1]]];
+    const A=W[i],p0=A.stops[lastStop(A)].at,out=A.outGeo&&A.outGeo.length>1?A.outGeo:[p0,[A.WW+40,p0[1]]];
     legs.push(legOf(i,out,null,{ev:g===0?'start':null,cut:true}));i++;break;}
   const B=W[i];if(!B||B.travel||is3D(B))return null;
-  const reg=[];B.stops.forEach((s,k)=>{if(kindOf(s)!=='secret'&&kindOf(s)!=='travel')reg.push(k);});
+  const reg=[];B.stops.forEach((s,k)=>{if(kindOf(s)!=='secret'&&kindOf(s)!=='travel'&&kindOf(s)!=='bonus')reg.push(k);});
   const k3=reg[Math.min(3,reg.length-2)]||0,tr=flyStops(B,0,k3);legs.push(legOf(i,tr.pts,tr.marks,{ev:'seam'}));
-  const cas=B.stops[B.stops.length-1].at,p=B.stops[k3].at;legs.push(legOf(i,[p,cas],null,{fade:true}));
+  const cas=B.stops[lastStop(B)].at,p=B.stops[k3].at;legs.push(legOf(i,[p,cas],null,{fade:true}));
   return legs;}
 function fly1(kind,o){if(!mounted||fly||walk||cross||(window.KINAN3D&&KINAN3D.active))return false;o=o||{};
   const legs=flyLegs(kind,wi,at);if(!legs||!legs.length)return false;
@@ -583,7 +601,7 @@ function css(){if(document.getElementById('km-style'))return;const s=document.cr
 /* the picture keeps its 432:240 shape and is as big as the space allows */
 function fit(){if(!scr||!root)return;const box=scr.parentNode;const bw=box.clientWidth,bh=box.clientHeight;if(!bw||!bh)return;
   let w=bw,h=w*240/432;if(h>bh){h=bh;w=h*432/240;}scr.style.width=Math.floor(w)+'px';scr.style.height=Math.floor(h)+'px';}
-function mount(host,o){unmount();opts=o||{};W.sort((a,b)=>a.n-b.n);css();
+function mount(host,o){unmount();opts=o||{};W.sort((a,b)=>(a.bonus?1:0)-(b.bonus?1:0)||a.n-b.n);css();   /* the 3D bonus after every trail world */
   root=document.createElement('div');root.className='km-root';
   root.innerHTML='<div class="km-side km-l"><button type="button" class="km-btn" id="owPrev" aria-label="Walk back to the last stop">◀</button><button type="button" class="km-btn" id="owNext" aria-label="Walk on to the next stop">▶</button></div>'+
     '<div class="km-stage"><div class="km-screen"></div></div>'+
@@ -593,7 +611,11 @@ function mount(host,o){unmount();opts=o||{};W.sort((a,b)=>a.n-b.n);css();
   if(window.ResizeObserver){ro=new ResizeObserver(fit);ro.observe(scr.parentNode);}fit();
   mounted=true;busy=false;banner=null;notice=null;cross=null;walk=null;celebrate=null;refresh();
   let i=idxOf(opts.world||1);if(i<0||W[i].travel)i=0;
-  goWorld(i,opts.at||0);fade=0;
+  /* opts.bonus: Kinan was in the 3D bonus (stop opts.bonus), entered from the bonus stop at opts.world / opts.at */
+  const bi=bonusIdx(),hs=W[i].stops[opts.at||0];bonusFrom=null;
+  if(opts.bonus!=null&&bi>=0&&hs&&kindOf(hs)==='bonus'){bonusFrom={wi:i,at:opts.at||0};goWorld(bi,opts.bonus);}
+  else goWorld(i,opts.at||0);
+  fade=0;
   if(opts.celebrate!=null&&W[i].stops[opts.celebrate])celebrate={k:opts.celebrate,t:0};
   if(opts.notice)notice={t:0,txt:opts.notice,dur:2600};
   last=0;raf=requestAnimationFrame(frame);
@@ -647,7 +669,7 @@ function hud(){G=x;const hw=(cross&&cross.d>cross.len/2)?W[cross.other]:cur();co
   for(let k=0;k<b.stripes;k++)px('#ffffff',ix+11+k*2,iy+2,1,3);
   px('#1b1220',ix+5,iy,6,7);px(b.dark,ix+6,iy+1,4,5);px('#1b1220',ix+4,iy+6,4,5);px('#1b1220',ix+8,iy+6,4,5);px(b.color,ix+5,iy+6,2,4);px(R,ix+9,iy+6,2,4);
   txt(bs,ix+24,by+5,'#eef0ff',8,0);}
-function glitchLevel(){const w=cur();const n=Math.max(1,w.stops.length-1);let v=at;if(walk)v=walk.from+(walk.to-walk.from)*Math.min(1,walk.d/Math.max(1,walk.len));return Math.max(0,Math.min(1,v/n));}
+function glitchLevel(){const w=cur();const n=Math.max(1,lastStop(w));let v=at;if(walk)v=walk.from+(walk.to-walk.from)*Math.min(1,walk.d/Math.max(1,walk.len));return Math.max(0,Math.min(1,v/n));}
 /* lvl 0..1: World 11 starts with light scanlines and ends torn, flickering and colour-split */
 function glitchFx(t,strong,lvl){lvl=lvl||0;const a=0.08+0.1*lvl;for(let y=0;y<VH;y+=3){x.fillStyle='rgba(0,0,0,'+a+')';x.fillRect(0,y,VW,1);}
   const p=strong?500:Math.round(1900-1500*lvl);
@@ -674,7 +696,7 @@ function draw(t){const dt0=t-(last||t),dt=Math.min(50,dt0);last=t;let w=cur();
   if(window.KINAN3D&&KINAN3D.active&&is3D(w))return;   /* the 3D map draws itself */
   x.setTransform(SC,0,0,SC,0,0);x.imageSmoothingEnabled=false;
   if(fly){drawFly(t,dt0);return;}   /* a cutscene: Glitchy runs and the camera follows him */
-  if(cross){cross.d+=dt*(cross.ride?0.16:0.09)*speed;if(cross.d>=cross.len){const o=W[cross.other],cd=cross.dir;camX-=cross.off[0];camY-=cross.off[1];wi=cross.other;at=cd>0?0:o.stops.length-1;cross=null;w=cur();if(o.travel)go(cd);else arrived();}}
+  if(cross){cross.d+=dt*(cross.ride?0.16:0.09)*speed;if(cross.d>=cross.len){const o=W[cross.other],cd=cross.dir;camX-=cross.off[0];camY-=cross.off[1];wi=cross.other;at=cd>0?0:lastStop(o);cross=null;w=cur();if(o.travel)go(cd);else arrived();}}
   if(walk){walk.d+=dt*(w.travel?0.2:0.09)*speed;if(walk.d>=walk.len){const wd=walk.dir;at=walk.to;walk=null;
     /* road trips carry straight on into the next world */
     if(w.travel){if(wd>0&&at===w.stops.length-1&&canCross(1))startCross(1);else if(wd<0&&at===0&&canCross(-1))startCross(-1);}
@@ -718,7 +740,7 @@ const api={
   mount,unmount,go,play,refresh:()=>{if(mounted)refresh();},
   /* what the map shows right now (the game's tests read this) */
   state:()=>{const w=cur(),k3=window.KINAN3D,k3on=!!(k3&&k3.active),ks=k3on&&k3.state?k3.state():null;
-    return {mounted,busy,world:w?w.n:null,at:k3on&&ks?ks.at:at,walking:!!walk||!!(ks&&ks.walking),crossing:!!cross,three:k3on,threeReady:!!(ks&&ks.ready),
+    return {mounted,busy,world:w?w.n:null,bonus:!!(w&&w.bonus),at:k3on&&ks?ks.at:at,walking:!!walk||!!(ks&&ks.walking),crossing:!!cross,three:k3on,threeReady:!!(ks&&ks.ready),
       banner:banner?banner.txt:(ks&&ks.banner?'3D':null),notice:notice?notice.txt:null,celebrate:celebrate?celebrate.k:null,
       gate:(()=>{const g=mounted&&!fly?gateAhead():null;return g?g.n:null;})(),
       gatePeek:(()=>{const g=mounted&&!fly?gateAhead():null;return !!(g&&g.peek);})(),   /* the sign is World 12's SNEAK PEEK (the way on is open) */
@@ -726,12 +748,13 @@ const api={
         riding:!!(fly.o.ride&&fly.legs[fly.li].road&&fly.phase!=='appear')?fly.o.ride:null}:null,   /* World 6: Glitchy on the tour bus */
       stops:w?w.stops.map(s=>({name:s.name,kind:s.kind,id:s.id||null,built:s.built!==false,state:s.state||null})):[]};},
   /* developer tools: drop Kinan on a world's stop */
-  warp:(n,k)=>{const i=idxOf(n);if(i<0||!mounted)return null;goWorld(i,k||0);return api.state();},
+  warp:(n,k)=>{if(n==='bonus'){const j=bonusIdx(),h=bonusHost();if(j<0||!h||!mounted)return null;bonusFrom=h;goWorld(j,k||0);return api.state();}   /* 'bonus': into the 3D bonus, as if from its stop */
+    const i=idxOf(n);if(i<0||!mounted)return null;goWorld(i,k||0);return api.state();},
   speed:(v)=>{speed=Math.max(0.25,Math.min(12,Number(v)||1));return speed;},
   /* cutscenes (see CUTSCENES above): fly('intro'|'escape', {onEvent, onDone}) -> started?; flySkip() ends one now */
   fly:(kind,o)=>fly1(kind,o),flySkip:()=>{if(!fly)return false;flyEnd(true);return true;},
   notice:(txt,dur)=>{if(mounted&&txt)notice={t:0,txt:String(txt),dur:dur||2600};},   /* tests: long road trips at a multiple of the walking speed */
-  worlds:()=>W.slice().sort((a,b)=>a.n-b.n).map(w=>({n:w.n,travel:!!w.travel,hud:w.hud,stops:w.stops.map(s=>({name:s.name,st:s.st,kind:kindOf(s)}))}))
+  worlds:()=>W.slice().sort((a,b)=>(a.bonus?1:0)-(b.bonus?1:0)||a.n-b.n).map(w=>({n:w.n,travel:!!w.travel,bonus:!!w.bonus,hud:w.hud,stops:w.stops.map(s=>({name:s.name,st:s.st,kind:kindOf(s)}))}))
 };
 /* world files register with KINAN.W.push({...}) and use the drawing helpers below */
 window.KINAN=Object.assign(api,{textW:bfWidth,W,P,A,GROUND,RIM,LINE,CLIFFS,WATER,px,box,shadow,spr,txt,hash,poly,polyDist,homes,mapleLeaf,g:()=>G,start:()=>{},goWorld,cur:()=>cur(),KINAN_SPRITE:KINAN,LEGS,PAL});

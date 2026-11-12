@@ -1155,12 +1155,11 @@ function feel() { return (L && L.newWorld) ? FEEL : LEGACY_FEEL; }
    link himself; nothing in the game points to it. Its save starts with Worlds 1-8 done (guestSeed), its first PLAY
    plays the World 9 opening (cutGuestIntro), and after the 9-castle the map offers the whole game from World 1 */
 const GUEST = (() => { try { const q = new URLSearchParams(location.search); return q.get('guest') === 'annie' && q.get('world') === '9' ? 'annie' : null; } catch (e) { return null; } })();
-/* SEASON 2 TEST (2026-11-10, docs/STORY-BIBLE.md, docs/WORLDS-12-15-PLAN.md): ?season2=1 turns on Worlds 12-15 for this tab
-   (?season2=0 turns it off): the 2D India, Japan, Mexico and France maps in place of the 3D Saskatoon sneak peek, the new
-   end of World 11 (home, the birthday party, Shad's globe), planes between the countries. It plays on its OWN save (Worlds
-   1-11 already beaten, standing at World 12), so the real game and its save never change until Shad says so. */
-const S2 = (() => { try { const q = new URLSearchParams(location.search); if (q.get('season2') === '1') sessionStorage.setItem('kv-s2', '1'); else if (q.get('season2') === '0') sessionStorage.removeItem('kv-s2'); return sessionStorage.getItem('kv-s2') === '1'; } catch (e) { return false; } })();
-const SAVE_KEY = GUEST ? 'kinan-remaster-annie-v1' : S2 ? 'kinan-season2-test-v1' : 'kinan-remaster-v1';
+/* SEASON 2 IS PART OF THE MAIN GAME (Shad, 2026-11-12, launch answer 34; docs/SEASON-2-PLAN.md "Into the main game"): Worlds
+   12-15 (India, Japan, Mexico, France) come after World 11 for everyone. The old test link ?season2=1 (its own save, a SEASON 2
+   TEST badge) is retired: an old shared link opens the normal game on this device's own save, and ?season2 does nothing. */
+try { sessionStorage.removeItem('kv-s2'); } catch (e) { /* no session storage: nothing to forget */ }
+const SAVE_KEY = GUEST ? 'kinan-remaster-annie-v1' : 'kinan-remaster-v1';
 const SAVE_BACKUP_KEY = SAVE_KEY + '-backup';
 
 /* Last-known-good saves: accept older sparse v1 records, but reject broken
@@ -3404,12 +3403,31 @@ function levelReturn() {
      progress.wmap { w, at }                where Kinan stands (world, stop)
    A stop without a level file yet is "Coming soon": it never blocks the
    trail. A world's seam opens once its castle is beaten (or not built).
-   World 12 is the 3D map (map/worlds/w12_3d.js); its stops open the 3D
-   levels in 3d/, which save their clear and come back here.
+   Worlds 12-15 are Season 2's 2D maps (India, Japan, Mexico, France: a
+   plane flies the family on from each world's airport). THE 3D BONUS:
+   the 3D Saskatoon map (map/worlds/w12.js + w12_3d.js) is off the
+   trail; a bonus stop past the 11-castle opens it, its stops open the
+   3D levels in 3d/, which save their clear in progress.bonus3d and
+   come back here.
    ============================================================ */
-const OW_FILES = ['map/engine.js', 'map/worlds/w01.js', 'map/worlds/w02.js', 'map/worlds/w03.js', 'map/worlds/w04.js', 'map/worlds/w05.js', 'map/worlds/w06.js', 'map/worlds/w06t.js', 'map/worlds/w07.js', 'map/worlds/w08.js', 'map/worlds/w09.js', 'map/worlds/w09t.js', 'map/worlds/w10.js', 'map/worlds/w11.js', 'map/worlds/w12.js'];
-if (S2) OW_FILES.splice(OW_FILES.indexOf('map/worlds/w12.js'), 1, 'map/worlds/w12i.js', 'map/worlds/w13.js', 'map/worlds/w14.js', 'map/worlds/w15.js');   /* Season 2 test: the new 2D worlds */
+const OW_FILES = ['map/engine.js', 'map/worlds/w01.js', 'map/worlds/w02.js', 'map/worlds/w03.js', 'map/worlds/w04.js', 'map/worlds/w05.js', 'map/worlds/w06.js', 'map/worlds/w06t.js', 'map/worlds/w07.js', 'map/worlds/w08.js', 'map/worlds/w09.js', 'map/worlds/w09t.js', 'map/worlds/w10.js', 'map/worlds/w11.js', 'map/worlds/w12i.js', 'map/worlds/w13.js', 'map/worlds/w14.js', 'map/worlds/w15.js', 'map/worlds/w12.js'];   /* w12.js last: the 3D bonus (owBonusSetup) */
 const S2_FLY = { 11: 'INDIA', 12: 'JAPAN', 13: 'MEXICO', 14: 'FRANCE' };   /* Season 2: each world's airport flies the family to the next country */
+/* THE 3D BONUS (Shad, 2026-11-11, docs/SEASON-2-PLAN.md "Into the main game"): the live 3D World 12 sneak peek stays as a bonus,
+   off the main trail. Its map (w12.js, the world that is not flat) is marked bonus, and a bonus stop is added past the 11-castle
+   (World 11's file keeps its 11 stops): it opens once the 11-castle is beaten, and PLAY there plays the 2D->3D transition into
+   3D Saskatoon (map/engine.js "THE 3D BONUS"). Walking on from it flies the family to India as before. */
+const OW_BONUS = { w: 11, at: [690, 400], via: [[650, 430]], name: 'BONUS  3D SASKATOON' };
+let owBonusDone = false;
+function owBonusSetup() {
+  const K = window.KINAN;
+  if (owBonusDone || !K || !K.W) return;
+  owBonusDone = true;
+  K.W.forEach((w) => { if (w.n === 12 && !w.flat && !w.travel) w.bonus = true; });
+  const host = K.W.find((w) => w.n === OW_BONUS.w && !w.travel);
+  if (!host || host.stops.some((s) => s.st === 'bonus')) return;
+  host.stops.push({ at: OW_BONUS.at.slice(), name: OW_BONUS.name, st: 'bonus' });
+  if (host.edges) host.edges.push([host.stops.length - 2, host.stops.length - 1, OW_BONUS.via.map((p) => p.slice())]);
+}
 const OW_3D_FILES = ['map/worlds/w12_models.js', 'map/worlds/w12_3d.js'];
 /* World 12 stop id → 3D level file (3d/levels/<file>.js). The castle stop is THE BESSBOROUGH BIRTHDAY FESTIVAL and the finale (rough draft 2026-10-30). */
 const OW_3D_LEVELS = { '12-1': '12-1', '12-2': '12-2', '12-3': '12-3', '12-4': '12-4', '12-5': '12-5', '12-fort': '12-fort', '12-6': '12-6', '12-7': '12-7', '12-secret': '12-secret', '12-8': '12-8', '12-castle': '12-castle' };
@@ -3420,23 +3438,24 @@ let owEngineP = null, ow3DP = null, owToken = 0, owOn = false, owDefs = null;
    Montreal, complete 2026-10-29: its 11 levels, the hunter drone and Annie's Firewall, Annie joins the team; World 10,
    Niagara Falls, complete 2026-10-29: its 11 levels, the Grandmothers' Picnic and Mom's Last Inspection, Mom joins the
    team, THE TURN; World 11, Inside the Console, complete 2026-10-30: its 11 levels, the realm guardians, the Core
-   Guardian, Glitchy's Last Stand and the ending). A world after OW_RELEASED stays on the map behind a friendly "WORLD 12 COMING SOON!" sign with
+   Guardian, Glitchy's Last Stand and the ending; Worlds 12-15, Season 2, joined the main game 2026-11-12: India, Japan, Mexico and France,
+   44 levels, the new end of World 11 and the Season 2 finale). A world after OW_RELEASED stays on the map behind a friendly "WORLD N COMING SOON!" sign with
    Glitchy waving, and Kinan never walks past it, whether or not some of its level files exist yet (raise this number
    when the next world is complete). Developer tests reach the later worlds' map with __k11.owRelease(n) (?devtools=1
    on localhost only, kept for the tab's session). */
-const OW_RELEASED = 11;
-/* THE WORLD 12 SNEAK PEEK (Shad, 2026-10-30): World 12 itself is not released (OW_RELEASED stays 11: the title's world count and the
-   "Kinan vs. Worlds" name follow it), but exactly these four stops are playable on the live site. After the 11-castle Kinan walks on
-   into World 12's 3D map; these four are open from the start, in any order, and every other World 12 stop (12-1, 12-2, 12-3, 12-7, the
-   secret, 12-8, the Bessborough castle) is "COMING SOON!" and never launches its level. Keep this list the same as W12_PREVIEW in
-   3d/js/main.js (the 3D page refuses any other World 12 level without ?devtools=1; app/tests/e2e/w12-preview.spec.ts checks they match).
-   The memory gallery, the finale and THE END stay hidden until World 12 is released for real (owReleased 12). */
+const OW_RELEASED = 15;
+/* THE WORLD 12 SNEAK PEEK (Shad, 2026-10-30), now THE 3D BONUS (2026-11-12): exactly these four 3D stops are playable on the live
+   site, open from the start in any order; every other 3D stop (12-1, 12-2, 12-3, 12-7, the secret, 12-8, the Bessborough castle) is
+   "COMING SOON!" and never launches its level. Keep this list the same as W12_PREVIEW in 3d/js/main.js (the 3D page refuses any other
+   World 12 level without ?devtools=1; app/tests/e2e/w12-preview.spec.ts checks they match). The memory gallery, the 3D finale and
+   THE END stay hidden; developer mode opens all of 3D Saskatoon with __k11.bonus3dFull(true) (this tab's session). */
 const W12_PREVIEW = ['12-4', '12-5', '12-fort', '12-6'];
 let owReleased = OW_RELEASED;
 try { if (window.__k11DevOnly && window.__k11DevOnly()) { const v = Number(sessionStorage.getItem('kv-ow-release')); if (v >= 1 && v <= 15) owReleased = v; } } catch (e) { /* no session storage: the build's number */ }
-if (S2) owReleased = 15;   /* the Season 2 test: all four new worlds are open */
-/* the sneak peek is on while World 11 is released and World 12 is not (a test's owRelease(12) opens all of World 12 instead) */
-const owPeek12 = () => !S2 && owReleased >= 11 && owReleased < 12;
+let owBonusFull = false;   /* developer view only: every 3D stop built, walked in order (as if 3D World 12 were released) */
+try { if (window.__k11DevOnly && window.__k11DevOnly()) owBonusFull = sessionStorage.getItem('kv-3d-full') === '1'; } catch (e) { /* the build's own: the four */ }
+/* the 3D bonus is the sneak peek (its four stops, the SNEAK PEEK sign) unless a developer opened all of it */
+const owPeek12 = () => !owBonusFull;
 function owScripts(list) {
   return Promise.all(list.map((src) => new Promise((resolve, reject) => {
     const s = document.createElement('script');
@@ -3446,7 +3465,7 @@ function owScripts(list) {
   })));
 }
 function owNeedEngine() {
-  if (!owEngineP) owEngineP = (window.KINAN && window.KINAN.mount ? Promise.resolve() : owScripts(OW_FILES)).catch((e) => { owEngineP = null; throw e; });
+  if (!owEngineP) owEngineP = (window.KINAN && window.KINAN.mount ? Promise.resolve() : owScripts(OW_FILES)).then(owBonusSetup).catch((e) => { owEngineP = null; throw e; });
   return owEngineP;
 }
 function owNeed3D() {
@@ -3468,30 +3487,35 @@ const owKind = (s) => s.kind || (s.st === 'open' || s.st === 'lock' || s.st === 
 function owAnnotate(W) {
   const beaten = progress.levelsBeaten || {}, secrets = progress.unlockedLevels || [];
   const b3 = progress.bonus3d || {}, beaten3d = b3.beaten || {}, secrets3d = b3.unlocked || [];   /* the 3D levels' own progress (loadProgress "THE 3D BONUS") */
-  let reach = true;   /* everything before this stop is beaten or not built yet */
-  W.slice().sort((a, b) => a.n - b.n).forEach((w) => {
+  let reach = true, bonusOpen = false;   /* everything before this stop is beaten or not built yet; the bonus stop is open */
+  const all = W.slice().sort((a, b) => (a.bonus ? 1 : 0) - (b.bonus ? 1 : 0) || a.n - b.n);   /* the 3D bonus last: it opens with its stop */
+  all.forEach((w) => {
     if (w.travel) { w.done = true; return; }
-    w.peek = w.n === 12 && owPeek12();
-    w.fly = S2 ? S2_FLY[w.n] || null : null;   /* Season 2: the plane on to the next country */   /* the sneak peek: World 12 opens after the 11-castle with only W12_PREVIEW built */
-    w.soon = w.n > owReleased && !w.peek;   /* not in this build: shown behind its "coming soon" sign, never walked into */
+    const threeD = !!w.bonus;   /* the 3D bonus: its own ids (12-1 ... 12-castle) and its own progress (bonus3d) */
+    w.peek = threeD && owPeek12();   /* the sneak peek's sign on the 3D map; only W12_PREVIEW built */
+    w.fly = threeD ? null : S2_FLY[w.n] || null;   /* Season 2: the plane on to the next country */
+    w.soon = !threeD && w.n > owReleased;   /* not in this build: shown behind its "coming soon" sign, never walked into */
     if (w.soon) reach = false;
-    let regular = 0;
+    let regular = 0, open = threeD ? bonusOpen : reach;
     w.stops.forEach((s, i) => {
       const kind = owKind(s);
       if (kind === 'travel' || kind === 'shop') { s.id = null; s.built = false; s.state = reach ? 'open' : 'locked'; return; }
+      if (kind === 'bonus') { s.id = null; s.built = true; s.state = reach ? 'open' : 'locked'; bonusOpen = reach; return; }   /* past the castle: open once it is beaten */
       const own = kind === 'level' ? w.n + '-' + (++regular) : kind === 'boss' ? w.n + '-castle' : w.n + '-' + kind;
-      const threeD = w.n === 12 && !S2;   /* World 12 is the 3D sneak peek, except in the Season 2 test */
       const def = threeD ? null : owDef(w.n, i + 1);
       s.id = def ? def.id : own;
+      s.d3 = threeD;   /* owPlay: a 3D level page */
       s.built = threeD ? !!OW_3D_LEVELS[s.id] && (!w.peek || W12_PREVIEW.indexOf(s.id) >= 0) : !!def;   /* the sneak peek builds only its four stops; the rest are "coming soon" */
       const done = !!(threeD ? beaten3d : beaten)[s.id];
       if (kind === 'secret') {   /* a side trip: only a secret exit opens it, and it never blocks the trail */
-        s.state = !reach ? 'locked' : done ? 'beaten' : (!s.built || (threeD ? secrets3d : secrets).indexOf(s.id) >= 0) ? 'open' : 'locked';
+        s.state = !open ? 'locked' : done ? 'beaten' : (!s.built || (threeD ? secrets3d : secrets).indexOf(s.id) >= 0) ? 'open' : 'locked';
         return;
       }
-      s.state = !reach ? 'locked' : done ? 'beaten' : 'open';
-      if (!done && s.built && !w.peek) reach = false;   /* (the sneak peek's four open stops come in any order: none of them blocks the trail) */
+      s.state = !open ? 'locked' : done ? 'beaten' : 'open';
+      if (!done && s.built && !w.peek) open = false;   /* (the sneak peek's four open stops come in any order: none of them blocks the trail) */
     });
+    if (threeD) { w.done = true; return; }   /* the bonus never holds up the trail */
+    reach = open;
     w.done = reach;   /* its castle (and everything before it) is beaten or not built yet: the seam is open */
   });
 }
@@ -3499,15 +3523,15 @@ function owAnnotate(W) {
 function owSpot() {
   const W = window.KINAN.W.slice().sort((a, b) => a.n - b.n);
   owAnnotate(W);
-  const m = progress.wmap, w = m && W.find((v) => v.n === m.w && !v.travel), s = w && w.stops[m.at];
-  if (s && s.state !== 'locked') return { w: m.w, at: m.at };
+  const m = progress.wmap, w = m && W.find((v) => v.n === m.w && !v.travel && !v.bonus), s = w && w.stops[m.at];
+  if (s && s.state !== 'locked') return { w: m.w, at: m.at, b: owKind(s) === 'bonus' && m.b != null ? m.b : null };   /* b: inside the 3D bonus, at its stop b */
   let best = { w: 1, at: 0 };
-  W.forEach((v) => { if (!v.travel && !v.peek) v.stops.forEach((q, i) => { if (q.state !== 'locked' && owKind(q) !== 'secret') best = { w: v.n, at: i }; }); });   /* (the sneak peek's World 12 is never the "furthest" stop: the 11-castle is) */
+  W.forEach((v) => { if (!v.travel && !v.bonus) v.stops.forEach((q, i) => { if (q.state !== 'locked' && owKind(q) !== 'secret' && owKind(q) !== 'bonus') best = { w: v.n, at: i }; }); });   /* (the bonus is never the "furthest" stop) */
   return best;
 }
 function owStates() {
   if (!window.KINAN || !window.KINAN.W) return null;
-  const W = window.KINAN.W.slice().sort((a, b) => a.n - b.n), out = {};
+  const W = window.KINAN.W.filter((w) => !w.bonus).sort((a, b) => a.n - b.n), out = {};   /* (the 3D bonus shares World 12's number: left out) */
   owAnnotate(W);
   W.forEach((w) => { out['w' + w.n] = w.done; w.stops.forEach((s, i) => { out[w.n + ':' + i] = s.state; }); });
   return { W, out };
@@ -3524,7 +3548,7 @@ function owLevelBeaten(id, candlesGot, secretTo) {
   const res = { notice: escAttr(id).toUpperCase() + ' CLEAR!' };
   /* a castle won (any time but World 11's, which turns 3D): Glitchy's escape plays once per world (block "CUTSCENES") */
   const cw = /^(\d+)-castle$/.exec(String(id)), cn = cw ? Number(cw[1]) : 0;
-  if (S2 && cn === 15 && !progress.s2FinalSeen) { progress.s2FinalSeen = true; res.ending = 's2final'; save(); }   /* Season 2 test: the finale after France */
+  if (cn === 15 && !progress.s2FinalSeen) { progress.s2FinalSeen = true; res.ending = 's2final'; save(); }   /* Season 2: the finale after France */
   if (cn >= 1 && cn <= 10 && !(progress.escapes || {})[cn]) res.escape = cn;
   if (cn === 11) {   /* World 11: Glitchy is on the team, the game is "Kinan vs. Worlds" from now on, and the ending plays (block "THE ENDING") */
     progress.glitchyTeam = true; progress.worldsName = true;
@@ -3562,25 +3586,27 @@ function owLevelBeaten(id, candlesGot, secretTo) {
   }
   return res;
 }
-function owMoved(n, at) {
-  progress.wmap = { w: n, at: at };
+function owMoved(n, at, b) {
+  progress.wmap = b != null ? { w: n, at: at, b: b } : { w: n, at: at };   /* b: Kinan is in the 3D bonus, at its stop b (n / at: the bonus stop) */
   save();
   if (n !== Story.mapWorld) storyArrive(n);   /* V1: a new world on the map: the last world's exit, then this one's intro */
-  if (n === 11) owNeed3D().catch(() => {});   /* warm up World 12 while Kinan is in the console */
+  if (n === 11) owNeed3D().catch(() => {});   /* warm up the 3D bonus while Kinan is in the console */
 }
 function owPlay(n, i, s) {
-  progress.wmap = { w: n, at: i };
-  save();
-  if (n === 12 && !S2) {   /* World 12: the 3D levels are their own page (3d/level-12-1.html); they come back here */
+  if (s && s.d3) {   /* the 3D bonus: the 3D levels are their own page (3d/level-12-1.html); they come back here */
     const file = OW_3D_LEVELS[s.id];
     if (!file) return;
     if (owPeek12() && W12_PREVIEW.indexOf(s.id) < 0) return;   /* the sneak peek: a "coming soon" stop never launches its level, whatever called this */
+    const m = progress.wmap;
+    if (m && m.b != null) { progress.wmap = { w: m.w, at: m.at, b: i }; save(); }   /* the saved spot stays the bonus stop, inside at stop i */
     owLeave(); Music.stop();
     try { sessionStorage.setItem('kinan-return-url', location.pathname + location.search); } catch (e) { /* the 3D level falls back to ../index.html */ }
     /* developer mode (?devtools=1 on localhost) carries over, so the 3D page opens any World 12 level; the live site's 3D page opens the four sneak-peek levels only */
     location.href = '3d/level-12-1.html?level=' + encodeURIComponent(file) + '&id=' + encodeURIComponent(s.id) + (window.__k11DevOnly && window.__k11DevOnly() ? '&devtools=1' : '');
     return;
   }
+  progress.wmap = { w: n, at: i };
+  save();
   AudioSys.init();
   if (!playLevel(s.id)) worldMapScreen();   /* a level that can't load says why (toast) and the map comes back */
 }
@@ -3613,7 +3639,7 @@ function worldMapScreen(o) {
     const due = !o.replay && !o.escape && !o.ending && !Cut.on ? beltPending() : null;
     if (due) o = Object.assign({}, o, { beltNotice: o.notice, notice: null });
     window.KINAN.mount(host, {
-      world: spot.w, at: spot.at, annotate: owAnnotate, onMove: o.replay ? () => {} : owMoved, onPlay: owPlay, need3D: owNeed3D,
+      world: spot.w, at: spot.at, bonus: spot.b, annotate: owAnnotate, onMove: o.replay ? () => {} : owMoved, onPlay: owPlay, need3D: owNeed3D,
       candles: () => progress.wallet || 0, celebrate: o.celebrate, notice: o.escape || o.ending ? null : o.notice,
       belt: () => { const r = beltRank(), b = beltOf(r); return { label: beltLabel(r).toUpperCase().replace(' · ', '  '), color: b.color, dark: b.dark, tip: b.tip || null, stripes: b.stripes }; }   /* taekwondo: the belt in the top bar */
     });
@@ -3631,7 +3657,7 @@ function worldMapScreen(o) {
     if (o.ready) o.ready();
     /* a castle won for the first time: Glitchy escapes into the next world (block "CUTSCENES"); the notice waits for it */
     if (o.ending && cutEnding({ notice: o.notice, s2final: o.ending === 's2final' })) { /* World 11: the ending plays over the map; its notice waits for it */ }
-    else if (S2 && progress.s2EndingDue && !o.replay && !Cut.on) { progress.s2EndingDue = false; save(); cutEnding({}); }   /* Season 2 test: the new end of World 11 first */
+    else if (progress.s2EndingDue && !o.replay && !Cut.on) { progress.s2EndingDue = false; save(); cutEnding({ notice: 'THE WAY ON TO THE NEXT WORLD IS OPEN!' }); }   /* Season 2: a player who beat World 11 before it joined the game sees the new end of World 11, then the way on to India is open */
     else if (o.escape && !cutEscape(o.escape, o.notice) && o.notice && window.KINAN.notice) window.KINAN.notice(o.notice);
     else if (due && !cutBelt(due.rank, due.catchup, o.beltNotice) && o.beltNotice && window.KINAN.notice) window.KINAN.notice(o.beltNotice);
     if (GUEST) guestOfferRefresh();   /* Annie's link, after the 9-castle: the whole game from World 1 */
@@ -3889,7 +3915,7 @@ const Cut = {
   startedAt: 0, log: [], q: [], qTimer: 0, subTimer: 0, subUntil: 0, finT: 0, finishing: false, moving: false, notice: null, world: 0,
   state() { return { on: Cut.on, mode: Cut.mode, phase: Cut.phase, beat: Cut.beat >= 0 && Cut.beats[Cut.beat] ? Cut.beats[Cut.beat].name : null, t: Math.round(Cut.t), total: Math.round(Cut.total), replay: Cut.replay, lines: Cut.log.slice(), sub: cutSub.hidden ? '' : cutSub.textContent,
     belt: Cut.belt ? { rank: Cut.belt.rank, from: Cut.belt.from, catchup: Cut.belt.catchup, call: Cut.belt.call, line: Cut.belt.line, lines: Cut.belt.lines.slice(), team: (Cut.belt.team || []).slice() } : null,
-    ending: Cut.ending ? { beat: Cut.ending.beat, t: Math.round(Cut.ending.t), beats: Cut.ending.beats.map((b) => b.name), lines: Cut.ending.lines.slice(), skips: Cut.ending.skips, replay: !!Cut.ending.replay, peek: !!Cut.ending.peek } : null }; }   /* belt: the last belt scene (block "BELT SCENES"); ending: the last ending (block "THE ENDING") */
+    ending: Cut.ending ? { beat: Cut.ending.beat, t: Math.round(Cut.ending.t), beats: Cut.ending.beats.map((b) => b.name), lines: Cut.ending.lines.slice(), skips: Cut.ending.skips, replay: !!Cut.ending.replay, peek: !!Cut.ending.peek, card: !!Cut.ending.card } : null }; }   /* belt: the last belt scene (block "BELT SCENES"); ending: the last ending (block "THE ENDING") */
 };
 const cutLine = (id) => (STORY && STORY.lines[id]) || null;
 const cutMs = (id) => { const d = cutLine(id); return d ? Math.round(lineSecs(d) * 1000) : 0; };
@@ -4446,7 +4472,7 @@ const END_BEATS = END_BEATS_FIT([
 ]);
 /* SEASON 2: THE NEW END OF WORLD 11 (docs/STORY-BIBLE.md; Shad: 2D only, no 3D unfold). Home in Saskatoon, the birthday
    party at the Bessborough, Shad's last present (a glowing globe), Glitchy touches it and the portal pulls him away; Annie
-   knows the sounds: India. Subtitles only for now (recordings later). Plays in the Season 2 test (S2). */
+   knows the sounds: India. Plays after the 11-castle (and once for a player who beat it before Season 2 joined the game). */
 const S2_END_LINES = {
   s2e_kinan_01: ['KINAN', "We're HOME! ...Wait. Is it still my birthday week?", 3.4],
   s2e_mom_01: ['MOM', "It is, sweetie. And there's a party waiting for you.", 3.2],
@@ -4489,10 +4515,9 @@ const S2_FINAL_BEATS = END_BEATS_FIT([
   { name: 'credits', min: 24000, lines: [] }
 ]);
 const S2_FINAL_CARD = ['SEASON 2 COMPLETE!', 'India, Japan, Mexico and France', 'New countries are glowing... Worlds 16-22 are coming!'];
-/* THE WORLD 12 SNEAK PEEK card (Shad, 2026-10-30), shown under TO BE CONTINUED while the sneak peek is on (owPeek12): the hint that
-   four levels of 3D Saskatoon are open now and a lot more is coming. Three short lines; as one sentence it reads
-   "WORLD 12 SNEAK PEEK: Four levels of 3D Saskatoon are open now. Much more is coming!" (__k11.ending().peek) */
-const END_PEEK = ['WORLD 12 SNEAK PEEK', 'Four levels of 3D Saskatoon are open now.', 'Much more is coming!'];
+/* the card under TO BE CONTINUED (S2_END_CARD, after the Season 2 finale S2_FINAL_CARD) once its words have typed out. (Until
+   2026-11-12 the World 12 sneak-peek card stood there: "WORLD 12 SNEAK PEEK: Four levels of 3D Saskatoon are open now. Much more
+   is coming!"; 3D Saskatoon is the bonus now, past the 11-castle on the map.) */
 const END_PEEK_AT = 3000;   /* ms into the TO BE CONTINUED beat: after its 18 letters have typed out (18 x 140 ms) */
 const END_CREDITS = [['KINAN vs. WORLDS', 'title'], ['STARRING', 'head'], ['Kinan', 'name'], ['THE TEAM', 'head'], ['Mom', 'name'], ['Dad', 'name'], ['Big Sis Chenoa', 'name'], ['Big Bro Shad', 'name'],
   ['Annie', 'name'], ['Glitchy', 'name'], ['THE FAMILY', 'head'], ['GRANDPA', 'name'], ['the Grandmas', 'name'], ['Sabumnim', 'name'], ['THE PETS', 'head'], ['Ginger', 'name'], ['Chikastino', 'name'],
@@ -4507,7 +4532,7 @@ function cutEnding(o) {
   Cut.on = true; Cut.mode = 'ending'; Cut.phase = 'ending'; Cut.q = []; Cut.qCur = null; Cut.finishing = false; Cut.replay = !!o.replay; Cut.back = o.back || null;
   Cut.notice = o.notice || null; Cut.startedAt = performance.now(); Cut.log = [];
   cutBox.hidden = false; cutBox.classList.remove('onmap'); cutSub.hidden = true;
-  Cut.ending = { final: !!o.s2final, beat: -1, t: 0, beats: (o.s2final ? S2_FINAL_BEATS : S2 ? S2_END_BEATS : END_BEATS).map((b) => Object.assign({}, b, { dur: Math.max(b.min, b.lines.length ? b.lines[b.lines.length - 1][0] + cutMs(b.lines[b.lines.length - 1][1]) + 900 : 0) })), lines: [], said: 0, skips: 0, replay: !!o.replay, done: false };
+  Cut.ending = { final: !!o.s2final, beat: -1, t: 0, beats: (o.s2final ? S2_FINAL_BEATS : S2_END_BEATS).map((b) => Object.assign({}, b, { dur: Math.max(b.min, b.lines.length ? b.lines[b.lines.length - 1][0] + cutMs(b.lines[b.lines.length - 1][1]) + 900 : 0) })), lines: [], said: 0, skips: 0, replay: !!o.replay, done: false };
   Cut.beats = Cut.ending.beats; Cut.total = Cut.beats.reduce((s, b) => s + b.dur, 0); Cut.t = 0; Cut.last = 0;
   Music.play('final'); SFX.win(); applyGameName();
   endingNext();
@@ -4710,14 +4735,10 @@ function endingPaint() {
     c.fillStyle = '#05061c'; c.fillRect(0, 0, 432, 240);
     const s = 'TO BE CONTINUED...', n = Math.min(s.length, Math.floor(t / 140));
     c.textAlign = 'center'; c.font = "700 26px 'Pixelify Sans', monospace"; c.fillStyle = '#f4f1e8'; c.fillText(s.slice(0, n), 216, 124); c.textAlign = 'left';
-    if (S2 && t > END_PEEK_AT) {   /* Season 2: where the story goes next */
+    if (t > END_PEEK_AT) {   /* Season 2: where the story goes next */
+      E.card = true;
       c.save(); c.globalAlpha = Math.min(1, (t - END_PEEK_AT) / 700); c.textAlign = 'center'; c.font = "700 11px 'Pixelify Sans', monospace";
       (E.final ? S2_FINAL_CARD : S2_END_CARD).forEach((txt, i) => { const y = 160 + i * 15; c.fillStyle = '#1b1220'; c.fillText(txt, 217, y + 1); c.fillStyle = i === 0 ? '#f6c445' : i === 1 ? '#f4f1e8' : '#7be3a3'; c.fillText(txt, 216, y); });
-      c.restore();
-    } else if (owPeek12() && t > END_PEEK_AT) {   /* the sneak peek (2026-10-30): once TO BE CONTINUED has typed out, the card that says four World 12 levels are open and more is coming */
-      E.peek = true;
-      c.save(); c.globalAlpha = Math.min(1, (t - END_PEEK_AT) / 700); c.textAlign = 'center'; c.font = "700 11px 'Pixelify Sans', monospace";
-      END_PEEK.forEach((txt, i) => { const y = 160 + i * 15; c.fillStyle = '#1b1220'; c.fillText(txt, 217, y + 1); c.fillStyle = i === 0 ? '#f6c445' : i === 1 ? '#f4f1e8' : '#7be3a3'; c.fillText(txt, 216, y); });
       c.restore();
     }
     drawGlitchyCreature(c, 396, 226, 1.6, { calm: Math.floor(t / 600) % 4 !== 0, t: Math.floor(t / 16) });
@@ -8296,7 +8317,15 @@ function loadProgress() {
   }
   out.bonus3dMoved = SAVE_KEY === 'kinan-remaster-v1' ? true : p.bonus3dMoved === true;
   const wm = p.wmap, wmW = wm && Math.floor(Number(wm.w)), wmAt = wm && Math.floor(Number(wm.at));
-  out.wmap = wm && typeof wm === 'object' && wmW >= 1 && wmW <= 12 && wmAt >= 0 && wmAt <= 10 ? { w: wmW, at: wmAt } : null;
+  out.wmap = wm && typeof wm === 'object' && wmW >= 1 && wmW <= 15 && wmAt >= 0 && wmAt <= 11 ? { w: wmW, at: wmAt } : null;   /* stop 11: World 11's bonus stop */
+  const wmB = out.wmap && wm.b != null ? Math.floor(Number(wm.b)) : -1;
+  if (out.wmap && wmB >= 0 && wmB <= 10) out.wmap.b = wmB;   /* inside the 3D bonus, at its stop b */
+  /* a save from before Season 2 joined the game (2026-11-12): Kinan standing on the 3D World 12 map now stands on the bonus stop
+     (World 12 is India), and a player who already beat World 11 sees the new end of World 11 the next time the map opens */
+  if (p.bonus3dMoved !== true && SAVE_KEY === 'kinan-remaster-v1') {
+    if (out.wmap && out.wmap.w === 12) out.wmap = { w: OW_BONUS.w, at: 11 };
+    if (out.levelsBeaten['11-castle']) out.s2EndingDue = true;
+  }
   if (!out.mapSeen || typeof out.mapSeen !== 'object') out.mapSeen = {};
   if (!out.mapSel || typeof out.mapSel !== 'object') out.mapSel = {};   /* where the player was on each world's map */
   out.pendingCutscene = typeof out.pendingCutscene === 'string' ? out.pendingCutscene : null;   /* finale mid-cutscene resume */
@@ -8349,38 +8378,6 @@ function loadProgress() {
 }
 let bonus3dMovedNow = false;   /* loadProgress moved an older save's 3D clears to bonus3d: written back at once */
 let progress = loadProgress();
-/* Season 2 test: its save starts with Worlds 1-11 beaten, Kinan standing at World 12, and the new end of World 11 plays
-   first on the map (s2EndingDue) */
-if (S2 && window.KinanLevels) KinanLevels.whenReady(() => {
-  if (progress.s2seed) return;
-  const lb = progress.levelsBeaten = progress.levelsBeaten || {}, un = progress.unlockedLevels = progress.unlockedLevels || [];
-  KinanLevels.list().forEach((id) => { const d = KinanLevels.get(id); if (d && d.world >= 1 && d.world <= 11) { lb[id] = 1; if (/-secret$/.test(id) && un.indexOf(id) < 0) un.push(id); } });
-  progress.wmap = { w: 12, at: 0 }; progress.introSeen = true; progress.endingSeen = true; progress.s2EndingDue = true;
-  progress.escapes = {}; for (let k = 1; k <= 10; k++) progress.escapes[k] = 1;
-  progress.glitchyTeam = true; progress.worldsName = true; progress.beltSeen = 99; progress.s2seed = true;
-  save();
-  s2TitleAgain();
-});
-/* the title was drawn before the test save was seeded (the levels load first): draw it again, so it says "Kinan vs. Worlds"
-   and PLAY · CONTINUE with the right world (2026-11-11: it said "Kinan vs. Mom", PLAY · START, 12 worlds) */
-function s2TitleAgain() { try { if (document.getElementById('startBtn') && !running && el.stage.hidden) titleScreen(); } catch (e) { /* the title stays as it is */ } }
-/* Season 2 test, a link straight to one country (?season2=1&world=13 for Amandeep's Japan): the worlds before it count as
-   beaten, the World 11 ending is skipped, and Kinan stands at that world's first stop (only if he has not got further) */
-if (S2 && window.KinanLevels) KinanLevels.whenReady(() => {
-  let n = 0; try { n = Math.floor(Number(new URLSearchParams(location.search).get('world'))); } catch (e) { n = 0; }
-  if (!(n >= 13 && n <= 15)) return;
-  const lb = progress.levelsBeaten = progress.levelsBeaten || {}, un = progress.unlockedLevels = progress.unlockedLevels || [];
-  KinanLevels.list().forEach((id) => { const d = KinanLevels.get(id); if (d && d.world >= 12 && d.world < n) { lb[id] = 1; if (/-secret$/.test(id) && un.indexOf(id) < 0) un.push(id); } });
-  progress.s2EndingDue = false;
-  if (!progress.wmap || (progress.wmap.w || 0) < n) progress.wmap = { w: n, at: 0 };
-  save();
-  s2TitleAgain();
-});
-if (S2) {   /* a small badge so nobody mistakes the test for the real game */
-  const b = document.createElement('div'); b.id = 's2badge'; b.textContent = 'SEASON 2 TEST';
-  b.style.cssText = 'position:fixed;left:6px;bottom:4px;z-index:200;font:700 10px Pixelify Sans,monospace;color:#1b1220;background:#f6c445;padding:2px 6px;border-radius:4px;opacity:.85;pointer-events:none';
-  document.addEventListener('DOMContentLoaded', () => document.body.appendChild(b)); if (document.body) document.body.appendChild(b);
-}
 let saveWarnAt = 0;
 /* Backup the previous valid current record and verify it BEFORE replacing current.
    A failed backup aborts the commit; a failed current write leaves that backup intact. */
@@ -9225,7 +9222,7 @@ function menuShow(on, page) {
   if (on) {
     menuFrom = inGame() ? 'game' : owOn ? 'map' : curScreen === 'title' ? 'title' : 'other';
     menuRefresh();
-    $('#galleryBtn').hidden = owReleased < 12;   /* World 12's memory gallery stays off the live site until World 12 is released */
+    $('#galleryBtn').hidden = !owBonusFull;   /* the 3D World 12's memory gallery stays off the live site (the 3D bonus is the four-level sneak peek) */
     menuGo(page || 'main');
   }
   menuEl.hidden = !on;
@@ -9291,9 +9288,9 @@ const jumpAllowed = () => !(typeof Cut !== 'undefined' && Cut.on) && (!inGame() 
 function jumpWorlds() {
   const W = window.KINAN.W.slice().sort((a, b) => a.n - b.n);
   owAnnotate(W);
-  return W.filter((w) => !w.travel && !w.soon).map((w) => {
+  return W.filter((w) => !w.travel && !w.soon && !w.bonus).map((w) => {   /* (the 3D bonus is reached from its stop on the map) */
     const all = [];
-    w.stops.forEach((s, i) => { const k = owKind(s); if (k !== 'travel' && k !== 'shop' && s.built !== false) all.push({ s, i, k }); });
+    w.stops.forEach((s, i) => { const k = owKind(s); if (k !== 'travel' && k !== 'shop' && k !== 'bonus' && s.built !== false) all.push({ s, i, k }); });
     return { w, all, stops: all.filter((o) => o.s.state !== 'locked') };
   }).filter((o) => o.stops.length);
 }
@@ -9584,7 +9581,7 @@ $('#howBtn').addEventListener('click', () => { AudioSys.init(); SFX.click(); con
 $('#introBtn').addEventListener('click', () => { AudioSys.init(); SFX.click(); const back = menuBackTo(); if (menuFrom === 'game') autoSave(); menuShow(false); cutIntro({ replay: true, back: back }); });
 /* World 11: the ending again (it shows once the ending has been seen) */
 $('#endingBtn').addEventListener('click', () => { AudioSys.init(); SFX.click(); const back = menuBackTo(); if (menuFrom === 'game') autoSave(); menuShow(false); if (!cutEnding({ replay: true, back: back }) && back) back(); });
-/* World 12's memory gallery (3d/js/gallery.js): over the menu; BACK lands on the menu again. The button shows once World 12 is released in this tab */
+/* the 3D World 12's memory gallery (3d/js/gallery.js): over the menu; BACK lands on the menu again. The button shows only in the developer view of all of 3D Saskatoon (__k11.bonus3dFull) */
 function galleryOpen() { return import('./3d/js/gallery.js').then((m) => m.openGallery({})).catch((e) => { toast('The gallery did not load. Try again in a moment!'); console.warn('gallery', e); }); }
 $('#galleryBtn').addEventListener('click', () => { AudioSys.init(); SFX.click(); galleryOpen(); });
 $('#smashBtn').addEventListener('click', () => { AudioSys.init(); SFX.click(); if (inGame()) leaveGame(); smashMenu(); });
@@ -30242,14 +30239,16 @@ window.__k11 = window.__k11DevOnly() ? {
   },
   paint: (tx, ty, t) => { if (L) L.g[(ty + (L.up | 0)) * L.w + tx] = t || 0; return tileAt(tx, ty); },
   /* the overworld map (docs/OVERWORLD-MAP.md): open it, read it, walk it */
-  worldMap: () => { worldMapScreen(); return true; },
+  worldMap: (o) => { worldMapScreen(o); return true; },   /* o: what a LEVEL CLEAR passes (beatLevel's result: its ending, notice ...) */
   mapState: () => (window.KINAN && window.KINAN.state ? window.KINAN.state() : { mounted: false }),
   mapGo: (dir) => { if (window.KINAN) window.KINAN.go(dir); return window.KINAN ? window.KINAN.state() : null; },
   mapPlay: () => { if (window.KINAN) window.KINAN.play(); return window.KINAN ? window.KINAN.state() : null; },
   mapWarp: (n, at) => (window.KINAN && window.KINAN.warp ? window.KINAN.warp(n, at) : null),
   /* the worlds this build has released (OW_RELEASED): owRelease(12) opens every world's map for a test (this tab's session) */
-  owRelease: (n) => { owReleased = clamp(Math.floor(Number(n)) || OW_RELEASED, 1, 12); try { sessionStorage.setItem('kv-ow-release', String(owReleased)); } catch (e) {} if (window.KINAN && window.KINAN.refresh) window.KINAN.refresh(); refreshTitlePlaySub(); return owReleased; },
-  owLevelFile: (id) => OW_3D_LEVELS[id] || null,   /* which 3D level file a World 12 stop opens */
+  owRelease: (n) => { owReleased = clamp(Math.floor(Number(n)) || OW_RELEASED, 1, 15); try { sessionStorage.setItem('kv-ow-release', String(owReleased)); } catch (e) {} if (window.KINAN && window.KINAN.refresh) window.KINAN.refresh(); refreshTitlePlaySub(); return owReleased; },
+  owLevelFile: (id) => OW_3D_LEVELS[id] || null,   /* which 3D level file a 3D bonus stop opens */
+  /* the 3D bonus: bonus3dFull(true) opens all of 3D Saskatoon in order with the memory gallery (this tab's session), (false) the four */
+  bonus3dFull: (on) => { if (on !== undefined) { owBonusFull = !!on; try { sessionStorage.setItem('kv-3d-full', owBonusFull ? '1' : '0'); } catch (e) {} if (window.KINAN && window.KINAN.refresh) window.KINAN.refresh(); } return owBonusFull; },
   galleryOpen: galleryOpen,
   /* CUTSCENES: what plays now; cutSpeed(n) runs them n times faster (tests); cutSkip() = a tap */
   cut: () => Cut.state(),
@@ -30257,8 +30256,8 @@ window.__k11 = window.__k11DevOnly() ? {
   cutSkip: () => { cutSkip(); return Cut.state(); },
   /* World 11: the ending (its beats, lines and credits), the game's name, Glitchy on the team; endingPlay() replays it */
   ending: () => ({ name: gameName(), label: gameLabel(), title: document.title, worldsName: !!progress.worldsName, glitchyTeam: !!progress.glitchyTeam, endingSeen: !!progress.endingSeen,
-    beats: END_BEATS.map((b) => b.name), lines: Object.keys(END_LINES).map((id) => [id, END_LINES[id][0], END_LINES[id][1]]), credits: END_CREDITS.map((c) => c[0]),
-    peek: END_PEEK[0] + ': ' + END_PEEK[1] + ' ' + END_PEEK[2], peekOn: owPeek12(),
+    beats: S2_END_BEATS.map((b) => b.name), lines: Object.keys(END_LINES).map((id) => [id, END_LINES[id][0], END_LINES[id][1]]), credits: END_CREDITS.map((c) => c[0]),
+    card: S2_END_CARD.join(' · '), finalCard: S2_FINAL_CARD.join(' · '), s2EndingDue: !!progress.s2EndingDue,
     menuBtn: !!document.getElementById('endingBtn') && !document.getElementById('endingBtn').hidden }),
   endingPlay: () => cutEnding({ replay: true }),
   /* THE MENU: open / page; kofi(url) sets the Ko-fi link for a test ('' = not set) and returns it */
