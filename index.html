@@ -3499,8 +3499,8 @@ function owAnnotate(W) {
     let regular = 0, open = threeD ? bonusOpen : reach;
     w.stops.forEach((s, i) => {
       const kind = owKind(s);
-      if (kind === 'travel' || kind === 'shop') { s.id = null; s.built = false; s.state = reach ? 'open' : 'locked'; return; }
-      if (kind === 'bonus') { s.id = null; s.built = true; s.state = reach ? 'open' : 'locked'; bonusOpen = reach; return; }   /* past the castle: open once it is beaten */
+      if (kind === 'travel' || kind === 'shop') { s.id = null; s.built = false; s.state = open ? 'open' : 'locked'; return; }
+      if (kind === 'bonus') { s.id = null; s.built = true; s.state = open ? 'open' : 'locked'; bonusOpen = open; return; }   /* past the castle: open once it is beaten */
       const own = kind === 'level' ? w.n + '-' + (++regular) : kind === 'boss' ? w.n + '-castle' : w.n + '-' + kind;
       const def = threeD ? null : owDef(w.n, i + 1);
       s.id = def ? def.id : own;

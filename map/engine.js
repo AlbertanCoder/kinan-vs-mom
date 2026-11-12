@@ -508,7 +508,8 @@ function flyLegs(kind,hi,at){const w=W[hi];ensure(w);const legs=[];
     return legs;}
   /* escape: off the edge, over the seam (and through a road trip), into the next real world */
   let i=hi;
-  for(let g=0;g<3;g++){const B=W[i+1];if(!B||is3D(B))return null;ensure(B);
+  if(W[hi].fly)return null;   /* a world that flies on (Season 2: World 11's airport to India and on) has no escape: its story is the plane */
+  for(let g=0;g<3;g++){const B=W[i+1];if(!B||is3D(B)||B.bonus)return null;ensure(B);
     if(canCross(1,i)){legs.push(crossLeg(i));i++;
       if(B.travel){const tr=flyStops(B,0,B.stops.length-1);legs.push(legOf(i,tr.pts,tr.marks,{road:true}));continue;}break;}
     /* no road over this seam (World 10 glitches into 11): run off the edge, then a quick cut */
