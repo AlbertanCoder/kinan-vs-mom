@@ -9,8 +9,9 @@ import { fileURLToPath } from 'node:url';
       The party stays shut until all five are lit. (A small window and low quality: software WebGL is slow.)
    2. the ending: with the fuses lit by the dev hook, the goal plays it to THE END with a tap for each part, then the
       credits, then the gallery with the 11 gifts, ages 1 to 11; the clear is saved under 12-castle.
-   3. the map side: the castle stop opens 12-castle, the two stops are renamed, the gallery button stays hidden until World 12
-      is released in the tab, and it opens the same 11 gifts.
+   3. the map side: the castle stop opens 12-castle, the two stops are renamed, the gallery button stays hidden until all of 3D
+      Saskatoon is opened in the tab (__k11.bonus3dFull: since 2026-11-12 the 3D World 12 is the bonus off the trail, World 12 is
+      India), and it opens the same 11 gifts. The clear is saved in the 3D bonus's own progress (bonus3d).
    Screenshots for Shad: app/w12-finale-shots/<project>/ */
 const BASE = `http://127.0.0.1:${process.env.KVM_PORT || '4174'}/`;
 /* 2026-10-30 (the World 12 sneak peek): the live site's 3D page says "coming soon" for 12-castle; ?devtools=1 (localhost) opens it, as the dev map link does (w12-preview.spec.ts) */
@@ -32,7 +33,7 @@ type Game = {
   family: { members: Record<string, { label: string }> };
   finale?: { state: () => { part: string | null; parts: string[]; lines: string[]; done: boolean } };
 };
-type Win = { GAME?: Game; KinanLevels?: { ready: boolean }; __runLog: string[]; __k11: { owLevelFile: (id: string) => string | null; owRelease: (n: number) => number } };
+type Win = { GAME?: Game; KinanLevels?: { ready: boolean }; __runLog: string[]; __k11: { owLevelFile: (id: string) => string | null; bonus3dFull: (on: boolean) => boolean } };
 
 function watchErrors(page: Page): string[] {
   const errors: string[] = [];
@@ -176,8 +177,9 @@ test.describe('World 12 finale', () => {
     await page.keyboard.down('KeyD');
     await page.waitForFunction(() => !!(window as unknown as Win).GAME!.finale, null, { timeout: 60_000 });
     await page.keyboard.up('KeyD');
-    const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('kinan-remaster-v1') || '{}').levelsBeaten);
-    expect(saved['12-castle'], 'the clear is saved').toBe(1);
+    const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('kinan-remaster-v1') || '{}'));
+    expect(saved.bonus3d.beaten['12-castle'], "the clear is saved (in the 3D bonus's own progress)").toBe(1);
+    expect((saved.levelsBeaten || {})['12-castle'], "not India's castle").toBeUndefined();
 
     await expect(page.locator('#finale')).toBeVisible();
     await page.waitForFunction(() => (window as unknown as Win).GAME!.finale!.state().part === 'party', null, { timeout: 30_000 });
@@ -230,14 +232,14 @@ test.describe('World 12 finale', () => {
     expect(map).toContain("name:'12-7  THE ART GALLERY'");
     expect(map).toContain("name:'12-8  THE ARENA'");
     expect(map).not.toMatch(/'[^']*(SASKTEL|REMAI)[^']*'/);
-    expect(readFileSync(`${ROOT}index.html`, 'utf8')).toContain('const OW_RELEASED = 11;');
-    /* World 12 not released: no gallery button */
+    expect(readFileSync(`${ROOT}index.html`, 'utf8')).toContain('const OW_RELEASED = 15;');
+    /* 3D Saskatoon is the four-level bonus: no gallery button */
     await page.locator('#titleMenuBtn').click();
     await expect(page.locator('#menu')).toBeVisible();
     await expect(page.locator('#galleryBtn')).toBeHidden();
     await page.locator('#menuX').click();
-    /* released in this tab (the dev hook): the button shows and opens the 11 gifts over the menu */
-    await page.evaluate(() => (window as unknown as Win).__k11.owRelease(12));
+    /* all of 3D Saskatoon opened in this tab (the dev hook): the button shows and opens the 11 gifts over the menu */
+    await page.evaluate(() => (window as unknown as Win).__k11.bonus3dFull(true));
     await page.locator('#titleMenuBtn').click();
     await expect(page.locator('#galleryBtn')).toBeVisible();
     await page.locator('#galleryBtn').click();

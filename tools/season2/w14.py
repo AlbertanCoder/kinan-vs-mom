@@ -142,7 +142,10 @@ L = lv('14-castle', 11, "THE CRATER'S HEART  -  THE LAVA IGUANA", 350, hazard='l
 a = L.act('THE CRATER RIM')
 a.say(2, 'MOM', 'Kinan. If anything is too hot, you come straight back. Promise?')
 a.say(8, 'KINAN', 'Promise, Mom!')
-a.run(12); a.dashgap(6); a.run(10, fly=True); a.boards(); a.dig(); a.gap(3); a.run(10)
+# (2026-11-12, Shad's answer 37: the opening lava pit was 6 wide 3 s in, under the opening subtitle on a phone, and a
+#  jump-only player fell in 5 times: now 5 wide (a jump clears it) and at column 19, past the subtitle box: on a phone held
+#  sideways the box covers columns 9-18 of the opening screen (tester B's c14P-01-open.png))
+a.run(19); a.dashgap(5); a.run(10, fly=True); a.boards(); a.dig(); a.gap(3); a.run(10)
 a = L.act("THE IGUANA'S TOWER")
 a.say(2, 'GLITCHY', '(from the top) Kinan! A big hot lizard is sitting on me!')
 a.run(6)

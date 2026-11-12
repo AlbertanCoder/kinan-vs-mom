@@ -263,3 +263,44 @@ The mine stays **dark** (the lit arena was wrong).
     Fuji avalanche keeps 3-wide gaps (running from the snow is the challenge).
   - Checked: the play-through robot clears all 44 levels (the castles with every line said); the kid tests above; dash
     gaps 525/525 with any dash timing; unit tests; the World 11 and Season 2 browser tests.
+- 2026-11-12: **Shad and Annie's morning playtest (answers 35-37).** Same story, every line kept; only timing and moves:
+  - **No more shaking:** a pet that had reached its spot beside a standing Kinan stepped toward his last footstep and back
+    every frame (500 flips in one held line on 14-4); now it stands. A held lesson line also stops the skateboard (15-1:
+    he rolled through Chenoa's line into the gap). 0 flips on 14-4, 13-1, 12-1, 12-5, 13-3, 14-1, 15-1.
+  - **Ropes: slow, natural, forgiving.** Half the speed (there and back in 5.3 s), drawn as a bendy rope (bowed against the
+    swing, the end trailing below his hands). JUMP at any moment throws him on an aimed arc to the far bank (or into the
+    next rope); falling over a gap, a rope within 2.5 tiles catches him. Checked: 17,636 let-gos on all 42 ropes, 0 falls;
+    a kid mashing JUMP 1,134/1,134 across; one jump at the edge 4,032 runs, 0 falls. The hook and the bars are unchanged.
+  - **Castle tops: same talk, shorter wait.** The way to the goal opens once the creature's thank-you and the first two
+    rescue lines are said; the rest play while Kinan walks to the flag and on the LEVEL CLEAR lap (on the map they were cut
+    off). A **LISTEN...** bubble sits over him while he waits. 13-castle 58.5 s -> 23.8 s, 15-castle 45.4 s -> 25.6 s.
+  - **Summit fights:** losing one starts it over at the summit (not the bottom of the tower); the creature now reaches
+    every tile (the far-left tile and the tile by the gate were safe). The sweep robot fights like a player now (no
+    corner): all 4 castles, 0 deaths.
+  - **14-castle:** the opening lava pit is 5 wide (a jump clears it) at columns 19-23, right of the opening subtitle on a
+    phone (generator change, only levels/w14/castle.js rewritten).
+  - **Lessons:** the same LISTEN... bubble while a lesson line holds Kinan (13-1's Sabumnim call).
+  - `node tools/s2-sweep.mjs --resume` carries a sweep stopped by the heat rule on from where it stopped.
+- 2026-11-12: **Season 2 joins the main game (Shad's answer 34: "one game, 1 to 15"; built on the work copy, not live yet).**
+  The release plan above, as written:
+  - **World 12 is India** and Japan, Mexico and France follow, for everyone, with no `?season2=1`. The title counts
+    **15 worlds** (OW_RELEASED 15). World 11's airport flies the family to India (then 12 -> 13 -> 14 -> 15 as in the test).
+  - **3D Saskatoon is the bonus:** its map is off the trail, opened from a **bonus stop past the 11-castle** (a gold 3D block,
+    BONUS 3D SASKATOON; World 11's own file keeps its 11 stops, the game adds the bonus stop). It opens once the 11-castle is
+    beaten; PLAY there plays the old 2D->3D change into 3D Saskatoon, BACK comes out on the bonus stop, and walking on from it
+    flies to India. Its files and its four levels are unchanged (the sneak-peek sign, the other seven stops "coming soon").
+  - **M1, the shared ids:** the 3D levels now save their clears in the save's own **bonus3d** (3d/js/main.js), never in
+    levelsBeaten, so India's 12-4, 12-5, 12-fort and 12-6 are never ticked by them. A save from before (no bonus3dMoved) has
+    its 3D clears (and the 12-7 painting's secret) moved to bonus3d once, on load, and written back at once.
+  - **Players who already beat World 11:** the next time the map opens the **new end of World 11** plays (s2EndingDue), then
+    "THE WAY ON TO THE NEXT WORLD IS OPEN!" and the trip to India. Kinan standing on the old 3D map now stands on the bonus
+    stop. New players get the same ending after the 11-castle. The menu's "Watch the ending" plays the new one; under TO BE
+    CONTINUED the Season 2 card replaces the 3D sneak-peek card. The story and every line are as they were.
+  - **Annie's link (answer 38):** `?world=13` opens the game straight onto Japan's map with Japan's first level ready, on that
+    device's own save: the worlds before it count as beaten (added; levels, candles and pets kept), no World 11 ending, and a
+    save already further along just opens Japan's map. `?world=12`, `14` and `15` the same. The link is used once per visit
+    (it leaves the address). Old `?season2=1` links open the normal game; the SEASON 2 TEST badge and the test save are gone.
+    The test feedback questions were only ever in the `?lab=` test levels (not the story levels) and stay there.
+  - Offline cache **v83**; every Season 2 level and map is precached (249 files, 15.17 MB). Tests:
+    `season2-main-game.spec.ts` (new), and the World 11 / 3D / map specs moved to the bonus; `tools/s2-sweep.mjs` plays the
+    44 levels in the normal game. Dev: `__k11.bonus3dFull(true)` opens all of 3D Saskatoon and its memory gallery.

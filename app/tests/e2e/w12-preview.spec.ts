@@ -6,8 +6,10 @@ import { expect, test, type ConsoleMessage, type Page } from '@playwright/test';
    12-4 THE WEIR RAPIDS, 12-5 THE BROADWAY BRIDGE ARCHES, FORT DOWNTOWN SKYLINE (12-fort) and 12-6 KINSMEN PARK RIDES.
    Every other World 12 stop (12-1, 12-2, 12-3, 12-7, the secret, 12-8, the Bessborough castle) says "coming soon".
    The Bessborough festival, the finale and the memory gallery stay hidden; developer mode (?devtools=1) reaches everything.
-   OW_RELEASED stays 11. Most of this runs the way the live site runs: no ?devtools=1 (so no __k11 hooks), only the public
-   window.KINAN map API. (c1-cutscenes.spec.ts: the sign past the 11-castle; w11-world.spec.ts: the ending walks on.) */
+   2026-11-12 (Season 2 joins the main game): World 12 on the trail is the 2D India and OW_RELEASED is 15; the sneak peek is THE
+   3D BONUS, opened from a bonus stop past the 11-castle, and its clears go in the save's own bonus3d (never levelsBeaten: India's
+   stops have the same ids). Most of this runs the way the live site runs: no ?devtools=1 (so no __k11 hooks), only the public
+   window.KINAN map API (warp('bonus', k) for a 3D stop). (season2-main-game.spec.ts: the bonus stop, the old save's move.) */
 const BASE = `http://127.0.0.1:${process.env.KVM_PORT || 4174}/index.html`;
 const DEV_URL = `${BASE}?devtools=1`;
 const CURRENT = 'kinan-remaster-v1';
@@ -23,9 +25,9 @@ type Stop = { name: string; kind: string; id: string | null; built: boolean; sta
 type MapState = { mounted: boolean; busy: boolean; world: number | null; at: number; walking: boolean; three: boolean; threeReady: boolean; banner: string | null; stops: Stop[] };
 type Game = { ready: boolean; mode: string; candles: number; player: unknown; start: () => void; levelClear: (g: unknown) => void };
 type Win = Window & {
-  KinanLevels: { ready: boolean; list: () => string[] }; KINAN: { state: () => MapState & { gatePeek: boolean }; warp: (n: number, at: number) => MapState | null; play: () => void };
+  KinanLevels: { ready: boolean; list: () => string[] }; KINAN: { state: () => MapState & { gatePeek: boolean; bonus: boolean }; warp: (n: number | 'bonus', at: number) => MapState | null; play: () => void };
   KINAN3D?: { state: () => { banner: boolean; ready: boolean } }; GAME?: Game;
-  __k11?: { ending: () => { peek: string; peekOn: boolean }; endingPlay: () => boolean; cut: () => { on: boolean; ending: { beat: number; beats: string[]; t: number; peek: boolean } | null }; cutSpeed: (n: number) => number; cutSkip: () => unknown; owRelease: (n: number) => number };
+  __k11?: { ending: () => { card: string }; endingPlay: () => boolean; cut: () => { on: boolean; ending: { beat: number; beats: string[]; t: number; peek: boolean; card: boolean } | null }; cutSpeed: (n: number) => number; cutSkip: () => unknown };
 };
 
 function watchErrors(page: Page): string[] {
@@ -41,10 +43,10 @@ const previewList = (file: string): string[] | null => {
 };
 
 test.describe('World 12 sneak peek · the files', () => {
-  test('the preview list is the same in the game and on the 3D page, OW_RELEASED stays 11, and the cache carries what the preview needs', () => {
+  test('the preview list is the same in the game and on the 3D page, OW_RELEASED is 15 (Season 2), and the cache carries what the preview needs', () => {
     expect(previewList('index.html'), 'W12_PREVIEW in index.html').toEqual(PREVIEW);
     expect(previewList('3d/js/main.js'), 'W12_PREVIEW in 3d/js/main.js').toEqual(PREVIEW);
-    expect(readFileSync(`${ROOT}index.html`, 'utf8')).toContain('const OW_RELEASED = 11;');
+    expect(readFileSync(`${ROOT}index.html`, 'utf8')).toContain('const OW_RELEASED = 15;');
     const sw = readFileSync(`${ROOT}sw.js`, 'utf8');
     expect(sw, 'the cache name was bumped (v55 the sneak peek, v56 the 2026-11-03 audit)').toMatch(/const CACHE = 'kinan-vs-mom-v(5[5-9]|[6-9]\d)';/);
     for (const f of ['3d/level-12-1.html', '3d/js/main.js', '3d/js/side.js', '3d/js/props-city.js', '3d/js/props-festival.js', '3d/assets/models.js', ...PREVIEW.map((id) => `3d/levels/${id}.js`)]) expect(sw, `${f} is cached`).toContain(`./${f}`);
@@ -94,33 +96,34 @@ test.describe('World 12 sneak peek · the live 3D page', () => {
 });
 
 test.describe('World 12 sneak peek · the game', () => {
-  test('the title still counts 11 worlds and the Memory gallery button stays hidden until World 12 is released', async ({ page }) => {
+  test('the title counts 15 worlds (Season 2) and the Memory gallery button stays hidden', async ({ page }) => {
     const errors = watchErrors(page);
     await page.goto(BASE);
     await page.waitForFunction(() => !!(window as unknown as Win).KinanLevels?.ready);
     expect(await page.evaluate(() => (window as unknown as Win).__k11), 'the live page has no developer hooks').toBeUndefined();
-    await expect(page.locator('#saveNote')).toContainText('11 worlds');
+    await expect(page.locator('#saveNote')).toContainText('15 worlds');
     await page.locator('#titleMenuBtn').click();
     await expect(page.locator('#menu')).toBeVisible();
     await expect(page.locator('#galleryBtn')).toBeHidden();
     expect(errors).toEqual([]);
   });
 
-  test('World 12 opens as a sneak peek: the four levels are open from the start in any order, every other stop is coming soon and safe, a clear saves its candles, and the map says more is coming', async ({ page }) => {
+  test('the 3D bonus is the sneak peek: the four levels are open from the start in any order, every other stop is coming soon and safe, a clear saves its candles in the bonus\'s own progress, and the map says more is coming', async ({ page }) => {
     test.setTimeout(420_000);   /* software WebGL draws the 3D map and a 3D level slowly */
     const errors = watchErrors(page);
     await page.goto(BASE);
     await page.waitForFunction(() => !!(window as unknown as Win).KinanLevels?.ready);
-    /* a player who beat World 1-11 (the 11-castle included) and nothing in World 12, with 5 candles in the wallet, standing on World 12's first stop */
+    /* a player who beat World 1-11 (the 11-castle included) and nothing in World 12, with 5 candles in the wallet, inside the 3D bonus
+       (entered from its stop past the 11-castle, World 11's stop 11) at its first stop */
     await page.evaluate((key) => {
       const ids = (window as unknown as Win).KinanLevels.list().filter((id) => Number(id.split('-')[0]) <= 11);
       localStorage.setItem(key, JSON.stringify({ unlocked: 1, beaten: [], introSeen: true, beltSeen: 12, endingSeen: true, glitchyTeam: true, worldsName: true, wallet: 5, totalCandles: 5,
-        escapes: { 10: 1 }, unlockedLevels: ['10-secret', '11-secret'], levelsBeaten: Object.fromEntries(ids.map((id) => [id, 1])), wmap: { w: 12, at: 0 } }));
+        escapes: { 10: 1 }, unlockedLevels: ['10-secret', '11-secret'], levelsBeaten: Object.fromEntries(ids.map((id) => [id, 1])), bonus3dMoved: true, wmap: { w: 11, at: 11, b: 0 } }));
     }, CURRENT);
     await page.reload();
     await page.waitForFunction(() => !!(window as unknown as Win).KinanLevels?.ready);
     await page.locator('#startBtn').click({ force: true });
-    await page.waitForFunction(() => { const s = (window as unknown as Win).KINAN?.state(); return !!s && s.mounted && s.world === 12 && s.three && s.threeReady; }, null, { timeout: 150_000 });
+    await page.waitForFunction(() => { const s = (window as unknown as Win).KINAN?.state(); return !!s && s.mounted && s.world === 12 && s.bonus && s.three && s.threeReady; }, null, { timeout: 150_000 });
     const state = () => page.evaluate(() => (window as unknown as Win).KINAN.state());
     const calm = () => page.waitForFunction(() => { const k = (window as unknown as Win).KINAN3D!.state(); return k.ready && !k.banner; }, null, { timeout: 30_000 });
     const home = page.url();
@@ -135,7 +138,7 @@ test.describe('World 12 sneak peek · the game', () => {
 
     /* every other stop: PLAY says COMING SOON, and nothing launches */
     for (const id of STOPS.filter((s) => !PREVIEW.includes(s))) {
-      await page.evaluate((i) => (window as unknown as Win).KINAN.warp(12, i), STOPS.indexOf(id));
+      await page.evaluate((i) => (window as unknown as Win).KINAN.warp('bonus', i), STOPS.indexOf(id));
       await calm();
       await page.evaluate(() => (window as unknown as Win).KINAN.play());
       await expect(page.locator('#owHost .k3-ban'), `${id} is coming soon`).toHaveText('COMING SOON!');
@@ -144,7 +147,7 @@ test.describe('World 12 sneak peek · the game', () => {
     }
 
     /* 12-6 first, with 12-4, 12-5 and the fort unbeaten: it opens its level */
-    await page.evaluate(() => (window as unknown as Win).KINAN.warp(12, 6));
+    await page.evaluate(() => (window as unknown as Win).KINAN.warp('bonus', 6));
     await calm();
     await page.evaluate(() => (window as unknown as Win).KINAN.play());
     await page.waitForURL(/\/3d\/level-12-1\.html\?level=12-6&id=12-6$/, { timeout: 60_000 });
@@ -153,15 +156,16 @@ test.describe('World 12 sneak peek · the game', () => {
     /* seven candles picked up, then the goal: the clear and the candles are saved */
     await page.evaluate(() => { const g = (window as unknown as Win).GAME!; if (g.mode === 'title') g.start(); g.candles = 7; g.levelClear({ def: { yaw: 0 } }); });
     const saved = await page.evaluate((k) => JSON.parse(localStorage.getItem(k) || '{}'), CURRENT);
-    expect(saved.levelsBeaten['12-6'], 'the clear').toBe(1);
-    expect(saved.levelsBeaten['12-4'], 'nothing else was beaten').toBeUndefined();
+    expect(saved.bonus3d.beaten['12-6'], "the clear, in the 3D bonus's own progress").toBe(1);
+    expect(saved.bonus3d.beaten['12-4'], 'nothing else was beaten').toBeUndefined();
+    expect(saved.levelsBeaten['12-6'], "India's 12-6 is not touched").toBeUndefined();
     expect([saved.wallet, saved.totalCandles], 'the 7 candles join the 5 in the wallet').toEqual([12, 12]);
     await expect(page.locator('#clear.on #btn-map')).toBeVisible({ timeout: 15_000 });
     await page.locator('#btn-map').click();
     await page.waitForURL(/\/index\.html$/, { timeout: 30_000 });
 
-    /* back on World 12's 3D map: 12-6 beaten, the other three still open, the wallet counted, the sign still up */
-    await page.waitForFunction(() => { const s = (window as unknown as Win).KINAN?.state(); return !!s && s.mounted && s.world === 12 && s.three && s.threeReady; }, null, { timeout: 150_000 });
+    /* back on the 3D bonus map: 12-6 beaten, the other three still open, the wallet counted, the sign still up */
+    await page.waitForFunction(() => { const s = (window as unknown as Win).KINAN?.state(); return !!s && s.mounted && s.world === 12 && s.bonus && s.three && s.threeReady; }, null, { timeout: 150_000 });
     const s1 = await state();
     expect(s1.at).toBe(6);
     expect(s1.stops.map((q) => q.state)).toEqual(STOPS.map((id) => (id === '12-6' ? 'beaten' : 'open')));
@@ -172,14 +176,13 @@ test.describe('World 12 sneak peek · the game', () => {
 });
 
 test.describe('World 12 sneak peek · the World 11 ending', () => {
-  test('TO BE CONTINUED is followed by the sneak-peek card, which appears once the words have typed out, and only while the sneak peek is on', async ({ page }) => {
+  test('TO BE CONTINUED is followed by the Season 2 card (World 12: India), which appears once the words have typed out; the sneak-peek card is gone', async ({ page }) => {
     test.setTimeout(150_000);
     const errors = watchErrors(page);
     await page.goto(DEV_URL);
     await page.waitForFunction(() => !!(window as unknown as Win).__k11 && (window as unknown as Win).KinanLevels?.ready);
     const info = await page.evaluate(() => (window as unknown as Win).__k11!.ending());
-    expect(info.peek).toBe('WORLD 12 SNEAK PEEK: Four levels of 3D Saskatoon are open now. Much more is coming!');
-    expect(info.peekOn).toBe(true);
+    expect(info.card).toBe('SEASON 2: AROUND THE WORLD · World 12: India · then Japan, Mexico and France');
     /* the card's pixels: bright text where the card goes (under TO BE CONTINUED), dark before it appears */
     const bright = () => page.evaluate(() => { const d = (document.getElementById('cutCv') as HTMLCanvasElement).getContext('2d')!.getImageData(100, 148, 232, 48).data; let n = 0; for (let i = 0; i < d.length; i += 4) if (d[i] > 150 || d[i + 1] > 150) n++; return n; });
     await page.evaluate(() => { const k = (window as unknown as Win).__k11!; k.cutSpeed(12); k.endingPlay(); });
@@ -189,15 +192,12 @@ test.describe('World 12 sneak peek · the World 11 ending', () => {
     expect(await bright(), 'no card before the words have typed out').toBe(0);
     await page.waitForFunction(() => (window as unknown as Win).__k11!.cut().ending!.t > 4400, null, { timeout: 30_000 });
     expect(await bright(), 'the card is on the picture').toBeGreaterThan(200);
-    expect((await page.evaluate(() => (window as unknown as Win).__k11!.cut().ending!)).peek).toBe(true);
-    /* World 12 released (developer view): no sneak-peek card in the ending */
+    const shown = await page.evaluate(() => (window as unknown as Win).__k11!.cut().ending!);
+    expect(shown.card, 'the Season 2 card').toBe(true);
+    expect(shown.peek, 'no sneak-peek card').toBe(false);
     await page.evaluate(() => (window as unknown as Win).__k11!.cutSpeed(12));
     for (let i = 0; i < 80 && (await page.evaluate(() => (window as unknown as Win).__k11!.cut().on)); i++) { await page.evaluate(() => (window as unknown as Win).__k11!.cutSkip()); await page.waitForTimeout(100); }
-    expect(await page.evaluate(() => (window as unknown as Win).__k11!.cut().on), 'the first ending was skipped to its end').toBe(false);
-    await page.evaluate(() => { const k = (window as unknown as Win).__k11!; k.owRelease(12); k.cutSpeed(12); k.endingPlay(); });
-    await page.waitForFunction(() => { const c = (window as unknown as Win).__k11!.cut(); return !c.on && !!c.ending && c.ending.beat >= 6; }, null, { timeout: 90_000 });
-    expect((await page.evaluate(() => (window as unknown as Win).__k11!.cut().ending!)).peek, 'no card once World 12 is released').toBe(false);
-    expect((await page.evaluate(() => (window as unknown as Win).__k11!.ending())).peekOn).toBe(false);
+    expect(await page.evaluate(() => (window as unknown as Win).__k11!.cut().on), 'the ending was skipped to its end').toBe(false);
     expect(errors).toEqual([]);
   });
 });

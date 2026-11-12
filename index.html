@@ -397,6 +397,7 @@ html.sideways .bossline{font-size:11px;padding:2px 8px}
    at the bottom stays between the see-through buttons instead of under the thumbs */
 html.sideways .stage .bossbar{top:calc(var(--hudh) + 8px)}
 html.sideways .stage.bossmode:not(.smashmode):not(.kartmode) .dialog,html.sideways .stage.bossmode:not(.smashmode):not(.kartmode) .toast{top:calc(var(--hudh) + 52px)}
+html.sideways .stage:not(.bossmode):not(.smashmode):not(.kartmode):not(.buildmode) .toast{top:calc(var(--hudh) + 8px)}   /* under the HUD bar that lies over the picture (2026-11-11 play-test: CHECKPOINT! sat on the level's name) */
 html.sideways:not(.kartpad) .stage:not(.smashmode):not(.kartmode) .bossline{max-width:calc(100% - 2 * (2 * clamp(80px,11vw,128px) + 28px));bottom:max(8px,env(safe-area-inset-bottom,0px))}
 /* V1 story lines: the subtitle at the bottom of the map picture (in a level it is #storyLine, a .bossline) */
 .storysub{position:absolute;left:50%;transform:translateX(-50%);bottom:13.5%;z-index:5;   /* just above the map's stop-name plaque (y 210-234 of 240) */width:max-content;max-width:92%;padding:4px 11px;border-radius:6px;background:rgba(17,19,43,.9);border:2px solid var(--edge);color:#f4f1e8;font-family:Nunito,system-ui,sans-serif;font-size:clamp(11px,2.3vw,15px);line-height:1.25;pointer-events:none;text-align:center}
@@ -763,7 +764,7 @@ html.sideways .hud .iconbtn.menubtn{width:auto;min-width:76px;font-size:13px}
   .s2in{padding:5px;font-size:14px}.s2in[rows]{height:64px}.s2out{min-height:84px;height:96px;font-size:11px}.s2card .btnrow{margin:0}}.s2tab td,.s2tab th{padding:3px 10px;border-bottom:1px solid var(--panel2)}
 #owHost .km-btn.km-jump{background:#2a7fd0;font-size:18px;min-width:84px;letter-spacing:.04em}
 @media (orientation:portrait) and (max-width:700px){#owHost .km-side{gap:8px}#owHost .km-btn.km-jump{min-width:0;padding:0 10px;font-size:16px}#owHost .km-play{min-width:96px}}
-@media (orientation:portrait) and (max-width:380px){#owHost .km-btn{min-width:58px}#owHost .km-btn.km-jump{min-width:0;padding:0 8px;font-size:14px}#owHost .km-play{min-width:84px}}
+@media (orientation:portrait) and (max-width:430px){#owHost .km-btn{min-width:58px}#owHost .km-btn.km-jump{min-width:0;padding:0 8px;font-size:14px}#owHost .km-play{min-width:84px}}
 @media (orientation:landscape) and (max-height:560px){#owHost .km-btn.km-jump{min-width:64px;padding:0;font-size:15px}}
 @media (hover:none){.mhint{display:none}}
 @media (max-width:560px){.mgrid{grid-template-columns:repeat(2,minmax(0,1fr))}.msplit{grid-template-columns:1fr}}
@@ -1154,12 +1155,11 @@ function feel() { return (L && L.newWorld) ? FEEL : LEGACY_FEEL; }
    link himself; nothing in the game points to it. Its save starts with Worlds 1-8 done (guestSeed), its first PLAY
    plays the World 9 opening (cutGuestIntro), and after the 9-castle the map offers the whole game from World 1 */
 const GUEST = (() => { try { const q = new URLSearchParams(location.search); return q.get('guest') === 'annie' && q.get('world') === '9' ? 'annie' : null; } catch (e) { return null; } })();
-/* SEASON 2 TEST (2026-11-10, docs/STORY-BIBLE.md, docs/WORLDS-12-15-PLAN.md): ?season2=1 turns on Worlds 12-15 for this tab
-   (?season2=0 turns it off): the 2D India, Japan, Mexico and France maps in place of the 3D Saskatoon sneak peek, the new
-   end of World 11 (home, the birthday party, Shad's globe), planes between the countries. It plays on its OWN save (Worlds
-   1-11 already beaten, standing at World 12), so the real game and its save never change until Shad says so. */
-const S2 = (() => { try { const q = new URLSearchParams(location.search); if (q.get('season2') === '1') sessionStorage.setItem('kv-s2', '1'); else if (q.get('season2') === '0') sessionStorage.removeItem('kv-s2'); return sessionStorage.getItem('kv-s2') === '1'; } catch (e) { return false; } })();
-const SAVE_KEY = GUEST ? 'kinan-remaster-annie-v1' : S2 ? 'kinan-season2-test-v1' : 'kinan-remaster-v1';
+/* SEASON 2 IS PART OF THE MAIN GAME (Shad, 2026-11-12, launch answer 34; docs/SEASON-2-PLAN.md "Into the main game"): Worlds
+   12-15 (India, Japan, Mexico, France) come after World 11 for everyone. The old test link ?season2=1 (its own save, a SEASON 2
+   TEST badge) is retired: an old shared link opens the normal game on this device's own save, and ?season2 does nothing. */
+try { sessionStorage.removeItem('kv-s2'); } catch (e) { /* no session storage: nothing to forget */ }
+const SAVE_KEY = GUEST ? 'kinan-remaster-annie-v1' : 'kinan-remaster-v1';
 const SAVE_BACKUP_KEY = SAVE_KEY + '-backup';
 
 /* Last-known-good saves: accept older sparse v1 records, but reject broken
@@ -3403,12 +3403,31 @@ function levelReturn() {
      progress.wmap { w, at }                where Kinan stands (world, stop)
    A stop without a level file yet is "Coming soon": it never blocks the
    trail. A world's seam opens once its castle is beaten (or not built).
-   World 12 is the 3D map (map/worlds/w12_3d.js); its stops open the 3D
-   levels in 3d/, which save their clear and come back here.
+   Worlds 12-15 are Season 2's 2D maps (India, Japan, Mexico, France: a
+   plane flies the family on from each world's airport). THE 3D BONUS:
+   the 3D Saskatoon map (map/worlds/w12.js + w12_3d.js) is off the
+   trail; a bonus stop past the 11-castle opens it, its stops open the
+   3D levels in 3d/, which save their clear in progress.bonus3d and
+   come back here.
    ============================================================ */
-const OW_FILES = ['map/engine.js', 'map/worlds/w01.js', 'map/worlds/w02.js', 'map/worlds/w03.js', 'map/worlds/w04.js', 'map/worlds/w05.js', 'map/worlds/w06.js', 'map/worlds/w06t.js', 'map/worlds/w07.js', 'map/worlds/w08.js', 'map/worlds/w09.js', 'map/worlds/w09t.js', 'map/worlds/w10.js', 'map/worlds/w11.js', 'map/worlds/w12.js'];
-if (S2) OW_FILES.splice(OW_FILES.indexOf('map/worlds/w12.js'), 1, 'map/worlds/w12i.js', 'map/worlds/w13.js', 'map/worlds/w14.js', 'map/worlds/w15.js');   /* Season 2 test: the new 2D worlds */
+const OW_FILES = ['map/engine.js', 'map/worlds/w01.js', 'map/worlds/w02.js', 'map/worlds/w03.js', 'map/worlds/w04.js', 'map/worlds/w05.js', 'map/worlds/w06.js', 'map/worlds/w06t.js', 'map/worlds/w07.js', 'map/worlds/w08.js', 'map/worlds/w09.js', 'map/worlds/w09t.js', 'map/worlds/w10.js', 'map/worlds/w11.js', 'map/worlds/w12i.js', 'map/worlds/w13.js', 'map/worlds/w14.js', 'map/worlds/w15.js', 'map/worlds/w12.js'];   /* w12.js last: the 3D bonus (owBonusSetup) */
 const S2_FLY = { 11: 'INDIA', 12: 'JAPAN', 13: 'MEXICO', 14: 'FRANCE' };   /* Season 2: each world's airport flies the family to the next country */
+/* THE 3D BONUS (Shad, 2026-11-11, docs/SEASON-2-PLAN.md "Into the main game"): the live 3D World 12 sneak peek stays as a bonus,
+   off the main trail. Its map (w12.js, the world that is not flat) is marked bonus, and a bonus stop is added past the 11-castle
+   (World 11's file keeps its 11 stops): it opens once the 11-castle is beaten, and PLAY there plays the 2D->3D transition into
+   3D Saskatoon (map/engine.js "THE 3D BONUS"). Walking on from it flies the family to India as before. */
+const OW_BONUS = { w: 11, at: [690, 400], via: [[650, 430]], name: 'BONUS  3D SASKATOON' };
+let owBonusDone = false;
+function owBonusSetup() {
+  const K = window.KINAN;
+  if (owBonusDone || !K || !K.W) return;
+  owBonusDone = true;
+  K.W.forEach((w) => { if (w.n === 12 && !w.flat && !w.travel) w.bonus = true; });
+  const host = K.W.find((w) => w.n === OW_BONUS.w && !w.travel);
+  if (!host || host.stops.some((s) => s.st === 'bonus')) return;
+  host.stops.push({ at: OW_BONUS.at.slice(), name: OW_BONUS.name, st: 'bonus' });
+  if (host.edges) host.edges.push([host.stops.length - 2, host.stops.length - 1, OW_BONUS.via.map((p) => p.slice())]);
+}
 const OW_3D_FILES = ['map/worlds/w12_models.js', 'map/worlds/w12_3d.js'];
 /* World 12 stop id → 3D level file (3d/levels/<file>.js). The castle stop is THE BESSBOROUGH BIRTHDAY FESTIVAL and the finale (rough draft 2026-10-30). */
 const OW_3D_LEVELS = { '12-1': '12-1', '12-2': '12-2', '12-3': '12-3', '12-4': '12-4', '12-5': '12-5', '12-fort': '12-fort', '12-6': '12-6', '12-7': '12-7', '12-secret': '12-secret', '12-8': '12-8', '12-castle': '12-castle' };
@@ -3419,23 +3438,24 @@ let owEngineP = null, ow3DP = null, owToken = 0, owOn = false, owDefs = null;
    Montreal, complete 2026-10-29: its 11 levels, the hunter drone and Annie's Firewall, Annie joins the team; World 10,
    Niagara Falls, complete 2026-10-29: its 11 levels, the Grandmothers' Picnic and Mom's Last Inspection, Mom joins the
    team, THE TURN; World 11, Inside the Console, complete 2026-10-30: its 11 levels, the realm guardians, the Core
-   Guardian, Glitchy's Last Stand and the ending). A world after OW_RELEASED stays on the map behind a friendly "WORLD 12 COMING SOON!" sign with
+   Guardian, Glitchy's Last Stand and the ending; Worlds 12-15, Season 2, joined the main game 2026-11-12: India, Japan, Mexico and France,
+   44 levels, the new end of World 11 and the Season 2 finale). A world after OW_RELEASED stays on the map behind a friendly "WORLD N COMING SOON!" sign with
    Glitchy waving, and Kinan never walks past it, whether or not some of its level files exist yet (raise this number
    when the next world is complete). Developer tests reach the later worlds' map with __k11.owRelease(n) (?devtools=1
    on localhost only, kept for the tab's session). */
-const OW_RELEASED = 11;
-/* THE WORLD 12 SNEAK PEEK (Shad, 2026-10-30): World 12 itself is not released (OW_RELEASED stays 11: the title's world count and the
-   "Kinan vs. Worlds" name follow it), but exactly these four stops are playable on the live site. After the 11-castle Kinan walks on
-   into World 12's 3D map; these four are open from the start, in any order, and every other World 12 stop (12-1, 12-2, 12-3, 12-7, the
-   secret, 12-8, the Bessborough castle) is "COMING SOON!" and never launches its level. Keep this list the same as W12_PREVIEW in
-   3d/js/main.js (the 3D page refuses any other World 12 level without ?devtools=1; app/tests/e2e/w12-preview.spec.ts checks they match).
-   The memory gallery, the finale and THE END stay hidden until World 12 is released for real (owReleased 12). */
+const OW_RELEASED = 15;
+/* THE WORLD 12 SNEAK PEEK (Shad, 2026-10-30), now THE 3D BONUS (2026-11-12): exactly these four 3D stops are playable on the live
+   site, open from the start in any order; every other 3D stop (12-1, 12-2, 12-3, 12-7, the secret, 12-8, the Bessborough castle) is
+   "COMING SOON!" and never launches its level. Keep this list the same as W12_PREVIEW in 3d/js/main.js (the 3D page refuses any other
+   World 12 level without ?devtools=1; app/tests/e2e/w12-preview.spec.ts checks they match). The memory gallery, the 3D finale and
+   THE END stay hidden; developer mode opens all of 3D Saskatoon with __k11.bonus3dFull(true) (this tab's session). */
 const W12_PREVIEW = ['12-4', '12-5', '12-fort', '12-6'];
 let owReleased = OW_RELEASED;
 try { if (window.__k11DevOnly && window.__k11DevOnly()) { const v = Number(sessionStorage.getItem('kv-ow-release')); if (v >= 1 && v <= 15) owReleased = v; } } catch (e) { /* no session storage: the build's number */ }
-if (S2) owReleased = 15;   /* the Season 2 test: all four new worlds are open */
-/* the sneak peek is on while World 11 is released and World 12 is not (a test's owRelease(12) opens all of World 12 instead) */
-const owPeek12 = () => !S2 && owReleased >= 11 && owReleased < 12;
+let owBonusFull = false;   /* developer view only: every 3D stop built, walked in order (as if 3D World 12 were released) */
+try { if (window.__k11DevOnly && window.__k11DevOnly()) owBonusFull = sessionStorage.getItem('kv-3d-full') === '1'; } catch (e) { /* the build's own: the four */ }
+/* the 3D bonus is the sneak peek (its four stops, the SNEAK PEEK sign) unless a developer opened all of it */
+const owPeek12 = () => !owBonusFull;
 function owScripts(list) {
   return Promise.all(list.map((src) => new Promise((resolve, reject) => {
     const s = document.createElement('script');
@@ -3445,7 +3465,7 @@ function owScripts(list) {
   })));
 }
 function owNeedEngine() {
-  if (!owEngineP) owEngineP = (window.KINAN && window.KINAN.mount ? Promise.resolve() : owScripts(OW_FILES)).catch((e) => { owEngineP = null; throw e; });
+  if (!owEngineP) owEngineP = (window.KINAN && window.KINAN.mount ? Promise.resolve() : owScripts(OW_FILES)).then(owBonusSetup).catch((e) => { owEngineP = null; throw e; });
   return owEngineP;
 }
 function owNeed3D() {
@@ -3466,30 +3486,36 @@ const owKind = (s) => s.kind || (s.st === 'open' || s.st === 'lock' || s.st === 
 /* every stop's id / built / state and every world's done, from the save */
 function owAnnotate(W) {
   const beaten = progress.levelsBeaten || {}, secrets = progress.unlockedLevels || [];
-  let reach = true;   /* everything before this stop is beaten or not built yet */
-  W.slice().sort((a, b) => a.n - b.n).forEach((w) => {
+  const b3 = progress.bonus3d || {}, beaten3d = b3.beaten || {}, secrets3d = b3.unlocked || [];   /* the 3D levels' own progress (loadProgress "THE 3D BONUS") */
+  let reach = true, bonusOpen = false;   /* everything before this stop is beaten or not built yet; the bonus stop is open */
+  const all = W.slice().sort((a, b) => (a.bonus ? 1 : 0) - (b.bonus ? 1 : 0) || a.n - b.n);   /* the 3D bonus last: it opens with its stop */
+  all.forEach((w) => {
     if (w.travel) { w.done = true; return; }
-    w.peek = w.n === 12 && owPeek12();
-    w.fly = S2 ? S2_FLY[w.n] || null : null;   /* Season 2: the plane on to the next country */   /* the sneak peek: World 12 opens after the 11-castle with only W12_PREVIEW built */
-    w.soon = w.n > owReleased && !w.peek;   /* not in this build: shown behind its "coming soon" sign, never walked into */
+    const threeD = !!w.bonus;   /* the 3D bonus: its own ids (12-1 ... 12-castle) and its own progress (bonus3d) */
+    w.peek = threeD && owPeek12();   /* the sneak peek's sign on the 3D map; only W12_PREVIEW built */
+    w.fly = threeD ? null : S2_FLY[w.n] || null;   /* Season 2: the plane on to the next country */
+    w.soon = !threeD && w.n > owReleased;   /* not in this build: shown behind its "coming soon" sign, never walked into */
     if (w.soon) reach = false;
-    let regular = 0;
+    let regular = 0, open = threeD ? bonusOpen : reach;
     w.stops.forEach((s, i) => {
       const kind = owKind(s);
-      if (kind === 'travel' || kind === 'shop') { s.id = null; s.built = false; s.state = reach ? 'open' : 'locked'; return; }
+      if (kind === 'travel' || kind === 'shop') { s.id = null; s.built = false; s.state = open ? 'open' : 'locked'; return; }
+      if (kind === 'bonus') { s.id = null; s.built = true; s.state = open ? 'open' : 'locked'; bonusOpen = open; return; }   /* past the castle: open once it is beaten */
       const own = kind === 'level' ? w.n + '-' + (++regular) : kind === 'boss' ? w.n + '-castle' : w.n + '-' + kind;
-      const threeD = w.n === 12 && !S2;   /* World 12 is the 3D sneak peek, except in the Season 2 test */
       const def = threeD ? null : owDef(w.n, i + 1);
       s.id = def ? def.id : own;
+      s.d3 = threeD;   /* owPlay: a 3D level page */
       s.built = threeD ? !!OW_3D_LEVELS[s.id] && (!w.peek || W12_PREVIEW.indexOf(s.id) >= 0) : !!def;   /* the sneak peek builds only its four stops; the rest are "coming soon" */
-      const done = !!beaten[s.id];
+      const done = !!(threeD ? beaten3d : beaten)[s.id];
       if (kind === 'secret') {   /* a side trip: only a secret exit opens it, and it never blocks the trail */
-        s.state = !reach ? 'locked' : done ? 'beaten' : (!s.built || secrets.indexOf(s.id) >= 0) ? 'open' : 'locked';
+        s.state = !open ? 'locked' : done ? 'beaten' : (!s.built || (threeD ? secrets3d : secrets).indexOf(s.id) >= 0) ? 'open' : 'locked';
         return;
       }
-      s.state = !reach ? 'locked' : done ? 'beaten' : 'open';
-      if (!done && s.built && !w.peek) reach = false;   /* (the sneak peek's four open stops come in any order: none of them blocks the trail) */
+      s.state = !open ? 'locked' : done ? 'beaten' : 'open';
+      if (!done && s.built && !w.peek) open = false;   /* (the sneak peek's four open stops come in any order: none of them blocks the trail) */
     });
+    if (threeD) { w.done = true; return; }   /* the bonus never holds up the trail */
+    reach = open;
     w.done = reach;   /* its castle (and everything before it) is beaten or not built yet: the seam is open */
   });
 }
@@ -3497,15 +3523,15 @@ function owAnnotate(W) {
 function owSpot() {
   const W = window.KINAN.W.slice().sort((a, b) => a.n - b.n);
   owAnnotate(W);
-  const m = progress.wmap, w = m && W.find((v) => v.n === m.w && !v.travel), s = w && w.stops[m.at];
-  if (s && s.state !== 'locked') return { w: m.w, at: m.at };
+  const m = progress.wmap, w = m && W.find((v) => v.n === m.w && !v.travel && !v.bonus), s = w && w.stops[m.at];
+  if (s && s.state !== 'locked') return { w: m.w, at: m.at, b: owKind(s) === 'bonus' && m.b != null ? m.b : null };   /* b: inside the 3D bonus, at its stop b */
   let best = { w: 1, at: 0 };
-  W.forEach((v) => { if (!v.travel && !v.peek) v.stops.forEach((q, i) => { if (q.state !== 'locked' && owKind(q) !== 'secret') best = { w: v.n, at: i }; }); });   /* (the sneak peek's World 12 is never the "furthest" stop: the 11-castle is) */
+  W.forEach((v) => { if (!v.travel && !v.bonus) v.stops.forEach((q, i) => { if (q.state !== 'locked' && owKind(q) !== 'secret' && owKind(q) !== 'bonus') best = { w: v.n, at: i }; }); });   /* (the bonus is never the "furthest" stop) */
   return best;
 }
 function owStates() {
   if (!window.KINAN || !window.KINAN.W) return null;
-  const W = window.KINAN.W.slice().sort((a, b) => a.n - b.n), out = {};
+  const W = window.KINAN.W.filter((w) => !w.bonus).sort((a, b) => a.n - b.n), out = {};   /* (the 3D bonus shares World 12's number: left out) */
   owAnnotate(W);
   W.forEach((w) => { out['w' + w.n] = w.done; w.stops.forEach((s, i) => { out[w.n + ':' + i] = s.state; }); });
   return { W, out };
@@ -3522,7 +3548,7 @@ function owLevelBeaten(id, candlesGot, secretTo) {
   const res = { notice: escAttr(id).toUpperCase() + ' CLEAR!' };
   /* a castle won (any time but World 11's, which turns 3D): Glitchy's escape plays once per world (block "CUTSCENES") */
   const cw = /^(\d+)-castle$/.exec(String(id)), cn = cw ? Number(cw[1]) : 0;
-  if (S2 && cn === 15 && !progress.s2FinalSeen) { progress.s2FinalSeen = true; res.ending = 's2final'; save(); }   /* Season 2 test: the finale after France */
+  if (cn === 15 && !progress.s2FinalSeen) { progress.s2FinalSeen = true; res.ending = 's2final'; save(); }   /* Season 2: the finale after France */
   if (cn >= 1 && cn <= 10 && !(progress.escapes || {})[cn]) res.escape = cn;
   if (cn === 11) {   /* World 11: Glitchy is on the team, the game is "Kinan vs. Worlds" from now on, and the ending plays (block "THE ENDING") */
     progress.glitchyTeam = true; progress.worldsName = true;
@@ -3560,25 +3586,27 @@ function owLevelBeaten(id, candlesGot, secretTo) {
   }
   return res;
 }
-function owMoved(n, at) {
-  progress.wmap = { w: n, at: at };
+function owMoved(n, at, b) {
+  progress.wmap = b != null ? { w: n, at: at, b: b } : { w: n, at: at };   /* b: Kinan is in the 3D bonus, at its stop b (n / at: the bonus stop) */
   save();
   if (n !== Story.mapWorld) storyArrive(n);   /* V1: a new world on the map: the last world's exit, then this one's intro */
-  if (n === 11) owNeed3D().catch(() => {});   /* warm up World 12 while Kinan is in the console */
+  if (n === 11) owNeed3D().catch(() => {});   /* warm up the 3D bonus while Kinan is in the console */
 }
 function owPlay(n, i, s) {
-  progress.wmap = { w: n, at: i };
-  save();
-  if (n === 12 && !S2) {   /* World 12: the 3D levels are their own page (3d/level-12-1.html); they come back here */
+  if (s && s.d3) {   /* the 3D bonus: the 3D levels are their own page (3d/level-12-1.html); they come back here */
     const file = OW_3D_LEVELS[s.id];
     if (!file) return;
     if (owPeek12() && W12_PREVIEW.indexOf(s.id) < 0) return;   /* the sneak peek: a "coming soon" stop never launches its level, whatever called this */
+    const m = progress.wmap;
+    if (m && m.b != null) { progress.wmap = { w: m.w, at: m.at, b: i }; save(); }   /* the saved spot stays the bonus stop, inside at stop i */
     owLeave(); Music.stop();
     try { sessionStorage.setItem('kinan-return-url', location.pathname + location.search); } catch (e) { /* the 3D level falls back to ../index.html */ }
     /* developer mode (?devtools=1 on localhost) carries over, so the 3D page opens any World 12 level; the live site's 3D page opens the four sneak-peek levels only */
     location.href = '3d/level-12-1.html?level=' + encodeURIComponent(file) + '&id=' + encodeURIComponent(s.id) + (window.__k11DevOnly && window.__k11DevOnly() ? '&devtools=1' : '');
     return;
   }
+  progress.wmap = { w: n, at: i };
+  save();
   AudioSys.init();
   if (!playLevel(s.id)) worldMapScreen();   /* a level that can't load says why (toast) and the map comes back */
 }
@@ -3611,7 +3639,7 @@ function worldMapScreen(o) {
     const due = !o.replay && !o.escape && !o.ending && !Cut.on ? beltPending() : null;
     if (due) o = Object.assign({}, o, { beltNotice: o.notice, notice: null });
     window.KINAN.mount(host, {
-      world: spot.w, at: spot.at, annotate: owAnnotate, onMove: o.replay ? () => {} : owMoved, onPlay: owPlay, need3D: owNeed3D,
+      world: spot.w, at: spot.at, bonus: spot.b, annotate: owAnnotate, onMove: o.replay ? () => {} : owMoved, onPlay: owPlay, need3D: owNeed3D,
       candles: () => progress.wallet || 0, celebrate: o.celebrate, notice: o.escape || o.ending ? null : o.notice,
       belt: () => { const r = beltRank(), b = beltOf(r); return { label: beltLabel(r).toUpperCase().replace(' · ', '  '), color: b.color, dark: b.dark, tip: b.tip || null, stripes: b.stripes }; }   /* taekwondo: the belt in the top bar */
     });
@@ -3629,7 +3657,7 @@ function worldMapScreen(o) {
     if (o.ready) o.ready();
     /* a castle won for the first time: Glitchy escapes into the next world (block "CUTSCENES"); the notice waits for it */
     if (o.ending && cutEnding({ notice: o.notice, s2final: o.ending === 's2final' })) { /* World 11: the ending plays over the map; its notice waits for it */ }
-    else if (S2 && progress.s2EndingDue && !o.replay && !Cut.on) { progress.s2EndingDue = false; save(); cutEnding({}); }   /* Season 2 test: the new end of World 11 first */
+    else if (progress.s2EndingDue && !o.replay && !Cut.on) { progress.s2EndingDue = false; save(); cutEnding({ notice: 'THE WAY ON TO THE NEXT WORLD IS OPEN!' }); }   /* Season 2: a player who beat World 11 before it joined the game sees the new end of World 11, then the way on to India is open */
     else if (o.escape && !cutEscape(o.escape, o.notice) && o.notice && window.KINAN.notice) window.KINAN.notice(o.notice);
     else if (due && !cutBelt(due.rank, due.catchup, o.beltNotice) && o.beltNotice && window.KINAN.notice) window.KINAN.notice(o.beltNotice);
     if (GUEST) guestOfferRefresh();   /* Annie's link, after the 9-castle: the whole game from World 1 */
@@ -3887,7 +3915,7 @@ const Cut = {
   startedAt: 0, log: [], q: [], qTimer: 0, subTimer: 0, subUntil: 0, finT: 0, finishing: false, moving: false, notice: null, world: 0,
   state() { return { on: Cut.on, mode: Cut.mode, phase: Cut.phase, beat: Cut.beat >= 0 && Cut.beats[Cut.beat] ? Cut.beats[Cut.beat].name : null, t: Math.round(Cut.t), total: Math.round(Cut.total), replay: Cut.replay, lines: Cut.log.slice(), sub: cutSub.hidden ? '' : cutSub.textContent,
     belt: Cut.belt ? { rank: Cut.belt.rank, from: Cut.belt.from, catchup: Cut.belt.catchup, call: Cut.belt.call, line: Cut.belt.line, lines: Cut.belt.lines.slice(), team: (Cut.belt.team || []).slice() } : null,
-    ending: Cut.ending ? { beat: Cut.ending.beat, t: Math.round(Cut.ending.t), beats: Cut.ending.beats.map((b) => b.name), lines: Cut.ending.lines.slice(), skips: Cut.ending.skips, replay: !!Cut.ending.replay, peek: !!Cut.ending.peek } : null }; }   /* belt: the last belt scene (block "BELT SCENES"); ending: the last ending (block "THE ENDING") */
+    ending: Cut.ending ? { beat: Cut.ending.beat, t: Math.round(Cut.ending.t), beats: Cut.ending.beats.map((b) => b.name), lines: Cut.ending.lines.slice(), skips: Cut.ending.skips, replay: !!Cut.ending.replay, peek: !!Cut.ending.peek, card: !!Cut.ending.card } : null }; }   /* belt: the last belt scene (block "BELT SCENES"); ending: the last ending (block "THE ENDING") */
 };
 const cutLine = (id) => (STORY && STORY.lines[id]) || null;
 const cutMs = (id) => { const d = cutLine(id); return d ? Math.round(lineSecs(d) * 1000) : 0; };
@@ -4444,7 +4472,7 @@ const END_BEATS = END_BEATS_FIT([
 ]);
 /* SEASON 2: THE NEW END OF WORLD 11 (docs/STORY-BIBLE.md; Shad: 2D only, no 3D unfold). Home in Saskatoon, the birthday
    party at the Bessborough, Shad's last present (a glowing globe), Glitchy touches it and the portal pulls him away; Annie
-   knows the sounds: India. Subtitles only for now (recordings later). Plays in the Season 2 test (S2). */
+   knows the sounds: India. Plays after the 11-castle (and once for a player who beat it before Season 2 joined the game). */
 const S2_END_LINES = {
   s2e_kinan_01: ['KINAN', "We're HOME! ...Wait. Is it still my birthday week?", 3.4],
   s2e_mom_01: ['MOM', "It is, sweetie. And there's a party waiting for you.", 3.2],
@@ -4487,10 +4515,9 @@ const S2_FINAL_BEATS = END_BEATS_FIT([
   { name: 'credits', min: 24000, lines: [] }
 ]);
 const S2_FINAL_CARD = ['SEASON 2 COMPLETE!', 'India, Japan, Mexico and France', 'New countries are glowing... Worlds 16-22 are coming!'];
-/* THE WORLD 12 SNEAK PEEK card (Shad, 2026-10-30), shown under TO BE CONTINUED while the sneak peek is on (owPeek12): the hint that
-   four levels of 3D Saskatoon are open now and a lot more is coming. Three short lines; as one sentence it reads
-   "WORLD 12 SNEAK PEEK: Four levels of 3D Saskatoon are open now. Much more is coming!" (__k11.ending().peek) */
-const END_PEEK = ['WORLD 12 SNEAK PEEK', 'Four levels of 3D Saskatoon are open now.', 'Much more is coming!'];
+/* the card under TO BE CONTINUED (S2_END_CARD, after the Season 2 finale S2_FINAL_CARD) once its words have typed out. (Until
+   2026-11-12 the World 12 sneak-peek card stood there: "WORLD 12 SNEAK PEEK: Four levels of 3D Saskatoon are open now. Much more
+   is coming!"; 3D Saskatoon is the bonus now, past the 11-castle on the map.) */
 const END_PEEK_AT = 3000;   /* ms into the TO BE CONTINUED beat: after its 18 letters have typed out (18 x 140 ms) */
 const END_CREDITS = [['KINAN vs. WORLDS', 'title'], ['STARRING', 'head'], ['Kinan', 'name'], ['THE TEAM', 'head'], ['Mom', 'name'], ['Dad', 'name'], ['Big Sis Chenoa', 'name'], ['Big Bro Shad', 'name'],
   ['Annie', 'name'], ['Glitchy', 'name'], ['THE FAMILY', 'head'], ['GRANDPA', 'name'], ['the Grandmas', 'name'], ['Sabumnim', 'name'], ['THE PETS', 'head'], ['Ginger', 'name'], ['Chikastino', 'name'],
@@ -4505,7 +4532,7 @@ function cutEnding(o) {
   Cut.on = true; Cut.mode = 'ending'; Cut.phase = 'ending'; Cut.q = []; Cut.qCur = null; Cut.finishing = false; Cut.replay = !!o.replay; Cut.back = o.back || null;
   Cut.notice = o.notice || null; Cut.startedAt = performance.now(); Cut.log = [];
   cutBox.hidden = false; cutBox.classList.remove('onmap'); cutSub.hidden = true;
-  Cut.ending = { final: !!o.s2final, beat: -1, t: 0, beats: (o.s2final ? S2_FINAL_BEATS : S2 ? S2_END_BEATS : END_BEATS).map((b) => Object.assign({}, b, { dur: Math.max(b.min, b.lines.length ? b.lines[b.lines.length - 1][0] + cutMs(b.lines[b.lines.length - 1][1]) + 900 : 0) })), lines: [], said: 0, skips: 0, replay: !!o.replay, done: false };
+  Cut.ending = { final: !!o.s2final, beat: -1, t: 0, beats: (o.s2final ? S2_FINAL_BEATS : S2_END_BEATS).map((b) => Object.assign({}, b, { dur: Math.max(b.min, b.lines.length ? b.lines[b.lines.length - 1][0] + cutMs(b.lines[b.lines.length - 1][1]) + 900 : 0) })), lines: [], said: 0, skips: 0, replay: !!o.replay, done: false };
   Cut.beats = Cut.ending.beats; Cut.total = Cut.beats.reduce((s, b) => s + b.dur, 0); Cut.t = 0; Cut.last = 0;
   Music.play('final'); SFX.win(); applyGameName();
   endingNext();
@@ -4708,14 +4735,10 @@ function endingPaint() {
     c.fillStyle = '#05061c'; c.fillRect(0, 0, 432, 240);
     const s = 'TO BE CONTINUED...', n = Math.min(s.length, Math.floor(t / 140));
     c.textAlign = 'center'; c.font = "700 26px 'Pixelify Sans', monospace"; c.fillStyle = '#f4f1e8'; c.fillText(s.slice(0, n), 216, 124); c.textAlign = 'left';
-    if (S2 && t > END_PEEK_AT) {   /* Season 2: where the story goes next */
+    if (t > END_PEEK_AT) {   /* Season 2: where the story goes next */
+      E.card = true;
       c.save(); c.globalAlpha = Math.min(1, (t - END_PEEK_AT) / 700); c.textAlign = 'center'; c.font = "700 11px 'Pixelify Sans', monospace";
       (E.final ? S2_FINAL_CARD : S2_END_CARD).forEach((txt, i) => { const y = 160 + i * 15; c.fillStyle = '#1b1220'; c.fillText(txt, 217, y + 1); c.fillStyle = i === 0 ? '#f6c445' : i === 1 ? '#f4f1e8' : '#7be3a3'; c.fillText(txt, 216, y); });
-      c.restore();
-    } else if (owPeek12() && t > END_PEEK_AT) {   /* the sneak peek (2026-10-30): once TO BE CONTINUED has typed out, the card that says four World 12 levels are open and more is coming */
-      E.peek = true;
-      c.save(); c.globalAlpha = Math.min(1, (t - END_PEEK_AT) / 700); c.textAlign = 'center'; c.font = "700 11px 'Pixelify Sans', monospace";
-      END_PEEK.forEach((txt, i) => { const y = 160 + i * 15; c.fillStyle = '#1b1220'; c.fillText(txt, 217, y + 1); c.fillStyle = i === 0 ? '#f6c445' : i === 1 ? '#f4f1e8' : '#7be3a3'; c.fillText(txt, 216, y); });
       c.restore();
     }
     drawGlitchyCreature(c, 396, 226, 1.6, { calm: Math.floor(t / 600) % 4 !== 0, t: Math.floor(t / 16) });
@@ -8183,6 +8206,7 @@ const DEFAULT_PROGRESS = { unlocked: 1, beaten: [], stars: {}, bestScore: {}, to
   goldenCandles: {}, unlockedLevels: [],   /* authored levels (pass A): golden candle per level id; levels a secret exit opened */
   levelsBeaten: {}, wmap: null,   /* the overworld map (2026-10-27): levels finished by id; where Kinan stands { w, at } */
   introSeen: false, escapes: {},   /* CUTSCENES (2026-10-28): the opening was shown; worlds whose castle escape played { 1: 1 } */
+  bonus3d: { beaten: {}, unlocked: [] }, bonus3dMoved: true,   /* the 3D Saskatoon levels' own progress (2026-11-12; loadProgress "THE 3D BONUS") */
   beltSeen: 0 };   /* BELT SCENES (2026-10-28): the belt step whose scene has played (a save from before has none: null = catch up) */
 /* Annie's save the first time her link opens: every World 1-8 level beaten (so their escapes and belts count as seen,
    and the pets those worlds rescue are along), standing on World 9's first stop; the World 9 opening is still to come */
@@ -8278,8 +8302,30 @@ function loadProgress() {
   /* the overworld map: an old save starts the new map fresh at World 1 (its candles, golden candles and pets stay) */
   out.levelsBeaten = {};
   if (p.levelsBeaten && typeof p.levelsBeaten === 'object' && !Array.isArray(p.levelsBeaten)) for (const k in p.levelsBeaten) if (levelIdOk(k) && p.levelsBeaten[k]) out.levelsBeaten[k] = 1;
+  /* THE 3D BONUS (2026-11-12, Season 2 joins the main game, docs/SEASON-2-PLAN.md): the 3D Saskatoon levels (3d/) keep their own
+     progress, bonus3d { beaten: { '12-4': 1 }, unlocked: ['12-secret'] } (3d/js/main.js writes it), because World 12 on the trail
+     becomes the 2D India, whose stops have the same ids (12-4, 12-5, 12-fort, 12-6). A save from before (no bonus3dMoved) had
+     the 3D page write its clears into levelsBeaten / unlockedLevels: they move to bonus3d here, once, so India starts unbeaten.
+     (Only the main save: the 3D page never writes Annie's save or the Season 2 test's.) */
+  const b3 = p.bonus3d && typeof p.bonus3d === 'object' && !Array.isArray(p.bonus3d) ? p.bonus3d : {}, id3d = (k) => /^12-(\d|fort|secret|castle)$/.test(k);
+  out.bonus3d = { beaten: {}, unlocked: [] };
+  if (b3.beaten && typeof b3.beaten === 'object' && !Array.isArray(b3.beaten)) for (const k in b3.beaten) if (id3d(k) && b3.beaten[k]) out.bonus3d.beaten[k] = 1;
+  if (Array.isArray(b3.unlocked)) b3.unlocked.forEach((k) => { if (k === '12-secret' && out.bonus3d.unlocked.indexOf(k) < 0) out.bonus3d.unlocked.push(k); });
+  if (p.bonus3dMoved !== true && SAVE_KEY === 'kinan-remaster-v1') {
+    for (const k of Object.keys(out.levelsBeaten)) if (id3d(k)) { out.bonus3d.beaten[k] = 1; delete out.levelsBeaten[k]; bonus3dMovedNow = true; }
+    out.unlockedLevels = out.unlockedLevels.filter((k) => { if (!id3d(k)) return true; if (out.bonus3d.unlocked.indexOf(k) < 0) out.bonus3d.unlocked.push(k); bonus3dMovedNow = true; return false; });
+  }
+  out.bonus3dMoved = SAVE_KEY === 'kinan-remaster-v1' ? true : p.bonus3dMoved === true;
   const wm = p.wmap, wmW = wm && Math.floor(Number(wm.w)), wmAt = wm && Math.floor(Number(wm.at));
-  out.wmap = wm && typeof wm === 'object' && wmW >= 1 && wmW <= 12 && wmAt >= 0 && wmAt <= 10 ? { w: wmW, at: wmAt } : null;
+  out.wmap = wm && typeof wm === 'object' && wmW >= 1 && wmW <= 15 && wmAt >= 0 && wmAt <= 11 ? { w: wmW, at: wmAt } : null;   /* stop 11: World 11's bonus stop */
+  const wmB = out.wmap && wm.b != null ? Math.floor(Number(wm.b)) : -1;
+  if (out.wmap && wmB >= 0 && wmB <= 10) out.wmap.b = wmB;   /* inside the 3D bonus, at its stop b */
+  /* a save from before Season 2 joined the game (2026-11-12): Kinan standing on the 3D World 12 map now stands on the bonus stop
+     (World 12 is India), and a player who already beat World 11 sees the new end of World 11 the next time the map opens */
+  if (p.bonus3dMoved !== true && SAVE_KEY === 'kinan-remaster-v1') {
+    if (out.wmap && out.wmap.w === 12) out.wmap = { w: OW_BONUS.w, at: 11 };
+    if (out.levelsBeaten['11-castle']) out.s2EndingDue = true;
+  }
   if (!out.mapSeen || typeof out.mapSeen !== 'object') out.mapSeen = {};
   if (!out.mapSel || typeof out.mapSel !== 'object') out.mapSel = {};   /* where the player was on each world's map */
   out.pendingCutscene = typeof out.pendingCutscene === 'string' ? out.pendingCutscene : null;   /* finale mid-cutscene resume */
@@ -8330,39 +8376,8 @@ function loadProgress() {
   }
   return out;
 }
+let bonus3dMovedNow = false;   /* loadProgress moved an older save's 3D clears to bonus3d: written back at once */
 let progress = loadProgress();
-/* Season 2 test: its save starts with Worlds 1-11 beaten, Kinan standing at World 12, and the new end of World 11 plays
-   first on the map (s2EndingDue) */
-if (S2 && window.KinanLevels) KinanLevels.whenReady(() => {
-  if (progress.s2seed) return;
-  const lb = progress.levelsBeaten = progress.levelsBeaten || {}, un = progress.unlockedLevels = progress.unlockedLevels || [];
-  KinanLevels.list().forEach((id) => { const d = KinanLevels.get(id); if (d && d.world >= 1 && d.world <= 11) { lb[id] = 1; if (/-secret$/.test(id) && un.indexOf(id) < 0) un.push(id); } });
-  progress.wmap = { w: 12, at: 0 }; progress.introSeen = true; progress.endingSeen = true; progress.s2EndingDue = true;
-  progress.escapes = {}; for (let k = 1; k <= 10; k++) progress.escapes[k] = 1;
-  progress.glitchyTeam = true; progress.worldsName = true; progress.beltSeen = 99; progress.s2seed = true;
-  save();
-  s2TitleAgain();
-});
-/* the title was drawn before the test save was seeded (the levels load first): draw it again, so it says "Kinan vs. Worlds"
-   and PLAY · CONTINUE with the right world (2026-11-11: it said "Kinan vs. Mom", PLAY · START, 12 worlds) */
-function s2TitleAgain() { try { if (document.getElementById('startBtn') && !running && el.stage.hidden) titleScreen(); } catch (e) { /* the title stays as it is */ } }
-/* Season 2 test, a link straight to one country (?season2=1&world=13 for Amandeep's Japan): the worlds before it count as
-   beaten, the World 11 ending is skipped, and Kinan stands at that world's first stop (only if he has not got further) */
-if (S2 && window.KinanLevels) KinanLevels.whenReady(() => {
-  let n = 0; try { n = Math.floor(Number(new URLSearchParams(location.search).get('world'))); } catch (e) { n = 0; }
-  if (!(n >= 13 && n <= 15)) return;
-  const lb = progress.levelsBeaten = progress.levelsBeaten || {}, un = progress.unlockedLevels = progress.unlockedLevels || [];
-  KinanLevels.list().forEach((id) => { const d = KinanLevels.get(id); if (d && d.world >= 12 && d.world < n) { lb[id] = 1; if (/-secret$/.test(id) && un.indexOf(id) < 0) un.push(id); } });
-  progress.s2EndingDue = false;
-  if (!progress.wmap || (progress.wmap.w || 0) < n) progress.wmap = { w: n, at: 0 };
-  save();
-  s2TitleAgain();
-});
-if (S2) {   /* a small badge so nobody mistakes the test for the real game */
-  const b = document.createElement('div'); b.id = 's2badge'; b.textContent = 'SEASON 2 TEST';
-  b.style.cssText = 'position:fixed;left:6px;bottom:4px;z-index:200;font:700 10px Pixelify Sans,monospace;color:#1b1220;background:#f6c445;padding:2px 6px;border-radius:4px;opacity:.85;pointer-events:none';
-  document.addEventListener('DOMContentLoaded', () => document.body.appendChild(b)); if (document.body) document.body.appendChild(b);
-}
 let saveWarnAt = 0;
 /* Backup the previous valid current record and verify it BEFORE replacing current.
    A failed backup aborts the commit; a failed current write leaves that backup intact. */
@@ -8377,6 +8392,7 @@ const save = (loud) => {   /* loud: a save the player asked for always says when
   }
   return false;
 };
+if (bonus3dMovedNow) save();   /* THE 3D BONUS: an older save's 3D clears, moved once, are written back straight away */
 
 let L = null, P = null;
 let foes = [], shots = [], blasts = [], allyShots = [], bosses = [], allies = [], items = [];
@@ -9206,7 +9222,7 @@ function menuShow(on, page) {
   if (on) {
     menuFrom = inGame() ? 'game' : owOn ? 'map' : curScreen === 'title' ? 'title' : 'other';
     menuRefresh();
-    $('#galleryBtn').hidden = owReleased < 12;   /* World 12's memory gallery stays off the live site until World 12 is released */
+    $('#galleryBtn').hidden = !owBonusFull;   /* the 3D World 12's memory gallery stays off the live site (the 3D bonus is the four-level sneak peek) */
     menuGo(page || 'main');
   }
   menuEl.hidden = !on;
@@ -9272,9 +9288,9 @@ const jumpAllowed = () => !(typeof Cut !== 'undefined' && Cut.on) && (!inGame() 
 function jumpWorlds() {
   const W = window.KINAN.W.slice().sort((a, b) => a.n - b.n);
   owAnnotate(W);
-  return W.filter((w) => !w.travel && !w.soon).map((w) => {
+  return W.filter((w) => !w.travel && !w.soon && !w.bonus).map((w) => {   /* (the 3D bonus is reached from its stop on the map) */
     const all = [];
-    w.stops.forEach((s, i) => { const k = owKind(s); if (k !== 'travel' && k !== 'shop' && s.built !== false) all.push({ s, i, k }); });
+    w.stops.forEach((s, i) => { const k = owKind(s); if (k !== 'travel' && k !== 'shop' && k !== 'bonus' && s.built !== false) all.push({ s, i, k }); });
     return { w, all, stops: all.filter((o) => o.s.state !== 'locked') };
   }).filter((o) => o.stops.length);
 }
@@ -9565,7 +9581,7 @@ $('#howBtn').addEventListener('click', () => { AudioSys.init(); SFX.click(); con
 $('#introBtn').addEventListener('click', () => { AudioSys.init(); SFX.click(); const back = menuBackTo(); if (menuFrom === 'game') autoSave(); menuShow(false); cutIntro({ replay: true, back: back }); });
 /* World 11: the ending again (it shows once the ending has been seen) */
 $('#endingBtn').addEventListener('click', () => { AudioSys.init(); SFX.click(); const back = menuBackTo(); if (menuFrom === 'game') autoSave(); menuShow(false); if (!cutEnding({ replay: true, back: back }) && back) back(); });
-/* World 12's memory gallery (3d/js/gallery.js): over the menu; BACK lands on the menu again. The button shows once World 12 is released in this tab */
+/* the 3D World 12's memory gallery (3d/js/gallery.js): over the menu; BACK lands on the menu again. The button shows only in the developer view of all of 3D Saskatoon (__k11.bonus3dFull) */
 function galleryOpen() { return import('./3d/js/gallery.js').then((m) => m.openGallery({})).catch((e) => { toast('The gallery did not load. Try again in a moment!'); console.warn('gallery', e); }); }
 $('#galleryBtn').addEventListener('click', () => { AudioSys.init(); SFX.click(); galleryOpen(); });
 $('#smashBtn').addEventListener('click', () => { AudioSys.init(); SFX.click(); if (inGame()) leaveGame(); smashMenu(); });
@@ -9777,7 +9793,7 @@ function hunterSave() {
   P.hunterUsed = true; P.hp = Math.max(1, P.hp);
   P.inv = Math.max(P.inv, feel().INVULN); P.vx = 0; P.vy = Math.min(P.vy, -3); P.cuttable = false;
   const d = pets.dogs.find((v) => v.id === 'dog2');
-  if (d) { d.x = P.x - 14; d.y = P.y + 6; }
+  if (d) { d.x = P.x - 14; d.y = P.y + 6; if (d.pb) Object.assign(d.pb, { line: false, hop: null, fly: null, plan: null, ci: -1 }); }   /* (he forgets the path he was on: walking back along it from here went through 14-5's pool bank, 2026-11-11 sweep) */
   popIn(P.x - 18, P.y - 18, 'HUNTER SAVED YOU!', 70, '#7be3a3');
   sparks(P.x + 5, P.y + 6, 16, ['#7be3a3', '#fff', '#f6c445']);
   toast('🐶 <b>HUNTER</b> jumped in and saved you! (once per level)', 2200);
@@ -9989,12 +10005,15 @@ function updatePlayer() {
 
   if (P.y > H + 10) {
     P.cleanLandings = 0;
-    const fellAt = P.x;
+    const fellAt = P.x, trench = !!P.s2trench; P.s2trench = false;
     L.falls = (L.falls || 0) + 1;
     if (!L.noHurt && !(P.hp <= 1 && hunterSave())) { P.hp = Math.max(0, P.hp - 1); heartsLost++; SFX.hurt(); flashScreen(); }   /* the Builder's can't-get-hurt switch; Hunter catches a last-heart fall */
     if (P.hp <= 0) { P.dead = 1; P.vy = -5; L.deathX = fellAt; return; }
-    P.x = boss === 'fight' ? (L.arenaX + 2) * T : (cpHit ? spawn.x : lastSafe.x || spawn.x);
-    P.y = boss === 'fight' ? (GROUND - 1) * T : (cpHit ? spawn.y : lastSafe.y || spawn.y);
+    /* a Season 2 trench (glitch, lava, flood): back to the safe ground before it, not to the act's flag (2026-11-11 play-test:
+       the flag stands on the start spot, so a fall at column 49 of 12-1 sent him back to column 2) */
+    const toSafe = trench && lastSafe.x;
+    P.x = boss === 'fight' ? (L.arenaX + 2) * T : (toSafe ? lastSafe.x : cpHit ? spawn.x : lastSafe.x || spawn.x);
+    P.y = boss === 'fight' ? (GROUND - 1) * T : (toSafe ? lastSafe.y : cpHit ? spawn.y : lastSafe.y || spawn.y);
     P.vx = P.vy = 0; P.inv = 100; trail = []; breakCombo();
     camX = clamp(Math.round(P.x - W * 0.42), 0, Math.min(L.w * T - W, (L.arenaX + L.arenaW + 1) * T - W));
     updHud();
@@ -10152,7 +10171,7 @@ function drawGlitchyHelper() {
 }
 function levelRespawn() {
   deaths++;
-  if (L.s2) s2Respawn();   /* Season 2: count the try for its act; a lost boss fight starts fresh */
+  const s2spot = L.s2 ? s2Respawn() : null;   /* Season 2: count the try for its act; a lost boss fight starts fresh */
   breakCombo();
   /* B1: a lost boss fight counts at the arena's door (one spot for the helper) and starts fresh on re-entry */
   if (L.arena && L.arena.state === 'fight') { L.deathX = L.arena.spotX; arenaReset(L.arena); }
@@ -10161,12 +10180,13 @@ function levelRespawn() {
   P.hp = P.max; P.dead = 0; P.inv = 110; P.vx = 0; P.vy = 0;
   shots = []; dad = null; bro = null;
   P.x = spawn.x; P.y = spawn.y;   /* the checkpoint once he touched it, else the level's start */
+  if (s2spot) { P.x = s2spot.x; P.y = s2spot.y; }   /* Season 2: a lost summit fight starts over at the summit */
   lastSafe = { x: P.x, y: P.y };
   if (L.s2) { P.s2climb = null; P.s2ledge = null; P.s2swim = false; P.s2vy = null; P.s2warp = null; s2CamSnap(); }
   camX = clamp(Math.round(P.x - W * 0.42), 0, Math.min(L.w * T - W, (L.arenaX + L.arenaW + 1) * T - W));
   trail = []; updHud();
   toastHold = 0;
-  toast('💫 ' + (cpHit ? '<b>Back to the checkpoint!</b>' : '<b>Back to the start!</b>') + ' Full hearts, and your candles are safe.', 2200);
+  toast('💫 ' + (s2spot ? '<b>Back to the summit!</b>' : cpHit ? '<b>Back to the checkpoint!</b>' : '<b>Back to the start!</b>') + ' Full hearts, and your candles are safe.', 2200);
   maybeOfferHelp(sp);
 }
 function die() {
@@ -10862,7 +10882,7 @@ function petLineClear(pet, tx, ty) {
   return true;
 }
 /* a pet pops back beside Kinan: on the footstep behind him (where he stood, so there is room) */
-function petPoof(pet, S, quiet, rescue) {
+function petPoof(pet, S, quiet, rescue, above) {
   if (pet.pb.cool > 0) return false;   /* (just popped somewhere: it stays a moment) */
   const n = S.list.length;
   if (!n || S.air) return false;
@@ -10870,6 +10890,7 @@ function petPoof(pet, S, quiet, rescue) {
   for (const j of [gi, gi + 1, gi + 2, gi - 1, gi - 2, gi + 3, top]) {
     if (j < S.base || j > top) continue;
     const st = S.list[j - S.base];
+    if (above != null && st.y > above) continue;   /* (out of a castle's flood: only a footstep above it) */
     if (famOverlaps(st.x - PET_W / 2, st.y - pet.h, PET_W, pet.h)) continue;
     if (!quiet && Math.abs(st.x - pet.x - PET_W / 2) < 16 && Math.abs(st.y - pet.y - pet.h) < 24) { if (rescue) continue; return false; }   /* that close it walks (out of trouble: a spot a little further) */
     const seen = pet.x + PET_W > camX && pet.x < camX + W;
@@ -10931,6 +10952,17 @@ function petStep(pet, S, k, gi) {
   pb.off = seen ? 0 : pb.off + 1;
   if (pb.cool > 0) pb.cool--;
   pet.s2swim = false; pet.s2climb = false;
+  /* 0b. a castle's rising flood never covers a pet (2026-11-11 play-test: they stood under it 2.5-3.5 s): once it is over its
+     feet the pet pops up beside Kinan onto a footstep above the flood, or (none yet) it floats up on the flood's top, as
+     the flood pops Kinan up */
+  let flood = null;
+  if (L.s2 && !pb.fly && !pb.hop) for (const B of L.s2.bosses) if (B.kind === 'tide' && (B.state === 'rise' || B.state === 'crab') && pet.x + PET_W > B.x0 && pet.x < B.x1 && pet.y + pet.h > B.tideY + (pb.onFlood ? 0 : 3)) { flood = B; break; }
+  pb.onFlood = false;
+  if (flood) {
+    if (petPoof(pet, S, false, true, flood.tideY - 2)) return;
+    const y = flood.tideY + 2 - pet.h;
+    if (y <= pet.y + 0.01 && !famOverlaps(pet.x, y, PET_W, pet.h)) { pet.y = Math.max(y, pet.y - 3); pet.vx = 0; pet.vy = 0; pet.onGround = false; pet.s2swim = true; pb.line = false; pb.ci = -1; pb.onFlood = true; return; }
+  }
   /* 0. a block appeared where it stands, or something put it in a pit (Hunter's save drops him next to Kinan): out at once */
   if (!pb.fly && !pb.line && (pet.y + pet.h > ROWS * T || petInGlitch(pet.x + PET_W / 2, pet.y + pet.h) || famOverlaps(pet.x, pet.y, PET_W, pet.h))) {
     let up = 0;
@@ -11018,8 +11050,20 @@ function petStep(pet, S, k, gi) {
     if (d > 0) { pet.x += (t.x - pc) / d * sp; pet.y += (t.y - feet) / d * sp; pet.face = t.x > pc + 0.3 ? 1 : t.x < pc - 0.3 ? -1 : pet.face; }
     pet.vx = 0; pet.vy = 0; pet.onGround = false;
     if (d <= 3) {
-      if (pb.ci < gi && st(pb.ci + 1) && (st(pb.ci + 1).k !== 'g' || t.k !== 'g') && petLineClear(pet, st(pb.ci + 1).x, st(pb.ci + 1).y)) pb.ci++;
+      const nx = pb.ci < gi ? st(pb.ci + 1) : null;
+      if (nx && (nx.k !== 'g' || t.k !== 'g') && petLineClear(pet, nx.x, nx.y)) pb.ci++;
       else if (t.k === 'g') { pb.line = false; pet.onGround = true; pb.safe = { x: pet.x, y: pet.y }; }
+      else if (nx && nx.k === 'g' && (pb.lineHopT = (pb.lineHopT || 0) + 1) % 10 === 1) {
+        /* the top of a ladder: Kinan hopped up onto the roof, and the straight line there cuts the roof's corner. A hop,
+           tried out first, gets the pet up there too (2026-11-11 play-test, 13-1: cat and dog hung on the top rung 6 s) */
+        const hop = petPlanHop(pet, nx.x, nx.y);
+        if (hop) {
+          const a = Object.assign({}, hop, { t: 0, to: pb.ci + 1 });
+          pb.line = false; pb.lineHopT = 0; pet.vx = a.vx; pet.vy = a.vy; pet.onGround = false; pb.hop = a; pb.still = 0;
+          petHopStep(pet, a); pet.face = a.vx >= 0 ? 1 : -1;
+          return;
+        }
+      }
     }
     if (pet.s2swim && frame % 30 === k * 7 % 30) part(pet.x + PET_W / 2, pet.y, { vx: 0, vy: -0.45, life: 30, size: 1, color: '#e6f7ff', g: -0.01 });
     return;
@@ -11035,6 +11079,11 @@ function petStep(pet, S, k, gi) {
       const key = Math.round(want) + ',' + Math.round(kfeet);
       if (pb.settleKey !== key) { pb.settleKey = key; pb.settleOk = petPlanWalk(pet, want, kfeet); }
       if (pb.settleOk) { const d = Math.max(-1.6, Math.min(1.6, want - pc)); petPhysics(pet, d, kc); pet.face = kc > pet.x + PET_W / 2 ? 1 : -1; pb.still = 0; pb.spd = 0; if (pet.onGround) pb.safe = { x: pet.x, y: pet.y }; return; }
+    } else if (pb.settleOk !== false) {
+      /* at its spot beside him: it stands there. (2026-11-12, Shad on 14-4: "violently vibrating" while a talk line held
+         Kinan: a pet at its spot used to fall through to walking his footsteps, one step towards his last footstep, and the
+         settle walked it back the next frame: a left-right flip every frame, ~500 in 15 s, whenever he stood still) */
+      petPhysics(pet, 0, kc); pb.still = 0; pb.spd = 0; if (pet.onGround) pb.safe = { x: pet.x, y: pet.y }; return;
     }
   } else pb.settleKey = null;
   if (!coming) {
@@ -11684,6 +11733,7 @@ function s2Tick(left, right, holdJump) {
   /* SWIMMING: a JUMP press is a stroke; he sinks slowly; no air limit */
   const wet = S.water.length ? s2InWater(cx, cy) : null;
   if (wet) {
+    P.s2glide = false;   /* the umbrella folds in the water (2026-11-11 play-test, 15-1: it stayed open on the bottom) */
     if (!P.s2swim) { P.s2swim = true; P.s2climb = null; P.s2ledge = null; P.s2vy = Math.min(P.vy, 2.5) * 0.5; sparks(cx, wet.y0, 10, ['#9fe0ff', '#fff']); s2Sound('splash'); }
     if (P.s2vy == null) P.s2vy = P.vy;
     let v = P.s2vy == null ? P.vy : P.s2vy;
@@ -11712,9 +11762,12 @@ function s2Tick(left, right, holdJump) {
     P.s2climb = c; input.jumpBuf = 0; P.s2ledge = null;
   }
   if (P.s2climbCd > 0) P.s2climbCd--;
+  if (c && !P.s2climb && P.onGround) s2First('climb', (c.vine ? 'VINE!' : 'LADDER!') + ' Hold JUMP to climb');   /* the first time he stands at one (2026-11-11 play-test: no hint said how) */
   if (P.s2climb) {
     const C = P.s2climb;
-    if (left || right) {   /* step off sideways (with JUMP: jump off) */
+    /* step off sideways: an arrow alone drops him off, an arrow with a fresh JUMP tap jumps off. An arrow with JUMP HELD
+       keeps climbing (2026-11-11 play-test: a kid holding ▶ and JUMP at a ladder ran straight past it) */
+    if ((left || right) && (!holdJump || input.jumpBuf > 0)) {
       P.s2climb = null; P.s2climbCd = 12; P.vx = (right ? 1 : -1) * 1.6;
       P.vy = input.jumpBuf > 0 || holdJump ? F.JUMP_V * 0.8 : 0;
       input.jumpBuf = 0; return;
@@ -11889,7 +11942,7 @@ function s2BuildWorld(a, base, s2) {
 function s2HazardTick() {
   if (P.dead || P.s2rope || P.s2bar) return;
   for (const Z of L.s2.hazards) if (P.x + P.w > Z.x0 + 2 && P.x < Z.x1 - 2 && P.y + P.h > Z.y0 + 6 && P.y < Z.y1) {
-    sparks(P.x + P.w / 2, Z.y0 + 4, 10, (S2_RISES[Z.look] || S2_RISES.glitch).bits.concat('#fff')); P.y = H + 11; return;   /* the pit rule: a heart, back to safe ground */
+    sparks(P.x + P.w / 2, Z.y0 + 4, 10, (S2_RISES[Z.look] || S2_RISES.glitch).bits.concat('#fff')); P.y = H + 11; P.s2trench = true; return;   /* the pit rule: a heart, back to safe ground */
   }
 }
 function drawS2Hazards() {
@@ -11906,6 +11959,55 @@ function s2First(key, text, col) { const S = L.s2; if (S['said_' + key]) return;
 function s2RopeAt(R) {   /* a hanging rope's sway (no one on it) */
   return Math.sin(frame / 48 + R.ax / 37) * 0.12;
 }
+/* 2026-11-12 (Shad's answer 35: "slow, natural, forgiving"; Annie found Japan's ropes too frustrating): the rope's let-go is
+   AIMED. JUMP at any moment of the swing throws Kinan on an arc that lands on the far bank of the gap under the rope (the
+   bank he faces), or into the next rope on the way, which catches him. Worked out from the game's own gravity (FEEL), so
+   the landing is where it is aimed; ◀ ▶ do not steer him off it until he lands. null: no gap under this rope (the old fling) */
+const S2_FLING_VY = -5.6;
+function s2RopeFling(R, fc) {
+  const F = feel();
+  if (F !== FEEL || !L.s2 || !R.rope) return null;
+  const Z = L.s2.hazards.find((q) => R.ax >= q.x0 - T && R.ax <= q.x1 + T && q.y0 > R.ay);
+  if (!Z) return null;
+  const cx = P.x + P.w / 2, tx = fc > 0 ? Z.x1 + 22 : Z.x0 - 22, col = Math.floor(tx / T);
+  let ty = Math.max(-(L.up | 0), Math.floor((P.y + P.h) / T));
+  while (ty < ROWS && !solid(col, ty)) ty++;
+  if (ty >= ROWS) return null;
+  const surf = ty * T;
+  /* the frames until his feet come down onto that bank: the let-go frame moves by vy0, then gravity, then the move */
+  let y = P.y + P.h, vy = S2_FLING_VY, n = 0;
+  for (; n < 240; n++) { if (n > 0) vy = Math.min(F.MAX_FALL, vy + (vy < 0 ? F.GRAV_HOLD : F.GRAV_FALL)); y += vy; if (vy > 0 && y >= surf) break; }
+  const vx = clamp((tx - cx) / (n + 1), -4.4, 4.4);
+  return { vx: Math.abs(vx) < 0.8 ? fc * 0.8 : vx, vy: S2_FLING_VY, t: n + 30 };
+}
+/* the rope drawn as a bendy rope (2026-11-12: "a stiff rope, not swinging naturally"): from its peg, bowed against the
+   swing (the middle lags behind his hands), and the end below his hands trails behind the swing and hangs down */
+function s2RopePoints(R, held, ox) {
+  const pts = [], len = R.len, x0 = R.ax - ox, y0 = R.ay;
+  if (held) {
+    const th = held.th, r = Math.min(held.r, len), om = (held.om || 0);
+    const hx = x0 + Math.sin(th) * r, hy = y0 + Math.cos(th) * r;
+    const bow = clamp(-om * 900, -9, 9) * (r / 96);   /* sideways bow of the part above his hands */
+    for (let d = 0; d <= r; d += 2) {
+      const k = d / r, s = Math.sin(Math.PI * k);
+      pts.push([x0 + (hx - x0) * k + Math.cos(th) * bow * s, y0 + (hy - y0) * k - Math.sin(th) * bow * s + s * 2]);
+    }
+    const tail = len - r, tth = th * 0.45 - clamp(om * 40, -0.6, 0.6);   /* the end below him: half as far out, lagging behind */
+    for (let d = 2; d <= tail; d += 2) {
+      const k = d / Math.max(1, tail), a = th + (tth - th) * Math.min(1, k * 1.6);
+      const p = pts[pts.length - 1]; pts.push([p[0] + Math.sin(a) * 2, p[1] + Math.cos(a) * 2]);
+    }
+  } else {
+    /* hanging free: a slow wave runs down it (the end lags behind the top), so it sways like a rope */
+    let px = x0, py = y0;
+    pts.push([px, py]);
+    for (let d = 2; d <= len; d += 2) {
+      const k = d / len, a = Math.sin(frame / 48 + R.ax / 37 - k * 1.4) * 0.12 * (0.6 + 0.8 * k);
+      px += Math.sin(a) * 2; py += Math.cos(a) * 2; pts.push([px, py]);
+    }
+  }
+  return pts;
+}
 /* the world moves: true = this frame is handled (s2Tick returns) */
 function s2WorldMoves(left, right, holdJump) {
   const S = L.s2, F = feel(), cx = P.x + P.w / 2;
@@ -11914,20 +12016,28 @@ function s2WorldMoves(left, right, holdJump) {
      its own (no pumping); ◀ ▶ only turn him; JUMP lets go at ANY moment and always throws him forward the way he faces,
      far enough to reach the next rope or the far side; ↓ just lets go. */
   if (P.s2ropeCd > 0) P.s2ropeCd--;
-  if (P.onGround) P.s2ringLast = null;
-  const ROPE_A = 0.5, ROPE_W = 6.2832 / 160;   /* swing size (radians) and speed: one swing there and back in 2.7 s */
-  const grabRope = (ax, ay, r, ring) => {
+  if (P.onGround) { P.s2ringLast = null; P.s2ropeLast = null; P.s2fling = null; }
+  /* swing size (radians) and speed. Ropes: one swing there and back in 5.3 s (2026-11-12, Shad's answer 35: half the old
+     2.7 s, "slow, natural"); the grappling hook keeps its 2.7 s. A sine swing: it eases to a stop at each end */
+  const ROPE_A = 0.5, ROPE_W = 6.2832 / 320, RING_W = 6.2832 / 160;
+  const grabRope = (ax, ay, r, ring, rope) => {
     const th = Math.atan2(cx - ax, P.y + 3 - ay);
     const ph = Math.asin(clamp(th / ROPE_A, -1, 1));
-    P.s2rope = { ax: ax, ay: ay, r: r, th: clamp(th, -ROPE_A, ROPE_A), ph: (P.face || 1) > 0 ? ph : Math.PI - ph, ring: ring, shoot: ring ? 6 : 0, t: 0 };
-    P.vx = 0; P.vy = 0; input.jumpBuf = 0; s2Sound('grab');
+    P.s2rope = { ax: ax, ay: ay, r: r, th: clamp(th, -ROPE_A, ROPE_A), ph: (P.face || 1) > 0 ? ph : Math.PI - ph, ring: ring, rope: rope || null, shoot: ring ? 6 : 0, t: 0, om: 0 };
+    P.vx = 0; P.vy = 0; input.jumpBuf = 0; P.s2fling = null; s2Sound('grab');
   };
+  /* the aimed let-go (s2RopeFling) carries him: his speed across stays the aimed one until he lands or a rope catches him */
+  if (P.s2fling && !P.s2rope) { if (--P.s2fling.t <= 0 || P.dead) P.s2fling = null; else { P.vx = P.s2fling.vx; P.s2glide = false; } }
   if (!P.s2rope && !P.onGround && !(P.s2ropeCd > 0)) {
+    /* a jump that ends near a rope grabs it (2026-11-12: a small jump dropped him in the gap): falling over a gap, a rope
+       within 2.5 tiles catches him, down to 2.5 tiles below its end */
+    const overGap = P.vy > 0 && S.hazards.some((Z) => cx > Z.x0 - 4 && cx < Z.x1 + 4);
     for (const R of S.ropes) {
+      if (R === P.s2ropeLast) continue;   /* (never the rope he just let go of, until he lands) */
       const th = s2RopeAt(R), dx = Math.sin(th), dy = Math.cos(th), hx = cx - R.ax, hy = P.y + 3 - R.ay;
       const along = hx * dx + hy * dy, off = Math.abs(hx * dy - hy * dx);
-      if (along > 6 && along < R.len + 22 && off < 20) {   /* (generous: a kid flying past the low end still catches it) */
-        grabRope(R.ax, R.ay, clamp(along, 24, R.len), false); s2First('rope', 'SWING! Tap JUMP to let go'); break; }
+      if (along > 6 && along < R.len + (overGap ? 40 : 22) && off < (overGap ? 40 : 20)) {   /* (generous: a kid flying past the low end still catches it) */
+        grabRope(R.ax, R.ay, clamp(along, 24, R.len), false, R); s2First('rope', 'SWING! Tap JUMP to let go'); break; }
     }
     if (!P.s2rope && S.rings.length && P.coyote <= 0 && !P.s2climb) {   /* JUMP near a ring hooks it; flying right past one hooks it by itself */
       let best = null, bd = 1e9;
@@ -11950,15 +12060,19 @@ function s2WorldMoves(left, right, holdJump) {
       else {   /* 2026-11-11 playthrough: a let-go on the back swing fell short 1 time in 5: the farther behind the rope he
                   is, the higher the hop (the air speed cap keeps vx), and ropes catch him a tile below their end */
         const fc = P.face || 1, behind = Math.max(0, Math.min(1, -fc * Math.sin(R.th) / 0.48));
-        P.vx = fc * 3.4; P.vy = -4.8 - 0.8 * behind; s2Sound('hup');
+        const fl = R.ring ? null : s2RopeFling(R, fc);   /* a rope over a gap: the aimed let-go (the far bank, whatever the moment) */
+        if (fl) { P.vx = fl.vx; P.vy = fl.vy; P.s2fling = { vx: fl.vx, t: fl.t }; }
+        else { P.vx = fc * 3.4; P.vy = -4.8 - 0.8 * behind; }
+        s2Sound('hup');
       }
+      if (R.rope) P.s2ropeLast = R.rope;
       P.s2rope = null; P.s2ropeCd = 14; input.jumpBuf = 0; P.cuttable = false; P.jumpT = 0;
       return false;
     }
     if (input.jumpBuf > 0) input.jumpBuf = 0;   /* (the press that hooked a ring is not also the let-go) */
     if (right && !left) P.face = 1; else if (left && !right) P.face = -1;
     const th0 = R.th;
-    R.ph += ROPE_W; R.th = ROPE_A * Math.sin(R.ph);
+    R.ph += R.ring ? RING_W : ROPE_W; R.th = ROPE_A * Math.sin(R.ph); R.om = R.th - th0;
     if (R.r > 30) R.r -= 0.4;   /* he pulls himself up the rope a little (clear of the hazard below) */
     let nx = R.ax + Math.sin(R.th) * R.r - P.w / 2, ny = R.ay + Math.cos(R.th) * R.r - 3;
     const hit = (x, y) => { for (let ty = Math.floor(y / T); ty <= Math.floor((y + P.h - 1) / T); ty++) for (let tx = Math.floor(x / T); tx <= Math.floor((x + P.w - 1) / T); tx++) if (solid(tx, ty)) return true; return false; };
@@ -12043,7 +12157,10 @@ function s2WorldMoves(left, right, holdJump) {
     if (z) {
       if (!P.s2skate) { P.s2skate = true; P.s2sk = Math.abs(P.vx); s2First('skate', 'SKATEBOARD!', '#f6c445'); }
       const d = right && !left ? 1 : left && !right ? -1 : 0;
-      if (d && d === P.face) P.s2sk = Math.min(5.0, (P.s2sk || 0) + 0.09); else if (d) P.s2sk = Math.max(0, (P.s2sk || 0) - 0.4); else P.s2sk = (P.s2sk || 0) * 0.985;
+      /* (2026-11-12: a lesson line that holds Kinan stops the board too: on 15-1's street he rolled on through Chenoa's
+         skateboard line and into the gap ahead, twice in one line) */
+      if (Story.holding()) P.s2sk = Math.max(0, (P.s2sk || 0) - 0.4);
+      else if (d && d === P.face) P.s2sk = Math.min(5.0, (P.s2sk || 0) + 0.09); else if (d) P.s2sk = Math.max(0, (P.s2sk || 0) - 0.4); else P.s2sk = (P.s2sk || 0) * 0.985;
       P.vx = (d || P.face) * P.s2sk;
       if (P.s2sk > 3 && frame % 4 === 0) part(cx - P.face * 6, P.y + P.h, { vx: -P.face * 0.6, vy: -0.2, life: 10, size: 1, color: 'rgba(255,255,255,.7)', g: 0 });
     } else if (P.onGround) P.s2skate = false;
@@ -12139,9 +12256,13 @@ function drawS2World() {
   const held = P.s2rope && !P.s2rope.ring ? P.s2rope : null;
   for (const R of S.ropes) {
     const x = R.ax - ox; if (x < -80 || x > W + 80) continue;
-    const on = held && held.ax === R.ax && held.ay === R.ay, th = on ? held.th : s2RopeAt(R), len = R.len;
+    const on = held && held.ax === R.ax && held.ay === R.ay;
+    /* a bendy rope (2026-11-12): a dark edge, then the strands, with a twist mark every few pixels and a knot at the end */
+    const pts = s2RopePoints(R, on ? held : null, ox);
+    ctx.fillStyle = '#3a2412'; for (const p of pts) ctx.fillRect(Math.round(p[0]) - 2, Math.round(p[1]) - 1, 4, 4);
+    pts.forEach((p, i) => { ctx.fillStyle = (i >> 1) % 2 ? '#c9a26a' : '#a8824a'; ctx.fillRect(Math.round(p[0]) - 1, Math.round(p[1]), 2, 2); });
+    const e = pts[pts.length - 1]; ctx.fillStyle = '#3a2412'; ctx.fillRect(Math.round(e[0]) - 3, Math.round(e[1]) - 1, 6, 5); ctx.fillStyle = '#a8824a'; ctx.fillRect(Math.round(e[0]) - 2, Math.round(e[1]), 4, 3);
     ctx.fillStyle = '#5b3a1e'; ctx.fillRect(x - 4, R.ay - 3, 8, 4);
-    for (let d = 0; d < len; d += 3) { const px = x + Math.sin(th) * d, py = R.ay + Math.cos(th) * d; ctx.fillStyle = (d / 3) % 2 ? '#c9a26a' : '#a8824a'; ctx.fillRect(Math.round(px) - 1, Math.round(py), 3, 3); }
   }
   if (P.s2rope && P.s2rope.ring) {   /* the grappling hook's line */
     const R = P.s2rope, hx = P.x + P.w / 2 - ox, hy = P.y + 3, k = R.shoot > 0 ? 1 - R.shoot / 6 : 1;
@@ -12208,15 +12329,20 @@ const S2_SUMMIT_SHOTS = { samurai: ['#ffb3d0', '#ffd6e6'], crab: ['rgba(230,247,
 /* the flashlight's beam in a dark place (India): a cone the way he faces, a small glow round him */
 function s2TorchDark(a, b, ox) {
   const cx = P.x + P.w / 2 - ox, cy = P.y + P.h / 2, d = P.face || 1, L1 = 170, sp = 0.42;
+  /* the dark part's slice of the screen, minus the glow and the beam: each is cut out with its own clip (a big box with the
+     shape inside, even-odd), so a glow or beam outside the slice is never painted dark (2026-11-11 play-test: 12-5's lit climb
+     showed a black ball over Kinan with a grey cone) and the beam's start inside the glow stays lit */
   ctx.save();
-  ctx.beginPath(); ctx.rect(a, camY - 4, b - a, H + 8);
-  ctx.moveTo(cx + 30, cy); ctx.arc(cx, cy, 30, 0, 6.284, true);
-  ctx.moveTo(cx, cy - 4); ctx.lineTo(cx + d * L1, cy - L1 * sp); ctx.lineTo(cx + d * L1, cy + L1 * sp); ctx.lineTo(cx, cy + 4); ctx.closePath();
-  ctx.fillStyle = 'rgba(6,6,18,.86)'; ctx.fill('evenodd');
+  ctx.beginPath(); ctx.rect(cx - 4000, cy - 4000, 8000, 8000); ctx.moveTo(cx + 30, cy); ctx.arc(cx, cy, 30, 0, 6.284, true); ctx.clip('evenodd');
+  ctx.beginPath(); ctx.rect(cx - 4000, cy - 4000, 8000, 8000);
+  ctx.moveTo(cx, cy - 4); ctx.lineTo(cx + d * L1, cy - L1 * sp); ctx.lineTo(cx + d * L1, cy + L1 * sp); ctx.lineTo(cx, cy + 4); ctx.closePath(); ctx.clip('evenodd');
+  ctx.fillStyle = 'rgba(6,6,18,.86)'; ctx.fillRect(a, camY - 4, b - a, H + 8);
   ctx.restore();
   const g = ctx.createLinearGradient(cx, cy, cx + d * L1, cy);
   g.addColorStop(0, 'rgba(255,240,170,.22)'); g.addColorStop(1, 'rgba(255,240,170,0)');
+  ctx.save(); ctx.beginPath(); ctx.rect(a, camY - 4, b - a, H + 8); ctx.clip();   /* the beam's glow only where it is dark */
   ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(cx, cy - 4); ctx.lineTo(cx + d * L1, cy - L1 * sp); ctx.lineTo(cx + d * L1, cy + L1 * sp); ctx.lineTo(cx, cy + 4); ctx.closePath(); ctx.fill();
+  ctx.restore();
 }
 /* each world's candles are its own treat (Shad: food and festivals) */
 function s2TreatDraw(kind, sx, y) {
@@ -12292,7 +12418,15 @@ function s2BuildMore(a, base, s2) {
   }
 }
 function s2Gate(col, r0, r1, shut) { const up = L.up | 0; for (let r = r0; r <= r1; r++) { const i = (r + up) * L.w + col; if (i >= 0 && i < L.g.length) L.g[i] = shut ? 5 : 0; } }
-const s2GoalLocked = () => !!(L.s2 && L.s2.bosses.some((b) => b.lockGoal && (b.state !== 'friend' || (b.after && b.after.length && b.talkIds && b.talkIds.some((id) => Story.has(id))))));   /* and the rescue lines are said first (or tapped through) */
+/* THE RESCUE TALK AT THE TOP (2026-11-12, Shad's answer 36: "same talk, shorter wait"): every line is still said, but the
+   way to the goal opens once the creature's line and the first S2_RESCUE_MAIN rescue lines are said (13-castle kept Kinan
+   at the gate over a minute); the rest keep playing as he walks on to the flag and through the LEVEL CLEAR lap (the lap
+   waits for them: on the map a cutscene or the next level would cut them off). While he waits, a "listen..." bubble over
+   him says why */
+const S2_RESCUE_MAIN = 2;
+const s2GoalLocked = () => !!(L.s2 && L.s2.bosses.some((b) => b.lockGoal && (b.state !== 'friend' || (b.after && b.after.length && b.talkIds && b.talkIds.slice(0, 1 + S2_RESCUE_MAIN).some((id) => Story.has(id))))));   /* and the main rescue lines are said first (or tapped through) */
+const s2TalkLocked = () => !!(L && L.s2 && !L.cleared && L.s2.bosses.some((b) => b.lockGoal && b.state === 'friend') && s2GoalLocked());   /* waiting at the top for the main rescue lines */
+const s2RescueTalking = () => !!(L && L.s2 && L.s2.bosses.some((b) => b.lockGoal && b.state === 'friend' && b.after && b.after.length && b.talkIds && b.talkIds.some((id) => Story.has(id))));
 /* a Season 2 line said in the moment (a boss, Glitchy's tip, Sabumnim): it joins the same line queue as everyone else
    (Shad's audit: two people must never talk at once, and every line is heard: subtitle and voice), ahead of what waits */
 let s2LineN = 0;
@@ -12430,20 +12564,22 @@ function s2TideTick(B) {
   if (B.state === 'crab') s2CrabTick(B);
   if (B.state === 'friend') B.tideY = Math.min(B.bottom + 40, B.tideY + 2.2);
 }
-function s2CrabStart(B) {
+function s2CrabStart(B, again) {
   B.crab = { x: B.cx1 - 40, w: 30, h: 20, dir: -1, st: 'enter', t: 70, rise: 0 };
   s2Gate(B.gateCol, B.gateTop, Math.round(B.summitY / T) - 1, true);
-  s2Say(S2_SUMMITS[B.summit].who, S2_SUMMITS[B.summit].start, 2.6);
+  if (!again) s2Say(S2_SUMMITS[B.summit].who, S2_SUMMITS[B.summit].start, 2.6);   /* (a fight started over at the summit: no second hello) */
   AudioSys.tone(110, 0.5, { type: 'sawtooth', vol: 0.08, slide: 70 });
 }
 function s2CrabBox(B) { const c = B.crab; return { x: c.x, y: B.summitY - c.h + (c.st === 'enter' ? Math.round(c.h * (c.t / 70)) : 0), w: c.w, h: c.h }; }
 function s2CrabTick(B) {
   const c = B.crab, ph = Math.min(3, B.hits), TELL = [46, 40, 36, 34][ph], SPD = [2.7, 3.2, 3.7, 4.1][ph], TIRED = [84, 70, 58, 50][ph];   /* 4 stomps (Shad: "too easy") */
-  const lo = B.cx0 + 2, hi = B.cx1 - c.w - 2;
+  /* (2026-11-12, Shad's answer 37: it could not reach the summit's far-left tile, nor the tile by the shut gate, so standing
+     there won every fight. Now it walks and charges from wall to gate; a charge is still shown first, and a jump clears it) */
+  const lo = B.x0 + 1, hi = B.gateCol * T - c.w - 1;
   for (const q of B.bubbles) { q.x += q.vx; q.vy += 0.08; q.y += q.vy; q.t++; if (overlap(P, { x: q.x - 4, y: q.y - 4, w: 8, h: 8 })) { hurt({ x: q.x, y: q.y }); q.dead = 1; } else if (q.y > B.summitY - 2 || q.t > 200) { q.dead = 1; part(q.x, q.y, { vx: 0, vy: -0.4, life: 14, size: 2, color: '#e6f7ff', g: 0 }); } }
   B.bubbles = B.bubbles.filter((q) => !q.dead);
   for (const w of B.waves) { w.x += w.vx; w.t++; if (Math.abs(P.x + P.w / 2 - w.x) < 7 && P.y + P.h > B.summitY - 9) hurt({ x: w.x, y: B.summitY }); }
-  B.waves = B.waves.filter((w) => w.t < 90 && w.x > B.cx0 && w.x < B.cx1);
+  B.waves = B.waves.filter((w) => w.t < 90 && w.x > B.x0 && w.x < B.gateCol * T);   /* (the whole summit: a slam at a wall still sends its shockwave) */
   c.t--;
   const toK = Math.sign(P.x + P.w / 2 - (c.x + c.w / 2)) || 1;
   if (c.st === 'enter') { if (c.t <= 0) { c.st = 'walk'; c.t = 70; } return; }
@@ -12478,19 +12614,28 @@ function s2CrabTick(B) {
   } else if (hit === 1 && c.st !== 'tired') { P.vy = -5; hurt({ x: c.x + c.w / 2, y: B.summitY }); }
   else if (hit === -1 && c.st !== 'tired') hurt({ x: c.x + c.w / 2, y: B.summitY });
 }
-/* a fall or a lost fight: back at the checkpoint, the fight starts fresh (the gates open again) */
+/* a fall or a lost fight: back at the checkpoint, the fight starts fresh (the gates open again). A lost SUMMIT fight
+   (2026-11-12, Shad's answer 37: it sent Kinan back to the bottom of the tower, the flood and the whole climb again) starts
+   over at the summit: Kinan stands at its left end, the creature comes in again, 4 stomps. Returns that spot, or null */
 function s2Respawn() {
-  P.s2rope = null; P.s2bar = null; P.s2dash = 0; P.s2glide = false;
+  P.s2rope = null; P.s2bar = null; P.s2dash = 0; P.s2glide = false; P.s2fling = null;
   const S = L.s2, x = L.deathX != null ? L.deathX : P.x;
   const k = L.areas ? Math.max(0, L.areas.findIndex((a) => x >= a.from * T && x < a.to * T)) : 0;
   S.stats.deaths[k] = (S.stats.deaths[k] || 0) + 1;
+  let spot = null;
   for (const B of S.bosses) {
     if (B.state === 'friend' || B.state === 'wait' || B.state === 'done') continue;
+    if (B.kind === 'tide' && B.state === 'crab' && B.crab) {
+      B.hits = 0; B.bubbles = []; B.waves = []; B.hitCd = 0; s2CrabStart(B, true);
+      spot = { x: B.x0 + T + 3, y: B.summitY - P.h };
+      continue;
+    }
     if (B.kind === 'chase') { B.state = 'wait'; B.wallX = -999; Music.play('stage'); continue; }
     if (B.kind === 'mole') { s2Gate(B.gateL, B.rTop, B.rBot, false); s2Gate(B.gateR, B.rTop, B.rBot, false); B.state = 'wait'; B.hits = 0; B.rocks = []; B.drops = []; B.hole = null; }
     else { if (B.crab) s2Gate(B.gateCol, B.gateTop, Math.round(B.summitY / T) - 1, false); B.state = 'wait'; B.hits = 0; B.crab = null; B.bubbles = []; B.waves = []; B.tideY = B.bottom + 40; }
     Music.play('stage');
   }
+  return spot;
 }
 function s2CamSnap() { camY = clamp(Math.round(P.y + P.h / 2 - H * 0.55), camTopY(), 0); }
 /* the bosses, the tide, the flags and the dark (over everything in the level) */
@@ -12566,6 +12711,22 @@ function drawS2Bosses() {
     ctx.fillStyle = g; ctx.fillRect(a, camY - 4, b - a, H + 8);
   }
   if (S.warps.length) drawS2Hints();   /* the pipe / chute / door bubbles, over the dark */
+  drawS2Listen();
+}
+/* "listen..." over Kinan while the talk keeps him waiting (2026-11-12, Shad's answers 36-37): a small bubble with dots that
+   fill one by one, so a kid can see the game has not frozen: at the top of a castle while the rescue lines are said, and
+   while a lesson line holds him (Sabumnim's video calls, a new tool: 13-1's call kept him still ~8 s with nothing on him) */
+function drawS2Listen() {
+  if (!P || P.dead || !(s2TalkLocked() || Story.holding())) return;
+  window.__k11Listen = frame;   /* (dev: the frame it was last drawn, for the checks) */
+  const cx = Math.round(P.x + P.w / 2 - camX), top = Math.round(P.y) - 24 + Math.round(Math.sin(frame / 10)), dots = '...'.slice(0, 1 + Math.floor(frame / 20) % 3);
+  ctx.font = "700 8px 'Pixelify Sans', monospace";
+  const tw = Math.round(ctx.measureText('LISTEN...').width) + 8;   /* (capitals: the thin l and i of "listen" blurred into one blob at this size) */
+  ctx.fillStyle = '#1b1220'; ctx.fillRect(cx - (tw >> 1) - 1, top - 1, tw + 2, 13); ctx.fillRect(cx - 3, top + 11, 6, 4);
+  ctx.fillStyle = '#f4f1e8'; ctx.fillRect(cx - (tw >> 1), top, tw, 11); ctx.fillRect(cx - 2, top + 11, 4, 3);
+  ctx.fillStyle = '#1b1220'; ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+  ctx.fillText('LISTEN' + dots, cx - (tw >> 1) + 4, top + 2);
+  ctx.textBaseline = 'alphabetic';
 }
 function s2Pips(B, n) {   /* the boss's hits left, as pips above the action */
   const x = W / 2 - n * 7 + Math.round(camX), y = camY + 30;
@@ -12956,9 +13117,15 @@ function updateFoes() {
         f.x += (f.vx || -0.75) * 1.6; f.y -= 1.1;
         if (f.y < -30) { f.alive = false; f.dead = 20; continue; }
       } else {
+        const ox = f.x, oy = f.y;
         f.x += f.vx;
       if (Math.abs(f.x - f.originX) > 78) f.vx = -f.vx;
       f.y = f.baseY + Math.sin(f.t / 22) * 13;
+      if (L.s2) {   /* Season 2: a bird, a kite or a fish turns at a wall or a pool's bank instead of flying or swimming into it
+                       (2026-11-11 sweep: fish inside the stone banks of 15 pools, a kite inside 12-5's rock) */
+        const inWall = (x, y) => { for (let ty = Math.floor((y + 2) / T); ty <= Math.floor((y + f.h - 3) / T); ty++) for (let tx = Math.floor((x + 2) / T); tx <= Math.floor((x + f.w - 3) / T); tx++) if (solid(tx, ty)) return true; return false; };
+        if (!inWall(ox, oy)) { if (inWall(f.x, oy)) { f.x = ox; f.vx = -f.vx; } if (inWall(f.x, f.y)) f.y = oy; }
+      }
       if (f.def.drone) droneTick(f);   /* World 9: Annie's scanner and deletion drones */
       if (f.def.drips && f.t % 100 === 0 && Math.abs(P.x - f.x) < 140) shots.push({ x: f.x + 5, y: f.y + 12, w: 3, h: 5, vx: 0, vy: 0.6, g: 0.12, life: 160, kind: 'drop' });   /* a rain cloud drips on you */
       }
@@ -12997,6 +13164,11 @@ function updateFoes() {
         }
       }
       if (f.baseVx == null) f.baseVx = f.vx;
+      if (L.s2 && L.s2.hazards.length && f.vx) {   /* Season 2: a walker (or a charge, or a hop) turns at a trench's edge instead of
+                                                     walking down into the glitch or the lava (2026-11-11 sweep: 32 spots) */
+        const nx = f.x + f.vx, feet = f.y + f.h;
+        if (L.s2.hazards.some((Z) => nx + f.w > Z.x0 && nx < Z.x1 && feet <= Z.y0 + 2 && !(f.x + f.w > Z.x0 && f.x < Z.x1))) { f.vx = -f.vx; f.charge = 0; if (beh === 'charger') f.baseVx = f.vx; }
+      }
       const spd = f.vx;
       const wetF = L.s2 && L.s2.water.length && s2InWater(f.x + f.w / 2, f.y + f.h / 2);
       if (wetF) {   /* Season 2 (Shad: "the frog falls straight down ... it should swim up and down"): in water a foe paddles: it sinks slowly and strokes up now and then (a hopper on its hop beat) */
@@ -14010,7 +14182,8 @@ function update() {
   if (L.goal && boss === 'off' && !(L.s2 && s2GoalLocked())) {   /* Season 2: a boss that guards the goal must be a friend first */
     if (!L.cleared) { if (P.x + P.w / 2 >= L.goal.x && (!L.s2 || P.y + P.h <= (L.goal.ty + 2) * T)) levelClear(); }   /* Season 2: a goal up high (a climb's top) is reached up there, not under it */
     /* B1: after a boss, the lap waits (up to 8 s more) while the befriended boss finishes the last line */
-    else if (!L.returned && ++L.clearT >= LEVEL_CLEAR_FRAMES && !(L.arena && (L.arena.line || L.arena.lineQ.length) && L.clearT < LEVEL_CLEAR_FRAMES + 480)) { levelReturn(); return; }
+    else if (!L.returned && ++L.clearT >= LEVEL_CLEAR_FRAMES && !(L.arena && (L.arena.line || L.arena.lineQ.length) && L.clearT < LEVEL_CLEAR_FRAMES + 480)
+      && !(L.s2 && s2RescueTalking() && L.clearT < LEVEL_CLEAR_FRAMES + 3600)) { levelReturn(); return; }   /* (Season 2: a castle's last rescue lines finish on the LEVEL CLEAR lap) */
   }
   if (boss === 'off' && P.x > (L.arenaX + 3) * T && (!L.up || P.y > (GROUND - 7) * T)) { startBoss(); return; }   /* a tall level of his own: from down at the arena, not from a walkway up high */
   if (boss === 'fight') {
@@ -29394,6 +29567,29 @@ moveFromLink();   /* a Move-my-save QR code opened the game: its code waits in "
 try {
   if (sessionStorage.getItem('kinan-return') === 'map') { sessionStorage.removeItem('kinan-return'); worldMapScreen(); }
 } catch (e) { /* storage blocked: the title screen it is */ }
+/* A LINK STRAIGHT TO ONE COUNTRY (Shad, 2026-11-12, launch answer 38, "Annie's link"): ...?world=13 opens the game straight onto
+   Japan's map with Japan's first level ready, on this device's own save; ?world=12, 14 and 15 do the same for India, Mexico and
+   France. The worlds before it count as beaten (added to the save: nothing it already has is lost, not its levels, candles or
+   pets), the World 11 ending is not shown, and Kinan stands on that world's map (where he stood in it, else its first stop): a
+   save already further along just opens that map. The link works once per visit: ?world then leaves the address, so a reload
+   or the way back from a 3D level never moves him again. (Annie's World 9 link, ?world=9&guest=annie, is GUEST, its own save.) */
+const WORLD_LINK = (() => { if (GUEST) return 0; try { const n = Number(new URLSearchParams(location.search).get('world')); return Number.isInteger(n) && n >= 12 && n <= 15 ? n : 0; } catch (e) { return 0; } })();
+function worldLinkOpen() {
+  const n = WORLD_LINK, K = window.KinanLevels;
+  if (!n || !K) return;
+  const lb = progress.levelsBeaten = progress.levelsBeaten || {}, un = progress.unlockedLevels = progress.unlockedLevels || [];
+  K.list().forEach((id) => { const d = K.get(id); if (d && d.world >= 1 && d.world < n) { lb[id] = 1; if (/-secret$/.test(id) && un.indexOf(id) < 0) un.push(id); } });
+  progress.introSeen = true; progress.endingSeen = true; progress.s2EndingDue = false;
+  progress.escapes = progress.escapes || {}; for (let k = 1; k <= 10; k++) progress.escapes[k] = 1;
+  progress.glitchyTeam = true; progress.worldsName = true; progress.blackBelt = true;   /* as after the 11-castle (the black belt comes just before it) */
+  progress.beltSeen = Math.max(Number(progress.beltSeen) || 0, BELT_BLACK);
+  if (!progress.wmap || progress.wmap.w !== n) progress.wmap = { w: n, at: 0 };
+  save();
+  try { const q = new URLSearchParams(location.search); q.delete('world'); history.replaceState(history.state, '', location.pathname + (q.toString() ? '?' + q.toString() : '') + location.hash); } catch (e) { /* the address keeps ?world */ }
+  applyGameName();
+  if (!running && el.stage.hidden && !Cut.on && !menuIsOpen()) worldMapScreen();
+}
+if (WORLD_LINK && window.KinanLevels) KinanLevels.whenReady(worldLinkOpen);
 /* a shared room link (…?smash=ABCD) opens the join screen with the code filled in */
 const SMASH_LINK = (new URLSearchParams(location.search).get('smash') || '').toUpperCase().replace(/[^A-Z]/g, '');
 if (SMASH_LINK.length === 4) smashOnlineScreen(SMASH_LINK);
@@ -30066,14 +30262,16 @@ window.__k11 = window.__k11DevOnly() ? {
   },
   paint: (tx, ty, t) => { if (L) L.g[(ty + (L.up | 0)) * L.w + tx] = t || 0; return tileAt(tx, ty); },
   /* the overworld map (docs/OVERWORLD-MAP.md): open it, read it, walk it */
-  worldMap: () => { worldMapScreen(); return true; },
+  worldMap: (o) => { worldMapScreen(o); return true; },   /* o: what a LEVEL CLEAR passes (beatLevel's result: its ending, notice ...) */
   mapState: () => (window.KINAN && window.KINAN.state ? window.KINAN.state() : { mounted: false }),
   mapGo: (dir) => { if (window.KINAN) window.KINAN.go(dir); return window.KINAN ? window.KINAN.state() : null; },
   mapPlay: () => { if (window.KINAN) window.KINAN.play(); return window.KINAN ? window.KINAN.state() : null; },
   mapWarp: (n, at) => (window.KINAN && window.KINAN.warp ? window.KINAN.warp(n, at) : null),
   /* the worlds this build has released (OW_RELEASED): owRelease(12) opens every world's map for a test (this tab's session) */
-  owRelease: (n) => { owReleased = clamp(Math.floor(Number(n)) || OW_RELEASED, 1, 12); try { sessionStorage.setItem('kv-ow-release', String(owReleased)); } catch (e) {} if (window.KINAN && window.KINAN.refresh) window.KINAN.refresh(); refreshTitlePlaySub(); return owReleased; },
-  owLevelFile: (id) => OW_3D_LEVELS[id] || null,   /* which 3D level file a World 12 stop opens */
+  owRelease: (n) => { owReleased = clamp(Math.floor(Number(n)) || OW_RELEASED, 1, 15); try { sessionStorage.setItem('kv-ow-release', String(owReleased)); } catch (e) {} if (window.KINAN && window.KINAN.refresh) window.KINAN.refresh(); refreshTitlePlaySub(); return owReleased; },
+  owLevelFile: (id) => OW_3D_LEVELS[id] || null,   /* which 3D level file a 3D bonus stop opens */
+  /* the 3D bonus: bonus3dFull(true) opens all of 3D Saskatoon in order with the memory gallery (this tab's session), (false) the four */
+  bonus3dFull: (on) => { if (on !== undefined) { owBonusFull = !!on; try { sessionStorage.setItem('kv-3d-full', owBonusFull ? '1' : '0'); } catch (e) {} if (window.KINAN && window.KINAN.refresh) window.KINAN.refresh(); } return owBonusFull; },
   galleryOpen: galleryOpen,
   /* CUTSCENES: what plays now; cutSpeed(n) runs them n times faster (tests); cutSkip() = a tap */
   cut: () => Cut.state(),
@@ -30081,8 +30279,8 @@ window.__k11 = window.__k11DevOnly() ? {
   cutSkip: () => { cutSkip(); return Cut.state(); },
   /* World 11: the ending (its beats, lines and credits), the game's name, Glitchy on the team; endingPlay() replays it */
   ending: () => ({ name: gameName(), label: gameLabel(), title: document.title, worldsName: !!progress.worldsName, glitchyTeam: !!progress.glitchyTeam, endingSeen: !!progress.endingSeen,
-    beats: END_BEATS.map((b) => b.name), lines: Object.keys(END_LINES).map((id) => [id, END_LINES[id][0], END_LINES[id][1]]), credits: END_CREDITS.map((c) => c[0]),
-    peek: END_PEEK[0] + ': ' + END_PEEK[1] + ' ' + END_PEEK[2], peekOn: owPeek12(),
+    beats: S2_END_BEATS.map((b) => b.name), lines: Object.keys(END_LINES).map((id) => [id, END_LINES[id][0], END_LINES[id][1]]), credits: END_CREDITS.map((c) => c[0]),
+    card: S2_END_CARD.join(' · '), finalCard: S2_FINAL_CARD.join(' · '), s2EndingDue: !!progress.s2EndingDue,
     menuBtn: !!document.getElementById('endingBtn') && !document.getElementById('endingBtn').hidden }),
   endingPlay: () => cutEnding({ replay: true }),
   /* THE MENU: open / page; kofi(url) sets the Ko-fi link for a test ('' = not set) and returns it */
