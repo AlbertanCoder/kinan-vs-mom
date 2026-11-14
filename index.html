@@ -136,6 +136,30 @@ html.canfs .keys::after,html.canfs .mhint::after{content:' · F full screen'}
 .pad.dpad2 .dpad [data-k="up"]:not(.useful),.pad.dpad2 .dpad [data-k="down"]:not(.useful){color:rgba(255,255,255,.38)!important}
 .pad.dpad2 .dpad .useful{color:#7be3a3!important;text-shadow:0 0 8px rgba(123,227,163,.9),0 2px 0 rgba(0,0,0,.6)!important}
 .pad.dpad2 #slamBtn{display:none!important}
+
+/* THE FLOATING D-PAD (Shad 2026-11-14: "very little screen left"): in Worlds 12-15 the cross is not drawn over the game.
+   A small faint cross rests in the corner; a thumb anywhere on the left part of the screen brings it right under the
+   thumb (slide toward an arrow), a thumb on the faint cross works like a d-pad. JUMP and KICK smaller, see-through until
+   pressed. The talk is a thin line at the top of the picture */
+.pad .fzone,.pad .fpad{display:none}
+.pad.dpad2 .dpad{visibility:hidden;pointer-events:none}
+.pad.dpad2 .fzone{display:block;position:fixed;left:0;top:24vh;width:46vw;bottom:0;pointer-events:auto;z-index:1;touch-action:none}
+.pad.dpad2 .fpad{display:block;position:fixed;left:14px;bottom:max(12px,env(safe-area-inset-bottom,0px));width:118px;height:118px;pointer-events:none;z-index:2;opacity:.32;transition:opacity .15s}
+.pad.dpad2 .fpad.on{opacity:.95;transition:none}
+.fpad i,.fpad b{position:absolute;display:flex;align-items:center;justify-content:center;box-sizing:border-box;background:rgba(14,16,44,.5);border:3px solid rgba(255,255,255,.75);color:#fff;font-style:normal;font-weight:800;font-size:17px;text-shadow:0 2px 0 rgba(0,0,0,.6)}
+.fpad b{left:35%;top:35%;width:30%;height:30%;border:none}
+.fpad [data-f="up"]{left:35%;top:0;width:30%;height:36%;border-bottom:0;border-radius:12px 12px 0 0}
+.fpad [data-f="down"]{left:35%;bottom:0;width:30%;height:36%;border-top:0;border-radius:0 0 12px 12px}
+.fpad [data-f="left"]{left:0;top:35%;width:36%;height:30%;border-right:0;border-radius:12px 0 0 12px}
+.fpad [data-f="right"]{right:0;top:35%;width:36%;height:30%;border-left:0;border-radius:0 12px 12px 0}
+.fpad i.held{background:rgba(246,196,69,.55)}
+.fpad [data-f="up"]:not(.useful),.fpad [data-f="down"]:not(.useful){color:rgba(255,255,255,.4)}
+.fpad .useful{color:#7be3a3;text-shadow:0 0 8px rgba(123,227,163,.9),0 2px 0 rgba(0,0,0,.6)}
+html.sideways:not(.kartpad) .pad.dpad2:not(.smashpad) .acts button.jump{width:clamp(72px,10vw,112px);height:clamp(72px,10vw,112px);opacity:.55}
+html.sideways:not(.kartpad) .pad.dpad2:not(.smashpad) .acts button.pow,html.sideways:not(.kartpad) .pad.dpad2:not(.smashpad) .acts button.spec{width:clamp(50px,6.6vw,78px);height:clamp(50px,6.6vw,78px);opacity:.5;font-size:11px}
+html.sideways:not(.kartpad) .pad.dpad2:not(.smashpad) .acts button.held{opacity:.95}
+.stage.s2play .bossline{top:4px;bottom:auto!important;font-size:11px;padding:2px 9px;line-height:1.25;max-width:min(78%,620px)!important}
+html.sideways .stage.s2play .bossline{top:40px;max-width:min(84%,680px)!important}   /* (sideways the HUD bar sits over the picture's top: the line goes just under it) */
 /* Worlds 12-15, holding a rope (2026-11-14): ▲ ▼ climb it, beside ◀ ▶ */
 .pad.ropepad .dpad .smashonly{display:block}.pad.ropepad .dpad{grid-template-columns:1fr .8fr 1fr;grid-template-rows:1fr 1fr}.pad.ropepad .dpad [data-k="left"]{grid-column:1;grid-row:1/3}.pad.ropepad .dpad [data-k="up"]{grid-column:2;grid-row:1;min-height:36px;font-size:18px}.pad.ropepad .dpad [data-k="down"]{grid-column:2;grid-row:2;min-height:36px;font-size:18px}.pad.ropepad .dpad [data-k="right"]{grid-column:3;grid-row:1/3}   /* ◀ [▲ over ▼] ▶ (Shad 2026-11-14) */
 .pad .kartonly{display:none}html.kartpad .pad .kartonly{display:block}
@@ -348,6 +372,7 @@ html.uprightplay .pad button{min-height:84px;height:84px;font-size:22px}
 html.uprightplay .pad button.jump{font-size:17px}
 html.uprightplay .pad button.pow{font-size:15px}
 html.uprightplay .pad.dpad2 .dpad{height:auto;aspect-ratio:1.3;align-self:end}html.uprightplay .pad.dpad2 .dpad button{min-height:0;height:auto}
+html:not(.sideways) .pad.dpad2 .fzone{top:auto;height:44vh}html:not(.sideways) .pad.dpad2 .fpad{width:150px;height:150px;left:6vw;bottom:calc(9vh + env(safe-area-inset-bottom,0px));opacity:.6}html:not(.sideways) .pad.dpad2 .fpad i{font-size:22px}
 html.uprightplay .pad.ropepad .dpad{grid-template-rows:38px 38px;align-content:end}html.uprightplay .pad.ropepad .dpad [data-k="up"],html.uprightplay .pad.ropepad .dpad [data-k="down"]{min-height:38px;height:38px;font-size:18px}   /* (on a rope: ▲ over ▼, together as tall as ◀ ▶) */
 html.sideways .pad button.pow:not(:disabled){opacity:.85}
 html.sideways .pad.smashpad .dpad,html.sideways .pad.ropepad .dpad{display:grid;grid-template-columns:auto auto auto;grid-template-rows:auto auto;gap:6px;align-items:center}
@@ -900,6 +925,8 @@ html.nosubs #storyLine,html.nosubs #storyLineMap,html.nosubs #bossLine,html.nosu
       <button class="win smashonly" type="button" data-k="down" aria-label="Aim down">▼</button>
       <div class="dhub" aria-hidden="true"></div>
     </div>
+    <div class="fzone" aria-hidden="true"></div>
+    <div class="fpad" aria-hidden="true"><i data-f="up">▲</i><i data-f="left">◀</i><i data-f="right">▶</i><i data-f="down">▼</i><b></b></div>
     <div class="acts">
       <button class="win spec" type="button" data-k="special" id="specBtn" aria-label="Special move" hidden disabled>★</button>
       <button class="win spec" type="button" data-k="friend" id="friendBtn" aria-label="Friend Assist" hidden disabled>FRIEND</button>
@@ -8601,16 +8628,6 @@ function bindPad() {
     });
     return best;
   };
-  /* the Season 2 cross: a thumb anywhere round it picks the arrow it points at (◀ ▶ get the wider wedges: running is most of
-     the game; a thumb on the middle keeps what it holds); far outside the cross: nothing */
-  const dpadPick = (x, y) => {
-    if (!pad.classList.contains('dpad2')) return null;
-    const g = pad.querySelector('.dpad'), r = g && g.getBoundingClientRect(); if (!r || !r.width) return null;
-    const dx = x - (r.left + r.width / 2), dy = y - (r.top + r.height / 2), d = Math.hypot(dx, dy);
-    if (d > Math.max(r.width, r.height) * 0.72 || d < Math.min(r.width, r.height) * 0.08) return null;
-    const k = Math.abs(dx) >= Math.abs(dy) * 0.75 ? (dx < 0 ? 'left' : 'right') : (dy < 0 ? 'up' : 'down');
-    return g.querySelector('[data-k="' + k + '"]');
-  };
   const heldBy = (b) => [...fingers.values()].some((f) => f.b === b);
   const hold = (id, b) => {
     const f = fingers.get(id), was = f ? f.b : null;
@@ -8619,9 +8636,32 @@ function bindPad() {
     if (was && !heldBy(was)) { was.classList.remove('held'); actionUp(was.dataset.k); }
     if (b && [...fingers.values()].filter((g) => g.b === b).length === 1) { b.classList.add('held'); actionDown(b.dataset.k); buzz(8); }
   };
+  /* the floating cross: a thumb on its zone; the arrow is the way the thumb points from the cross's middle (◀ ▶ get the
+     wider wedges); a thumb that slides past the cross's edge drags the cross along, so it can never run off it */
+  const fpad = pad.querySelector('.fpad');
+  const dBtn = (k) => pad.querySelector('.dpad [data-k="' + k + '"]');
+  const fShow = (f) => { const r = fpad.getBoundingClientRect(); fpad.style.left = (f.cx - r.width / 2) + 'px'; fpad.style.top = (f.cy - r.height / 2) + 'px'; fpad.style.bottom = 'auto'; fpad.classList.add('on'); };
+  const fRest = () => { fpad.classList.remove('on'); fpad.style.left = fpad.style.top = fpad.style.bottom = ''; fpad.querySelectorAll('i').forEach((i) => i.classList.remove('held')); };
+  const fAim = (id, f, x, y) => {
+    const R = fpad.getBoundingClientRect().width / 2, dz = R * 0.2;
+    let dx = x - f.cx, dy = y - f.cy, d = Math.hypot(dx, dy);
+    if (d > R) { f.cx += dx * (1 - R / d); f.cy += dy * (1 - R / d); dx = x - f.cx; dy = y - f.cy; d = R; fShow(f); }
+    const k = d < dz ? null : Math.abs(dx) >= Math.abs(dy) * 0.75 ? (dx < 0 ? 'left' : 'right') : (dy < 0 ? 'up' : 'down');
+    fpad.querySelectorAll('i').forEach((i) => i.classList.toggle('held', i.dataset.f === k));
+    hold(id, k ? dBtn(k) : null);
+  };
   pad.addEventListener('pointerdown', (e) => {
+    if (pad.classList.contains('dpad2') && e.target && e.target.closest && e.target.closest('.fzone')) {
+      e.preventDefault(); AudioSys.init();
+      try { e.target.setPointerCapture(e.pointerId); } catch (er) { /* ignore */ }
+      const r = fpad.getBoundingClientRect(), rx = r.left + r.width / 2, ry = r.top + r.height / 2;
+      const onRest = !fpad.classList.contains('on') && Math.hypot(e.clientX - rx, e.clientY - ry) < r.width * 0.62;   /* on the resting cross: a d-pad press */
+      const f = { group: null, b: null, float: true, cx: onRest ? rx : e.clientX, cy: onRest ? ry : e.clientY };
+      fingers.set(e.pointerId, f); fShow(f); fAim(e.pointerId, f, e.clientX, e.clientY);
+      return;
+    }
     const on = e.target && e.target.closest ? e.target.closest('#pad button') : null;
-    const b = dpadPick(e.clientX, e.clientY) || (on && !on.disabled ? on : nearest(e.clientX, e.clientY, null));   /* right on a button: that one; in a gap: the nearest */
+    const b = on && !on.disabled ? on : nearest(e.clientX, e.clientY, null);   /* right on a button: that one; in a gap: the nearest */
     if (!b) return;
     e.preventDefault(); AudioSys.init();
     try { e.target.setPointerCapture(e.pointerId); } catch (er) { /* ignore */ }   /* the touched button (or gap) keeps this finger's events */
@@ -8631,16 +8671,17 @@ function bindPad() {
   pad.addEventListener('pointermove', (e) => {
     const f = fingers.get(e.pointerId); if (!f) return;
     e.preventDefault();
-    const b = f.group && f.group.classList.contains('dpad') && pad.classList.contains('dpad2') ? dpadPick(e.clientX, e.clientY) : nearest(e.clientX, e.clientY, f.group);
+    if (f.float) { fAim(e.pointerId, f, e.clientX, e.clientY); return; }
+    const b = nearest(e.clientX, e.clientY, f.group);
     if (b && b !== f.b) hold(e.pointerId, b);   /* onto another button: switch; off every button: keep holding */
   });
-  const lift = (e) => { if (!fingers.has(e.pointerId)) return; hold(e.pointerId, null); fingers.delete(e.pointerId); };
+  const lift = (e) => { const f = fingers.get(e.pointerId); if (!f) return; hold(e.pointerId, null); fingers.delete(e.pointerId); if (f.float && ![...fingers.values()].some((g) => g.float)) fRest(); };
   pad.addEventListener('pointerup', lift);
   pad.addEventListener('pointercancel', lift);
   pad.addEventListener('lostpointercapture', lift);
   window.addEventListener('pointerup', lift);   /* a lift anywhere lets go, so a button can never stay stuck down */
   window.addEventListener('pointercancel', lift);
-  window.addEventListener('blur', () => { [...fingers.keys()].forEach((id) => { hold(id, null); fingers.delete(id); }); });
+  window.addEventListener('blur', () => { [...fingers.keys()].forEach((id) => { hold(id, null); fingers.delete(id); }); fRest(); });
   pad.addEventListener('contextmenu', (e) => e.preventDefault());
   const noPhoneHold = (e) => { if (e.cancelable) e.preventDefault(); };   /* no magnifier, callout or scroll from a hold */
   pad.addEventListener('touchstart', noPhoneHold, { passive: false });
@@ -12045,14 +12086,14 @@ function s2RopePoints(R, held, ox) {
 }
 /* the real rope's numbers: gravity on the swing (px/frame²), a push per frame of pumping, the air's drag, the biggest
    swing (radians), the shortest grip (px under the peg) */
-const S2_ROPE = { RG: 0.3, PUMP: 0.0003, DAMP: 0.999, A_MAX: 1.15, R_MIN: 24 };
-const S2_ROPE_TIP = 'Kinan! Press the way you are swinging to swing higher. Then jump at the front of the swing!';   /* Glitchy, after the 3rd miss at a rope gap */
+const S2_ROPE = { RG: 0.55, PUSH: 0.0007, DAMP: 0.998, A_MAX: 1.2, R_MIN: 24 };   /* (2026-11-14: snappier, a direct push) */
+const S2_ROPE_TIP = 'Kinan! Press left and right with the swing, back and forth, to swing higher. Then jump as you swing forward!';   /* Glitchy, after the 3rd miss at a rope gap */
 /* the phone's ▲ ▼ show only while Kinan holds a rope (they climb it) */
 let s2PadRope = false;
 function s2RopePad(on) { if (on === s2PadRope) return; s2PadRope = on; el.pad.classList.toggle('ropepad', on && !el.pad.classList.contains('dpad2')); }
 /* the Season 2 cross (Worlds 12-15): on for their levels; ▲ ▼ glow while they do something */
 let s2Glow = 0;
-function s2DpadOn(on) { el.pad.classList.toggle('dpad2', !!on); if (on) el.pad.classList.remove('ropepad'); s2Glow = -1; s2HubPaint(); }
+function s2DpadOn(on) { el.pad.classList.toggle('dpad2', !!on); el.stage.classList.toggle('s2play', !!on); if (on) el.pad.classList.remove('ropepad'); s2Glow = -1; s2HubPaint(); }
 function s2HubPaint() {   /* the middle of the cross in the arms' colour (each screen style has its own) */
   const hub = el.pad.querySelector('.dhub'), arm = el.pad.querySelector('.dpad [data-k="left"]');
   if (!hub || !arm || !el.pad.classList.contains('dpad2')) return;
@@ -12065,8 +12106,8 @@ function s2PadGlow(S) {
   const lad = !!P.s2climb || (S.climbs.length > 0 && !!s2ClimbAt(cx, cy)), lad2 = !!P.s2climb || (S.climbs.length > 0 && !!s2ClimbAt(cx, cy + T));
   const up = rope || lad, dn = rope || lad2 || !!P.s2bar || (!P.onGround && !P.dead && !P.s2swim) || (S.warps.length > 0 && !!s2WarpUnder());
   const v = (up ? 1 : 0) + (dn ? 2 : 0); if (v === s2Glow) return; s2Glow = v;
-  for (const b of el.pad.querySelectorAll('.dpad [data-k="up"]')) b.classList.toggle('useful', up);
-  for (const b of el.pad.querySelectorAll('.dpad [data-k="down"]')) b.classList.toggle('useful', dn);
+  for (const b of el.pad.querySelectorAll('.dpad [data-k="up"], .fpad [data-f="up"]')) b.classList.toggle('useful', up);
+  for (const b of el.pad.querySelectorAll('.dpad [data-k="down"], .fpad [data-f="down"]')) b.classList.toggle('useful', dn);
 }
 /* the world moves: true = this frame is handled (s2Tick returns) */
 function s2WorldMoves(left, right, holdJump) {
@@ -12083,16 +12124,17 @@ function s2WorldMoves(left, right, holdJump) {
   /* 2026-11-14 (Shad: "make it feel more like real rope... it's just too easy, not even a challenge"; his answers: pump it,
      up and down changes the swing, let go with the swing, gaps get wider / chains of ropes / ropes at different heights,
      rings the same but a bit easier, Sabumnim's tip and a practice rope): THE REAL ROPE. A pendulum: the rope hangs
-     still; ◀ ▶ pressed the way he is swinging pumps it higher (the other way does nothing, so holding ▶ alone still
-     swings him, more slowly than pumping in time); ▲ climbs (a smaller, quicker swing), ▼ slides down (a wider, slower
-     swing that reaches farther; at the very end ▼ lets go); JUMP lets go and he flies the way the rope is moving, as fast
-     as it is moving, plus a little hop: at the front of the swing he goes far, on the back swing he goes backwards.
-     Rings: the same swing, no climbing, pumping works half again as well, and the hook starts him swinging. */
-  const { RG, PUMP, DAMP, A_MAX, R_MIN } = S2_ROPE;
+     still and he catches it almost still; ◀ ▶ push the swing that way at any moment (2026-11-14 Shad: "all the momentum
+     from you going left and right; pushing against the swing should disrupt it"): in time with it the swing grows, against
+     it it slows and turns; ▲ climbs (a smaller, quicker swing), ▼ slides down (a wider swing that reaches farther; never a
+     slam); JUMP lets go and he flies the way the rope is moving, as fast as it is moving, plus a little hop: at the front
+     of the swing he goes far, on the back swing he goes backwards. Rings: the same swing, no climbing, pushes a bit
+     stronger, and the hook gives a small swing. */
+  const { RG, PUSH, DAMP, A_MAX, R_MIN } = S2_ROPE;
   const grabRope = (ax, ay, r, ring, rope) => {
     const th = clamp(Math.atan2(cx - ax, P.y + 3 - ay), -A_MAX, A_MAX);
-    let om = (P.vx * Math.cos(th) - P.vy * Math.sin(th)) / Math.max(r, R_MIN) * 0.7;   /* his run-up keeps some of its speed */
-    if (ring && Math.abs(om) < 0.03) om = (P.face || 1) * 0.03;   /* the hook yanks him into a swing */
+    let om = (P.vx * Math.cos(th) - P.vy * Math.sin(th)) / Math.max(r, R_MIN) * 0.2;   /* he catches it almost still: the swing is his to make */
+    if (ring && Math.abs(om) < 0.02) om = (P.face || 1) * 0.02;   /* the hook gives a small swing */
     P.s2rope = { ax: ax, ay: ay, r: r, th: th, om: clamp(om, -0.09, 0.09), ring: ring, rope: rope || null, len: rope ? rope.len : r, shoot: ring ? 6 : 0, t: 0, end: 0 };
     P.vx = 0; P.vy = 0; input.jumpBuf = 0; P.s2fling = null; s2Sound('grab');
   };
@@ -12125,8 +12167,8 @@ function s2WorldMoves(left, right, holdJump) {
     const R = P.s2rope;
     if (R.shoot > 0) R.shoot--;
     R.t++;
-    const dropOff = input.down && (R.ring || R.r >= R.len - 0.5) && ++R.end > 12;   /* ▼ held at the very end: he drops off */
-    if ((input.jumpBuf > 0 && R.t > 4) || dropOff || P.dead) {   /* let go: he flies the way the rope is moving */
+    const dropOff = false;   /* (2026-11-14: ▼ only slides down; JUMP is the one way off) */
+    if ((input.jumpBuf > 0 && R.t > 4) || P.dead) {   /* let go: he flies the way the rope is moving */
       const vt = R.om * R.r;
       P.vx = clamp(vt * Math.cos(R.th), -5.6, 5.6); P.vy = clamp(-vt * Math.sin(R.th), -6, 6);
       if (!dropOff) { P.vy -= 2.6; s2Sound('hup'); }   /* (JUMP: a little hop as he lets go) */
@@ -12139,7 +12181,6 @@ function s2WorldMoves(left, right, holdJump) {
     if (input.jumpBuf > 0) input.jumpBuf = 0;   /* (the press that hooked a ring is not also the let-go) */
     const d = right && !left ? 1 : left && !right ? -1 : 0;
     if (d) P.face = d; else if (Math.abs(R.om) > 0.004) P.face = R.om > 0 ? 1 : -1;
-    if (!input.down) R.end = 0;
     /* climbing: ▲ up the rope, ▼ down it (the swing keeps its turn: shorter is quicker) */
     if (!R.ring) {
       const r0 = R.r;
@@ -12148,7 +12189,7 @@ function s2WorldMoves(left, right, holdJump) {
     }
     const th0 = R.th;
     R.om += -RG / R.r * Math.sin(R.th);   /* gravity swings him back */
-    if (d && (Math.sign(R.om) === d || Math.abs(R.om) < 0.003) && Math.abs(R.th) < 0.9) R.om += d * PUMP * (R.ring ? 1.5 : 1);   /* pumping: push the way he is swinging (from still, either way starts it) */
+    if (d) R.om += d * PUSH * (R.ring ? 1.3 : 1);   /* ◀ ▶ push the swing that way, any moment: with it it grows, against it it slows and turns (2026-11-14, Shad) */
     R.om *= DAMP; R.om = clamp(R.om, -0.12, 0.12);
     R.th += R.om;
     if (Math.abs(R.th) > A_MAX) { R.th = Math.sign(R.th) * A_MAX; R.om = 0; }
@@ -12944,7 +12985,7 @@ function s2FbSend() {
 const SLAM_SPIN = 12, SLAM_V = 9.5, SLAM_REACH = 2 * T, SLAM_DIZZY = 90, SLAM_POSE = 16;
 let slabBits = [], slamRings = [];
 function isSlab(tx, ty) { return !!(L && L.slabs && L.slabs.size && tileAt(tx, ty) === 5 && L.slabs.has((ty + (L.up | 0)) * L.w + tx)); }
-function slamReady() { return !!(L && L.authored && P && !P.dead && !paused && !P.onGround && !P.slam && !P.zip && !P.rideM && !(P.slamCd > 0)); }
+function slamReady() { return !!(L && L.authored && P && !P.dead && !paused && !P.onGround && !P.slam && !P.zip && !P.rideM && !(P.slamCd > 0) && !P.s2rope && !P.s2bar && !P.s2climb && !P.s2swim); }   /* (2026-11-14: never on a rope: ▼ there slid him into a butt slam) */
 function startSlam() {
   P.slam = 'spin'; P.slamT = SLAM_SPIN; P.slams = (P.slams || 0) + 1; P.slamLand = 0;
   P.kickT = 0; P.cuttable = false; P.springy = false; P.springStretch = false; P.stretch = 0;

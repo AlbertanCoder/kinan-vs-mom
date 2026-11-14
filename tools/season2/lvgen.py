@@ -277,6 +277,24 @@ class Level:
         if groups and groups[0][0][0] <= 3 and groups[0][0][4] == 0:   # the level's opening conversation starts the moment the level does
             for l in groups[0]: l[0] = 1                                 # (Kinan stands at column 2: a line there waited for his first step)
         self.talk_moves = []
+        # (2026-11-14, Shad: nobody talks over a rope or a ring gap) the swing gaps, in level columns: a conversation that would
+        # start just before one (within ~3 s at a kid's pace) or on it starts just after it instead (inside its act)
+        swings = []; b = 0
+        for a in self.acts:
+            for r in a.route:
+                if r[0] in ('ropes', 'rings') and len(r) > 4: swings.append((b + r[1], b + r[-1], a, b))
+            b += a.c
+        def off_swings(g):
+            if any(l[5] for l in g): return False   # a lesson: Kinan stands still to hear it, before the gap
+            c = g[0][0]
+            for s0, s1, a, b0 in swings:   # it would START within ~3 s of the gap (24 columns at a kid's pace) or on it
+                if s0 - 24 <= c <= s1 + 1 and a is g[0][3] and s1 + 3 < b0 + a.c - 4:
+                    self.talk_moves.append((g[0][1], c - b0, s1 + 3 - b0, '(off the swing gap) ' + ' / '.join(l[1] + ': ' + l[2][:30] for l in g)))
+                    for k, l in enumerate(g): l[0] = s1 + 3 + k
+                    return True
+            return False
+        for _pass in range(10):
+            if not any(off_swings(g) for g in groups): break
         for _pass in range(10):   # a moved conversation can land after another one: re-plan in the new order until nothing moves
             groups.sort(key=lambda g: g[0][0]); moved = False; free = 0.0; wait = 0.0   # wait: seconds Kinan stood still for 'hold' lines
             for g in groups:
@@ -294,6 +312,9 @@ class Level:
                         c = nc; moved = True
                 free = max(free, c / RUN + wait) + sum(secs(l[2], l[1]) for l in g)
             if not moved: break
+        for g in groups:   # (a check: what the queue moved back over a swing gap)
+            c = g[0][0]
+            if not any(l[5] for l in g) and any(s0 - 24 <= c <= s1 for s0, s1, a, b0 in swings): print('  %s: NOTE talk over a swing gap at col %d: %s' % (self.id, c, g[0][2][:40]))
         for a in self.acts: a.talk = []
         for l in lines: l[3].talk.append([l[0] - l[4], l[1], l[2]] + ([None, 'hold'] if l[5] else []))
         for mv in self.talk_moves: print('  %s: col %d -> %d  %s' % (self.id, mv[1], mv[2], mv[3]))

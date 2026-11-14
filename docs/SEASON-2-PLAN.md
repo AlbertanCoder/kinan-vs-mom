@@ -338,3 +338,23 @@ The mine stays **dark** (the lit arena was wrong).
   keep their pad. Checked by touch on iPhone (both ways), Galaxy, Pixel and iPad: every thumb spot picks the right arrow,
   the roll from ▶ to ▼, the slam, ▲ up a ladder, the ropes; all 15 worlds on phones; the pad's browser tests on desktop and
   the touch tablet.
+- 2026-11-14 (later): **Shad's replay of Japan on his phone** ("the rope still doesn't feel like a game's rope... ▼ does a
+  butt slam on the rope... very little screen left... less talking from Robin and Annie").
+  - **The rope, a direct push** (his pick): the rope hangs still and Kinan catches it almost still; ◀ ▶ push the swing
+    that way at any moment: in time with it the swing grows (45 degrees in about 2.5 s, one swing every 1.4 s), against it
+    it stops in about 2 s, holding one way only leans him (about 12 degrees). JUMP throws him the way the rope moves (a small
+    swing about 5 tiles past the peg, a big one 10-12). ▼ slides down the rope and never slams (the slam is off on ropes,
+    bars, ladders and in water); ▼ no longer drops him off the end. Sabumnim's lesson and Glitchy's tip now say "left,
+    right, left, right with the swing" (re-recorded). Checked: a good player (pushes in time to about 45 degrees, jumps on
+    the forward swing) crosses 101 of 105 rope tries and every ring try; random timing mostly falls.
+  - **The floating d-pad** (his pick, over a small stick or a smaller fixed cross): in Worlds 12-15 on phones and tablets
+    nothing big is drawn over the game. A faint small cross rests in the corner; a thumb on it works like a d-pad, a thumb
+    anywhere else on the left part of the screen brings the cross right under it (slide toward an arrow; slide past its edge
+    and it follows the thumb), and it goes back to the corner when the thumb lifts. JUMP and KICK are smaller and
+    see-through until pressed. Upright phones keep the cross in the panel under the picture. The talk is a thin line at the
+    top of the picture (under the HUD bar when the phone is sideways).
+  - **Less talk in Japan** (56 lines to 30): 13-1 is Annie on Tokyo, then the call cuts to Sabumnim, then Annie on Tokyo
+    and Japan (with Kinan's sticker and the arigato GOZAIMASU); Robin's jokes and Annie's extra facts went; plot lines,
+    lessons and the arigato joke stayed. A conversation that would start just before or on a rope or ring gap now starts
+    just after it.
+  - Tip for the phone: Safari's Share → Add to Home Screen opens the game full screen, without the browser bars.
