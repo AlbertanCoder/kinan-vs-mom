@@ -329,3 +329,12 @@ The mine stays **dark** (the lit arena was wrong).
     World 15's fight took 80 s and was sometimes lost; now about 20-30 s in every world, every fight won (8 fights each, a simple robot).
   - Also: the 3D bonus page has a tab icon (its missing icon was a "file not found" that failed 26 browser tests), and the
     tests that still expected 11 worlds, the World 11 trail without its bonus stop, and the old 7-6 frame budget.
+- 2026-11-14: **The Season 2 d-pad (Worlds 12-15, phones and tablets; Shad picked a d-pad over a joystick, one default for
+  everyone).** One joined cross on the left: ◀ ▶ are the long arms (running is most of the game), ▲ ▼ the short ones. A
+  thumb anywhere round the cross picks the arrow it points at (◀ ▶ get the wider wedges), and sliding the thumb rolls from
+  one arrow to the next. ▲ ▼ glow green when they do something (▲: a rope, a ladder or vine; ▼: a rope, a ladder, the
+  monkey bars, a warp, or in the air for the slam) and are dim otherwise. ▼ in the air is the slam, so the extra slam ▼
+  circle is gone in these worlds; ▲ climbs ladders and vines too (JUMP still does). Right thumb: JUMP and KICK. Worlds 1-11
+  keep their pad. Checked by touch on iPhone (both ways), Galaxy, Pixel and iPad: every thumb spot picks the right arrow,
+  the roll from ▶ to ▼, the slam, ▲ up a ladder, the ropes; all 15 worlds on phones; the pad's browser tests on desktop and
+  the touch tablet.
