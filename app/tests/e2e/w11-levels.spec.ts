@@ -952,9 +952,10 @@ test.describe('World 11 · on the map', () => {
     await page.locator('#startBtn').click({ force: true });
     const s0 = await settle(page);
     const ids = s0.stops.map((q) => q.id), kinds = s0.stops.map((q) => q.kind);
-    expect(ids, 'the trail, in order (the castle stop came with the second run)').toEqual(['11-1', '11-2', '11-3', '11-4', '11-5', '11-fort', '11-6', '11-7', '11-secret', '11-8', '11-castle']);
-    expect(kinds).toEqual(['level', 'level', 'level', 'level', 'level', 'fort', 'level', 'level', 'secret', 'level', 'boss']);
-    expect(s0.stops.every((q) => q.built), 'all eleven stops are built').toBe(true);
+    /* 2026-11-12 (Season 2 in the main game): the 3D bonus stop comes after the castle (w11-world.spec.ts checks it) */
+    expect(ids, 'the trail, in order (the castle stop came with the second run)').toEqual(['11-1', '11-2', '11-3', '11-4', '11-5', '11-fort', '11-6', '11-7', '11-secret', '11-8', '11-castle', null]);
+    expect(kinds).toEqual(['level', 'level', 'level', 'level', 'level', 'fort', 'level', 'level', 'secret', 'level', 'boss', 'bonus']);
+    expect(s0.stops.every((q) => q.built), 'all twelve stops are built').toBe(true);
     const name = await page.evaluate(() => {
       const w = window as unknown as { KINAN?: { W?: { n: number; stops: { name: string }[] }[] } };
       const w11 = w.KINAN && w.KINAN.W && w.KINAN.W.find((q) => q.n === 11);

@@ -73,6 +73,7 @@ const S2_SAID = [   /* said from the code: the tips, the chase's own lines, and 
   ['SHAD', "Measure twice, slam once! 👊 Here's a hard hat! ⛑️"], ['SHAD', "Rebar day is DONE. 👊 Here's a hard hat! ⛑️"], ['GLITCHY', "Okay! You've got this. 💪"]
 ];
 for (const [who, text] of S2_SAID) add(who, cleanSaid(text), 's2 said');
+{ const m = /const S2_ROPE_TIP = '([^']*)'/.exec(html); if (m) add('GLITCHY', m[1], 's2 rope tip'); }   /* Glitchy's rope tip (2026-11-14) */
 for (const w of fs.readdirSync(path.join(root, 'levels')).filter((x) => /^w1[2-9]$|^lab$/.test(x))) {
   for (const f of fs.readdirSync(path.join(root, 'levels', w)).filter((x) => x.endsWith('.js'))) {
     const defs = []; const c = { self: {}, window: {}, URLSearchParams, location: { search: '' } };

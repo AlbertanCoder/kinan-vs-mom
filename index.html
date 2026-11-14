@@ -120,6 +120,8 @@ html.canfs .keys::after,html.canfs .mhint::after{content:' · F full screen'}
 .pad button.jump{background:var(--gold);color:var(--night);font-size:21px}
 .pad button.pow{background:var(--pink);color:var(--night);font-size:18px}
 .pad .smashonly{display:none}.pad.smashpad .smashonly{display:block}
+/* Worlds 12-15, holding a rope (2026-11-14): ▲ ▼ climb it, beside ◀ ▶ */
+.pad.ropepad .dpad .smashonly{display:block}.pad.ropepad .dpad{grid-template-columns:1fr 1fr .7fr;grid-template-rows:1fr 1fr}.pad.ropepad .dpad [data-k="left"]{grid-column:1;grid-row:1/3}.pad.ropepad .dpad [data-k="right"]{grid-column:2;grid-row:1/3}.pad.ropepad .dpad [data-k="up"]{grid-column:3;grid-row:1;min-height:36px;font-size:18px}.pad.ropepad .dpad [data-k="down"]{grid-column:3;grid-row:2;min-height:36px;font-size:18px}
 .pad .kartonly{display:none}html.kartpad .pad .kartonly{display:block}
 /* a race: ★ ITEM HOP on top, BRAKE and a big GAS under them, so one thumb slides from GAS up to HOP or across to BRAKE */
 html.kartpad .pad .acts{grid-template-columns:1fr 1fr 1.2fr;grid-template-rows:auto auto}
@@ -330,8 +332,8 @@ html.uprightplay .pad button{min-height:84px;height:84px;font-size:22px}
 html.uprightplay .pad button.jump{font-size:17px}
 html.uprightplay .pad button.pow{font-size:15px}
 html.sideways .pad button.pow:not(:disabled){opacity:.85}
-html.sideways .pad.smashpad .dpad{display:grid;grid-template-columns:auto auto auto;grid-template-rows:auto auto;gap:6px;align-items:center}
-html.sideways .pad.smashpad .dpad [data-k="up"],html.sideways .pad.smashpad .dpad [data-k="down"]{width:clamp(44px,6.4vmin,58px);height:clamp(44px,6.4vmin,58px);font-size:16px}
+html.sideways .pad.smashpad .dpad,html.sideways .pad.ropepad .dpad{display:grid;grid-template-columns:auto auto auto;grid-template-rows:auto auto;gap:6px;align-items:center}
+html.sideways .pad.smashpad .dpad [data-k="up"],html.sideways .pad.smashpad .dpad [data-k="down"],html.sideways .pad.ropepad .dpad [data-k="up"],html.sideways .pad.ropepad .dpad [data-k="down"]{width:clamp(44px,6.4vmin,58px);height:clamp(44px,6.4vmin,58px);font-size:16px}
 html.sideways .pad.smashpad .acts{display:grid;grid-template-columns:auto auto;gap:6px;align-items:end;justify-items:end}
 html.sideways .pad.smashpad .acts button{width:clamp(48px,8vmin,72px);height:clamp(48px,8vmin,72px);font-size:19px}
 html.sideways .pad.smashpad .acts button.jump{width:clamp(56px,9vmin,84px);height:clamp(56px,9vmin,84px);font-size:13px}
@@ -683,7 +685,7 @@ html.sideways{--sth:min(calc(var(--vh) - 12px),calc((100vw - var(--padL) - var(-
 html.sideways .stage:not(.smashmode):not(.kartmode):not(.buildmode){height:var(--sth);width:auto;max-width:none;margin:0 auto}
 html.sideways .app:has(.stage:not([hidden]):not(.smashmode):not(.kartmode):not(.buildmode)) .hud{position:absolute;top:0;left:50%;transform:translateX(-50%);width:calc(var(--sth) * 1.8 - 12px);box-sizing:border-box;z-index:7;background:rgba(14,16,44,.62);border-color:rgba(255,255,255,.35)}   /* in a level the thin top bar lies over the picture's top edge */
 html.sideways:not(.kartpad) .pad:not(.smashpad){position:absolute;top:auto;left:var(--padL);right:var(--padR);bottom:max(10px,env(safe-area-inset-bottom,0px));height:auto;display:flex;justify-content:space-between;align-items:flex-end;padding:0;margin:0;pointer-events:none;z-index:6}
-html.sideways:not(.kartpad) .pad:not(.smashpad) .dpad{display:flex;gap:12px;margin:0;padding:0;align-items:flex-end;pointer-events:auto}
+html.sideways:not(.kartpad) .pad:not(.smashpad):not(.ropepad) .dpad{display:flex;gap:12px;margin:0;padding:0;align-items:flex-end;pointer-events:auto}
 html.sideways:not(.kartpad) .pad:not(.smashpad) .acts{display:flex;flex-direction:row;align-items:flex-end;gap:12px;margin:0;padding:0;pointer-events:auto}
 html.sideways:not(.kartpad) .pad:not(.smashpad) button{background:rgba(14,16,44,.36);border:3px solid rgba(255,255,255,.62);color:#fff;text-shadow:0 2px 0 rgba(0,0,0,.65);box-shadow:none;opacity:.8}
 html.sideways:not(.kartpad) .pad:not(.smashpad) .dpad button{width:clamp(80px,11vw,128px);height:clamp(80px,11vw,128px);border-radius:24px;font-size:32px}
@@ -3152,6 +3154,7 @@ function lineSecs(d) {
 }
 function talkHash(who, text) { let h = 0x811c9dc5; const s = who + '|' + text; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; } return ('0000000' + h.toString(16)).slice(-8); }
 function buildLevel(def) {
+  if (typeof s2RopePad === 'function') s2RopePad(false);   /* (a new level: no rope buttons) */
   const list = Array.isArray(def.areas) ? def.areas : [def];
   const cols = list.reduce((n, a) => n + a.cols, 0);
   /* Season 2 (2026-11-10): a tall level has `up` extra rows above row 0 (rows -up .. 14), stored like the Builder's tall
@@ -3162,7 +3165,7 @@ function buildLevel(def) {
   const gi = (x, y) => (y + up) * w + x;
   const foes = [], candles = [], gifts = {}, areas = [], seams = [], pipes = [], secretList = [], boards = new Set(), slabs = new Map(), pipeCells = new Set();
   let checkpoint = null, golden = null, goal = null, spawn = def.spawn || null, base = 0, lastH = 192, arenaAt = null, petCrate = null;
-  const s2 = { moves: !!def.moves, climbs: [], water: [], warps: [], cps: [], dark: [], bosses: [], stats: { actT: [], deaths: [] },
+  const s2 = { moves: !!def.moves, ropeMiss: 0, climbs: [], water: [], warps: [], cps: [], dark: [], bosses: [], stats: { actT: [], deaths: [] },
     ropes: [], bars: [], rings: [], drafts: [], skate: [], hazards: [], crawl: !!def.crawl, dash: !!def.dash, glide: !!def.glide, treat: def.treat || null, torch: false };   /* Season 2 moves (block "SEASON 2 MOVES") */
   const tw = { on: false, t: 0, movers: [], pairs: [], swAt: {}, onB: [], offB: [], sw: 0, swCd: 0, magnets: [], signCols: [], signs: null, skins: [], rush: !!def.rush, storm: def.storm == null ? null : def.storm,
     belts: [], fish: false, subway: !!def.subway };   /* World 8: conveyor belts, the aquarium's fish, silver subway cars */
@@ -8492,6 +8495,7 @@ window.addEventListener('keydown', (e) => {
   if (advance && ['Space', 'ArrowUp', 'KeyW', 'KeyZ', 'KeyX', 'KeyJ'].indexOf(k) >= 0) { advanceDialog(); return; }   /* a story box: the jump and pow keys move it on too */
   if (k === 'ArrowLeft' || k === 'KeyA') actionDown('left');
   else if (k === 'ArrowRight' || k === 'KeyD') actionDown('right');
+  else if ((k === 'ArrowUp' || k === 'KeyW') && s2PadRope) actionDown('up');   /* on a rope ↑ climbs it (Space still lets go) */
   else if (k === 'Space' || k === 'ArrowUp' || k === 'KeyW' || k === 'KeyZ') actionDown('jump');
   else if (k === 'ArrowDown' || k === 'KeyS') input.down = true;
   else if (k === 'KeyC' || k === 'KeyV') actionDown('special');
@@ -8512,7 +8516,7 @@ window.addEventListener('keyup', (e) => {
   if (kart && kartKey(k, false)) return;
   if (k === 'ArrowLeft' || k === 'KeyA') actionUp('left');
   else if (k === 'ArrowRight' || k === 'KeyD') actionUp('right');
-  else if (k === 'Space' || k === 'ArrowUp' || k === 'KeyW' || k === 'KeyZ') actionUp('jump');
+  else if (k === 'Space' || k === 'ArrowUp' || k === 'KeyW' || k === 'KeyZ') { actionUp('jump'); if (k === 'ArrowUp' || k === 'KeyW') actionUp('up'); }
   else if (k === 'ArrowDown' || k === 'KeyS') input.down = false;
   else if (k === 'KeyX' || k === 'KeyJ') { actionUp('fire'); input.walkKey = false; }
   else if (k === 'ShiftLeft' || k === 'ShiftRight') input.runHeld = false;
@@ -11936,12 +11940,23 @@ function s2BuildWorld(a, base, s2) {
   for (const [c, r] of a.rings || []) s2.rings.push({ x: (base + c) * T + T / 2, y: r * T + T / 2 });
   for (const [c0, r0, c1, r1] of a.updrafts || []) s2.drafts.push({ x0: (base + c0) * T, y0: r0 * T, x1: (base + c1 + 1) * T, y1: (r1 + 1) * T });
   for (const [c0, c1] of a.skate || []) s2.skate.push({ x0: (base + c0) * T, x1: (base + c1 + 1) * T });
-  for (const [c0, r0, c1, r1] of a.hazards || []) s2.hazards.push({ x0: (base + c0) * T, y0: r0 * T, x1: (base + c1 + 1) * T, y1: (r1 + 1) * T, look: a.hazard || 'glitch' });
+  for (const [c0, r0, c1, r1, kind] of a.hazards || []) s2.hazards.push({ x0: (base + c0) * T, y0: r0 * T, x1: (base + c1 + 1) * T, y1: (r1 + 1) * T, look: a.hazard || 'glitch', soft: kind === 'soft' });   /* soft: a practice pit (2026-11-14) */
 }
 /* a hazard trench (the portal's glitch, lava, flood water, a snow crevasse): touching it is a fall, as in a pit */
 function s2HazardTick() {
   if (P.dead || P.s2rope || P.s2bar) return;
   for (const Z of L.s2.hazards) if (P.x + P.w > Z.x0 + 2 && P.x < Z.x1 - 2 && P.y + P.h > Z.y0 + 6 && P.y < Z.y1) {
+    /* a miss at a rope gap: after the 3rd, Glitchy's tip (once a level) */
+    const S = L.s2;
+    if (S.ropes.some((R) => R.ax > Z.x0 && R.ax < Z.x1) && ++S.ropeMiss === 3) s2Say('GLITCHY', S2_ROPE_TIP, 5);
+    if (Z.soft) {   /* the practice rope's soft pit: back on the near bank, no heart lost */
+      let ty = Math.floor(Z.y0 / T) - 1; const bx = Z.x0 - 2 * T, bc = Math.floor((bx + 4) / T);
+      while (ty > -(L.up | 0) && solid(bc, ty)) ty--;
+      while (ty < ROWS && !solid(bc, ty + 1)) ty++;
+      P.x = bx; P.y = (ty + 1) * T - P.h; P.vx = 0; P.vy = 0; P.s2fling = null; P.s2ropeLast = null;
+      sparks(P.x + P.w / 2, Z.y0 + 4, 8, ['#fff', '#7be3a3']); pop(P.x - 10, P.y - 16, 'TRY AGAIN!', 50, '#7be3a3');
+      return;
+    }
     sparks(P.x + P.w / 2, Z.y0 + 4, 10, (S2_RISES[Z.look] || S2_RISES.glitch).bits.concat('#fff')); P.y = H + 11; P.s2trench = true; return;   /* the pit rule: a heart, back to safe ground */
   }
 }
@@ -11959,27 +11974,7 @@ function s2First(key, text, col) { const S = L.s2; if (S['said_' + key]) return;
 function s2RopeAt(R) {   /* a hanging rope's sway (no one on it) */
   return Math.sin(frame / 48 + R.ax / 37) * 0.12;
 }
-/* 2026-11-12 (Shad's answer 35: "slow, natural, forgiving"; Annie found Japan's ropes too frustrating): the rope's let-go is
-   AIMED. JUMP at any moment of the swing throws Kinan on an arc that lands on the far bank of the gap under the rope (the
-   bank he faces), or into the next rope on the way, which catches him. Worked out from the game's own gravity (FEEL), so
-   the landing is where it is aimed; ◀ ▶ do not steer him off it until he lands. null: no gap under this rope (the old fling) */
-const S2_FLING_VY = -5.6;
-function s2RopeFling(R, fc) {
-  const F = feel();
-  if (F !== FEEL || !L.s2 || !R.rope) return null;
-  const Z = L.s2.hazards.find((q) => R.ax >= q.x0 - T && R.ax <= q.x1 + T && q.y0 > R.ay);
-  if (!Z) return null;
-  const cx = P.x + P.w / 2, tx = fc > 0 ? Z.x1 + 22 : Z.x0 - 22, col = Math.floor(tx / T);
-  let ty = Math.max(-(L.up | 0), Math.floor((P.y + P.h) / T));
-  while (ty < ROWS && !solid(col, ty)) ty++;
-  if (ty >= ROWS) return null;
-  const surf = ty * T;
-  /* the frames until his feet come down onto that bank: the let-go frame moves by vy0, then gravity, then the move */
-  let y = P.y + P.h, vy = S2_FLING_VY, n = 0;
-  for (; n < 240; n++) { if (n > 0) vy = Math.min(F.MAX_FALL, vy + (vy < 0 ? F.GRAV_HOLD : F.GRAV_FALL)); y += vy; if (vy > 0 && y >= surf) break; }
-  const vx = clamp((tx - cx) / (n + 1), -4.4, 4.4);
-  return { vx: Math.abs(vx) < 0.8 ? fc * 0.8 : vx, vy: S2_FLING_VY, t: n + 30 };
-}
+/* (2026-11-12's aimed let-go, which always landed him on the far bank, is gone: 2026-11-14 the real rope, s2WorldMoves) */
 /* the rope drawn as a bendy rope (2026-11-12: "a stiff rope, not swinging naturally"): from its peg, bowed against the
    swing (the middle lags behind his hands), and the end below his hands trails behind the swing and hangs down */
 function s2RopePoints(R, held, ox) {
@@ -11987,12 +11982,12 @@ function s2RopePoints(R, held, ox) {
   if (held) {
     const th = held.th, r = Math.min(held.r, len), om = (held.om || 0);
     const hx = x0 + Math.sin(th) * r, hy = y0 + Math.cos(th) * r;
-    const bow = clamp(-om * 900, -9, 9) * (r / 96);   /* sideways bow of the part above his hands */
+    const bow = clamp(-om * 120, -9, 9) * (r / 96);   /* sideways bow of the part above his hands */
     for (let d = 0; d <= r; d += 2) {
       const k = d / r, s = Math.sin(Math.PI * k);
       pts.push([x0 + (hx - x0) * k + Math.cos(th) * bow * s, y0 + (hy - y0) * k - Math.sin(th) * bow * s + s * 2]);
     }
-    const tail = len - r, tth = th * 0.45 - clamp(om * 40, -0.6, 0.6);   /* the end below him: half as far out, lagging behind */
+    const tail = len - r, tth = th * 0.45 - clamp(om * 6, -0.6, 0.6);   /* the end below him: half as far out, lagging behind */
     for (let d = 2; d <= tail; d += 2) {
       const k = d / Math.max(1, tail), a = th + (tth - th) * Math.min(1, k * 1.6);
       const p = pts[pts.length - 1]; pts.push([p[0] + Math.sin(a) * 2, p[1] + Math.cos(a) * 2]);
@@ -12008,9 +12003,17 @@ function s2RopePoints(R, held, ox) {
   }
   return pts;
 }
+/* the real rope's numbers: gravity on the swing (px/frame²), a push per frame of pumping, the air's drag, the biggest
+   swing (radians), the shortest grip (px under the peg) */
+const S2_ROPE = { RG: 0.3, PUMP: 0.0003, DAMP: 0.999, A_MAX: 1.15, R_MIN: 24 };
+const S2_ROPE_TIP = 'Kinan! Press the way you are swinging to swing higher. Then jump at the front of the swing!';   /* Glitchy, after the 3rd miss at a rope gap */
+/* the phone's ▲ ▼ show only while Kinan holds a rope (they climb it) */
+let s2PadRope = false;
+function s2RopePad(on) { if (on === s2PadRope) return; s2PadRope = on; el.pad.classList.toggle('ropepad', on); }
 /* the world moves: true = this frame is handled (s2Tick returns) */
 function s2WorldMoves(left, right, holdJump) {
   const S = L.s2, F = feel(), cx = P.x + P.w / 2;
+  s2RopePad(!!(P.s2rope && !P.s2rope.ring));
   /* ROPES AND THE GRAPPLING HOOK (2026-11-11, Shad and Amandeep: "awkward... swinging too fast... hard"): the EASY swing.
      Touch a rope (or JUMP near a gold ring) and Kinan holds on by himself; the rope swings him slowly back and forth on
      its own (no pumping); ◀ ▶ only turn him; JUMP lets go at ANY moment and always throws him forward the way he faces,
@@ -12019,14 +12022,23 @@ function s2WorldMoves(left, right, holdJump) {
   if (P.onGround) { P.s2ringLast = null; P.s2ropeLast = null; P.s2fling = null; }
   /* swing size (radians) and speed. Ropes: one swing there and back in 5.3 s (2026-11-12, Shad's answer 35: half the old
      2.7 s, "slow, natural"); the grappling hook keeps its 2.7 s. A sine swing: it eases to a stop at each end */
-  const ROPE_A = 0.5, ROPE_W = 6.2832 / 320, RING_W = 6.2832 / 160;
+  /* 2026-11-14 (Shad: "make it feel more like real rope... it's just too easy, not even a challenge"; his answers: pump it,
+     up and down changes the swing, let go with the swing, gaps get wider / chains of ropes / ropes at different heights,
+     rings the same but a bit easier, Sabumnim's tip and a practice rope): THE REAL ROPE. A pendulum: the rope hangs
+     still; ◀ ▶ pressed the way he is swinging pumps it higher (the other way does nothing, so holding ▶ alone still
+     swings him, more slowly than pumping in time); ▲ climbs (a smaller, quicker swing), ▼ slides down (a wider, slower
+     swing that reaches farther; at the very end ▼ lets go); JUMP lets go and he flies the way the rope is moving, as fast
+     as it is moving, plus a little hop: at the front of the swing he goes far, on the back swing he goes backwards.
+     Rings: the same swing, no climbing, pumping works half again as well, and the hook starts him swinging. */
+  const { RG, PUMP, DAMP, A_MAX, R_MIN } = S2_ROPE;
   const grabRope = (ax, ay, r, ring, rope) => {
-    const th = Math.atan2(cx - ax, P.y + 3 - ay);
-    const ph = Math.asin(clamp(th / ROPE_A, -1, 1));
-    P.s2rope = { ax: ax, ay: ay, r: r, th: clamp(th, -ROPE_A, ROPE_A), ph: (P.face || 1) > 0 ? ph : Math.PI - ph, ring: ring, rope: rope || null, shoot: ring ? 6 : 0, t: 0, om: 0 };
+    const th = clamp(Math.atan2(cx - ax, P.y + 3 - ay), -A_MAX, A_MAX);
+    let om = (P.vx * Math.cos(th) - P.vy * Math.sin(th)) / Math.max(r, R_MIN) * 0.7;   /* his run-up keeps some of its speed */
+    if (ring && Math.abs(om) < 0.03) om = (P.face || 1) * 0.03;   /* the hook yanks him into a swing */
+    P.s2rope = { ax: ax, ay: ay, r: r, th: th, om: clamp(om, -0.09, 0.09), ring: ring, rope: rope || null, len: rope ? rope.len : r, shoot: ring ? 6 : 0, t: 0, end: 0 };
     P.vx = 0; P.vy = 0; input.jumpBuf = 0; P.s2fling = null; s2Sound('grab');
   };
-  /* the aimed let-go (s2RopeFling) carries him: his speed across stays the aimed one until he lands or a rope catches him */
+  /* a let-go faster than his run carries him: his speed across stays until he lands or a rope catches him */
   if (P.s2fling && !P.s2rope) { if (--P.s2fling.t <= 0 || P.dead) P.s2fling = null; else { P.vx = P.s2fling.vx; P.s2glide = false; } }
   if (!P.s2rope && !P.onGround && !(P.s2ropeCd > 0)) {
     /* a jump that ends near a rope grabs it (2026-11-12: a small jump dropped him in the gap): falling over a gap, a rope
@@ -12036,8 +12048,8 @@ function s2WorldMoves(left, right, holdJump) {
       if (R === P.s2ropeLast) continue;   /* (never the rope he just let go of, until he lands) */
       const th = s2RopeAt(R), dx = Math.sin(th), dy = Math.cos(th), hx = cx - R.ax, hy = P.y + 3 - R.ay;
       const along = hx * dx + hy * dy, off = Math.abs(hx * dy - hy * dx);
-      if (along > 6 && along < R.len + (overGap ? 40 : 22) && off < (overGap ? 40 : 20)) {   /* (generous: a kid flying past the low end still catches it) */
-        grabRope(R.ax, R.ay, clamp(along, 24, R.len), false, R); s2First('rope', 'SWING! Tap JUMP to let go'); break; }
+      if (along > 6 && along < R.len + (overGap ? 20 : 16) && off < (overGap ? 24 : 20)) {   /* (a hand's reach: 2026-11-14 the real rope; the old 2.5-tile catch made every gap easy) */
+        grabRope(R.ax, R.ay, clamp(along, 24, R.len), false, R); s2First('rope', 'SWING! Press ◀ ▶ with the swing, JUMP to let go'); break; }
     }
     if (!P.s2rope && S.rings.length && P.coyote <= 0 && !P.s2climb) {   /* JUMP near a ring hooks it; flying right past one hooks it by itself */
       let best = null, bd = 1e9;
@@ -12055,28 +12067,36 @@ function s2WorldMoves(left, right, holdJump) {
     const R = P.s2rope;
     if (R.shoot > 0) R.shoot--;
     R.t++;
-    if ((input.jumpBuf > 0 && R.t > 4) || input.down || P.dead) {   /* let go: forward the way he faces (↓: just drop) */
-      if (input.down) { P.vx = 0; P.vy = 0.5; }
-      else {   /* 2026-11-11 playthrough: a let-go on the back swing fell short 1 time in 5: the farther behind the rope he
-                  is, the higher the hop (the air speed cap keeps vx), and ropes catch him a tile below their end */
-        const fc = P.face || 1, behind = Math.max(0, Math.min(1, -fc * Math.sin(R.th) / 0.48));
-        const fl = R.ring ? null : s2RopeFling(R, fc);   /* a rope over a gap: the aimed let-go (the far bank, whatever the moment) */
-        if (fl) { P.vx = fl.vx; P.vy = fl.vy; P.s2fling = { vx: fl.vx, t: fl.t }; }
-        else { P.vx = fc * 3.4; P.vy = -4.8 - 0.8 * behind; }
-        s2Sound('hup');
-      }
+    const dropOff = input.down && (R.ring || R.r >= R.len - 0.5) && ++R.end > 12;   /* ▼ held at the very end: he drops off */
+    if ((input.jumpBuf > 0 && R.t > 4) || dropOff || P.dead) {   /* let go: he flies the way the rope is moving */
+      const vt = R.om * R.r;
+      P.vx = clamp(vt * Math.cos(R.th), -5.6, 5.6); P.vy = clamp(-vt * Math.sin(R.th), -6, 6);
+      if (!dropOff) { P.vy -= 2.6; s2Sound('hup'); }   /* (JUMP: a little hop as he lets go) */
+      if (Math.abs(P.vx) > 0.2) P.face = P.vx > 0 ? 1 : -1;
+      if (Math.abs(P.vx) > 3) P.s2fling = { vx: P.vx, t: 150 };   /* faster than he can run: the throw carries him till he lands */
       if (R.rope) P.s2ropeLast = R.rope;
       P.s2rope = null; P.s2ropeCd = 14; input.jumpBuf = 0; P.cuttable = false; P.jumpT = 0;
       return false;
     }
     if (input.jumpBuf > 0) input.jumpBuf = 0;   /* (the press that hooked a ring is not also the let-go) */
-    if (right && !left) P.face = 1; else if (left && !right) P.face = -1;
+    const d = right && !left ? 1 : left && !right ? -1 : 0;
+    if (d) P.face = d; else if (Math.abs(R.om) > 0.004) P.face = R.om > 0 ? 1 : -1;
+    if (!input.down) R.end = 0;
+    /* climbing: ▲ up the rope, ▼ down it (the swing keeps its turn: shorter is quicker) */
+    if (!R.ring) {
+      const r0 = R.r;
+      if (input.up && !input.down) R.r = Math.max(R_MIN, R.r - 1.1); else if (input.down) R.r = Math.min(R.len, R.r + 1.5);
+      if (R.r !== r0) { R.om *= Math.sqrt(r0 / R.r);   /* (the swing keeps its size: a short rope swings it quicker, a long one carries him faster) */ if (Math.floor(R.r / 6) !== Math.floor(r0 / 6)) s2Sound('creak'); }
+    }
     const th0 = R.th;
-    R.ph += R.ring ? RING_W : ROPE_W; R.th = ROPE_A * Math.sin(R.ph); R.om = R.th - th0;
-    if (R.r > 30) R.r -= 0.4;   /* he pulls himself up the rope a little (clear of the hazard below) */
+    R.om += -RG / R.r * Math.sin(R.th);   /* gravity swings him back */
+    if (d && (Math.sign(R.om) === d || Math.abs(R.om) < 0.003) && Math.abs(R.th) < 0.9) R.om += d * PUMP * (R.ring ? 1.5 : 1);   /* pumping: push the way he is swinging (from still, either way starts it) */
+    R.om *= DAMP; R.om = clamp(R.om, -0.12, 0.12);
+    R.th += R.om;
+    if (Math.abs(R.th) > A_MAX) { R.th = Math.sign(R.th) * A_MAX; R.om = 0; }
     let nx = R.ax + Math.sin(R.th) * R.r - P.w / 2, ny = R.ay + Math.cos(R.th) * R.r - 3;
     const hit = (x, y) => { for (let ty = Math.floor(y / T); ty <= Math.floor((y + P.h - 1) / T); ty++) for (let tx = Math.floor(x / T); tx <= Math.floor((x + P.w - 1) / T); tx++) if (solid(tx, ty)) return true; return false; };
-    if (hit(nx, ny)) { R.th = th0; R.ph = Math.PI - R.ph; nx = R.ax + Math.sin(R.th) * R.r - P.w / 2; ny = R.ay + Math.cos(R.th) * R.r - 3; }
+    if (hit(nx, ny)) { R.th = th0; R.om = -R.om * 0.4; nx = R.ax + Math.sin(R.th) * R.r - P.w / 2; ny = R.ay + Math.cos(R.th) * R.r - 3; }
     P.x = nx; P.y = ny; P.vx = 0; P.vy = 0; P.coyote = 0; P.cuttable = false; P.anim += 0.05;
     if (frame % 40 === 0) AudioSys.noise(0.08, { filter: 'bandpass', freq: 700, vol: 0.03 });
     return true;
@@ -12468,9 +12488,11 @@ function s2BoxHit(box) {   /* 1 = a stomp from above, -1 = bumped into it, 0 = n
 /* ---- THE GIANT MOLE ---- */
 function s2MoleBox(B) { const h = B.hole; return { x: h.x - 14, y: h.y - 18, w: 28, h: 18 }; }   /* his head and hard hat, a generous stomp target */
 function s2MoleTick(B) {
-  /* 2026-11-11 (the owner: "a little challenge, getting harder as you go"): each Season 2 world's popper is 5% quicker than the last */
+  /* 2026-11-11 (the owner: "a little challenge, getting harder as you go"): each Season 2 world's popper shakes his hole and
+     rests 5% quicker than the last. His time up (the stomp window) stays the same: shortening it too made World 15's fight
+     three times as long (2026-11-14 check: 80 s and a lost fight, against 25 s), not a little harder */
   const wq = 1 - 0.05 * Math.max(0, Math.min(3, ((L && L.levelWorld) | 0) - 12));
-  const ph = Math.min(3, B.hits), TELL = Math.round([50, 42, 36, 32][ph] * wq), UP = Math.round([118, 96, 80, 68][ph] * wq), REST = Math.round([40, 32, 26, 22][ph] * wq);   /* 4 stomps, quicker each time (Shad: "too easy") */
+  const ph = Math.min(3, B.hits), TELL = Math.round([50, 42, 36, 32][ph] * wq), UP = [118, 96, 80, 68][ph], REST = Math.round([40, 32, 26, 22][ph] * wq);   /* 4 stomps, quicker each time (Shad: "too easy") */
   for (const d of B.drops || []) {
     d.t++;
     if (!d.fall) { if (d.t >= 44) d.fall = true; else if (d.t % 6 === 0) part(d.x + rand(-3, 3), d.y + 2, { vx: 0, vy: 0.8, life: 22, size: 1, color: '#c9a27a', g: 0.05 }); continue; }
@@ -19389,7 +19411,10 @@ function drawTwists() {   /* in the level, before the foes and Kinan */
 function drawRoller(m, x, y) {   /* World 9's rollers: the roof of a horse carriage, the seat of an office chair, the deck of a scooter */
   const dir = m.dir || 1, w = m.w, step = Math.floor(L.tw.t / 8) % 2;
   if (m.look === 'carriage') {
-    const fy = Math.min(y + 44, groundRowAt(twCol(m.x + w / 2)) * T);
+    /* its wheels stand on the street UNDER its roof (Shad 2026-11-14: bump a gift block from the roof and the wheels and the
+       horse jumped up onto the blocks: the search took the first solid tile from the top of the screen, the bumped block) */
+    const tc = twCol(m.x + w / 2); let gr = Math.floor(m.y / T) + 1; while (gr < ROWS && !solid(tc, gr)) gr++;
+    const fy = Math.min(y + 44, gr * T);
     ctx.fillStyle = '#1f2026'; ctx.fillRect(x - 1, y, w + 2, 3); ctx.fillStyle = '#c9a24a'; ctx.fillRect(x, y + 3, w, 1);   /* the roof, gold trim */
     ctx.fillStyle = '#2f4a3a'; ctx.fillRect(x + 2, y + 4, w - 4, Math.max(6, fy - y - 12));   /* the green body */
     ctx.fillStyle = '#cfe3ee'; ctx.fillRect(x + 6, y + 7, 7, 6); ctx.fillRect(x + w - 13, y + 7, 7, 6);   /* windows */
@@ -19653,7 +19678,8 @@ function drawTwists9(cx, k0, k1) {   /* World 9: zip lines (TYROLIENNE), escalat
   for (const z of tw.zips || []) {
     const ax = z.x0 - cx, bx = z.x1 - cx; if (Math.max(ax, bx) < -20 || Math.min(ax, bx) > W + 20) continue;
     for (const [px, py] of [[ax, z.y0], [bx, z.y1]]) {   /* the masts */
-      const gy = groundRowAt(twCol(px + cx)) * T, top = py - 8;
+      const top = py - 8, mc = twCol(px + cx); let gr = Math.max(0, Math.floor(py / T) + 1); while (gr < ROWS && !solid(mc, gr)) gr++;   /* (the ground under the mast, not a block above it) */
+      const gy = gr * T;
       ctx.fillStyle = '#5a5f6a'; ctx.fillRect(px - 1, top, 3, Math.max(0, gy - top)); ctx.fillStyle = '#9aa1ab'; ctx.fillRect(px - 1, top, 1, Math.max(0, gy - top));
       ctx.fillStyle = '#e8364b'; ctx.fillRect(px - 3, top - 2, 7, 3);
     }
@@ -25620,7 +25646,7 @@ function drawSmashNow() {
 function endSmash() {
   if (smash) lastSmash = smash;
   smash = null;
-  el.stage.classList.remove('smashmode'); el.pad.classList.remove('smashpad');
+  el.stage.classList.remove('smashmode'); el.pad.classList.remove('smashpad'); s2RopePad(false);
   el.cnt.hidden = false; el.scoreEl.hidden = false;
   $('#restartBtn').textContent = 'Restart stage'; $('#restartBtn').hidden = false;
   $('#mapBtnP').textContent = 'Stage map';
@@ -29856,7 +29882,9 @@ window.__k11 = window.__k11DevOnly() ? {
   itemsAt: () => items.map((it) => ({ kind: it.kind, x: it.x, y: it.y, drop: it.drop || 0, got: !!it.got })),   /* Season 2 tests: the prizes out of gift blocks */
   s2Freeze: (on) => { if (L && L.s2) L.s2.freeze = !!on; return !!(L && L.s2 && L.s2.freeze); },
   s2: () => (L && L.s2 ? { bosses: L.s2.bosses.map((b) => ({ kind: b.kind, state: b.state, hits: b.hits, hole: b.hole, tideY: b.tideY, summitY: b.summitY, crab: b.crab ? { x: b.crab.x, w: b.crab.w, h: b.crab.h, st: b.crab.st } : null })), cps: L.s2.cps.map((c) => c.hit), goldGot: !!L.s2.goldGot, warps: L.s2.warps.map((w) => w.still), me: { slam: P.slam || null, warp: !!P.s2warp, climb: !!P.s2climb, ledge: !!P.s2ledge, swim: !!P.s2swim, kick: !!P.s2kick, inv: P.inv }, stats: L.s2.stats, locked: s2GoalLocked(), cleared: !!L.cleared } : null),
-  s2info: () => ({ crawl: !!P.s2crawl, rope: P.s2rope ? { th: P.s2rope.th, om: Math.cos(P.s2rope.ph || 0), ring: P.s2rope.ring, t: P.s2rope.t } : null, bar: !!P.s2bar, glide: !!P.s2glide, skate: !!P.s2skate, sk: P.s2sk || 0, dash: P.s2dash || 0,
+  ropeTune: (o) => Object.assign(S2_ROPE, o || {}),   /* dev: the real rope's numbers (S2_ROPE) */
+  s2info: () => ({ crawl: !!P.s2crawl, rope: P.s2rope ? { th: P.s2rope.th, om: P.s2rope.om, r: P.s2rope.r, len: P.s2rope.len, ring: P.s2rope.ring, t: P.s2rope.t } : null, bar: !!P.s2bar, glide: !!P.s2glide, skate: !!P.s2skate, sk: P.s2sk || 0, dash: P.s2dash || 0,
+    ropeMiss: L && L.s2 ? L.s2.ropeMiss : 0,
     ropes: L && L.s2 ? L.s2.ropes.map((R) => { const th = s2RopeAt(R), hx = P.x + P.w / 2 - R.ax, hy = P.y + 3 - R.ay; return { ax: R.ax, ay: R.ay, len: R.len, along: Math.round(hx * Math.sin(th) + hy * Math.cos(th)), off: Math.round(Math.abs(hx * Math.cos(th) - hy * Math.sin(th))) }; }) : [], ropeCd: P.s2ropeCd || 0, ph: P.h,
     treat: L && L.s2 ? L.s2.treat : null, climb: !!P.s2climb, swim: !!P.s2swim, falls: L ? L.falls || 0 : 0, hazards: L && L.s2 ? L.s2.hazards.map((Z) => [Z.x0, Z.x1]) : [],
     bosses: L && L.s2 ? L.s2.bosses.map((B) => ({ kind: B.kind, look: B.look, state: B.state, hits: B.hits, wallX: B.wallX, tideY: B.tideY, summitY: B.summitY,
@@ -30192,6 +30220,7 @@ window.__k11 = window.__k11DevOnly() ? {
     for (let k = 0; k < (n || 1); k++) {
       if (h.left !== undefined) input.left = !!h.left;
       if (h.right !== undefined) input.right = !!h.right;
+      if (h.up !== undefined) input.up = !!h.up;   /* (a rope: ↑ climbs) */
       if (h.jump !== undefined) input.jump = !!h.jump;
       if (h.fire !== undefined) input.fireHeld = !!h.fire;
       if (h.tapJump && k === 0) input.jumpBuf = 8;

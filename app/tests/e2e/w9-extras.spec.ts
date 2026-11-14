@@ -65,7 +65,7 @@ test.describe('D · the title counts the released worlds', () => {
     const errors = watchErrors(page);
     await page.goto(DEV_URL);
     await ready(page);
-    expect(RELEASED).toBe(11);   /* 2026-10-30 (v54): World 11 (Inside the Console) is released (it was 10) */
+    expect(RELEASED).toBe(15);   /* 2026-11-12: Season 2 (Worlds 12-15) is released (it was 11; 2026-10-30, v54: 11, it was 10) */
     await expect(page.locator('#saveNote')).toHaveText(`${RELEASED} worlds · 1 birthday · 4 cats · 2 dogs`);
     await expect(page.locator('#startBtn b')).toHaveText('PLAY · START');
     await expect(page.locator('h1.title .t2')).toHaveText('Birthday Remaster');

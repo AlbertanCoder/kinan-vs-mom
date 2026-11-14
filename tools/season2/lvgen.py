@@ -145,14 +145,37 @@ class Act:
         self.cand([[x + 4, 8], [x + 4, 5], [x + 9, 2], [x + 11, 2]]); self.foe(x + 12, r=2)
         self.c += 16
     @beat
-    def ropes(self, n=10):
-        n = min(n, 8); x = self.c; self.hazards.append([x, 13, x + n - 1, 14])
-        # 2026-11-11: 8 wide, the ropes 4 apart and the far bank 3 from the second rope: any let-go the way he faces lands
-        # (at 10 wide the play-through robot fell at the same rope five times in 13-1)
-        self.l_ropes.append([x + 1, 5, 6]); self.l_ropes.append([x + n - 3, 4, 6]);
-        # (they hang to just above the gap: an early jump still catches the end)
-        self.cand([[x + 1, 10], [x + n // 2, 7], [x + n - 3, 9]])
-        self.c += n
+    def ropes(self, n=10, practice=None):
+        """2026-11-14, the real rope (Shad: "too easy... not even a challenge"; his answers: wider gaps with the ropes farther
+        apart, chains of 3-4 ropes, ropes at different heights, a practice rope first). Kinan pumps the swing (◀ ▶), climbs
+        (▲ ▼) and lets go with the swing. Measured throws (the rope lab): a small swing carries him ~4 tiles past the peg, a
+        35-degree one ~7, a big one with a good let-go 8-10. So: the first rope of a level's first rope gap in 13-1 is a
+        practice rope over a soft pit (a miss puts him back on the bank, no heart); after it the gaps grow through Japan:
+        2 ropes 5 apart, then 3 ropes 6 apart (some higher or lower), then 3-4 ropes 7 apart. The ropes of Worlds 14-15 are
+        the hardest kind. `n` is ignored (the old width)."""
+        L = self.L; L.rope_n = getattr(L, 'rope_n', 0) + 1
+        rd = 1.0 if L.W['n'] != 13 else max(0.0, min(1.0, (L.tier - 0.25) / 0.24))   # 0 at 13-1, 1 at 13-castle
+        rd = min(rd, getattr(L, 'rope_rd_max', 1.0))
+        if practice is None: practice = L.id == '13-1' and L.rope_n == 1
+        x = self.c; lead = 2
+        if practice: k, sp, tail = 1, 0, 4
+        else:
+            k = 2 if rd < 0.3 else 3 if rd < 0.7 else 4
+            if k > 2 and self.rand.random() < 0.35: k -= 1   # (a mix: not every gap the longest chain)
+            sp = 5 + int(round(2 * rd)); tail = 4 + (1 if rd >= 0.5 else 0)
+        while k > 2 and lead + (k - 1) * sp + tail > 26: k -= 1   # (never a whole screen of pit: 27 columns)
+        w = lead + (k - 1) * sp + tail
+        self.hazards.append([x, 13, x + w - 1, 14] + (['soft'] if practice else []))
+        for i in range(k):
+            c = x + lead + i * sp
+            if i == 0 or rd < 0.35: row, ln = 4, 7               # hangs to just above the pit: a jump off the bank catches it
+            else:
+                row = 4 + self.rand.choice([-1, 0, 1]); ln = 11 - row - self.rand.choice([0, 1, 2])   # its end at row 9, 10 or 11
+            self.l_ropes.append([c, row, ln])
+            self.cand([[c, row + ln + 1]] if i == 0 else [[c - sp // 2, 8]])   # under the first rope's end; between the ropes
+            if i == k - 1 and rd >= 0.2: self.cand([[c, row + 2]])             # high on the last rope: climb up for it
+        self.cand([[x + w - 2, 9]])
+        self.c += w
     @beat
     def bars(self, n=10):
         x = self.c; self.hazards.append([x, 13, x + n - 1, 14]); self.l_bars.append([x - 1, x + n, 8])
@@ -297,7 +320,7 @@ class Level:
         for sc in range(0, total, 27):
             if any(c in toys for c in range(sc, min(total, sc + 27))): continue
             # (never in or beside a tower, a wall or a ladder: 2026-11-11, a gift next to the glide tower blocked its climb)
-            free = lambda c, a, b0: not any(r[0] - 3 <= c - b0 <= r[2] + 3 and r[1] <= 9 for r in a.solid) and not any(abs(l[0] - (c - b0)) <= 3 for l in a.ladders + a.vines)
+            free = lambda c, a, b0: not any(r[0] - 3 <= c - b0 <= r[2] + 3 and r[1] <= 9 for r in a.solid) and not any(abs(l[0] - (c - b0)) <= 3 for l in a.ladders + a.vines) and not any(abs(r[0] - (c - b0)) <= 7 for r in a.l_ropes)   # (nor in a rope's swing)
             cands = sorted([(c, a) for (c, a) in ground if sc <= c < sc + 27 and free(c, a, sum(x.c for x in self.acts[:self.acts.index(a)]))], key=lambda t: abs(t[0] - (sc + 13)))
             if not cands:   # (a short last screen beside a wall: anywhere not inside a solid)
                 cands = sorted([(c, a) for (c, a) in ground if sc <= c < sc + 27 and not any(r[0] <= c - sum(x.c for x in self.acts[:self.acts.index(a)]) <= r[2] and r[1] <= 8 <= r[3] for r in a.solid)], key=lambda t: abs(t[0] - (sc + 13)))

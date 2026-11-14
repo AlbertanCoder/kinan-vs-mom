@@ -304,3 +304,28 @@ The mine stays **dark** (the lit arena was wrong).
   - Offline cache **v83**; every Season 2 level and map is precached (249 files, 15.17 MB). Tests:
     `season2-main-game.spec.ts` (new), and the World 11 / 3D / map specs moved to the bonus; `tools/s2-sweep.mjs` plays the
     44 levels in the normal game. Dev: `__k11.bonus3dFull(true)` opens all of 3D Saskatoon and its memory gallery.
+- 2026-11-14: **Shad's check of the live game, and the real rope.**
+  - **The Old Montreal carriage (9-1):** standing on its roof and bumping a gift block above made the carriage's wheels
+    and horse jump up onto the blocks (the drawing looked for the first solid tile from the top of the screen, the bumped
+    block). Now they stand on the street under the roof. The same fix for World 9's zip-line masts.
+  - **The real rope (Japan; Shad: "too easy, not even a challenge... make it feel like real rope"; his answers: pump it,
+    up and down changes the swing, let go with the swing, wider gaps / chains of 3-4 ropes / ropes at different heights,
+    rings the same but a bit easier, Sabumnim's tip and a practice rope).** A pendulum (`S2_ROPE`): the rope hangs still;
+    ◀ ▶ pressed the way he swings pumps it (in time: a big swing in ~4.5 s; holding ▶ alone: ~8 s); ▲ climbs (a smaller,
+    quicker swing), ▼ slides down (a wider swing that throws farther; at the very end ▼ drops off); JUMP lets go and he
+    flies the way the rope is moving, as fast as it moves (the back swing throws him backwards). Measured throws: a small
+    swing ~4 tiles past the peg, a big one with a good let-go 8-10. Phones show ▲ ▼ beside ◀ ▶ only while he holds a rope;
+    on a keyboard ↑ / W climb on a rope (Space lets go). A rope catches him within a hand's reach (the old 2.5-tile catch
+    made every gap easy), and the 2026-11-12 aimed let-go is gone.
+    Rope gaps grow through Japan: 13-1's first rope is a **practice rope over a soft pit** (a miss puts him back on the
+    bank, no heart); then 2 ropes 5 apart; mid-Japan 3 ropes 6 apart, some hanging higher or lower; late 3-4 ropes 7 apart
+    (a chain never fills a whole screen); France's ropes are the late kind; the Mount Fuji avalanche keeps the early kind.
+    After the 3rd miss at a rope gap Glitchy says how (recorded); Sabumnim's lesson now says it too (re-recorded).
+    Rings: the same swing, no climbing, pumping half again as strong, the hook starts the swing.
+    Checked: a good player (pumps in time, lets go on the way forward) crosses every rope and ring gap; a kid letting go
+    at random moments gets across about half the time early in Japan and rarely in the late chains (timing is the skill);
+    the play-through robot (slides down, pumps, lets go forward) clears every level of Worlds 13 and 15.
+  - **Fort bosses:** each world's popper is quicker to shake and rest, but his time up (the stomp window) no longer shrinks:
+    World 15's fight took 80 s and was sometimes lost; now about 20 s (India) to 30 s (France).
+  - Also: the 3D bonus page has a tab icon (its missing icon was a "file not found" that failed 26 browser tests), and the
+    tests that still expected 11 worlds, the World 11 trail without its bonus stop, and the old 7-6 frame budget.
