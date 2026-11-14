@@ -323,7 +323,7 @@ The mine stays **dark** (the lit arena was wrong).
     After the 3rd miss at a rope gap Glitchy says how (recorded); Sabumnim's lesson now says it too (re-recorded).
     Rings: the same swing, no climbing, pumping half again as strong, the hook starts the swing.
     Checked: a good player (pumps in time, lets go on the way forward) crosses every rope and ring gap; a kid letting go
-    at random moments gets across about half the time early in Japan and rarely in the late chains (timing is the skill);
+    at random moments gets across 1 time in 4 to 1 in 2 early in Japan and rarely in the late chains (timing is the skill);
     the play-through robot (slides down, pumps, lets go forward) clears every level of Worlds 13 and 15.
   - **Fort bosses:** each world's popper is quicker to shake and rest, but his time up (the stomp window) no longer shrinks:
     World 15's fight took 80 s and was sometimes lost; now about 20 s (India) to 30 s (France).

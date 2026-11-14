@@ -288,6 +288,7 @@ test.describe("World 11 · Glitchy's Last Stand", () => {
       let a = k.arenaInfo();
       for (let n = 0; n < 3000 && a.state !== 'fight'; n++) { if (a.beltWait) k.cutSkip(); a = k.arenaBot(1); }
       const r0 = a.log.filter((e) => e.ev === 'reset').length;
+      k.storyStop();   /* (2026-11-14: a castle line's recorded voice plays in real time; the fast-stepped test would queue the tip behind it) */
       for (let n = 0; n < 5000 && k.arenaInfo().log.filter((e) => e.ev === 'reset').length === r0; n++) {
         const b = k.arenaInfo();
         if (b.state === 'fight' && !b.dead) { k.arenaSetHp(1); k.place(b.boss.x + 4, b.floorY - 16); }
