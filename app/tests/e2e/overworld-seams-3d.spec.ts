@@ -115,7 +115,9 @@ test.describe('the map seams: one journey across the worlds', () => {
   test('a 3D stop opens its 3D level (pets along); the clear is saved and BACK TO THE MAP lands on the 3D map with the next stop open', async ({ page }) => {
     test.setTimeout(240_000);   /* software WebGL (headless, 2x pixels on the tablet project) draws the 3D map slowly */
     const errors = watchErrors(page);
-    await standOn(page, { w: 11, at: 11, b: 0 }, { pets: { ids: ['cat2', 'dog1'], names: {}, equippedCat: 'cat2', equippedDog: 'dog1' } });
+    /* (2026-11-14: the intro, the belt and the endings marked seen, as a real save that far would have them: otherwise the game's
+       opening cutscene plays over the map and covers PLAY) */
+    await standOn(page, { w: 11, at: 11, b: 0 }, { introSeen: true, beltSeen: 11, blackBelt: true, endingSeen: true, pets: { ids: ['cat2', 'dog1'], names: {}, equippedCat: 'cat2', equippedDog: 'dog1' } });
     await openMap(page);
     await page.waitForFunction(() => { const s = (window as unknown as Win).__k11.mapState(); return s.three && s.threeReady; }, null, { timeout: 90_000 });
     await page.locator('#owPlay').click();   /* PLAY works as soon as the 3D map is ready (the fly-in may still run) */
