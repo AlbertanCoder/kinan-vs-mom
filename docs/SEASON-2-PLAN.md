@@ -326,6 +326,6 @@ The mine stays **dark** (the lit arena was wrong).
     at random moments gets across 1 time in 4 to 1 in 2 early in Japan and rarely in the late chains (timing is the skill);
     the play-through robot (slides down, pumps, lets go forward) clears every level of Worlds 13 and 15.
   - **Fort bosses:** each world's popper is quicker to shake and rest, but his time up (the stomp window) no longer shrinks:
-    World 15's fight took 80 s and was sometimes lost; now about 20 s (India) to 30 s (France).
+    World 15's fight took 80 s and was sometimes lost; now about 20-30 s in every world, every fight won (8 fights each, a simple robot).
   - Also: the 3D bonus page has a tab icon (its missing icon was a "file not found" that failed 26 browser tests), and the
     tests that still expected 11 worlds, the World 11 trail without its bonus stop, and the old 7-6 frame budget.
